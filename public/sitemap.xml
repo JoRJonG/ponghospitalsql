@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>/</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>/announcements</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>/activities</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>/management</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+</urlset>

@@ -1,0 +1,35 @@
+services:
+  app:
+    container_name: pong-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ponghospital-app:latest
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "5000:5000"
+    networks:
+      - pong-net
+    # volumes:
+    #   - /path/on/host/ssl:/app/ssl:ro  # mount SSL certs if enabling HTTPS
+    # If you serve static from dist via Express, nothing else needed.
+    # Otherwise, you can front this with an external Nginx/ALB.
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: pong-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - pong-net
+
+networks:
+  pong-net:
+    external: true

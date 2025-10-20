@@ -1,0 +1,66 @@
+import { createServer } from './app_mysql.js'
+import https from 'https'
+import http from 'http'
+import fs from 'fs'
+import path from 'path'
+
+const PORT = process.env.PORT || 5000
+const HTTPS_PORT = process.env.HTTPS_PORT || 5443
+const USE_HTTPS = process.env.USE_HTTPS === 'true'
+
+async function start() {
+  const { app, connectDb } = await createServer()
+  await connectDb()
+
+  if (USE_HTTPS) {
+    // Check for SSL certificates
+    const sslKeyPath = process.env.SSL_KEY_PATH || path.join(process.cwd(), 'ssl', 'key.pem')
+    const sslCertPath = process.env.SSL_CERT_PATH || path.join(process.cwd(), 'ssl', 'cert.pem')
+
+    if (fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath)) {
+      const sslOptions = {
+        key: fs.readFileSync(sslKeyPath),
+        cert: fs.readFileSync(sslCertPath)
+      }
+
+      const httpsServer = https.createServer(sslOptions, app)
+      httpsServer.listen(HTTPS_PORT, () => {
+        console.log(`🔒 HTTPS server listening on https://localhost:${HTTPS_PORT}`)
+      })
+
+      // Also start an HTTP server that redirects to HTTPS
+      const redirectServer = http.createServer((req, res) => {
+        const hostHeader = req.headers.host || `localhost:${PORT}`
+        const [hostOnly] = hostHeader.split(':')
+        const httpsPort = String(HTTPS_PORT)
+        const portPart = httpsPort === '443' ? '' : `:${httpsPort}`
+        const location = `https://${hostOnly}${portPart}${req.url || ''}`
+        res.statusCode = 301
+        res.setHeader('Location', location)
+        res.end()
+      })
+      redirectServer.listen(PORT, () => {
+        console.log(`➡️  HTTP redirect server on http://localhost:${PORT} -> https://localhost:${HTTPS_PORT}`)
+      })
+    } else {
+      console.warn('⚠️  SSL certificates not found, falling back to HTTP')
+      app.listen(PORT, () => console.log(`🌐 HTTP server listening on http://localhost:${PORT}`))
+    }
+  } else {
+    app.listen(PORT, () => console.log(`🌐 HTTP server listening on http://localhost:${PORT}`))
+  }
+}
+
+// Local start
+if (process.env.VERCEL !== '1') {
+  start()
+}
+
+// For Vercel serverless
+export default async function handler(req, res) {
+  const { app, connectDb } = await createServer()
+  if (!app.locals.dbConnected) {
+    await connectDb()
+  }
+  app(req, res)
+}
