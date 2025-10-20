@@ -123,7 +123,7 @@ export default function AnnouncementDetailPage() {
           <div className="text-sm text-gray-500 flex items-center gap-2">
             <span className="badge blue">{item.category}</span>
             <span>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : ''}</span>
-            {item.viewCount !== undefined && <span>👁️ {item.viewCount} ครั้ง</span>}
+            {item.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs" aria-hidden="true"></i> {item.viewCount} ครั้ง</span>}
           </div>
           <h2 className="text-xl font-semibold">{item.title}</h2>
           {item.content && (
