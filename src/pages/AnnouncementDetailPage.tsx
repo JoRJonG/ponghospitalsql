@@ -11,6 +11,7 @@ type Announcement = {
   content?: string
   publishedAt?: string
   attachments?: Attachment[]
+  viewCount?: number
 }
 
 // ===== Download helpers (module scope so all components can use) =====
@@ -82,7 +83,11 @@ export default function AnnouncementDetailPage() {
     if (!id) return
     setItem(null); setError(null)
     fastFetch<Announcement>(`/api/announcements/${id}`, { ttlMs: 60_000, retries: 1 })
-      .then((data) => setItem(data))
+      .then((data) => {
+        setItem(data)
+        // Increment view count
+        fetch(`/api/announcements/${id}/view`, { method: 'POST' }).catch(console.error)
+      })
       .catch((e) => setError(e?.message || 'เกิดข้อผิดพลาด'))
   }, [id])
 
@@ -110,6 +115,7 @@ export default function AnnouncementDetailPage() {
           <div className="text-sm text-gray-500 flex items-center gap-2">
             <span className="badge blue">{item.category}</span>
             <span>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : ''}</span>
+            {item.viewCount !== undefined && <span>👁️ {item.viewCount} ครั้ง</span>}
           </div>
           <h2 className="text-xl font-semibold">{item.title}</h2>
           {item.content && (

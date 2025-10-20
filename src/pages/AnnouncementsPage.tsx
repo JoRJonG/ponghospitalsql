@@ -16,6 +16,7 @@ type Announcement = {
   category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ'
   content?: string
   publishedAt?: string
+  viewCount?: number
 }
 
 // Simple in-memory cache per category/all to speed up tab switching
@@ -263,6 +264,7 @@ function List({ category }: { category?: Announcement['category'] }) {
             <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2 mb-1">
               <span className="badge blue">{a.category}</span>
               <span>{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
+              {a.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>}
               {isNew(a) && (
                 <span className="chip-new">
                   <span className="dot-pulse">

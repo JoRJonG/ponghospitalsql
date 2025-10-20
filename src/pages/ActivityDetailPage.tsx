@@ -10,6 +10,7 @@ type Activity = {
   description?: string
   images?: Array<string | { url: string; publicId?: string }>
   date?: string
+  viewCount?: number
 }
 
 export default function ActivityDetailPage() {
@@ -31,7 +32,11 @@ export default function ActivityDetailPage() {
     setError(null)
     setItem(null)
     fastFetch<Activity>(`/api/activities/${id}`, { ttlMs: 60_000, retries: 1 })
-      .then((data) => setItem(data))
+      .then((data) => {
+        setItem(data)
+        // Increment view count
+        fetch(`/api/activities/${id}/view`, { method: 'POST' }).catch(console.error)
+      })
       .catch((e) => setError(e?.message || 'เกิดข้อผิดพลาด'))
   }, [id])
 
@@ -96,7 +101,10 @@ export default function ActivityDetailPage() {
       {item && (
         <article className="space-y-4">
           <h2 className="text-xl font-semibold">{item.title}</h2>
-          {item.date && <div className="text-gray-500">{new Date(item.date).toLocaleDateString()}</div>}
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            {item.date && <div>{new Date(item.date).toLocaleDateString()}</div>}
+            {item.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye"></i> {item.viewCount} ครั้ง</div>}
+          </div>
           {item.description && (
             <div className="prose max-w-none" dangerouslySetInnerHTML={sanitize(item.description)} />
           )}

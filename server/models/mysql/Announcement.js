@@ -12,10 +12,11 @@ function formatDateForMySQL(date) {
 export class Announcement {
   static async findById(id) {
     const rows = await query(`
-      SELECT a.id as _id, a.title, a.category_name, a.category_code, 
-             a.content, a.published_at, a.is_published, a.created_by, 
-             a.updated_by, a.created_at, a.updated_at
-      FROM announcement_details a
+      SELECT a.id as _id, a.title, c.display_name as category_name, c.name as category_code,
+             a.content, a.published_at, a.is_published, a.created_by,
+             a.updated_by, a.created_at, a.updated_at, a.view_count
+      FROM announcements a
+      JOIN announcement_categories c ON a.category_id = c.id
       WHERE a.id = ?
     `, [id])
     
@@ -50,8 +51,17 @@ export class Announcement {
       updatedBy: announcement.updated_by,
       createdAt: announcement.created_at,
       updatedAt: announcement.updated_at,
+      viewCount: announcement.view_count,
       attachments: attachmentsWithUrl
     }
+  }
+
+  static async incrementViewCount(id) {
+    await query(`
+      UPDATE announcements 
+      SET view_count = view_count + 1 
+      WHERE id = ?
+    `, [id])
   }
 
   static async find(filter = {}, options = {}) {
@@ -100,7 +110,7 @@ export class Announcement {
     
     if (filter.category) {
       // รองรับทั้ง category_code และ category_name (display_name)
-      whereClause += ' AND (a.category_code = ? OR a.category_name = ?)'
+      whereClause += ' AND (c.name = ? OR c.display_name = ?)'
       params.push(filter.category, filter.category)
     }
     
@@ -139,10 +149,11 @@ export class Announcement {
     }
 
     const rows = await query(`
-      SELECT a.id as _id, a.title, a.category_name, a.category_code as category, 
-             a.content, a.published_at, a.is_published, a.created_by, 
-             a.updated_by, a.created_at, a.updated_at
-      FROM announcement_details a
+      SELECT a.id as _id, a.title, c.display_name as category_name, c.name as category_code,
+             a.content, a.published_at, a.is_published, a.created_by,
+             a.updated_by, a.created_at, a.updated_at, a.view_count
+      FROM announcements a
+      JOIN announcement_categories c ON a.category_id = c.id
       ${whereClause}
       ${orderClause}
       ${limitClause}
@@ -173,6 +184,7 @@ export class Announcement {
       announcement.updatedBy = announcement.updated_by
       announcement.createdAt = announcement.created_at
       announcement.updatedAt = announcement.updated_at
+      announcement.viewCount = announcement.view_count
       delete announcement.category_name
       delete announcement.category_code
       delete announcement.published_at
@@ -181,6 +193,7 @@ export class Announcement {
       delete announcement.updated_by
       delete announcement.created_at
       delete announcement.updated_at
+      delete announcement.view_count
     }
 
     return rows

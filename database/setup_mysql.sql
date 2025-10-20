@@ -43,7 +43,7 @@ CREATE TABLE announcements (
 
 -- 6. สร้าง View สำหรับ Announcements
 CREATE VIEW announcement_details AS
-SELECT 
+SELECT
     a.id,
     a.title,
     c.display_name as category_name,
@@ -54,7 +54,8 @@ SELECT
     a.created_by,
     a.updated_by,
     a.created_at,
-    a.updated_at
+    a.updated_at,
+    a.view_count
 FROM announcements a
 JOIN announcement_categories c ON a.category_id = c.id;
 

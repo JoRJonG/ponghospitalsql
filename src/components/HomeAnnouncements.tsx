@@ -14,6 +14,7 @@ export type Announcement = {
   category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ'
   content?: string
   publishedAt?: string
+  viewCount?: number
 }
 
 const categoryToPath: Record<Announcement['category'], string> = {
@@ -127,6 +128,7 @@ export default function HomeAnnouncements({ limit = 5, embedded = false }: { lim
                   <div className="flex items-center gap-2 text-sm mb-1">
                     <span className="badge blue">{a.category}</span>
                     <span className="text-gray-500">{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
+                    {a.viewCount !== undefined && a.viewCount > 0 && <span className="text-xs bg-gray-100 px-2 py-1 rounded-full ml-2 flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>}
                     {isNew(a) && (
                       <span className="chip-new">
                         <span className="dot-pulse">
@@ -223,6 +225,7 @@ export default function HomeAnnouncements({ limit = 5, embedded = false }: { lim
                   <div className="flex items-center gap-2 text-sm mb-1">
                     <span className="badge blue">{a.category}</span>
                     <span className="text-gray-500">{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
+                    {a.viewCount !== undefined && a.viewCount > 0 && <span className="text-xs bg-gray-100 px-2 py-1 rounded-full ml-2 flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>}
                     {isNew(a) && (
                       <span className="chip-new">
                         <span className="dot-pulse">

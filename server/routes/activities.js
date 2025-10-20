@@ -6,6 +6,7 @@ import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { fileTypeFromBuffer } from 'file-type'
 import { decodeUploadFilename } from '../utils/filename.js'
+import { viewCache, VIEW_COOLDOWN_MS } from '../utils/viewCache.js'
 
 const router = Router()
 
@@ -77,6 +78,40 @@ router.get('/:id', microCache(60_000), async (req, res) => {
       return res.status(403).json({ error: 'Permission denied to read activities', code: 'MONGO_PERMISSION_DENIED' })
     }
     res.status(400).json({ error: 'Invalid ID' })
+  }
+})
+
+// Increment view count
+router.post('/:id/view', async (req, res) => {
+  if (!req.app.locals.dbConnected) {
+    return res.status(503).json({ error: 'Database unavailable' })
+  }
+
+  // Professional: Trust proxy for real IP, fallback to remoteAddress
+  const activityId = req.params.id
+  let clientIP = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress || 'unknown'
+  if (Array.isArray(clientIP)) clientIP = clientIP[0]
+  // Normalize IPv6 localhost
+  if (clientIP === '::1') clientIP = '127.0.0.1'
+  const cacheKey = `${clientIP}:${activityId}`
+  const now = Date.now()
+
+  // Check if this IP has viewed this content recently
+  const lastViewTime = viewCache.get(cacheKey)
+  if (lastViewTime && (now - lastViewTime) < VIEW_COOLDOWN_MS) {
+    return res.json({ success: true, counted: false })
+  }
+
+  // Optimistically reserve this slot to avoid race conditions from double triggers
+  viewCache.set(cacheKey, now)
+
+  try {
+    await Activity.incrementViewCount(activityId)
+    res.json({ success: true, counted: true })
+  } catch (e) {
+    console.error('[activities] POST /:id/view error:', e?.message)
+    viewCache.delete(cacheKey)
+    res.status(500).json({ error: 'Failed to increment view count', details: e?.message })
   }
 })
 

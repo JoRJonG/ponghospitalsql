@@ -14,6 +14,7 @@ type Activity = {
   publishedAt?: string
   createdAt?: string
   updatedAt?: string
+  viewCount?: number
 }
 
 export default function ActivitiesListPage() {
@@ -191,7 +192,10 @@ export default function ActivitiesListPage() {
                     />
                     <div className="flex-1 min-w-0 py-1">
                       <div className="font-semibold text-gray-900 line-clamp-2">{a.title}</div>
-                      {a.date && <div className="text-xs text-gray-600 mt-1">{new Date(a.date).toLocaleDateString()}</div>}
+                      <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                        {a.date && <div>{new Date(a.date).toLocaleDateString()}</div>}
+                        {a.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</div>}
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -219,7 +223,10 @@ export default function ActivitiesListPage() {
                     />
                     <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent text-white text-sm">
                       <div className="font-semibold line-clamp-2">{a.title}</div>
-                      {a.date && <div className="opacity-80">{new Date(a.date).toLocaleDateString()}</div>}
+                      <div className="flex items-center gap-2 opacity-80">
+                        {a.date && <div>{new Date(a.date).toLocaleDateString()}</div>}
+                        {a.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</div>}
+                      </div>
                     </div>
                   </div>
                 </Link>

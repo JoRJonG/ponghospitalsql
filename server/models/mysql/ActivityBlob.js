@@ -13,7 +13,7 @@ export class Activity {
   static async findById(id) {
     const rows = await query(`
       SELECT id as _id, title, description, date, published_at, is_published, 
-             created_by, updated_by, created_at, updated_at
+             created_by, updated_by, created_at, updated_at, view_count
       FROM activities WHERE id = ?
     `, [id])
     
@@ -40,6 +40,7 @@ export class Activity {
       updatedBy: activity.updated_by,
       createdAt: activity.created_at,
       updatedAt: activity.updated_at,
+      viewCount: activity.view_count,
       images: images.map(img => ({
         _id: img.id,
         url: `/api/images/activities/${id}/${img.id}`,
@@ -48,6 +49,14 @@ export class Activity {
         size: img.file_size
       }))
     }
+  }
+
+  static async incrementViewCount(id) {
+    await query(`
+      UPDATE activities 
+      SET view_count = view_count + 1 
+      WHERE id = ?
+    `, [id])
   }
 
   static async find(filter = {}, options = {}) {
@@ -132,7 +141,7 @@ export class Activity {
 
     const rows = await query(`
       SELECT id as _id, title, description, date, published_at, is_published, 
-             created_by, updated_by, created_at, updated_at
+             created_by, updated_by, created_at, updated_at, view_count
       FROM activities
       ${whereClause}
       ${orderClause}
@@ -162,12 +171,14 @@ export class Activity {
       activity.updatedBy = activity.updated_by
       activity.createdAt = activity.created_at
       activity.updatedAt = activity.updated_at
+      activity.viewCount = activity.view_count
       delete activity.published_at
       delete activity.is_published
       delete activity.created_by
       delete activity.updated_by
       delete activity.created_at
       delete activity.updated_at
+      delete activity.view_count
     }
 
     return rows

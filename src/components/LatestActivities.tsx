@@ -15,6 +15,7 @@ type Activity = {
   publishedAt?: string
   createdAt?: string
   updatedAt?: string
+  viewCount?: number
 }
 
 export default function LatestActivities({ limit = 6, embedded = false }: { limit?: number, embedded?: boolean }) {
@@ -94,7 +95,15 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                   />
                   <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent text-white text-sm">
                     <div className="font-semibold line-clamp-2">{a.title}</div>
-                    {a.date && <div className="opacity-80">{new Date(a.date).toLocaleDateString()}</div>}
+                    <div className="flex items-center justify-between">
+                      {a.date && <div className="opacity-80">{new Date(a.date).toLocaleDateString()}</div>}
+                      {a.viewCount !== undefined && a.viewCount > 0 && (
+                        <div className="bg-black/60 px-2 py-1 rounded-full text-xs flex items-center gap-1 font-medium">
+                          <i className="fas fa-eye text-xs"></i>
+                          {a.viewCount}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>
