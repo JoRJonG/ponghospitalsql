@@ -85,8 +85,16 @@ export default function AnnouncementDetailPage() {
     fastFetch<Announcement>(`/api/announcements/${id}`, { ttlMs: 60_000, retries: 1 })
       .then((data) => {
         setItem(data)
-        // Increment view count
-        fetch(`/api/announcements/${id}/view`, { method: 'POST' }).catch(console.error)
+        // Increment view count: prefer navigator.sendBeacon, fallback to fetch with keepalive
+        try {
+          const url = `/api/announcements/${id}/view`
+          const body = ''
+          if (navigator && (navigator as any).sendBeacon) {
+            try { (navigator as any).sendBeacon(url, body) } catch (e) { /* ignore */ }
+          } else {
+            fetch(url, { method: 'POST', keepalive: true }).catch(console.error)
+          }
+        } catch (e) { /* ignore */ }
       })
       .catch((e) => setError(e?.message || 'เกิดข้อผิดพลาด'))
   }, [id])
