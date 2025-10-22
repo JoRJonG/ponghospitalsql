@@ -3,7 +3,6 @@ import HeroSlider from '../components/HeroSlider'
 import HomeAnnouncements from '../components/HomeAnnouncements'
 import LatestActivities from '../components/LatestActivities'
 import UnitLinks from '../components/UnitLinks'
-import VisitorCounter from '../components/VisitorCounter'
 import { useRef } from 'react'
 import { useHomepageRefresh } from '../contexts/HomepageRefreshContext'
 
@@ -60,10 +59,6 @@ export default function HomePage() {
 
           <div className="mt-8">
             <UnitLinks embedded={true} />
-          </div>
-
-          <div className="mt-8">
-            <VisitorCounter />
           </div>
         </div>
       </section>

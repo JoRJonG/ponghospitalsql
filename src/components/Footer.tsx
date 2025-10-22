@@ -1,3 +1,5 @@
+import VisitorCounter from './VisitorCounter'
+
 export default function Footer() {
   return (
     <footer className="mt-16 border-t border-gray-200/60 bg-gradient-to-br from-gray-50 to-gray-100">
@@ -112,6 +114,11 @@ export default function Footer() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Visitor Counter */}
+        <div className="border-t border-gray-200/60 mt-8 pt-8">
+          <VisitorCounter />
         </div>
 
         <div className="border-t border-gray-200/60 mt-8 pt-8 text-center">

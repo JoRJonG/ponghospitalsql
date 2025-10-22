@@ -66,27 +66,34 @@ const VisitorCounter: React.FC = () => {
   }
 
   return (
-    <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg p-4 border border-slate-200 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-lg">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-400" />
+
+      <div className="relative flex flex-col gap-6 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-inner">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z M5.5 19.5C5.5 16.462 8.186 14 11.5 14h1c3.314 0 6 2.462 6 5.5 0 .276-.224.5-.5.5h-12c-.276 0-.5-.224-.5-.5z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-gray-900">สถิติผู้เข้าชมเว็บไซต์</h3>
-            <div className="flex items-baseline flex-wrap gap-x-4 gap-y-1 mt-1">
-              <div className="text-sm text-gray-500">
-                วันนี้ {formatNumber(stats.today)}
-              </div>
-            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-emerald-600/80">Website Insight</p>
+            <h3 className="mt-1 text-lg font-semibold text-slate-900">สถิติผู้เข้าชมเว็บไซต์</h3>
+            <p className="mt-1 text-sm text-slate-500">ข้อมูลอัปเดตอัตโนมัติจากระบบติดตามผู้เข้าชม</p>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-xs text-gray-500 uppercase tracking-wide">สถิติผู้เข้าชมเว็บไซต์หมด</div>
-          <div className="text-lg font-semibold text-gray-900 mt-1">
-            {formatNumber(stats.lifetimeTotal)}
+
+        <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-end sm:gap-10">
+          <div className="flex flex-1 flex-col gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">วันนี้</span>
+            <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.today)}</span>
+          </div>
+          <div className="hidden h-14 w-px rounded-full bg-gradient-to-b from-emerald-200 via-slate-200 to-teal-200 sm:block" />
+          <div className="flex flex-1 flex-col gap-1 text-left sm:text-right">
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ยอดสะสมทั้งหมด</span>
+            <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.lifetimeTotal)}</span>
+            <span className="text-[11px] uppercase tracking-widest text-slate-400">ตั้งแต่เริ่มเก็บข้อมูล</span>
           </div>
         </div>
       </div>
