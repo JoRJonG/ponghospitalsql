@@ -13,6 +13,24 @@ const router = Router()
 router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
   const { username, password } = req.body
   const allowEnvFallback = String(process.env.AUTH_ALLOW_ENV_FALLBACK).toLowerCase() === 'true'
+  const isProduction = process.env.NODE_ENV === 'production'
+
+  const sessionCookieOptions = {
+    httpOnly: true,
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+    path: '/',
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  }
+
+  const refreshCookieOptions = {
+    httpOnly: true,
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+    path: '/',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  }
+
   try {
     // If DB is connected, validate against users collection
     if (req.app.locals.dbConnected) {
@@ -28,20 +46,8 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
           const refreshToken = signRefreshToken({ sub: user._id.toString(), username: user.username, roles: user.roles })
           // Also set httpOnly cookie for stronger security (frontend can still use token if desired)
           try {
-            res.cookie('ph_token', token, {
-              httpOnly: true,
-              sameSite: 'none',
-              secure: true,
-              path: '/',
-              maxAge: 15 * 60 * 1000, // 15 minutes
-            })
-            res.cookie('ph_refresh_token', refreshToken, {
-              httpOnly: true,
-              sameSite: 'none',
-              secure: true,
-              path: '/',
-              maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-            })
+            res.cookie('ph_token', token, sessionCookieOptions)
+            res.cookie('ph_refresh_token', refreshToken, refreshCookieOptions)
           } catch {}
           return res.json({ token, user: { username: user.username, roles: user.roles }, source: 'db' })
         }
@@ -62,20 +68,8 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
       const token = signToken({ sub: 'admin', username, roles })
       const refreshToken = signRefreshToken({ sub: 'admin', username, roles })
       try {
-        res.cookie('ph_token', token, {
-          httpOnly: true,
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          maxAge: 15 * 60 * 1000, // 15 minutes
-        })
-        res.cookie('ph_refresh_token', refreshToken, {
-          httpOnly: true,
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === 'production',
-          path: '/',
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-        })
+        res.cookie('ph_token', token, sessionCookieOptions)
+        res.cookie('ph_refresh_token', refreshToken, refreshCookieOptions)
       } catch {}
       return res.json({ token, user: { username, roles }, source: 'env' })
     }
@@ -95,21 +89,25 @@ router.post('/refresh', requireRefreshToken, (req, res) => {
     const newToken = signToken({ sub: user.sub, username: user.username, roles: user.roles })
     const newRefreshToken = signRefreshToken({ sub: user.sub, username: user.username, roles: user.roles })
 
-    // Update cookies
-    res.cookie('ph_token', newToken, {
+    const isProduction = process.env.NODE_ENV === 'production'
+    const sessionCookieOptions = {
       httpOnly: true,
-      sameSite: 'none',
-      secure: true,
+      sameSite: isProduction ? 'none' : 'lax',
+      secure: isProduction,
       path: '/',
       maxAge: 15 * 60 * 1000, // 15 minutes
-    })
-    res.cookie('ph_refresh_token', newRefreshToken, {
+    }
+    const refreshCookieOptions = {
       httpOnly: true,
-      sameSite: 'none',
-      secure: true,
+      sameSite: isProduction ? 'none' : 'lax',
+      secure: isProduction,
       path: '/',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    })
+    }
+
+    // Update cookies
+    res.cookie('ph_token', newToken, sessionCookieOptions)
+    res.cookie('ph_refresh_token', newRefreshToken, refreshCookieOptions)
 
     return res.json({ token: newToken, user: { username: user.username, roles: user.roles } })
   } catch (e) {

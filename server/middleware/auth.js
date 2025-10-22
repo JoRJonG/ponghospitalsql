@@ -23,7 +23,12 @@ export function verifyRefreshToken(token) {
 
 export function requireRefreshToken(req, res, next) {
   try {
-    const refreshToken = req.cookies?.ph_refresh_token
+    let refreshToken = req.cookies?.ph_refresh_token
+    if (!refreshToken) {
+      const cookieHeader = req.headers?.cookie || ''
+      const match = cookieHeader.match(/(?:^|;\s*)ph_refresh_token=([^;]+)/)
+      if (match) refreshToken = decodeURIComponent(match[1])
+    }
     if (!refreshToken) return res.status(401).json({ error: 'No refresh token' })
 
     const decoded = verifyRefreshToken(refreshToken)
