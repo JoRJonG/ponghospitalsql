@@ -1,6 +1,7 @@
 // server/cronJobs.js
 import cron from 'node-cron'
 import { query, exec } from './database.js'
+import { Visitor } from './models/mysql/Visitor.js'
 
 // ฟังก์ชันลบประกาศเก่ากว่า 1 ปี
 async function deleteOldAnnouncements() {
@@ -27,5 +28,16 @@ async function deleteOldAnnouncements() {
 cron.schedule('0 0 * * *', deleteOldAnnouncements)
 
 console.log('[Cron] ระบบลบประกาศอัตโนมัติเริ่มทำงานแล้ว (รันทุกวัน 00:00)')
+
+// รันทุกวัน 00:30 เพื่อล้างข้อมูลผู้เข้าชมเก่า (เก็บไว้ 90 วัน)
+cron.schedule('30 0 * * *', async () => {
+  try {
+    await Visitor.cleanupOldVisits()
+    console.log('[Cron] ลบข้อมูลผู้เข้าชมเก่าที่เกิน 90 วันแล้ว')
+  } catch (error) {
+    console.error('[Cron] ลบข้อมูลผู้เข้าชมล้มเหลว:', error)
+  }
+})
+
 
 export default cron
