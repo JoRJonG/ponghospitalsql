@@ -84,7 +84,7 @@ const VisitorCounter: React.FC = () => {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xs text-gray-500 uppercase tracking-wide">ยอดสะสมทั้งหมด</div>
+          <div className="text-xs text-gray-500 uppercase tracking-wide">สถิติผู้เข้าชมเว็บไซต์หมด</div>
           <div className="text-lg font-semibold text-gray-900 mt-1">
             {formatNumber(stats.lifetimeTotal)}
           </div>
