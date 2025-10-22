@@ -14,7 +14,8 @@ export class Announcement {
     const rows = await query(`
       SELECT a.id as _id, a.title, c.display_name as category_name, c.name as category_code,
              a.content, a.published_at, a.is_published, a.created_by,
-             a.updated_by, a.created_at, a.updated_at, a.view_count
+             a.updated_by, a.created_at, a.updated_at,
+             COALESCE(a.view_count, 0) as view_count
       FROM announcements a
       JOIN announcement_categories c ON a.category_id = c.id
       WHERE a.id = ?
