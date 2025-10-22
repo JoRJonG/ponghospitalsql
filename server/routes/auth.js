@@ -30,15 +30,15 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
           try {
             res.cookie('ph_token', token, {
               httpOnly: true,
-              sameSite: 'lax',
-              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'none',
+              secure: true,
               path: '/',
               maxAge: 15 * 60 * 1000, // 15 minutes
             })
             res.cookie('ph_refresh_token', refreshToken, {
               httpOnly: true,
-              sameSite: 'lax',
-              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'none',
+              secure: true,
               path: '/',
               maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             })
@@ -98,15 +98,15 @@ router.post('/refresh', requireRefreshToken, (req, res) => {
     // Update cookies
     res.cookie('ph_token', newToken, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      secure: true,
       path: '/',
       maxAge: 15 * 60 * 1000, // 15 minutes
     })
     res.cookie('ph_refresh_token', newRefreshToken, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
+      secure: true,
       path: '/',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     })

@@ -16,7 +16,7 @@ export async function createServer() {
   dotenv.config()
   const app = express()
 
-  app.use(cors({ origin: true, credentials: false }))
+  app.use(cors({ origin: true, credentials: true }))
   app.use(compression())
   app.use(express.json({ limit: '5mb' }))
   app.use(optionalAuth)
