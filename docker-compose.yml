@@ -26,6 +26,7 @@ services:
       - "8444:443"    # HTTPS ของ nginx
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
     networks:
       - pong-net
 
