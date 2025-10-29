@@ -165,8 +165,14 @@ export async function createServer() {
         details: 'Request was too large or took too long. Please try with smaller files.' 
       })
     }
-    console.error('[ERROR]', err.message)
-    res.status(500).json({ error: 'Internal server error', details: err.message })
+    const status = err.status || err.statusCode || 500
+    if (status >= 500) {
+      console.error('[ERROR]', err.message)
+    }
+    res.status(status).json({ 
+      error: status >= 500 ? 'Internal server error' : (err.message || 'Request failed'),
+      details: err.message,
+    })
   })
 
   // PDF proxy - รองรับเฉพาะ URL โดยตรง (ไม่ใช้ Cloudinary)

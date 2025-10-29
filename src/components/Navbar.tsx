@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext.tsx'
 import '@fortawesome/fontawesome-free/css/all.min.css'
+import logo from '../assets/logo-150x150.png'
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded hover:bg-green-50 ${isActive ? 'text-green-700 font-semibold' : 'text-gray-700'}`
@@ -37,7 +38,7 @@ export default function Navbar() {
       <div className="container-narrow flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src="https://www.ponghospital.net/wp-content/uploads/2025/06/logo-150x150.png"
+            src={logo}
             alt="Pong Hospital logo"
             className="h-10 w-10 rounded"
             loading="eager"
