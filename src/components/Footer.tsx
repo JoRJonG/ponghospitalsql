@@ -1,3 +1,4 @@
+import logo from '../assets/logo-150x150.png'
 import VisitorCounter from './VisitorCounter'
 
 export default function Footer() {
@@ -9,7 +10,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <img
-                src="https://www.ponghospital.net/wp-content/uploads/2025/06/logo-150x150.png"
+                src={logo}
                 alt="Pong Hospital logo"
                 className="h-12 w-12 rounded-lg"
               />

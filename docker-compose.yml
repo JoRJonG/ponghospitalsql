@@ -1,6 +1,25 @@
 version: "3.9"
 
 services:
+  mysql-server:
+    image: mysql:8.0
+    container_name: pong-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: StrongPassword123
+      MYSQL_DATABASE: ponghospital
+      MYSQL_USER: ponguser
+      MYSQL_PASSWORD: StrongPassword123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/setup_mysql.sql:/docker-entrypoint-initdb.d/setup_mysql.sql:ro
+      - ./database/create_visitors_table.sql:/docker-entrypoint-initdb.d/create_visitors_table.sql:ro
+    networks:
+      - pong-net
+    command: --default-authentication-plugin=mysql_native_password
+
   app:
     container_name: pong-app
     build:
@@ -16,6 +35,8 @@ services:
       - ./ssl:/app/ssl:ro
     networks:
       - pong-net
+    depends_on:
+      - mysql-server
 
   nginx:
     image: nginx:1.25-alpine
@@ -29,6 +50,9 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     networks:
       - pong-net
+
+volumes:
+  mysql_data:
 
 networks:
   pong-net:
