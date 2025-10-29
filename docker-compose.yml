@@ -1,25 +1,6 @@
 version: "3.9"
 
 services:
-  mysql-server:
-    image: mysql:8.0
-    container_name: pong-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: StrongPassword123
-      MYSQL_DATABASE: ponghospital
-      MYSQL_USER: ponguser
-      MYSQL_PASSWORD: StrongPassword123
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./database/setup_mysql.sql:/docker-entrypoint-initdb.d/setup_mysql.sql:ro
-      - ./database/create_visitors_table.sql:/docker-entrypoint-initdb.d/create_visitors_table.sql:ro
-    networks:
-      - pong-net
-    command: --default-authentication-plugin=mysql_native_password
-
   app:
     container_name: pong-app
     build:
@@ -30,29 +11,24 @@ services:
     env_file:
       - .env.docker
     ports:
-      - "5000:5000"   # HTTP ของ app บน host
+      - "5000:5000"
     volumes:
       - ./ssl:/app/ssl:ro
     networks:
       - pong-net
-    depends_on:
-      - mysql-server
 
   nginx:
     image: nginx:1.25-alpine
     container_name: pong-nginx
     restart: unless-stopped
     ports:
-      - "8081:80"     # HTTP ของ nginx
-      - "8444:443"    # HTTPS ของ nginx
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
     networks:
       - pong-net
-
-volumes:
-  mysql_data:
 
 networks:
   pong-net:
