@@ -12,6 +12,8 @@ services:
       - .env.docker
     ports:
       - "5000:5000"   # HTTP ของ app บน host
+    volumes:
+      - ./ssl:/app/ssl:ro
     networks:
       - pong-net
 
