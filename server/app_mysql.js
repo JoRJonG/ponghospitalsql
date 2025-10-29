@@ -1,4 +1,5 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import compression from 'compression'
@@ -79,6 +80,9 @@ export async function createServer() {
   app.use(express.json({ limit: '10mb' }))
   // Body parser for form data (multipart handled by multer per-route)
   app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+
+  // Cookie parser
+  app.use(cookieParser())
 
   // Add Origin-Agent-Cluster header to all responses
   app.use((req, res, next) => {
