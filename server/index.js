@@ -24,7 +24,7 @@ async function start() {
       }
 
       const httpsServer = https.createServer(sslOptions, app)
-      httpsServer.listen(HTTPS_PORT, () => {
+      httpsServer.listen(HTTPS_PORT, '0.0.0.0', () => {
         console.log(`🔒 HTTPS server listening on https://localhost:${HTTPS_PORT}`)
       })
 
@@ -39,15 +39,15 @@ async function start() {
         res.setHeader('Location', location)
         res.end()
       })
-      redirectServer.listen(PORT, () => {
+      redirectServer.listen(PORT, '0.0.0.0', () => {
         console.log(`➡️  HTTP redirect server on http://localhost:${PORT} -> https://localhost:${HTTPS_PORT}`)
       })
     } else {
       console.warn('⚠️  SSL certificates not found, falling back to HTTP')
-      app.listen(PORT, () => console.log(`🌐 HTTP server listening on http://localhost:${PORT}`))
+      app.listen(PORT, '0.0.0.0', () => console.log(`🌐 HTTP server listening on http://localhost:${PORT}`))
     }
   } else {
-    app.listen(PORT, () => console.log(`🌐 HTTP server listening on http://localhost:${PORT}`))
+    app.listen(PORT, '0.0.0.0', () => console.log(`🌐 HTTP server listening on http://localhost:${PORT}`))
   }
 }
 
