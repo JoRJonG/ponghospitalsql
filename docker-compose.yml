@@ -30,9 +30,6 @@ services:
     networks:
       - pong-net
 
-    networks:
-      - pong-net
-
 networks:
   pong-net:
     external: true
