@@ -45,6 +45,23 @@ services:
     networks:
       - pong-net
 
+  mysql-server:
+    image: mysql:8.0
+    container_name: mysql-server
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: StrongPassword123
+      MYSQL_DATABASE: ponghospital
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - pong-net
+
 networks:
   pong-net:
     external: true
+
+volumes:
+  mysql_data:
