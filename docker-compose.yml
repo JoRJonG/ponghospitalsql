@@ -11,7 +11,7 @@ services:
     env_file:
       - .env.docker
     ports:
-      - "5000:5000"   # HTTP ของ app บน host
+      - "8081:5000"   # HTTP ของ app บน host
     volumes:
       - ./ssl:/app/ssl:ro
     networks:
@@ -30,38 +30,9 @@ services:
     networks:
       - pong-net
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: phpmyadmin
-    restart: unless-stopped
-    ports:
-      - "8080:80"    # port ของ phpMyAdmin
-    environment:
-      PMA_HOST: mysql-server      # ชื่อ service ของ MySQL
-      PMA_PORT: 3306
-      UPLOAD_LIMIT: 50M           # เพิ่มขนาดไฟล์อัปโหลดสูงสุด
-    depends_on:
-      - mysql-server
-    networks:
-      - pong-net
-
-  mysql-server:
-    image: mysql:8.0
-    container_name: mysql-server
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: StrongPassword123
-      MYSQL_DATABASE: ponghospital
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
     networks:
       - pong-net
 
 networks:
   pong-net:
     external: true
-
-volumes:
-  mysql_data:
