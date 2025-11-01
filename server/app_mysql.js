@@ -65,6 +65,7 @@ export async function createServer() {
   const helmetConfig = {
     contentSecurityPolicy: { directives: cspDirectives },
     crossOriginEmbedderPolicy: false, // Allow embedding for PDF viewer
+    originAgentCluster: httpsEnabled, // Only advertise OAC support when HTTPS is active
   }
   
   // Only enable HSTS when HTTPS is actually in use
@@ -84,14 +85,6 @@ export async function createServer() {
 
   // Cookie parser
   app.use(cookieParser())
-
-  // Add Origin-Agent-Cluster header to all responses
-  if (httpsEnabled) {
-    app.use((req, res, next) => {
-      res.setHeader('Origin-Agent-Cluster', '?1')
-      next()
-    })
-  }
 
   app.get('/api/health', async (_req, res) => {
     const dbConnected = Boolean(app.locals.dbConnected)
