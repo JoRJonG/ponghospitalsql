@@ -31,15 +31,15 @@ services:
     container_name: pong-mysql
     restart: unless-stopped
     environment:
-  MYSQL_ROOT_PASSWORD: "PongHosp#2025Secure!"
+      MYSQL_ROOT_PASSWORD: "PongHosp#2025Secure!"
       MYSQL_DATABASE: ponghospital
     volumes:
       - mysql_data:/var/lib/mysql
-  - ./database:/docker-entrypoint-initdb.d:ro
+      - ./database:/docker-entrypoint-initdb.d:ro
     networks:
       - pong-net
     healthcheck:
-  test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pPongHosp#2025Secure!"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pPongHosp#2025Secure!"]
       interval: 10s
       timeout: 5s
       retries: 5
