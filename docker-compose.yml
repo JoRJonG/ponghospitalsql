@@ -6,15 +6,12 @@ services:
       dockerfile: Dockerfile
       MYSQL_ROOT_PASSWORD: "P0ngHosp!A2025Secure"
       MYSQL_DATABASE: ponghospital
-    env_file:
-      - .env.docker
     ports:
       - "5000:5000"
     networks:
       - pong-net
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-pP0ngHosp!A2025Secure']
       mysql:
-        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -31,7 +28,7 @@ services:
     container_name: pong-mysql
     restart: unless-stopped
     environment:
-  MYSQL_ROOT_PASSWORD: "P0ngHosp!A2025Secure"
+      MYSQL_ROOT_PASSWORD: "P0ngHosp!A2025Secure"
       MYSQL_DATABASE: ponghospital
     volumes:
       - mysql_data:/var/lib/mysql
@@ -39,7 +36,7 @@ services:
     networks:
       - pong-net
     healthcheck:
-  test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pP0ngHosp!A2025Secure"]
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-pP0ngHosp!A2025Secure']
       interval: 10s
       timeout: 5s
       retries: 5
