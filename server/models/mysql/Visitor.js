@@ -4,11 +4,16 @@ import { query, exec, transaction } from '../../database.js'
 
 const DEFAULT_RETENTION_DAYS = 90
 const DEFAULT_STATS_RANGE_DAYS = 30
+const APP_TIMEZONE = process.env.APP_TIMEZONE || 'Asia/Bangkok'
 const MAX_USER_AGENT_LENGTH = 255
 const MAX_PATH_LENGTH = 255
 
+const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: APP_TIMEZONE,
+})
+
 function toDateKey(date = new Date()) {
-  return date.toISOString().split('T')[0]
+  return dateFormatter.format(date)
 }
 
 export class Visitor {

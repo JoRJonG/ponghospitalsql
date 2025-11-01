@@ -2,6 +2,8 @@
 import { Visitor } from '../models/mysql/Visitor.js'
 import { isBotUserAgent } from '../utils/botDetector.js'
 
+const APP_TIMEZONE = process.env.APP_TIMEZONE || 'Asia/Bangkok'
+
 const VISITOR_COOKIE = 'visited_today'
 
 function shouldTrackRequest(req) {
@@ -33,11 +35,49 @@ function isSecureRequest(req) {
   return String(proto).split(',')[0].trim().toLowerCase() === 'https'
 }
 
+function getDateParts(date, timeZone) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+  const parts = formatter.formatToParts(date)
+  const map = {}
+  for (const part of parts) {
+    if (part.type !== 'literal') {
+      map[part.type] = Number(part.value)
+    }
+  }
+  const fallback = {
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth() + 1,
+    day: date.getUTCDate(),
+    hour: date.getUTCHours(),
+    minute: date.getUTCMinutes(),
+    second: date.getUTCSeconds(),
+  }
+  return {
+    year: Number.isFinite(map.year) ? map.year : fallback.year,
+    month: Number.isFinite(map.month) ? map.month : fallback.month,
+    day: Number.isFinite(map.day) ? map.day : fallback.day,
+    hour: Number.isFinite(map.hour) ? map.hour : fallback.hour,
+    minute: Number.isFinite(map.minute) ? map.minute : fallback.minute,
+    second: Number.isFinite(map.second) ? map.second : fallback.second,
+  }
+}
+
 function cookieExpiryAtMidnight() {
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  tomorrow.setHours(0, 0, 0, 0)
-  return tomorrow
+  const now = new Date()
+  const { year, month, day, hour, minute, second } = getDateParts(now, APP_TIMEZONE)
+  const localNowUtcMs = Date.UTC(year, month - 1, day, hour, minute, second)
+  const localMidnightUtcMs = Date.UTC(year, month - 1, day + 1, 0, 0, 0)
+  const msUntilMidnight = localMidnightUtcMs - localNowUtcMs
+  return new Date(now.getTime() + msUntilMidnight)
 }
 
 export async function trackVisitors(req, res, next) {
