@@ -52,6 +52,7 @@ services:
       - pong-net
     depends_on:
       - mysql
+  
 
   nginx:
     image: nginx:1.25-alpine
