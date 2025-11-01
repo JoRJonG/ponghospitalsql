@@ -107,20 +107,22 @@ export class Visitor {
             visit_date,
             fingerprint,
             ip_hash,
+            ip_address,
             user_agent,
             path,
             hit_count,
             first_seen,
             last_seen
           )
-          VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())
+          VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
           ON DUPLICATE KEY UPDATE
             hit_count = hit_count + 1,
             last_seen = NOW(),
             user_agent = VALUES(user_agent),
+            ip_address = VALUES(ip_address),
             path = VALUES(path)
         `,
-        [dateKey, dailyFingerprint, ipHash, truncatedAgent || null, safePath]
+        [dateKey, dailyFingerprint, ipHash, normalizedIp || null, truncatedAgent || null, safePath]
       )
 
       const isNewSession = sessionResult.affectedRows === 1

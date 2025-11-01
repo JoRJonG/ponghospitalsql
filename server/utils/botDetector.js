@@ -14,6 +14,8 @@ const BOT_PATTERNS = [
   /postmanruntime/i,
   /monitor/i,
   /uptime/i,
+  /hello\s*world/i,
+  /friendly/i,
   /facebookexternalhit/i,
   /slurp/i,
   /bingpreview/i,

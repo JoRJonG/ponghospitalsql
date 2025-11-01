@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS visitor_sessions (
     visit_date DATE NOT NULL,
     fingerprint CHAR(64) NOT NULL,
     ip_hash CHAR(64) NOT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
     user_agent VARCHAR(255) DEFAULT NULL,
     path VARCHAR(255) DEFAULT NULL,
     hit_count INT NOT NULL DEFAULT 1,
