@@ -4,7 +4,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 // Normalize host (บางครั้ง 'localhost' จะ resolve IPv6 ::1 แล้ว mysqld ไม่ได้ listen) -> ใช้ 127.0.0.1 แทน
-const normalizedHost = (process.env.MYSQL_HOST || 'mysql') === 'localhost' ? '127.0.0.1' : (process.env.MYSQL_HOST || 'mysql')
+const rawHost = process.env.MYSQL_HOST || 'mysql'
+const normalizedHost = rawHost === 'localhost' ? '127.0.0.1' : rawHost
 
 // การตั้งค่าฐานข้อมูล MySQL
 const dbConfig = {
