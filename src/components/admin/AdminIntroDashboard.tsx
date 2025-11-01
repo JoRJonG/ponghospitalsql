@@ -92,15 +92,6 @@ const BOT_KEYWORDS = [
   /chrome\/10[0-9]\./i,
 ]
 
-const PATH_SEGMENT_LABELS: Record<string, string> = {
-  announcements: 'ประกาศ',
-  executives: 'ผู้บริหาร',
-  about: 'เกี่ยวกับเรา',
-  contact: 'ติดต่อเรา',
-  ita: 'ข้อมูลและเมนูธรรมาภิบาล',
-}
-const PATH_SEGMENT_KEYS = new Set(Object.keys(PATH_SEGMENT_LABELS))
-
 function formatDate(value: string) {
   if (!value) return '-'
   const date = new Date(value)
@@ -246,64 +237,6 @@ function formatRelative(value: string) {
   return relativeTimeFormatter.format(days, 'day')
 }
 
-function describePath(path?: string | null) {
-  if (!path || path === '/') {
-    return { label: 'หน้าแรก', path: '/' }
-  }
-
-  const cleaned = path.trim() || '/'
-  if (cleaned === '/' || cleaned === '') {
-    return { label: 'หน้าแรก', path: '/' }
-  }
-
-  const normalized = cleaned.startsWith('/') ? cleaned : `/${cleaned}`
-  const segments = normalized
-    .split('/')
-    .map(segment => segment.trim())
-    .filter(Boolean)
-
-  if (segments.length === 0) {
-    return { label: 'หน้าแรก', path: '/' }
-  }
-
-  const label = segments
-    .map(segment => describeSegmentLabel(segment))
-    .join(' › ')
-
-  return {
-    label,
-    path: normalized,
-  }
-}
-
-function decodeSegment(segment: string) {
-  let decoded = segment
-  try {
-    decoded = decodeURIComponent(segment)
-  } catch {
-    decoded = segment
-  }
-  return decoded
-    .replace(/[-_]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/\b\w/g, char => char.toUpperCase())
-}
-
-function describeSegmentLabel(segment: string) {
-  const key = segment.toLowerCase()
-  if (PATH_SEGMENT_LABELS[key]) {
-    return PATH_SEGMENT_LABELS[key]
-  }
-  return decodeSegment(segment)
-}
-
-function extractPrimarySegment(path?: string | null) {
-  if (!path) return ''
-  const normalized = path.startsWith('/') ? path.slice(1) : path
-  const [first = ''] = normalized.split('/').filter(Boolean)
-  return first.toLowerCase()
-}
-
 const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDashboardProps>(
   ({ rangeDays = 30 }, ref) => {
     const [insights, setInsights] = useState<VisitorInsights | null>(null)
@@ -389,12 +322,6 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
         เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}
       </div>
     )
-
-    const filteredTopPaths = useMemo(() => {
-      const paths = insights?.topPaths ?? []
-      if (!paths.length) return []
-      return paths.filter(item => PATH_SEGMENT_KEYS.has(extractPrimarySegment(item.path)))
-    }, [insights])
 
     if (loading) return renderLoading()
     if (error) return renderError()
@@ -564,8 +491,8 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
           </article>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-5">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
+        <section className="grid gap-4 lg:grid-cols-1">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
               <span className="text-emerald-500">📈</span>
               แนวโน้มการเข้าชม {rangeDays} วันล่าสุด
@@ -598,39 +525,6 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-              <span className="text-amber-500">🔥</span>
-              หน้าเว็บไซต์ยอดนิยม
-            </h3>
-            <div className="mt-4 space-y-3">
-              {filteredTopPaths.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-                  ยังไม่มีข้อมูลการเข้าชม
-                </div>
-              )}
-              {filteredTopPaths.map((item, index) => {
-                const info = describePath(item.path)
-                return (
-                  <div
-                    key={item.path || '/'}
-                    className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50/70 to-white p-3"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">
-                      {index + 1}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-emerald-700">{info.label}</div>
-                      <div className="mt-1 truncate text-xs text-emerald-500">{info.path}</div>
-                    </div>
-                    <div className="rounded-full bg-emerald-100 px-3 py-[2px] text-xs font-semibold text-emerald-700">
-                      {numberFormatter.format(item.hits)} ครั้ง
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-5">
