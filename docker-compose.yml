@@ -12,10 +12,41 @@ services:
       - "5000:5000"
     networks:
       - pong-net
+    depends_on:
+      - mysql
     # volumes:
     #   - /path/on/host/ssl:/app/ssl:ro  # mount SSL certs if enabling HTTPS
     # If you serve static from dist via Express, nothing else needed.
     # Otherwise, you can front this with an external Nginx/ALB.
+
+  mysql:
+    image: mysql:8.0
+    container_name: pong-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: StrongPassword123
+      MYSQL_DATABASE: ponghospital
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d:ro
+    networks:
+      - pong-net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: pong-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: StrongPassword123
+    ports:
+      - "8080:80"
+    networks:
+      - pong-net
+    depends_on:
+      - mysql
 
   nginx:
     image: nginx:1.25-alpine
@@ -29,6 +60,11 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
     networks:
       - pong-net
+    depends_on:
+      - app
+
+volumes:
+  mysql_data:
 
 networks:
   pong-net:
