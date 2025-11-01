@@ -87,6 +87,14 @@ const BOT_KEYWORDS = [
   /monitor/i,
 ]
 
+const PATH_SEGMENT_LABELS: Record<string, string> = {
+  announcements: 'ประกาศ',
+  executives: 'ผู้บริหาร',
+  about: 'เกี่ยวกับเรา',
+  contact: 'ติดต่อเรา',
+  ita: 'ข้อมูลและเมนูธรรมาภิบาล',
+}
+
 function formatDate(value: string) {
   if (!value) return '-'
   const date = new Date(value)
@@ -253,7 +261,7 @@ function describePath(path?: string | null) {
   }
 
   const label = segments
-    .map(segment => decodeSegment(segment))
+    .map(segment => describeSegmentLabel(segment))
     .join(' › ')
 
   return {
@@ -273,6 +281,14 @@ function decodeSegment(segment: string) {
     .replace(/[-_]/g, ' ')
     .replace(/\s+/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase())
+}
+
+function describeSegmentLabel(segment: string) {
+  const key = segment.toLowerCase()
+  if (PATH_SEGMENT_LABELS[key]) {
+    return PATH_SEGMENT_LABELS[key]
+  }
+  return decodeSegment(segment)
 }
 
 const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDashboardProps>(
