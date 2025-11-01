@@ -51,8 +51,8 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      PMA_USER: root
-      PMA_PASSWORD: StrongPassword123
+      PMA_ALLOW_NO_PASSWORD: "false"
+      PMA_ALLOW_ARBITRARY: "false"
       UPLOAD_LIMIT: 512M
       MAX_EXECUTION_TIME: 300
       MEMORY_LIMIT: 512M
