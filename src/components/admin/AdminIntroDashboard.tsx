@@ -309,7 +309,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     const [insights, setInsights] = useState<VisitorInsights | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-  const [system, setSystem] = useState<SystemStatus | null>(null)
+    const [system, setSystem] = useState<SystemStatus | null>(null)
 
     const load = useCallback(async () => {
       setLoading(true)
@@ -390,11 +390,17 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
       </div>
     )
 
+    const filteredTopPaths = useMemo(() => {
+      const paths = insights?.topPaths ?? []
+      if (!paths.length) return []
+      return paths.filter(item => PATH_SEGMENT_KEYS.has(extractPrimarySegment(item.path)))
+    }, [insights])
+
     if (loading) return renderLoading()
     if (error) return renderError()
     if (!insights) return null
 
-    const { today, range, lifetime, topPaths, topAgents, recentSessions, trend } = insights
+    const { today, range, lifetime, topAgents, recentSessions, trend } = insights
     const disk = system?.disk || null
     const memory = system?.memory || null
     const uptimeText = formatDuration(system?.meta.uptimeSeconds)
@@ -402,10 +408,6 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     const systemStamp = system?.timestamp ? formatDate(system.timestamp) : null
 
     const rangeLabelDays = insights.rangeDays ?? rangeDays
-    const filteredTopPaths = useMemo(
-      () => topPaths.filter(item => PATH_SEGMENT_KEYS.has(extractPrimarySegment(item.path))),
-      [topPaths]
-    )
 
     const summaryCards = [
       {
