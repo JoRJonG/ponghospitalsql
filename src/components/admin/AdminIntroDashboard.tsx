@@ -85,6 +85,11 @@ const BOT_KEYWORDS = [
   /spider/i,
   /uptime/i,
   /monitor/i,
+  /ai scanner/i,
+  /expanse/i,
+  /cortex/i,
+  /gecko\)/i,
+  /chrome\/10[0-9]\./i,
 ]
 
 const PATH_SEGMENT_LABELS: Record<string, string> = {
@@ -94,6 +99,7 @@ const PATH_SEGMENT_LABELS: Record<string, string> = {
   contact: 'ติดต่อเรา',
   ita: 'ข้อมูลและเมนูธรรมาภิบาล',
 }
+const PATH_SEGMENT_KEYS = new Set(Object.keys(PATH_SEGMENT_LABELS))
 
 function formatDate(value: string) {
   if (!value) return '-'
@@ -291,6 +297,13 @@ function describeSegmentLabel(segment: string) {
   return decodeSegment(segment)
 }
 
+function extractPrimarySegment(path?: string | null) {
+  if (!path) return ''
+  const normalized = path.startsWith('/') ? path.slice(1) : path
+  const [first = ''] = normalized.split('/').filter(Boolean)
+  return first.toLowerCase()
+}
+
 const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDashboardProps>(
   ({ rangeDays = 30 }, ref) => {
     const [insights, setInsights] = useState<VisitorInsights | null>(null)
@@ -389,6 +402,10 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     const systemStamp = system?.timestamp ? formatDate(system.timestamp) : null
 
     const rangeLabelDays = insights.rangeDays ?? rangeDays
+    const filteredTopPaths = useMemo(
+      () => topPaths.filter(item => PATH_SEGMENT_KEYS.has(extractPrimarySegment(item.path))),
+      [topPaths]
+    )
 
     const summaryCards = [
       {
@@ -585,12 +602,12 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
               หน้าเว็บไซต์ยอดนิยม
             </h3>
             <div className="mt-4 space-y-3">
-              {topPaths.length === 0 && (
+              {filteredTopPaths.length === 0 && (
                 <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
                   ยังไม่มีข้อมูลการเข้าชม
                 </div>
               )}
-              {topPaths.map((item, index) => {
+              {filteredTopPaths.map((item, index) => {
                 const info = describePath(item.path)
                 return (
                   <div
