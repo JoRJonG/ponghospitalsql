@@ -92,6 +92,9 @@ const BOT_KEYWORDS = [
   /chrome\/10[0-9]\./i,
 ]
 
+const RECENT_PAGE_SIZE = 10
+const AGENT_PAGE_SIZE = 20
+
 function formatDate(value: string) {
   if (!value) return '-'
   const date = new Date(value)
@@ -243,6 +246,8 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [system, setSystem] = useState<SystemStatus | null>(null)
+    const [recentPage, setRecentPage] = useState(1)
+    const [agentPage, setAgentPage] = useState(1)
 
     const load = useCallback(async () => {
       setLoading(true)
@@ -303,6 +308,31 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
       load()
     }, [load])
 
+    const recentLength = insights?.recentSessions?.length ?? 0
+    const agentLength = insights?.topAgents?.length ?? 0
+
+    useEffect(() => {
+      const maxPages = recentLength ? Math.ceil(recentLength / RECENT_PAGE_SIZE) : 1
+      setRecentPage(prev => Math.min(Math.max(prev, 1), maxPages))
+    }, [recentLength])
+
+    useEffect(() => {
+      const maxPages = agentLength ? Math.ceil(agentLength / AGENT_PAGE_SIZE) : 1
+      setAgentPage(prev => Math.min(Math.max(prev, 1), maxPages))
+    }, [agentLength])
+
+    const paginatedRecentSessions = useMemo(() => {
+      if (!insights?.recentSessions?.length) return []
+      const start = (recentPage - 1) * RECENT_PAGE_SIZE
+      return insights.recentSessions.slice(start, start + RECENT_PAGE_SIZE)
+    }, [insights, recentPage])
+
+    const paginatedTopAgents = useMemo(() => {
+      if (!insights?.topAgents?.length) return []
+      const start = (agentPage - 1) * AGENT_PAGE_SIZE
+      return insights.topAgents.slice(start, start + AGENT_PAGE_SIZE)
+    }, [insights, agentPage])
+
     const trendMax = useMemo(() => {
       if (!insights?.trend?.length) return 1
       return Math.max(...insights.trend.map(item => item.hits || 0), 1)
@@ -323,11 +353,11 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
       </div>
     )
 
-    if (loading) return renderLoading()
-    if (error) return renderError()
-    if (!insights) return null
+  if (loading) return renderLoading()
+  if (error) return renderError()
+  if (!insights) return null
 
-    const { today, range, lifetime, topAgents, recentSessions, trend } = insights
+  const { today, range, lifetime, trend } = insights
     const disk = system?.disk || null
     const memory = system?.memory || null
     const uptimeText = formatDuration(system?.meta.uptimeSeconds)
@@ -335,6 +365,8 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     const systemStamp = system?.timestamp ? formatDate(system.timestamp) : null
 
     const rangeLabelDays = insights.rangeDays ?? rangeDays
+  const recentTotalPages = recentLength ? Math.ceil(recentLength / RECENT_PAGE_SIZE) : 1
+  const agentTotalPages = agentLength ? Math.ceil(agentLength / AGENT_PAGE_SIZE) : 1
 
     const summaryCards = [
       {
@@ -534,13 +566,14 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                 <span className="text-sky-500">🧠</span>
                 ผู้ใช้ล่าสุด
               </h3>
-              <span className="text-xs text-slate-400">{recentSessions.length ? `ทั้งหมด ${recentSessions.length} รายการ` : 'ยังไม่มีข้อมูล'}</span>
+              <span className="text-xs text-slate-400">{recentLength ? `ทั้งหมด ${recentLength} รายการ` : 'ยังไม่มีข้อมูล'}</span>
             </div>
             <div className="mt-4 space-y-3">
-              {recentSessions.slice(0, 10).map((session, idx) => {
+              {paginatedRecentSessions.map((session, idx) => {
                 const agentInfo = summarizeUserAgent(session.userAgent)
                 const ipLabel = session.ipAddress || 'unknown'
                 const relative = formatRelative(session.lastSeen)
+                const displayIndex = (recentPage - 1) * RECENT_PAGE_SIZE + idx + 1
                 return (
                   <div
                     key={`${session.lastSeen}-${idx}`}
@@ -549,7 +582,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex min-w-0 flex-1 items-start gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sm font-semibold text-sky-600">
-                          {idx + 1}
+                          {displayIndex}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
@@ -584,12 +617,33 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                   </div>
                 )
               })}
-              {recentSessions.length === 0 && (
+              {recentLength === 0 && (
                 <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
                   ยังไม่มีข้อมูลผู้ใช้ล่าสุด
                 </div>
               )}
             </div>
+            {recentLength > 0 && (
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-xs text-slate-500">
+                <button
+                  type="button"
+                  onClick={() => setRecentPage(page => Math.max(1, page - 1))}
+                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={recentPage === 1}
+                >
+                  ก่อนหน้า
+                </button>
+                <span>หน้า {recentPage} / {recentTotalPages}</span>
+                <button
+                  type="button"
+                  onClick={() => setRecentPage(page => Math.min(recentTotalPages, page + 1))}
+                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={recentPage === recentTotalPages}
+                >
+                  ถัดไป
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
@@ -598,15 +652,15 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
               อุปกรณ์ยอดนิยม
             </h3>
             <div className="mt-4 space-y-3">
-              {topAgents.length === 0 && (
+              {agentLength === 0 && (
                 <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
                   ยังไม่มีข้อมูลอุปกรณ์
                 </div>
               )}
-              {topAgents.map(agent => {
+              {paginatedTopAgents.map((agent, idx) => {
                 const agentInfo = summarizeUserAgent(agent.userAgent)
                 return (
-                  <div key={agent.userAgent || 'unknown'} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div key={`${agent.userAgent || 'unknown'}-${agentPage}-${idx}`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <div className="truncate text-sm font-medium text-slate-800">{agentInfo.label}</div>
                       <div className="rounded-full bg-violet-100 px-2 py-[2px] text-[11px] font-semibold text-violet-700">
@@ -620,6 +674,27 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                 )
               })}
             </div>
+            {agentLength > 0 && (
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-xs text-slate-500">
+                <button
+                  type="button"
+                  onClick={() => setAgentPage(page => Math.max(1, page - 1))}
+                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={agentPage === 1}
+                >
+                  ก่อนหน้า
+                </button>
+                <span>หน้า {agentPage} / {agentTotalPages}</span>
+                <button
+                  type="button"
+                  onClick={() => setAgentPage(page => Math.min(agentTotalPages, page + 1))}
+                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={agentPage === agentTotalPages}
+                >
+                  ถัดไป
+                </button>
+              </div>
+            )}
           </div>
         </section>
       </div>
