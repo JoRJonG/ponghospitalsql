@@ -14,6 +14,24 @@ function shouldTrackRequest(req) {
 }
 
 function getClientIp(req) {
+  const priorityHeaders = [
+    'cf-connecting-ip',
+    'true-client-ip',
+    'x-real-ip',
+    'x-client-ip',
+  ]
+
+  for (const header of priorityHeaders) {
+    const value = req.headers[header]
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    if (Array.isArray(value) && value.length > 0) {
+      const first = value.find(entry => typeof entry === 'string' && entry.trim().length > 0)
+      if (first) return first.trim()
+    }
+  }
+
   const forwarded = req.headers['x-forwarded-for']
   if (Array.isArray(forwarded)) {
     return forwarded[0]

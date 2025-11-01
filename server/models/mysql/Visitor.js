@@ -90,7 +90,13 @@ export class Visitor {
     if (!ip) return 'unknown'
     const trimmed = String(ip).trim()
     if (!trimmed) return 'unknown'
-    return trimmed.startsWith('::ffff:') ? trimmed.substring(7) : trimmed
+    if (trimmed === '::1' || trimmed === '0:0:0:0:0:0:0:1') {
+      return '127.0.0.1'
+    }
+    if (trimmed.startsWith('::ffff:')) {
+      return trimmed.substring(7)
+    }
+    return trimmed
   }
 
   static normalizeUserAgent(userAgent) {
