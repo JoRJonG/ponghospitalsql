@@ -70,6 +70,7 @@ export async function createServer() {
   // Only enable HSTS when HTTPS is actually in use
   if (!httpsEnabled) {
     helmetConfig.hsts = false
+    helmetConfig.crossOriginOpenerPolicy = false
   }
   
   app.use(helmet(helmetConfig))
@@ -85,10 +86,12 @@ export async function createServer() {
   app.use(cookieParser())
 
   // Add Origin-Agent-Cluster header to all responses
-  app.use((req, res, next) => {
-    res.setHeader('Origin-Agent-Cluster', '?1');
-    next();
-  });
+  if (httpsEnabled) {
+    app.use((req, res, next) => {
+      res.setHeader('Origin-Agent-Cluster', '?1')
+      next()
+    })
+  }
 
   app.get('/api/health', async (_req, res) => {
     const dbConnected = Boolean(app.locals.dbConnected)
