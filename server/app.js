@@ -17,6 +17,9 @@ export async function createServer() {
   dotenv.config()
   const app = express()
 
+  // Respect X-Forwarded-* headers when running behind a reverse proxy (e.g. Nginx)
+  app.set('trust proxy', 1)
+
   app.use(cors({ origin: true, credentials: true }))
   app.use(compression())
   app.use(express.json({ limit: '5mb' }))

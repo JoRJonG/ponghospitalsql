@@ -8,17 +8,36 @@ import bcryptPkg from 'bcryptjs'
 const { compare, hash } = bcryptPkg
 
 const router = Router()
+const isProductionEnv = process.env.NODE_ENV === 'production'
+
+function coerceHeader(value) {
+  if (!value) return ''
+  if (Array.isArray(value)) return String(value[0] ?? '')
+  return String(value)
+}
+
+function isRequestSecure(req) {
+  if (req.secure) return true
+  const forwardedProto = coerceHeader(req.headers['x-forwarded-proto']).split(',')[0]?.trim().toLowerCase()
+  if (forwardedProto === 'https') return true
+  const originHeader = coerceHeader(req.headers.origin).toLowerCase()
+  if (originHeader.startsWith('https://')) return true
+  const refererHeader = coerceHeader(req.headers.referer).toLowerCase()
+  if (refererHeader.startsWith('https://')) return true
+  return false
+}
 
 // Limit login attempts per IP to reduce brute-force risk
 router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
   const { username, password } = req.body
   const allowEnvFallback = String(process.env.AUTH_ALLOW_ENV_FALLBACK).toLowerCase() === 'true'
-  const isProduction = process.env.NODE_ENV === 'production'
+  const isProduction = isProductionEnv
+  const secureCookie = isProduction ? isRequestSecure(req) : false
 
   const sessionCookieOptions = {
     httpOnly: true,
     sameSite: isProduction ? 'none' : 'lax',
-    secure: isProduction,
+    secure: secureCookie,
     path: '/',
     maxAge: 15 * 60 * 1000, // 15 minutes
   }
@@ -26,7 +45,7 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
   const refreshCookieOptions = {
     httpOnly: true,
     sameSite: isProduction ? 'none' : 'lax',
-    secure: isProduction,
+    secure: secureCookie,
     path: '/',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   }
@@ -89,18 +108,19 @@ router.post('/refresh', requireRefreshToken, (req, res) => {
     const newToken = signToken({ sub: user.sub, username: user.username, roles: user.roles })
     const newRefreshToken = signRefreshToken({ sub: user.sub, username: user.username, roles: user.roles })
 
-    const isProduction = process.env.NODE_ENV === 'production'
+    const isProduction = isProductionEnv
+    const secureCookie = isProduction ? isRequestSecure(req) : false
     const sessionCookieOptions = {
       httpOnly: true,
       sameSite: isProduction ? 'none' : 'lax',
-      secure: isProduction,
+      secure: secureCookie,
       path: '/',
       maxAge: 15 * 60 * 1000, // 15 minutes
     }
     const refreshCookieOptions = {
       httpOnly: true,
       sameSite: isProduction ? 'none' : 'lax',
-      secure: isProduction,
+      secure: secureCookie,
       path: '/',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     }
