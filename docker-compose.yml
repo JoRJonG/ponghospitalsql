@@ -44,6 +44,8 @@ services:
       UPLOAD_LIMIT: 512M
       MAX_EXECUTION_TIME: 300
       MEMORY_LIMIT: 512M
+      PMA_POST_MAX_SIZE: 512M
+      PMA_UPLOAD_MAX_FILESIZE: 512M
     ports:
       - "8080:80"
     networks:
