@@ -1,36 +1,79 @@
-// Middleware to track website visitors
+// Middleware to track website visitors with bot filtering and unique session handling
 import { Visitor } from '../models/mysql/Visitor.js'
+import { isBotUserAgent } from '../utils/botDetector.js'
 
-// Track page views and increment visitor count
-export function trackVisitors(req, res, next) {
-  // Only track GET requests to main pages (not API calls or static files)
-  if (req.method === 'GET' &&
-      !req.path.startsWith('/api/') &&
-      !req.path.includes('.') &&
-      !req.path.startsWith('/admin')) {
+const VISITOR_COOKIE = 'visited_today'
 
-    // Check if user has already been counted today
-    const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
-    const visitedToday = req.cookies?.visited_today
+function shouldTrackRequest(req) {
+  return req.method === 'GET' &&
+    !req.path.startsWith('/api/') &&
+    !req.path.includes('.') &&
+    !req.path.startsWith('/admin')
+}
 
-    if (visitedToday !== today) {
-      // Increment visitor count asynchronously (don't block response)
-      Visitor.incrementVisitorCount().catch(err => {
-        console.error('Error tracking visitor:', err)
-      })
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for']
+  if (Array.isArray(forwarded)) {
+    return forwarded[0]
+  }
+  if (typeof forwarded === 'string' && forwarded.length > 0) {
+    const [first] = forwarded.split(',')
+    return first.trim()
+  }
+  return req.ip || req.connection?.remoteAddress || ''
+}
 
-      // Set cookie to mark as visited today (expires at end of day)
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      tomorrow.setHours(0, 0, 0, 0)
+function isSecureRequest(req) {
+  if (req.secure) return true
+  const proto = req.headers['x-forwarded-proto']
+  if (!proto) return false
+  if (Array.isArray(proto)) {
+    return proto[0]?.toLowerCase() === 'https'
+  }
+  return String(proto).split(',')[0].trim().toLowerCase() === 'https'
+}
 
-      res.cookie('visited_today', today, {
-        expires: tomorrow,
-        httpOnly: true,
-        secure: req.protocol === 'https',
-        sameSite: 'lax'
-      })
+function cookieExpiryAtMidnight() {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  tomorrow.setHours(0, 0, 0, 0)
+  return tomorrow
+}
+
+export async function trackVisitors(req, res, next) {
+  try {
+    if (!shouldTrackRequest(req)) {
+      return next()
     }
+
+    const userAgent = req.get('user-agent') || ''
+    if (isBotUserAgent(userAgent)) {
+      return next()
+    }
+
+    const clientIp = getClientIp(req)
+    const fingerprint = Visitor.createDailyFingerprint(clientIp, userAgent)
+    const existingToken = req.cookies?.[VISITOR_COOKIE]
+
+    if (existingToken === fingerprint) {
+      return next()
+    }
+
+    await Visitor.recordVisit({
+      ip: clientIp,
+      userAgent,
+      path: req.path,
+      fingerprint,
+    })
+
+    res.cookie(VISITOR_COOKIE, fingerprint, {
+      expires: cookieExpiryAtMidnight(),
+      httpOnly: true,
+      secure: isSecureRequest(req),
+      sameSite: 'lax',
+    })
+  } catch (error) {
+    console.error('Error tracking visitor:', error)
   }
 
   next()
