@@ -77,4 +77,21 @@ router.get('/trend', optionalAuth, async (req, res) => {
   }
 })
 
+router.get('/insights', optionalAuth, async (req, res) => {
+  try {
+    const rangeDays = parseRangeDays(req.query.range, 30)
+    const insights = await Visitor.getVisitorInsights(rangeDays)
+    res.json({
+      success: true,
+      data: insights,
+    })
+  } catch (error) {
+    console.error('Error fetching visitor insights:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch visitor insights'
+    })
+  }
+})
+
 export default router

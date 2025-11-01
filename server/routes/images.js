@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import Slide from '../models/mysql/SlideBlob.js'
+import Popup from '../models/mysql/Popup.js'
 import { query } from '../database.js'
 import { contentDisposition } from '../utils/filename.js'
 
@@ -72,6 +73,27 @@ router.get('/executives/:id', async (req, res) => {
     res.send(imageData.image_data)
   } catch (error) {
     console.error('Error fetching executive image:', error)
+    res.status(500).json({ error: 'Failed to fetch image' })
+  }
+})
+
+// ดึงรูปภาพจาก Homepage Popups
+router.get('/popups/:id', async (req, res) => {
+  try {
+    const data = await Popup.getImageData(req.params.id)
+    if (!data) {
+      return res.status(404).json({ error: 'Image not found' })
+    }
+
+    res.setHeader('Content-Type', data.image_mime || 'image/webp')
+    if (data.image_size) {
+      res.setHeader('Content-Length', data.image_size)
+    }
+    res.setHeader('Content-Disposition', contentDisposition('inline', data.image_name || 'popup-image'))
+    applyNoCache(res)
+    res.send(data.image_data)
+  } catch (error) {
+    console.error('Error fetching popup image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
   }
 })

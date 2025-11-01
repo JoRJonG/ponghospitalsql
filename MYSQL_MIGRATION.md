@@ -67,6 +67,16 @@
    - `display_order`, `is_published`
    - `created_at`, `updated_at`
 
+9. **homepage_popups** - ป๊อบอัพก่อนเข้าหน้าเว็บไซต์
+   - `id` (Primary Key)
+   - `title`, `body`
+   - `start_at`, `end_at`
+   - `dismiss_for_days`
+   - `is_active`
+   - `cta_label`, `cta_url`
+   - `image_url` หรือ `image_data` พร้อม `image_mime`, `image_name`, `image_size`
+   - `created_at`, `updated_at`
+
 ### Views (มุมมองข้อมูล)
 
 - **announcement_details** - รวมข้อมูลประกาศกับหมวดหมู่

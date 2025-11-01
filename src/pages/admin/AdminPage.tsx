@@ -8,6 +8,8 @@ import ExecutivesManagement from '../../components/ExecutivesManagement'
 import ItaManagement from '../../components/ItaManagement'
 import AnnouncementForm from '../../components/admin/AnnouncementForm'
 import ActivityForm from '../../components/admin/ActivityForm'
+import AdminIntroDashboard, { type AdminIntroDashboardHandle } from '../../components/admin/AdminIntroDashboard'
+import PopupsManager, { type PopupsManagerHandle } from '../../components/admin/PopupsManager'
 
 // Types
 // ----------------------------------------------------------------------------
@@ -105,7 +107,7 @@ const statusInfo = (it: { isPublished?: boolean; publishedAt?: string | null }) 
 
 export default function AdminPage() {
   const { getToken } = useAuth()
-  const [tab, setTab] = useState<'overview'|'announce'|'activity'|'slide'|'unit'|'executive'|'ita'>('overview')
+  const [tab, setTab] = useState<'intro'|'popups'|'overview'|'announce'|'activity'|'slide'|'unit'|'executive'|'ita'>('intro')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [annCount, setAnnCount] = useState(0)
   const [actCount, setActCount] = useState(0)
@@ -127,6 +129,8 @@ export default function AdminPage() {
   const { triggerRefresh } = useHomepageRefresh()
   
   // Refs for component methods
+  const introRef = useRef<AdminIntroDashboardHandle>(null)
+  const popupsRef = useRef<PopupsManagerHandle>(null)
   const executivesRef = useRef<any>(null)
   const itaRef = useRef<any>(null)
 
@@ -172,7 +176,7 @@ export default function AdminPage() {
     try {
       const params = new URLSearchParams(window.location.search)
       const tabParam = (params.get('tab') || '').toLowerCase()
-  const allowed = ['announce','activity','slide','unit','executive','ita'] as const
+      const allowed = ['intro','popups','overview','announce','activity','slide','unit','executive','ita'] as const
       if (allowed.includes(tabParam as any)) setTab(tabParam as any)
     } catch {}
   }, [])
@@ -260,6 +264,36 @@ export default function AdminPage() {
 
           {/* Navigation Menu */}
           <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
+            <button
+              onClick={() => {
+                setTab('intro')
+                if (window.innerWidth < 1024) setSidebarOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                tab === 'intro'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+              }`}
+            >
+              <span className="text-xl">✨</span>
+              <span>Intro Page</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setTab('popups');
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                tab === 'popups'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+              }`}
+            >
+              <span className="text-xl">🪟</span>
+              <span>ป๊อปอัปหน้าแรก</span>
+            </button>
+
             <button
               onClick={() => setTab('overview')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
@@ -393,6 +427,8 @@ export default function AdminPage() {
 
                 <div>
                   <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
+                    {tab === 'intro' && 'Intro Page'}
+                    {tab === 'popups' && 'จัดการป๊อปอัปหน้าแรก'}
                     {tab === 'overview' && 'ภาพรวมระบบ'}
                     {tab === 'announce' && 'จัดการประกาศ'}
                     {tab === 'activity' && 'จัดการกิจกรรม'}
@@ -402,6 +438,8 @@ export default function AdminPage() {
                     {tab === 'ita' && 'จัดการ ITA'}
                   </h1>
                   <p className="text-gray-600 text-sm mt-1 hidden sm:block">
+                    {tab === 'intro' && 'ข้อมูลสรุปการเข้าเว็บไซต์และผู้ใช้ล่าสุด'}
+                    {tab === 'popups' && 'ตั้งค่าป๊อปอัปหน้าแรกและรูปภาพที่แสดง'}
                     {tab === 'overview' && 'ข้อมูลสรุปและสถิติของระบบ'}
                     {tab === 'announce' && 'จัดการประกาศและข่าวสาร'}
                     {tab === 'activity' && 'จัดการกิจกรรมและรูปภาพ'}
@@ -421,7 +459,21 @@ export default function AdminPage() {
                 <button
                   className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
                   onClick={() => {
-                    if (tab === 'announce') refreshAnn().then(() => showToast('โหลดข้อมูลประกาศเสร็จสิ้น', undefined, 'success', 2000));
+                    if (tab === 'intro') {
+                      const introTask = introRef.current?.refresh()
+                      if (introTask) {
+                        introTask.then(() => showToast('โหลดข้อมูล Intro Page เสร็จสิ้น', undefined, 'success', 2000))
+                      } else {
+                        showToast('โหลดข้อมูล Intro Page เสร็จสิ้น', undefined, 'success', 2000)
+                      }
+                    } else if (tab === 'popups') {
+                      const popupTask = popupsRef.current?.refresh()
+                      if (popupTask) {
+                        popupTask.then(() => showToast('โหลดข้อมูลป๊อปอัปหน้าแรกเสร็จสิ้น', undefined, 'success', 2000))
+                      } else {
+                        showToast('โหลดข้อมูลป๊อปอัปหน้าแรกเสร็จสิ้น', undefined, 'success', 2000)
+                      }
+                    } else if (tab === 'announce') refreshAnn().then(() => showToast('โหลดข้อมูลประกาศเสร็จสิ้น', undefined, 'success', 2000));
                     else if (tab === 'activity') refreshAct().then(() => showToast('โหลดข้อมูลกิจกรรมเสร็จสิ้น', undefined, 'success', 2000));
                     else if (tab === 'slide') refreshSlides().then(() => showToast('โหลดข้อมูลสไลด์เสร็จสิ้น', undefined, 'success', 2000));
                     else if (tab === 'unit') refreshUnits().then(() => showToast('โหลดข้อมูลหน่วยงานเสร็จสิ้น', undefined, 'success', 2000));
@@ -439,7 +491,15 @@ export default function AdminPage() {
 
           {/* Content Area */}
           <div className="min-h-0 p-4 lg:p-6">
-            {tab === 'overview' ? (
+            {tab === 'intro' ? (
+              <div className="space-y-6 lg:space-y-8">
+                <AdminIntroDashboard ref={introRef} />
+              </div>
+            ) : tab === 'popups' ? (
+              <div className="space-y-6 lg:space-y-8">
+                <PopupsManager ref={popupsRef} />
+              </div>
+            ) : tab === 'overview' ? (
               <div className="space-y-4 lg:space-y-6">
                 {/* Welcome Section */}
                 <div className="bg-gradient-to-r from-gray-600 to-gray-700 rounded-2xl p-6 lg:p-8 text-white shadow-xl">

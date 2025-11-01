@@ -1,4 +1,4 @@
--- คัดลอกทั้งหมดแล้ววางใน phpMyAdmin (http://localhost/phpmyadmin)
+http://localhost:5173/-- คัดลอกทั้งหมดแล้ววางใน phpMyAdmin (http://localhost/phpmyadmin)
 -- กด Ctrl+A เพื่อเลือกทั้งหมด, คัดลอก, แล้ววางใน SQL tab
 
 -- 1. ลบ database เก่า
@@ -126,7 +126,27 @@ CREATE TABLE units (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 12. เพิ่มข้อมูลเริ่มต้น
+-- 12. สร้างตาราง Homepage Popups
+CREATE TABLE homepage_popups (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    start_at DATETIME NULL,
+    end_at DATETIME NULL,
+    dismiss_for_days INT NOT NULL DEFAULT 1,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    cta_label VARCHAR(120) NULL,
+    cta_url VARCHAR(500) NULL,
+    image_url VARCHAR(500) NULL,
+    image_data LONGBLOB NULL,
+    image_mime VARCHAR(120) NULL,
+    image_name VARCHAR(255) NULL,
+    image_size INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 13. เพิ่มข้อมูลเริ่มต้น
 INSERT INTO announcement_categories (name, display_name) VALUES
 ('job', 'สมัครงาน'),
 ('pr', 'ประชาสัมพันธ์'),

@@ -36,9 +36,10 @@ export const uploadLimiter = rateLimit({
 
 // Legacy function for backward compatibility
 export function createRateLimiter({ windowMs = 60_000, max = 100 } = {}) {
+  const effectiveMax = isProd ? max : Math.max(1000, max * 50)
   return rateLimit({
     windowMs,
-    max,
+    max: effectiveMax,
     message: { error: 'ขออภัย มีการร้องขอถี่เกินไป กรุณาลองใหม่อีกครั้งภายหลัง' },
     standardHeaders: true,
     legacyHeaders: false,

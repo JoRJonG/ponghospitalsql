@@ -17,6 +17,8 @@ import authRouter from './routes/auth.js'
 import imagesRouter from './routes/images.js'
 import uploadsRouter from './routes/uploads.js'
 import visitorsRouter from './routes/visitors.js'
+import popupsRouter from './routes/popups.js'
+import systemRouter from './routes/system.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
 import { optionalAuth } from './middleware/auth.js'
 import { trackVisitors } from './middleware/visitorTracker.js'
@@ -140,6 +142,8 @@ export async function createServer() {
   app.use('/api/images', imagesRouter)
   app.use('/api/uploads', uploadsRouter)
   app.use('/api/visitors', visitorsRouter)
+  app.use('/api/popups', popupsRouter)
+  app.use('/api/system', systemRouter)
 
   // Visitor tracking middleware (must be after API routes)
   app.use(trackVisitors)

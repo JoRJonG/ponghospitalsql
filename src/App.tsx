@@ -18,6 +18,7 @@ import ActivitiesListPage from './pages/ActivitiesListPage'
 import ActivityDetailPage from './pages/ActivityDetailPage'
 import AnnouncementDetailPage from './pages/AnnouncementDetailPage'
 import BackgroundPattern from './components/BackgroundPattern'
+import HomepagePopupOverlay from './components/HomepagePopupOverlay'
 import ItaPage from './pages/ItaPage'
 import ItaItemPage from './pages/ItaItemPage'
 import { ToastContainer } from './components/ToastContainer'
@@ -66,6 +67,7 @@ function App() {
                     </Routes>
                   </div>
                 </main>
+                <HomepagePopupOverlay />
                 <div className="app-container w-full">
                   <Footer />
                 </div>

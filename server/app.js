@@ -10,6 +10,7 @@ import uploadsRouter from './routes/uploads.js'
 import slidesRouter from './routes/slides.js'
 import unitsRouter from './routes/units.js'
 import authRouter from './routes/auth.js'
+import systemRouter from './routes/system.js'
 import { optionalAuth } from './middleware/auth.js'
 
 export async function createServer() {
@@ -94,6 +95,7 @@ export async function createServer() {
   app.use('/api/slides', slidesRouter)
   app.use('/api/units', unitsRouter)
   app.use('/api/auth', authRouter)
+  app.use('/api/system', systemRouter)
 
   // PDF proxy stays the same
   app.get('/api/proxy/pdf', async (req, res) => {
