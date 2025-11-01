@@ -13,7 +13,8 @@ services:
     networks:
       - pong-net
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -37,6 +38,11 @@ services:
       - ./database:/docker-entrypoint-initdb.d:ro
     networks:
       - pong-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pStrongPassword123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
