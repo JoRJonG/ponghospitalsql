@@ -61,9 +61,12 @@ export async function createServer() {
   if (httpsEnabled) {
     cspDirectives.upgradeInsecureRequests = []
   }
-  
+
   const helmetConfig = {
-    contentSecurityPolicy: { directives: cspDirectives },
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: cspDirectives,
+    },
     crossOriginEmbedderPolicy: false, // Allow embedding for PDF viewer
     originAgentCluster: httpsEnabled, // Only advertise OAC support when HTTPS is active
   }
