@@ -74,6 +74,18 @@ type AdminIntroDashboardProps = {
 }
 
 const numberFormatter = new Intl.NumberFormat('th-TH')
+const relativeTimeFormatter = new Intl.RelativeTimeFormat('th-TH', { numeric: 'auto' })
+
+const BOT_KEYWORDS = [
+  /hello\s*world/i,
+  /palo\s*alto/i,
+  /scan/i,
+  /bot/i,
+  /crawler/i,
+  /spider/i,
+  /uptime/i,
+  /monitor/i,
+]
 
 function formatDate(value: string) {
   if (!value) return '-'
@@ -136,6 +148,131 @@ function formatDuration(seconds?: number | null) {
   if (hours) parts.push(`${hours} ชม.`)
   if (minutes || parts.length === 0) parts.push(`${minutes} นาที`)
   return parts.slice(0, 2).join(' ')
+}
+
+function summarizeUserAgent(agent?: string | null) {
+  const raw = (agent || '').trim()
+  if (!raw) {
+    return { label: 'ไม่ระบุ', detail: null as string | null, isBot: false }
+  }
+
+  if (BOT_KEYWORDS.some(pattern => pattern.test(raw))) {
+    return { label: 'Bot / Scanner', detail: raw, isBot: true }
+  }
+
+  const isMobile = /Mobile|Android|iPhone|iPad/i.test(raw)
+  const isWindows = /Windows NT/i.test(raw)
+  const isMac = /Mac OS X/i.test(raw)
+  const isLinux = /Linux/i.test(raw) && !isAndroid(raw)
+
+  const browser = detectBrowser(raw)
+  const platform = isMobile
+    ? detectMobilePlatform(raw)
+    : isWindows
+      ? 'Windows'
+      : isMac
+        ? 'macOS'
+        : isLinux
+          ? 'Linux'
+          : null
+
+  const labelParts = [browser, platform].filter(Boolean)
+  const label = labelParts.length ? labelParts.join(' · ') : truncate(raw, 60)
+
+  return {
+    label,
+    detail: label === raw ? null : raw,
+    isBot: false,
+  }
+}
+
+function detectBrowser(value: string) {
+  if (/Edg\//i.test(value)) return 'Edge'
+  if (/Firefox\//i.test(value)) return 'Firefox'
+  if (/OPR\//i.test(value) || /Opera/i.test(value)) return 'Opera'
+  if (/Chrome\//i.test(value) && !/Chromium/i.test(value)) return 'Chrome'
+  if (/Safari\//i.test(value) && /Version\//i.test(value)) return 'Safari'
+  if (/Chromium/i.test(value)) return 'Chromium'
+  return null
+}
+
+function detectMobilePlatform(value: string) {
+  if (/iPad|iPhone|iPod/i.test(value)) return 'iOS'
+  if (/Android/i.test(value)) return 'Android'
+  return 'Mobile'
+}
+
+function isAndroid(value: string) {
+  return /Android/i.test(value)
+}
+
+function truncate(value: string, max = 80) {
+  if (value.length <= max) return value
+  return `${value.slice(0, max - 3)}...`
+}
+
+function formatRelative(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const diffMs = date.getTime() - Date.now()
+  const abs = Math.abs(diffMs)
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+
+  if (abs < hour) {
+    const minutes = Math.round(diffMs / minute)
+    return relativeTimeFormatter.format(minutes, 'minute')
+  }
+  if (abs < day) {
+    const hours = Math.round(diffMs / hour)
+    return relativeTimeFormatter.format(hours, 'hour')
+  }
+  const days = Math.round(diffMs / day)
+  return relativeTimeFormatter.format(days, 'day')
+}
+
+function describePath(path?: string | null) {
+  if (!path || path === '/') {
+    return { label: 'หน้าแรก', path: '/' }
+  }
+
+  const cleaned = path.trim() || '/'
+  if (cleaned === '/' || cleaned === '') {
+    return { label: 'หน้าแรก', path: '/' }
+  }
+
+  const normalized = cleaned.startsWith('/') ? cleaned : `/${cleaned}`
+  const segments = normalized
+    .split('/')
+    .map(segment => segment.trim())
+    .filter(Boolean)
+
+  if (segments.length === 0) {
+    return { label: 'หน้าแรก', path: '/' }
+  }
+
+  const label = segments
+    .map(segment => decodeSegment(segment))
+    .join(' › ')
+
+  return {
+    label,
+    path: normalized,
+  }
+}
+
+function decodeSegment(segment: string) {
+  let decoded = segment
+  try {
+    decoded = decodeURIComponent(segment)
+  } catch {
+    decoded = segment
+  }
+  return decoded
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase())
 }
 
 const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDashboardProps>(
@@ -437,55 +574,92 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                   ยังไม่มีข้อมูลการเข้าชม
                 </div>
               )}
-              {topPaths.map(item => (
-                <div key={item.path} className="flex items-center justify-between rounded-xl bg-emerald-50/60 p-3 text-sm text-emerald-900">
-                  <span className="truncate">{item.path}</span>
-                  <span className="font-semibold">{numberFormatter.format(item.hits)} ครั้ง</span>
-                </div>
-              ))}
+              {topPaths.map((item, index) => {
+                const info = describePath(item.path)
+                return (
+                  <div
+                    key={item.path || '/'}
+                    className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50/70 to-white p-3"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">
+                      {index + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-emerald-700">{info.label}</div>
+                      <div className="mt-1 truncate text-xs text-emerald-500">{info.path}</div>
+                    </div>
+                    <div className="rounded-full bg-emerald-100 px-3 py-[2px] text-xs font-semibold text-emerald-700">
+                      {numberFormatter.format(item.hits)} ครั้ง
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-5">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
-            <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-              <span className="text-sky-500">🧠</span>
-              ผู้ใช้ล่าสุด
-            </h3>
-            <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead>
-                  <tr className="text-left text-xs uppercase tracking-wider text-slate-500">
-                    <th className="py-2 pr-4">เวลา</th>
-                    <th className="py-2 pr-4">IP</th>
-                    <th className="py-2 pr-4">หน้า</th>
-                    <th className="py-2 pr-4">จำนวนครั้ง</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {recentSessions.map((session, idx) => (
-                    <tr key={`${session.lastSeen}-${idx}`}>
-                      <td className="py-2 pr-4 text-xs text-slate-500">{formatDate(session.lastSeen)}</td>
-                      <td className="py-2 pr-4">
-                        <div className="font-medium">{session.ipAddress || 'unknown'}</div>
-                        <div className="text-xs text-slate-400 truncate">{session.userAgent || 'ไม่ระบุ'}</div>
-                      </td>
-                      <td className="py-2 pr-4 text-xs">{session.path || '/'}</td>
-                      <td className="py-2 pr-4 text-right text-xs font-semibold">
-                        {numberFormatter.format(session.hits)}
-                      </td>
-                    </tr>
-                  ))}
-                  {recentSessions.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="py-6 text-center text-sm text-slate-500">
-                        ยังไม่มีข้อมูลผู้ใช้ล่าสุด
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                <span className="text-sky-500">🧠</span>
+                ผู้ใช้ล่าสุด
+              </h3>
+              <span className="text-xs text-slate-400">{recentSessions.length ? `ทั้งหมด ${recentSessions.length} รายการ` : 'ยังไม่มีข้อมูล'}</span>
+            </div>
+            <div className="mt-4 space-y-3">
+              {recentSessions.slice(0, 10).map((session, idx) => {
+                const agentInfo = summarizeUserAgent(session.userAgent)
+                const ipLabel = session.ipAddress || 'unknown'
+                const relative = formatRelative(session.lastSeen)
+                return (
+                  <div
+                    key={`${session.lastSeen}-${idx}`}
+                    className="group rounded-2xl border border-slate-100 bg-gradient-to-r from-slate-50/60 to-white p-4 shadow-sm transition hover:border-sky-100 hover:shadow-md"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sm font-semibold text-sky-600">
+                          {idx + 1}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-slate-900/90 px-2 py-1 text-xs font-semibold tracking-wide text-white">
+                              {ipLabel}
+                            </span>
+                            <span className={`rounded-full px-2 py-1 text-xs font-medium ${agentInfo.isBot ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {agentInfo.label}
+                            </span>
+                          </div>
+                          {agentInfo.detail && (
+                            <div className="mt-1 truncate text-[11px] text-slate-500">
+                              {agentInfo.detail}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right text-xs text-slate-500">
+                        <div className="font-semibold text-slate-700">{formatDate(session.lastSeen)}</div>
+                        {relative && <div className="mt-1 text-[11px] text-slate-400">{relative}</div>}
+                        <div className="mt-2 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
+                          {numberFormatter.format(session.hits)} ครั้ง
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-slate-600 shadow-sm">
+                        <span className="text-sky-500">📍</span>
+                        {session.path || '/'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+              {recentSessions.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                  ยังไม่มีข้อมูลผู้ใช้ล่าสุด
+                </div>
+              )}
             </div>
           </div>
 
@@ -500,12 +674,22 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                   ยังไม่มีข้อมูลอุปกรณ์
                 </div>
               )}
-              {topAgents.map(agent => (
-                <div key={agent.userAgent} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <div className="text-sm font-medium text-slate-800 truncate">{agent.userAgent}</div>
-                  <div className="text-xs text-slate-500">{numberFormatter.format(agent.hits)} ครั้ง</div>
-                </div>
-              ))}
+              {topAgents.map(agent => {
+                const agentInfo = summarizeUserAgent(agent.userAgent)
+                return (
+                  <div key={agent.userAgent || 'unknown'} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="truncate text-sm font-medium text-slate-800">{agentInfo.label}</div>
+                      <div className="rounded-full bg-violet-100 px-2 py-[2px] text-[11px] font-semibold text-violet-700">
+                        {numberFormatter.format(agent.hits)} ครั้ง
+                      </div>
+                    </div>
+                    {agentInfo.detail && (
+                      <div className="mt-1 truncate text-[11px] text-slate-500">{agentInfo.detail}</div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         </section>
