@@ -41,6 +41,9 @@ services:
       PMA_PORT: 3306
       PMA_USER: root
       PMA_PASSWORD: StrongPassword123
+      UPLOAD_LIMIT: 512M
+      MAX_EXECUTION_TIME: 300
+      MEMORY_LIMIT: 512M
     ports:
       - "8080:80"
     networks:
