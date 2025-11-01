@@ -4,15 +4,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ponghospital-app:latest
-    restart: unless-stopped
+      MYSQL_ROOT_PASSWORD: "P0ngHosp!A2025Secure"
+      MYSQL_DATABASE: ponghospital
     env_file:
       - .env.docker
     ports:
       - "5000:5000"
     networks:
       - pong-net
-    depends_on:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-pP0ngHosp!A2025Secure']
       mysql:
         condition: service_healthy
     deploy:
