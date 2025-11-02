@@ -570,11 +570,25 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
                 const thumbSrc = popup.image?.url || popup.imageUrl || ''
                 return (
                   <tr key={popup.id} className="text-slate-700">
-                    <td className="max-w-xs px-4 py-3 align-top">
+                    <td className="max-w-sm px-4 py-3 align-top">
                       {thumbSrc && (
-                        <div className="mb-2 h-12 w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                          <img src={thumbSrc} alt="รูปป๊อปอัป" className="h-full w-full object-cover" />
-                        </div>
+                        <a
+                          href={thumbSrc}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group mb-3 block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-emerald-200 hover:shadow-md"
+                        >
+                          <div className="relative flex h-40 w-full items-center justify-center bg-slate-50">
+                            <img
+                              src={thumbSrc}
+                              alt="รูปป๊อปอัป"
+                              className="max-h-full max-w-full object-contain transition duration-200 group-hover:scale-105"
+                            />
+                            <div className="absolute bottom-2 right-2 hidden rounded-full bg-emerald-500/90 px-3 py-1 text-[11px] font-semibold text-white shadow-sm group-hover:flex">
+                              เปิดภาพเต็ม
+                            </div>
+                          </div>
+                        </a>
                       )}
                       <div className="font-semibold text-slate-900 line-clamp-2">{popup.title}</div>
                       <div className="text-xs text-slate-500 line-clamp-2">{popup.body}</div>
