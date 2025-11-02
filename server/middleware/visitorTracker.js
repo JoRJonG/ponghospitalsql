@@ -5,12 +5,38 @@ import { isBotUserAgent } from '../utils/botDetector.js'
 const APP_TIMEZONE = process.env.APP_TIMEZONE || 'Asia/Bangkok'
 
 const VISITOR_COOKIE = 'visited_today'
+const TRACKED_PATH_PREFIXES = [
+  '/',
+  '/announcements',
+  '/announcement',
+  '/activities',
+  '/management',
+  '/executives',
+  '/ita',
+  '/about',
+  '/contact',
+  '/login',
+]
+
+function normalizePath(value) {
+  if (!value) return '/'
+  return value.startsWith('/') ? value : `/${value}`
+}
+
+function isTrackedPath(path) {
+  const normalized = normalizePath(path)
+  if (normalized === '/') return true
+  return TRACKED_PATH_PREFIXES.some(prefix => (
+    prefix !== '/' && (normalized === prefix || normalized.startsWith(`${prefix}/`))
+  ))
+}
 
 function shouldTrackRequest(req) {
   return req.method === 'GET' &&
     !req.path.startsWith('/api/') &&
     !req.path.includes('.') &&
-    !req.path.startsWith('/admin')
+    !req.path.startsWith('/admin') &&
+    isTrackedPath(req.path)
 }
 
 function getClientIp(req) {
