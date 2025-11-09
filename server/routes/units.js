@@ -40,7 +40,7 @@ router.get('/', optionalAuth, microCache(15_000), async (req, res) => {
   } catch (e) {
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-      return res.status(403).json({ error: 'Permission denied to read units', code: 'MONGO_PERMISSION_DENIED' })
+  return res.status(403).json({ error: 'Permission denied to read units' })
     }
     res.status(500).json({ error: 'Failed to fetch units' })
   }
@@ -56,7 +56,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
   } catch (e) {
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-      return res.status(403).json({ error: 'Permission denied to read units', code: 'MONGO_PERMISSION_DENIED' })
+  return res.status(403).json({ error: 'Permission denied to read units' })
     }
     res.status(400).json({ error: 'Invalid ID' })
   }

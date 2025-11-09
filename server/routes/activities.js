@@ -57,7 +57,7 @@ router.get('/', optionalAuth, microCache(5_000), async (req, res) => {
     console.error('[activities] GET / error:', e?.message)
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-      return res.status(403).json({ error: 'Permission denied to read activities', code: 'MONGO_PERMISSION_DENIED' })
+  return res.status(403).json({ error: 'Permission denied to read activities' })
     }
     res.status(500).json({ error: 'Failed to fetch activities', details: e?.message })
   }
@@ -75,7 +75,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
   } catch (e) {
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-      return res.status(403).json({ error: 'Permission denied to read activities', code: 'MONGO_PERMISSION_DENIED' })
+  return res.status(403).json({ error: 'Permission denied to read activities' })
     }
     res.status(400).json({ error: 'Invalid ID' })
   }

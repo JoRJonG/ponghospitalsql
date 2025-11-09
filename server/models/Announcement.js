@@ -26,4 +26,5 @@ const AnnouncementSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
-export default mongoose.model('Announcement', AnnouncementSchema)
+// ...MongoDB/mongoose Announcement model removed (no longer needed)...
+// export default mongoose.model('Announcement', AnnouncementSchema)

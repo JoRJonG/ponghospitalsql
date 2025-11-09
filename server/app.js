@@ -1,5 +1,5 @@
 import express from 'express'
-import mongoose from 'mongoose'
+// ...removed mongoose (MongoDB) import...
 import cors from 'cors'
 import dotenv from 'dotenv'
 import compression from 'compression'
@@ -140,47 +140,7 @@ export async function createServer() {
   })
 
   // Prepare DB connect function
-  const MONGODB_URI = process.env.MONGODB_URI || ''
-  const MONGODB_DBNAME = process.env.MONGODB_DBNAME || 'ponghospital'
-
-  const connectDb = async () => {
-    let connected = false
-    if (!MONGODB_URI) {
-      console.warn('[WARN] MONGODB_URI not set. API will start but DB operations will fail until configured')
-    } else {
-      try {
-        mongoose.set('bufferCommands', false)
-        await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 2000, dbName: MONGODB_DBNAME })
-        connected = true
-        // console.log('Connected to MongoDB')
-        // Seed admin (best-effort)
-        try {
-          const { default: User } = await import('./models/User.js')
-          const adminUser = (process.env.ADMIN_USER || 'admin').toLowerCase()
-          const adminPass = process.env.ADMIN_PASS || '1234'
-          if (adminUser && adminPass) {
-            try {
-              const bcryptPkg = await import('bcryptjs')
-              const { hash } = bcryptPkg.default || bcryptPkg
-              const passwordHash = await hash(adminPass, 10)
-              const r = await User.updateOne(
-                { username: adminUser },
-                { $set: { username: adminUser, passwordHash, roles: ['admin'] } },
-                { upsert: true }
-              )
-              if (r.upsertedCount) {} // console.log(`[seed] Upserted admin user: ${adminUser} (created)`) 
-              else if (r.modifiedCount) {} // console.log(`[seed] Upserted admin user: ${adminUser} (updated password/roles)`) 
-              else {} // console.log(`[seed] Admin user already up-to-date: ${adminUser}`)
-              try { await User.collection.createIndex({ username: 1 }, { unique: true }) } catch {}
-            } catch (e) { console.warn('[seed] Could not upsert admin user:', e?.message) }
-          }
-        } catch (e) { console.warn('[seed] Skipped seeding admin user:', e?.message) }
-      } catch (err) {
-        console.warn('[WARN] Could not connect to MongoDB. Continuing without DB. Error:', err?.message)
-      }
-    }
-    app.locals.dbConnected = connected
-  }
+    // ...removed MongoDB connectDb logic...
 
   return { app, connectDb }
 }
