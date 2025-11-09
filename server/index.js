@@ -6,13 +6,16 @@ import path from 'path'
 
 const PORT = process.env.PORT || 5000
 const HTTPS_PORT = process.env.HTTPS_PORT || 5443
-const USE_HTTPS = process.env.USE_HTTPS === 'true'
+const USE_HTTPS = process.env.USE_HTTPS === 'true' && process.env.NODE_ENV !== 'plesk'
 
 async function start() {
   const { app, connectDb } = await createServer()
   await connectDb()
 
-  if (USE_HTTPS) {
+  // In Plesk environment, always use HTTP as Plesk handles SSL
+  if (process.env.NODE_ENV === 'plesk' || !USE_HTTPS) {
+    app.listen(PORT, '0.0.0.0', () => console.log(`🌐 HTTP server listening on port ${PORT}`))
+  } else if (USE_HTTPS) {
     // Check for SSL certificates
     const sslKeyPath = process.env.SSL_KEY_PATH || path.join(process.cwd(), 'ssl', 'key.pem')
     const sslCertPath = process.env.SSL_CERT_PATH || path.join(process.cwd(), 'ssl', 'cert.pem')
