@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 
 interface ItaItem { _id: number; title: string; content?: string | null; pdfUrl?: string | null; parentId?: number | null; }
 interface ItaChild extends ItaItem {}
-interface PdfFile { id: number; filename: string; url: string; size: number }
 
 export default function ItaItemPage() {
   const { id } = useParams<{ id: string }>()
@@ -12,7 +11,6 @@ export default function ItaItemPage() {
   const [error, setError] = useState<string | null>(null)
   const [item, setItem] = useState<ItaItem | null>(null)
   const [children, setChildren] = useState<ItaChild[]>([])
-  const [pdfs, setPdfs] = useState<PdfFile[]>([])
 
   useEffect(() => {
     if (!id) return
@@ -23,7 +21,6 @@ export default function ItaItemPage() {
     }).then(d => {
       setItem(d.item)
       setChildren(d.children || [])
-      setPdfs(d.pdfs || [])
       setError(null)
     }).catch(() => setError('ไม่พบข้อมูล')).finally(()=>setLoading(false))
   }, [id])
@@ -40,28 +37,6 @@ export default function ItaItemPage() {
             <span className="text-gray-700 font-medium">{item.title}</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{item.title}</h1>
-          {item.pdfUrl && (
-            <div className="mb-4">
-              <a href={item.pdfUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-2 px-3 py-2 rounded bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 text-sm">
-                <i className="fa-regular fa-file-pdf" /> เปิดไฟล์หลัก (PDF)
-              </a>
-            </div>
-          )}
-          {pdfs.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-2">ไฟล์แนบ ({pdfs.length})</h2>
-              <ul className="space-y-1 text-sm">
-                {pdfs.map(f => (
-                  <li key={f.id} className="flex items-center gap-2">
-                    <a href={f.url} target="_blank" rel="noopener" className="text-blue-700 hover:underline flex-1 truncate" title={f.filename}>
-                      <i className="fa-regular fa-file-pdf mr-1" />{f.filename}
-                    </a>
-                    <span className="text-gray-400 text-xs">{(f.size/1024).toFixed(1)} KB</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
           {item.content && (
             <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.content }} />
           )}

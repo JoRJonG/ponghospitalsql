@@ -25,11 +25,6 @@ export default function ItaPage() {
   <li key={node._id} id={`ita-${node._id}`} className="mt-2 scroll-mt-28">
         <div className="flex items-start gap-2">
           <a href={`/ita/item/${node._id}`} className="font-medium text-gray-800 hover:underline" title="เปิดหน้าแยก">{node.title}</a>
-          {node.pdfUrl && (
-            <a href={node.pdfUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-sm text-orange-600 hover:underline" title="เปิดไฟล์ PDF ในแท็บใหม่">
-              <i className="fa-regular fa-file-pdf" /> PDF
-            </a>
-          )}
         </div>
         {node.content && (
           <div className="prose prose-sm max-w-none text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: node.content }} />
