@@ -23,6 +23,7 @@ import ItaPage from './pages/ItaPage'
 import ItaItemPage from './pages/ItaItemPage'
 import { ToastContainer } from './components/ToastContainer'
 import { useScrollToTop } from './utils/scrollToTop'
+import CookieConsent from './components/CookieConsent'
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth()
@@ -68,6 +69,7 @@ function App() {
                   </div>
                 </main>
                 <HomepagePopupOverlay />
+                <CookieConsent />
                 <div className="app-container w-full">
                   <Footer />
                 </div>

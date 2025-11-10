@@ -110,6 +110,10 @@ body {
   font-size: var(--hospital-font-size-base);
 }
 
+html.grayscale-mode body {
+  filter: grayscale(1);
+}
+
 /* Professional Responsive Container System */
 .container-professional {
   width: 100%;

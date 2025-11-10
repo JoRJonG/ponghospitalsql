@@ -146,10 +146,22 @@ CREATE TABLE homepage_popups (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 13. เพิ่มข้อมูลเริ่มต้น
+-- 13. สร้างตาราง Site Settings
+CREATE TABLE site_settings (
+    setting_key VARCHAR(100) NOT NULL PRIMARY KEY,
+    setting_value TEXT NOT NULL,
+    updated_by VARCHAR(100) NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 14. เพิ่มข้อมูลเริ่มต้น
 INSERT INTO announcement_categories (name, display_name) VALUES
 ('job', 'สมัครงาน'),
 ('pr', 'ประชาสัมพันธ์'),
 ('announce', 'ประกาศ');
+
+INSERT INTO site_settings (setting_key, setting_value, updated_by)
+VALUES ('display_mode', 'force-off', NULL)
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
 
 -- เสร็จสิ้น! ตอนนี้รีสตาร์ทเซิร์ฟเวอร์ด้วยการพิมพ์ rs ใน terminal

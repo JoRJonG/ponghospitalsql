@@ -83,6 +83,8 @@ export default function Navbar() {
           </div>
           <NavLink to="/about" className={navItemClass}>เกี่ยวกับเรา</NavLink>
           <NavLink to="/contact" className={navItemClass}>ติดต่อเรา</NavLink>
+          <div className="ml-1 flex items-center gap-1">
+          </div>
           <span className="mx-1" />
           {isAuthenticated && (
             <>
@@ -144,6 +146,8 @@ export default function Navbar() {
             </div>
             <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
             <NavLink to="/contact" className={navItemClass} onClick={()=>setOpen(false)}>ติดต่อเรา</NavLink>
+            <div className="mt-2 flex items-center gap-2">
+            </div>
             {isAuthenticated && (
               <>
                 <NavLink to="/admin" className={navItemClass} end onClick={()=>setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
