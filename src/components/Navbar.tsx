@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext.tsx'
 import '@fortawesome/fontawesome-free/css/all.min.css'
-import logo from '../assets/logo-150x150.png'
+const logo = '/logo-150x150.png'
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
   `px-3 py-2 rounded hover:bg-green-50 ${isActive ? 'text-green-700 font-semibold' : 'text-gray-700'}`

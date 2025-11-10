@@ -1,5 +1,7 @@
 import VisitorCounter from './VisitorCounter'
 
+const logo = '/logo-150x150.png'
+
 export default function Footer() {
   return (
     <footer className="mt-16 border-t border-gray-200/60 bg-gradient-to-br from-gray-50 to-gray-100">
@@ -9,7 +11,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <img
-                src="https://www.ponghospital.net/wp-content/uploads/2025/06/logo-150x150.png"
+                src={logo}
                 alt="Pong Hospital logo"
                 className="h-12 w-12 rounded-lg"
               />
