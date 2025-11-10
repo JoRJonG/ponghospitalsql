@@ -110,7 +110,7 @@ body {
   font-size: var(--hospital-font-size-base);
 }
 
-html.grayscale-mode body {
+html.grayscale-mode {
   filter: grayscale(1);
 }
 
