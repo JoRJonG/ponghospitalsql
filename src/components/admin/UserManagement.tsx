@@ -51,6 +51,8 @@ const EMPTY_FORM: UserFormState = {
   permissions: [],
 }
 
+const TOAST_DURATION = 3000
+
 function formatDateTime(value?: string) {
   if (!value) return '-'
   const date = new Date(value)
@@ -263,13 +265,13 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
       if (!response.ok || json?.success === false) {
         throw new Error(json?.error || json?.message || 'สร้างผู้ใช้ไม่สำเร็จ')
       }
-      showToast('เพิ่มผู้ใช้ใหม่สำเร็จ', undefined, 'success')
+  showToast('เพิ่มผู้ใช้ใหม่สำเร็จ', undefined, 'success', TOAST_DURATION)
       resetForm()
       await loadUsers()
     } catch (thrown: unknown) {
       console.error('[UserManagement] create error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'สร้างผู้ใช้ไม่สำเร็จ'
-      showToast(message, undefined, 'error')
+  showToast(message, undefined, 'error', TOAST_DURATION)
     } finally {
       setSaving(false)
     }
@@ -295,13 +297,13 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
       if (!response.ok || json?.success === false) {
         throw new Error(json?.error || json?.message || 'อัปเดตผู้ใช้ไม่สำเร็จ')
       }
-      showToast('บันทึกการเปลี่ยนแปลงสำเร็จ', undefined, 'success')
+  showToast('บันทึกการเปลี่ยนแปลงสำเร็จ', undefined, 'success', TOAST_DURATION)
       resetForm()
       await loadUsers()
     } catch (thrown: unknown) {
       console.error('[UserManagement] update error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'อัปเดตผู้ใช้ไม่สำเร็จ'
-      showToast(message, undefined, 'error')
+  showToast(message, undefined, 'error', TOAST_DURATION)
     } finally {
       setUpdating(false)
     }
@@ -318,7 +320,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
       if (!response.ok || json?.success === false) {
         throw new Error(json?.error || json?.message || 'ลบบัญชีไม่สำเร็จ')
       }
-      showToast('ลบบัญชีผู้ใช้สำเร็จ', undefined, 'success')
+  showToast('ลบบัญชีผู้ใช้สำเร็จ', undefined, 'success', TOAST_DURATION)
       if (editingUser?.id === user.id) {
         resetForm()
       }
@@ -326,7 +328,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
     } catch (thrown: unknown) {
       console.error('[UserManagement] delete error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'ลบบัญชีไม่สำเร็จ'
-      showToast(message, undefined, 'error')
+  showToast(message, undefined, 'error', TOAST_DURATION)
     } finally {
       setDeletingId(null)
     }
