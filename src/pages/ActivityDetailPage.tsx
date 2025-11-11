@@ -110,25 +110,25 @@ export default function ActivityDetailPage() {
           )}
           {/* Images gallery */}
           {Array.isArray(item.images) && item.images.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {item.images.map((im, idx) => {
                 const src = typeof im === 'string' ? im : im?.url
                 if (!src) return null
-                const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [480, 640, 800, 1024, 1280], crop: 'fill' })
+                const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [480, 640, 800, 1024, 1280], crop: 'fit' })
                 return (
-                  <img
-                    key={idx}
-                    src={rsrc}
-                    srcSet={srcSet}
-                    sizes={sizes}
-                    loading="lazy"
-                    decoding="async"
-                    width={800}
-                    height={600}
-                    alt={`${item.title} ${idx + 1}`}
-                    className="w-full aspect-[4/3] object-cover rounded cursor-zoom-in"
-                    onClick={() => openAt(idx)}
-                  />
+                  <div key={idx} className="w-full aspect-square sm:aspect-[4/3] rounded bg-slate-100 flex items-center justify-center overflow-hidden cursor-zoom-in" onClick={() => openAt(idx)}>
+                    <img
+                      src={rsrc}
+                      srcSet={srcSet}
+                      sizes={sizes}
+                      loading="lazy"
+                      decoding="async"
+                      width={800}
+                      height={600}
+                      alt={`${item.title} ${idx + 1}`}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
                 )
               })}
             </div>
@@ -150,7 +150,7 @@ export default function ActivityDetailPage() {
               ปิด
             </button>
           </div>
-          <div className="relative flex-1 flex items-center justify-center select-none" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+          <div className="relative flex-1 flex items-center justify-center select-none p-4 md:p-6" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
             <button
               aria-label="ก่อนหน้า"
               className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/20 rounded-full p-3"
@@ -164,7 +164,7 @@ export default function ActivityDetailPage() {
               alt={`image ${current + 1}`}
               loading="eager"
               decoding="async"
-              className="max-h-full max-w-full object-contain"
+              className="max-h-[calc(100vh-200px)] max-w-[90vw] object-contain w-auto h-auto rounded-lg shadow-lg"
             />
             <button
               aria-label="ถัดไป"
@@ -176,16 +176,22 @@ export default function ActivityDetailPage() {
           </div>
           <div className="px-4 py-3 flex gap-2 overflow-x-auto">
             {images.map((src, i) => (
-              <button key={i} className={`h-14 w-20 flex-shrink-0 rounded overflow-hidden ring-2 ${i===current? 'ring-white':'ring-transparent'}`} onClick={(e)=>{ e.stopPropagation(); setCurrent(i) }}>
-                <img
-                  {...responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fill' })}
-                  src={src}
-                  loading="lazy"
-                  decoding="async"
-                  width={200}
-                  height={140}
-                  className="h-full w-full object-cover"
-                />
+              <button
+                key={i}
+                className={`h-14 w-20 flex-shrink-0 rounded overflow-hidden ring-2 ${i===current? 'ring-white':'ring-transparent'}`}
+                onClick={(e)=>{ e.stopPropagation(); setCurrent(i) }}
+              >
+                <div className="h-full w-full bg-white/10 flex items-center justify-center">
+                  <img
+                    {...responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })}
+                    src={src}
+                    loading="lazy"
+                    decoding="async"
+                    width={200}
+                    height={140}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
               </button>
             ))}
           </div>
