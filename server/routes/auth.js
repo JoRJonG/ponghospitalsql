@@ -6,6 +6,7 @@ import { logger } from '../utils/logger.js'
 import User from '../models/mysql/User.js'
 import bcryptPkg from 'bcryptjs'
 const { compare, hash } = bcryptPkg
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
 
 const router = Router()
 const isProductionEnv = process.env.NODE_ENV === 'production'
@@ -56,6 +57,10 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
       try {
         const user = await User.findOne({ username })
         if (user) {
+          if (user.isActive === false) {
+            logger.warn('Suspended account login attempt', { ip: req.ip, username })
+            return res.status(403).json({ error: 'บัญชีนี้ถูกระงับ' })
+          }
           const ok = await compare(password, user.passwordHash)
           if (!ok) {
             logger.warn('Failed login attempt', { ip: req.ip, username, method: 'db' })
@@ -110,14 +115,20 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
 export default router
 
 // Refresh access token using refresh token
-router.post('/refresh', requireRefreshToken, (req, res) => {
+router.post('/refresh', requireRefreshToken, async (req, res) => {
   try {
-    const user = req.user
+    const tokenUser = req.user
+    if (!tokenUser?.sub) return res.status(401).json({ error: 'Refresh token invalid' })
+
+    const dbUser = await User.findById(Number(tokenUser.sub))
+    if (!dbUser) return res.status(401).json({ error: 'ไม่พบบัญชีผู้ใช้' })
+    if (dbUser.isActive === false) return res.status(403).json({ error: 'บัญชีนี้ถูกระงับ' })
+
     const payload = {
-      sub: user.sub,
-      username: user.username,
-      roles: user.roles,
-      permissions: user.permissions,
+      sub: dbUser._id.toString(),
+      username: dbUser.username,
+      roles: dbUser.roles,
+      permissions: dbUser.permissions,
     }
     const newToken = signToken(payload)
     const newRefreshToken = signRefreshToken(payload)
@@ -139,11 +150,17 @@ router.post('/refresh', requireRefreshToken, (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     }
 
-    // Update cookies
     res.cookie('ph_token', newToken, sessionCookieOptions)
     res.cookie('ph_refresh_token', newRefreshToken, refreshCookieOptions)
 
-  return res.json({ token: newToken, user: { username: user.username, roles: user.roles, permissions: user.permissions } })
+    return res.json({
+      token: newToken,
+      user: {
+        username: payload.username,
+        roles: dbUser.roles,
+        permissions: dbUser.permissions,
+      },
+    })
   } catch (e) {
     logger.error('Token refresh failed', { error: e.message, user: req.user?.username })
     return res.status(500).json({ error: 'Token refresh failed' })
@@ -167,15 +184,18 @@ router.post('/logout', (req, res) => {
 router.post('/change-password', requireAuth, createRateLimiter({ windowMs: 60_000, max: 5 }), async (req, res) => {
   const { currentPassword, newPassword } = req.body || {}
   if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Missing fields' })
-  if (typeof newPassword !== 'string' || newPassword.length < 6) return res.status(400).json({ error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร' })
+  if (typeof newPassword !== 'string' || !STRONG_PASSWORD_REGEX.test(newPassword)) {
+    return res.status(400).json({ error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร และประกอบด้วยตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข' })
+  }
   try {
     if (!req.app.locals.dbConnected) {
       return res.status(503).json({ error: 'ไม่สามารถเปลี่ยนรหัสได้ (ฐานข้อมูลไม่พร้อมใช้งาน)' })
     }
     const username = req.user?.username
     if (!username) return res.status(401).json({ error: 'Unauthorized' })
-    const user = await User.findOne({ username })
-    if (!user) return res.status(404).json({ error: 'ไม่พบบัญชีผู้ใช้' })
+  const user = await User.findOne({ username })
+  if (!user) return res.status(404).json({ error: 'ไม่พบบัญชีผู้ใช้' })
+  if (user.isActive === false) return res.status(403).json({ error: 'บัญชีนี้ถูกระงับ ไม่สามารถเปลี่ยนรหัสผ่านได้' })
     const ok = await compare(currentPassword, user.passwordHash)
     if (!ok) return res.status(401).json({ error: 'รหัสผ่านเดิมไม่ถูกต้อง' })
     const passwordHash = await hash(newPassword, 10)

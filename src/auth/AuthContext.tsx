@@ -174,11 +174,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const getToken = () => localStorage.getItem('ph_admin_token')
 
   const hasPermission = useCallback((permission: string) => {
-    if (!permission) return false
-    if (!user) return false
-    const roles = Array.isArray(user.roles) ? user.roles : []
-    if (roles.includes('admin')) return true
+    if (!permission || !user) return false
+
     const permissions = Array.isArray(user.permissions) ? user.permissions : []
+    const roles = Array.isArray(user.roles) ? user.roles : []
+
+    if (permission === 'system') {
+      if (roles.includes('admin')) return true
+      return permissions.includes('system') || permissions.includes('*')
+    }
+
+    if (roles.includes('admin')) return true
+
     if (permissions.includes('*')) return true
     return permissions.includes(permission)
   }, [user])

@@ -3,9 +3,14 @@ import { useAuth } from '../../auth/AuthContext'
 import { useTheme, type GrayscaleMode } from '../../contexts/ThemeContext'
 import { buildApiUrl } from '../../utils/api'
 
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+const isStrongPassword = (value: string) => STRONG_PASSWORD_REGEX.test(value)
+const PASSWORD_REQUIREMENT_TEXT = 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร พร้อมตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข'
+
 export default function SettingsPage() {
-  const { getToken, logout } = useAuth()
+  const { getToken, logout, hasPermission } = useAuth()
   const { grayscaleMode, refreshDisplayMode } = useTheme()
+  const canManageSystem = hasPermission('system')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -42,7 +47,7 @@ export default function SettingsPage() {
     e.preventDefault()
     setMessage(null); setError(null)
     if (!currentPassword || !newPassword) { setError('กรอกรหัสผ่านให้ครบ'); return }
-    if (newPassword.length < 6) { setError('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'); return }
+    if (!isStrongPassword(newPassword)) { setError(PASSWORD_REQUIREMENT_TEXT); return }
     if (newPassword !== confirmPassword) { setError('รหัสผ่านใหม่ไม่ตรงกัน'); return }
     setSaving(true)
     try {
@@ -63,6 +68,7 @@ export default function SettingsPage() {
 
   const submitDisplayMode = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!canManageSystem) return
     setModeMessage(null); setModeError(null)
     setModeSaving(true)
     try {
@@ -94,6 +100,7 @@ export default function SettingsPage() {
   }
 
   const resetDisplayMode = () => {
+    if (!canManageSystem) return
     setDisplayMode(grayscaleMode)
     setModeMessage(null)
     setModeError(null)
@@ -111,59 +118,70 @@ export default function SettingsPage() {
         <p className="mt-2 text-gray-700 text-sm md:text-base">จัดการการตั้งค่าเว็บไซต์และบัญชีผู้ดูแลระบบ</p>
       </div>
 
-      <div className="card mb-6">
-        <div className="card-body space-y-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <i className="fa-solid fa-circle-half-stroke text-emerald-600" />
-              การแสดงผลเว็บไซต์
-            </h2>
-            <p className="mt-1 text-sm text-gray-600">เลือกรูปแบบสีที่ต้องการแสดงให้ผู้เข้าชมเห็นบนทุกหน้า</p>
-          </div>
-          {modeError && <div className="border border-red-200 bg-red-50 text-red-700 rounded px-3 py-2 text-sm">{modeError}</div>}
-          {modeMessage && <div className="border border-green-200 bg-green-50 text-green-700 rounded px-3 py-2 text-sm">{modeMessage}</div>}
-          <form onSubmit={submitDisplayMode} className="space-y-4">
-            <div className="space-y-3">
-              {displayModeOptions.map(option => (
-                <label
-                  key={option.value}
-                  className={`flex items-start gap-3 rounded-lg border p-3 transition ${displayMode === option.value ? 'border-emerald-400 bg-emerald-50/40' : 'border-gray-200 hover:border-emerald-200'}`}
-                >
-                  <input
-                    type="radio"
-                    name="displayMode"
-                    value={option.value}
-                    className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500"
-                    checked={displayMode === option.value}
-                    onChange={() => { setDisplayMode(option.value); setModeMessage(null); setModeError(null) }}
-                    disabled={modeSaving}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <i className={`fa-solid ${option.icon} text-emerald-600`} />
-                      <span className="font-medium text-gray-900">{option.title}</span>
+      {canManageSystem ? (
+        <div className="card mb-6">
+          <div className="card-body space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <i className="fa-solid fa-circle-half-stroke text-emerald-600" />
+                การแสดงผลเว็บไซต์
+              </h2>
+              <p className="mt-1 text-sm text-gray-600">เลือกรูปแบบสีที่ต้องการแสดงให้ผู้เข้าชมเห็นบนทุกหน้า</p>
+            </div>
+            {modeError && <div className="border border-red-200 bg-red-50 text-red-700 rounded px-3 py-2 text-sm">{modeError}</div>}
+            {modeMessage && <div className="border border-green-200 bg-green-50 text-green-700 rounded px-3 py-2 text-sm">{modeMessage}</div>}
+            <form onSubmit={submitDisplayMode} className="space-y-4">
+              <div className="space-y-3">
+                {displayModeOptions.map(option => (
+                  <label
+                    key={option.value}
+                    className={`flex items-start gap-3 rounded-lg border p-3 transition ${displayMode === option.value ? 'border-emerald-400 bg-emerald-50/40' : 'border-gray-200 hover:border-emerald-200'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="displayMode"
+                      value={option.value}
+                      className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500"
+                      checked={displayMode === option.value}
+                      onChange={() => { setDisplayMode(option.value); setModeMessage(null); setModeError(null) }}
+                      disabled={modeSaving}
+                    />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <i className={`fa-solid ${option.icon} text-emerald-600`} />
+                        <span className="font-medium text-gray-900">{option.title}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-600">{option.description}</p>
                     </div>
-                    <p className="mt-1 text-sm text-gray-600">{option.description}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <button type="submit" className="admin-btn" disabled={modeSaving}>
-                {modeSaving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
-              </button>
-              <button
-                type="button"
-                className="admin-btn admin-btn--outline"
-                disabled={modeSaving || displayMode === grayscaleMode}
-                onClick={resetDisplayMode}
-              >
-                รีเซ็ต
-              </button>
-            </div>
-          </form>
+                  </label>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <button type="submit" className="admin-btn" disabled={modeSaving}>
+                  {modeSaving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--outline"
+                  disabled={modeSaving || displayMode === grayscaleMode}
+                  onClick={resetDisplayMode}
+                >
+                  รีเซ็ต
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="card mb-6">
+          <div className="card-body text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-gray-700">
+              <i className="fa-solid fa-circle-info text-base text-amber-500" />
+              คุณไม่มีสิทธิ์เข้าถึงการตั้งค่าการแสดงผลเว็บไซต์
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-body">
@@ -177,7 +195,7 @@ export default function SettingsPage() {
             <div>
               <label className="block text-sm mb-1">รหัสผ่านใหม่</label>
               <input type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} className="w-full rounded border px-3 py-2" required />
-              <p className="text-xs text-gray-500 mt-1">อย่างน้อย 8 ตัวอักษร แนะนำให้ใช้ตัวพิมพ์เล็ก-ใหญ่ ตัวเลข และสัญลักษณ์</p>
+              <p className={`text-xs mt-1 ${newPassword && !isStrongPassword(newPassword) ? 'text-red-600' : 'text-gray-500'}`}>{PASSWORD_REQUIREMENT_TEXT}</p>
             </div>
             <div>
               <label className="block text-sm mb-1">ยืนยันรหัสผ่านใหม่</label>

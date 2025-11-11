@@ -6,6 +6,8 @@ import { requireAuth, requirePermission } from '../middleware/auth.js'
 const router = Router()
 const { hash } = bcryptPkg
 
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+
 const PERMISSION_OPTIONS = new Set([
   'dashboard',
   'popups',
@@ -24,6 +26,10 @@ function sanitizePermissions(perms) {
   return Array.from(new Set(perms.filter(p => typeof p === 'string' && PERMISSION_OPTIONS.has(p))))
 }
 
+function isStrongPassword(password) {
+  return typeof password === 'string' && STRONG_PASSWORD_REGEX.test(password)
+}
+
 function toPublicUser(user) {
   if (!user) return null
   return {
@@ -31,6 +37,7 @@ function toPublicUser(user) {
     username: user.username,
     roles: user.roles || [],
     permissions: user.permissions || [],
+    isActive: user.isActive !== false,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   }
@@ -48,12 +55,12 @@ router.get('/', requireAuth, requirePermission('users'), async (req, res) => {
 
 router.post('/', requireAuth, requirePermission('users'), async (req, res) => {
   try {
-    const { username, password, permissions = [] } = req.body || {}
+    const { username, password, permissions = [], isActive } = req.body || {}
     if (!username || typeof username !== 'string' || username.length < 3) {
       return res.status(400).json({ success: false, error: 'กรุณาระบุชื่อผู้ใช้อย่างน้อย 3 ตัวอักษร' })
     }
-    if (!password || typeof password !== 'string' || password.length < 6) {
-      return res.status(400).json({ success: false, error: 'กรุณาระบุรหัสผ่านอย่างน้อย 6 ตัวอักษร' })
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ success: false, error: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร และประกอบด้วยตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข' })
     }
     const existing = await User.findByUsername(username)
     if (existing) {
@@ -61,7 +68,13 @@ router.post('/', requireAuth, requirePermission('users'), async (req, res) => {
     }
     const passwordHash = await hash(password, 10)
     const sanitizedPermissions = sanitizePermissions(permissions)
-    const created = await User.create({ username, passwordHash, roles: ['editor'], permissions: sanitizedPermissions })
+    const created = await User.create({
+      username,
+      passwordHash,
+      roles: ['editor'],
+      permissions: sanitizedPermissions,
+      isActive: typeof isActive === 'boolean' ? isActive : true,
+    })
     res.status(201).json({ success: true, data: toPublicUser(created) })
   } catch (error) {
     console.error('[users] create error:', error?.message)
@@ -88,6 +101,7 @@ router.put('/:id', requireAuth, requirePermission('users'), async (req, res) => 
       roles: target.roles,
       permissions: target.permissions,
       passwordHash: undefined,
+      isActive: target.isActive !== false,
     }
 
     if (Array.isArray(req.body?.permissions)) {
@@ -95,10 +109,24 @@ router.put('/:id', requireAuth, requirePermission('users'), async (req, res) => 
     }
 
     if (req.body?.password) {
-      if (typeof req.body.password !== 'string' || req.body.password.length < 6) {
-        return res.status(400).json({ success: false, error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร' })
+      if (!isStrongPassword(req.body.password)) {
+        return res.status(400).json({ success: false, error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร และประกอบด้วยตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข' })
       }
       payload.passwordHash = await hash(req.body.password, 10)
+    }
+
+    if (typeof req.body?.isActive === 'boolean') {
+      if (req.user?.sub && Number(req.user.sub) === id && req.body.isActive === false) {
+        return res.status(400).json({ success: false, error: 'ไม่สามารถระงับบัญชีของตนเองได้' })
+      }
+      if (req.body.isActive === false && Array.isArray(target.roles) && target.roles.includes('admin')) {
+        const admins = await User.findAll(500, 0)
+        const activeAdmins = admins.filter(u => Array.isArray(u.roles) && u.roles.includes('admin') && (u.isActive !== false) && u.id !== id)
+        if (activeAdmins.length === 0) {
+          return res.status(400).json({ success: false, error: 'ต้องมีผู้ดูแลระบบที่เปิดใช้งานอย่างน้อย 1 คน' })
+        }
+      }
+      payload.isActive = req.body.isActive
     }
 
     const updated = await User.updateById(id, payload)

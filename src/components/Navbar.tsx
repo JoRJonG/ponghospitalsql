@@ -9,7 +9,9 @@ const navItemClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, logout, hasPermission } = useAuth()
+  const canAccessSettings = hasPermission('system')
+  const settingsLabel = canAccessSettings ? 'ตั้งค่า' : 'บัญชี'
   const navigate = useNavigate()
   const doLogout = () => { logout(); setOpen(false); navigate('/') }
   // ITA dynamic menu
@@ -104,7 +106,9 @@ export default function Navbar() {
           {isAuthenticated && (
             <>
               <NavLink to="/admin" className={navItemClass} end><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
-              <NavLink to="/admin/settings" className={navItemClass}><i className="fa-solid fa-gear mr-1" /> ตั้งค่า</NavLink>
+              <NavLink to="/admin/settings" className={navItemClass}>
+                <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
+              </NavLink>
               <button onClick={doLogout} className="px-3 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600" aria-label="ออกจากระบบ">
                 <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
               </button>
@@ -166,7 +170,9 @@ export default function Navbar() {
             {isAuthenticated && (
               <>
                 <NavLink to="/admin" className={navItemClass} end onClick={()=>setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
-                <NavLink to="/admin/settings" className={navItemClass} onClick={()=>setOpen(false)}><i className="fa-solid fa-gear mr-1" /> ตั้งค่า</NavLink>
+                <NavLink to="/admin/settings" className={navItemClass} onClick={()=>setOpen(false)}>
+                  <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
+                </NavLink>
                 <button className="text-left px-3 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700" onClick={doLogout}>
                   <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
                 </button>

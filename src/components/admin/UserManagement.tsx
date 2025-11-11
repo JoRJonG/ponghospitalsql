@@ -13,12 +13,14 @@ export type ManagedUser = {
   permissions: string[]
   createdAt?: string
   updatedAt?: string
+  isActive: boolean
 }
 
 type UserFormState = {
   username: string
   password: string
   permissions: string[]
+  isActive: boolean
 }
 
 type PermissionOption = {
@@ -45,10 +47,15 @@ const PERMISSION_LABEL_MAP = PERMISSION_OPTIONS.reduce<Record<string, string>>((
   return acc
 }, {})
 
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+const isStrongPassword = (value: string) => STRONG_PASSWORD_REGEX.test(value)
+const PASSWORD_REQUIREMENT_TEXT = 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร พร้อมตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข'
+
 const EMPTY_FORM: UserFormState = {
   username: '',
   password: '',
   permissions: [],
+  isActive: true,
 }
 
 const TOAST_DURATION = 3000
@@ -89,6 +96,16 @@ type UserFormCardProps = {
 }
 
 function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, disableUsername }: UserFormCardProps) {
+  const trimmedPassword = form.password.trim()
+  const passwordValid = mode === 'create'
+    ? isStrongPassword(trimmedPassword)
+    : (trimmedPassword === '' || isStrongPassword(trimmedPassword))
+  const showPasswordError = trimmedPassword.length > 0 && !isStrongPassword(trimmedPassword)
+  const trimmedUsername = form.username.trim()
+  const canSubmit = !submitting
+    && (mode !== 'create' || trimmedUsername.length >= 3)
+    && passwordValid
+
   const togglePermission = (permission: string) => {
     onChange({
       ...form,
@@ -136,7 +153,7 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
         </label>
 
         <label className="flex flex-col gap-1 text-sm text-gray-700">
-          <span>{mode === 'create' ? 'รหัสผ่าน (อย่างน้อย 6 ตัว)' : 'รหัสผ่านใหม่ (ถ้าต้องการเปลี่ยน)'}</span>
+          <span>{mode === 'create' ? 'รหัสผ่าน' : 'รหัสผ่านใหม่ (ถ้าต้องการเปลี่ยน)'}</span>
           <input
             type="password"
             value={form.password}
@@ -145,7 +162,29 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
             placeholder={mode === 'create' ? 'ตั้งรหัสผ่าน' : 'ปล่อยว่างหากไม่เปลี่ยน'}
           />
+          {showPasswordError
+            ? <span className="text-xs text-red-600">{PASSWORD_REQUIREMENT_TEXT}</span>
+            : <span className="text-xs text-gray-400">{PASSWORD_REQUIREMENT_TEXT}</span>}
         </label>
+      </div>
+
+      <div className={`flex items-start justify-between rounded-xl border px-4 py-3 ${form.isActive ? 'border-emerald-200 bg-emerald-50/40' : 'border-gray-200 bg-gray-50'}`}>
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900">
+            {form.isActive ? 'บัญชีเปิดใช้งานอยู่' : 'บัญชีถูกระงับ'}
+          </h4>
+          <p className="text-xs text-gray-600 mt-0.5">
+            {form.isActive ? 'ผู้ใช้นี้สามารถเข้าสู่ระบบได้' : 'ผู้ใช้นี้จะไม่สามารถเข้าสู่ระบบได้จนกว่าจะเปิดใช้งานอีกครั้ง'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange({ ...form, isActive: !form.isActive })}
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold transition ${form.isActive ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-300 text-gray-800 hover:bg-gray-400'}`}
+        >
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: form.isActive ? '#BBF7D0' : '#4B5563' }} />
+          {form.isActive ? 'ระงับการใช้งาน' : 'เปิดใช้งาน'}
+        </button>
       </div>
 
       <div className="space-y-3">
@@ -183,7 +222,7 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
         <button
           type="button"
           onClick={onSubmit}
-          disabled={submitting || (mode === 'create' && (!form.username.trim() || form.username.trim().length < 3 || form.password.trim().length < 6))}
+          disabled={!canSubmit}
           className="admin-btn"
         >
           {submitting ? (
@@ -249,12 +288,18 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
 
   const handleCreate = async () => {
     if (saving) return
+    const trimmedPassword = form.password.trim()
+    if (!isStrongPassword(trimmedPassword)) {
+      showToast(PASSWORD_REQUIREMENT_TEXT, undefined, 'error', TOAST_DURATION)
+      return
+    }
     setSaving(true)
     try {
       const payload = {
         username: form.username.trim(),
-        password: form.password.trim(),
+        password: trimmedPassword,
         permissions: form.permissions,
+        isActive: form.isActive,
       }
       const response = await apiRequest('/api/users', {
         method: 'POST',
@@ -265,13 +310,13 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
       if (!response.ok || json?.success === false) {
         throw new Error(json?.error || json?.message || 'สร้างผู้ใช้ไม่สำเร็จ')
       }
-  showToast('เพิ่มผู้ใช้ใหม่สำเร็จ', undefined, 'success', TOAST_DURATION)
+      showToast('เพิ่มผู้ใช้ใหม่สำเร็จ', undefined, 'success', TOAST_DURATION)
       resetForm()
       await loadUsers()
     } catch (thrown: unknown) {
       console.error('[UserManagement] create error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'สร้างผู้ใช้ไม่สำเร็จ'
-  showToast(message, undefined, 'error', TOAST_DURATION)
+      showToast(message, undefined, 'error', TOAST_DURATION)
     } finally {
       setSaving(false)
     }
@@ -279,12 +324,17 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
 
   const handleUpdate = async () => {
     if (!editingUser || updating) return
+    const trimmedPassword = form.password.trim()
+    if (trimmedPassword && !isStrongPassword(trimmedPassword)) {
+      showToast(PASSWORD_REQUIREMENT_TEXT, undefined, 'error', TOAST_DURATION)
+      return
+    }
     setUpdating(true)
     try {
-      const payload: { permissions: string[]; password?: string } = {
+      const payload: { permissions: string[]; password?: string; isActive: boolean } = {
         permissions: form.permissions,
+        isActive: form.isActive,
       }
-      const trimmedPassword = form.password.trim()
       if (trimmedPassword) {
         payload.password = trimmedPassword
       }
@@ -297,13 +347,13 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
       if (!response.ok || json?.success === false) {
         throw new Error(json?.error || json?.message || 'อัปเดตผู้ใช้ไม่สำเร็จ')
       }
-  showToast('บันทึกการเปลี่ยนแปลงสำเร็จ', undefined, 'success', TOAST_DURATION)
+      showToast('บันทึกการเปลี่ยนแปลงสำเร็จ', undefined, 'success', TOAST_DURATION)
       resetForm()
       await loadUsers()
     } catch (thrown: unknown) {
       console.error('[UserManagement] update error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'อัปเดตผู้ใช้ไม่สำเร็จ'
-  showToast(message, undefined, 'error', TOAST_DURATION)
+      showToast(message, undefined, 'error', TOAST_DURATION)
     } finally {
       setUpdating(false)
     }
@@ -400,7 +450,16 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
                 <tbody className="divide-y divide-gray-100">
                   {users.map(user => (
                     <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-3 font-medium text-gray-900">{user.username}</td>
+                      <td className="px-6 py-3 font-medium text-gray-900">
+                        <div className="flex items-center gap-2">
+                          <span>{user.username}</span>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${user.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700'}`}
+                          >
+                            {user.isActive ? 'ใช้งานอยู่' : 'ระงับอยู่'}
+                          </span>
+                        </div>
+                      </td>
                       <td className="px-6 py-3 text-gray-700">
                         <div className="flex flex-wrap gap-1">
                           {(user.roles || []).length ? (
@@ -442,7 +501,12 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
                             onClick={() => {
                               setEditingUser(user)
                               setCreating(false)
-                              setForm({ username: user.username, password: '', permissions: user.permissions || [] })
+                              setForm({
+                                username: user.username,
+                                password: '',
+                                permissions: user.permissions || [],
+                                isActive: user.isActive,
+                              })
                             }}
                           >
                             <span>✏️</span>

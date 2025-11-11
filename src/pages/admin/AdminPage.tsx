@@ -175,6 +175,7 @@ export default function AdminPage() {
     ita: hasPermission('ita'),
     users: hasPermission('users'),
     admin: hasPermission('admin'),
+    system: hasPermission('system'),
   }), [hasPermission])
 
   const allowedTabs = useMemo<Record<AdminTab, boolean>>(() => {

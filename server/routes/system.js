@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { requireAuth, requireRole } from '../middleware/auth.js'
+import { requireAuth, requireRole, requirePermission } from '../middleware/auth.js'
 import { getCpuLoad, getDiskUsage, getMemoryUsage, getSystemMeta } from '../utils/systemInfo.js'
 import SiteSetting from '../models/mysql/SiteSetting.js'
 
@@ -23,7 +23,7 @@ router.get('/display-mode', async (req, res) => {
   }
 })
 
-router.put('/display-mode', requireAuth, requireRole('admin'), async (req, res) => {
+router.put('/display-mode', requireAuth, requirePermission('system'), async (req, res) => {
   try {
     if (!req.app.locals.dbConnected) {
       return res.status(503).json({ success: false, error: 'ฐานข้อมูลยังไม่พร้อม' })

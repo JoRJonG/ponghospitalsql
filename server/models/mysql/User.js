@@ -13,6 +13,7 @@ function mapUserRow(row) {
   if (!row) return null
   const roles = parseJsonField(row.roles, ['admin'])
   const permissions = parseJsonField(row.permissions, [])
+  const isActive = typeof row.is_active === 'number' ? row.is_active !== 0 : row.is_active !== false
   return {
     _id: row._id ?? row.id,
     id: row.id,
@@ -20,6 +21,7 @@ function mapUserRow(row) {
     passwordHash: row.password_hash,
     roles,
     permissions,
+    isActive,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -36,7 +38,7 @@ export class User {
     }
 
     const rows = await query(
-      `SELECT id as _id, id, username, password_hash, roles, permissions, created_at, updated_at FROM users ${whereClause} LIMIT 1`,
+      `SELECT id as _id, id, username, password_hash, roles, permissions, is_active, created_at, updated_at FROM users ${whereClause} LIMIT 1`,
       params
     )
 
@@ -49,16 +51,16 @@ export class User {
 
   static async findById(id) {
     const rows = await query(
-      'SELECT id as _id, id, username, password_hash, roles, permissions, created_at, updated_at FROM users WHERE id = ? LIMIT 1',
+      'SELECT id as _id, id, username, password_hash, roles, permissions, is_active, created_at, updated_at FROM users WHERE id = ? LIMIT 1',
       [id]
     )
     return mapUserRow(rows[0])
   }
 
-  static async create({ username, passwordHash, roles = ['admin'], permissions = [] }) {
+  static async create({ username, passwordHash, roles = ['admin'], permissions = [], isActive = true }) {
     const result = await query(
-      'INSERT INTO users (username, password_hash, roles, permissions) VALUES (?, ?, ?, ?)',
-      [username, passwordHash, JSON.stringify(roles), JSON.stringify(permissions)]
+      'INSERT INTO users (username, password_hash, roles, permissions, is_active) VALUES (?, ?, ?, ?, ?)',
+      [username, passwordHash, JSON.stringify(roles), JSON.stringify(permissions), isActive ? 1 : 0]
     )
     return this.findById(result.insertId)
   }
@@ -74,9 +76,10 @@ export class User {
       const passwordHash = $set.passwordHash ?? existing.passwordHash
       const roles = $set.roles ?? existing.roles ?? ['admin']
       const permissions = $set.permissions ?? existing.permissions ?? []
+      const isActive = typeof $set.isActive === 'boolean' ? $set.isActive : existing.isActive !== false
       const result = await query(
-        'UPDATE users SET password_hash = ?, roles = ?, permissions = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?',
-        [passwordHash, JSON.stringify(roles), JSON.stringify(permissions), username]
+        'UPDATE users SET password_hash = ?, roles = ?, permissions = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?',
+        [passwordHash, JSON.stringify(roles), JSON.stringify(permissions), isActive ? 1 : 0, username]
       )
       return { modifiedCount: result.affectedRows, upsertedCount: 0 }
     }
@@ -91,6 +94,7 @@ export class User {
         passwordHash,
         roles: $set.roles ?? ['admin'],
         permissions: $set.permissions ?? [],
+        isActive: typeof $set.isActive === 'boolean' ? $set.isActive : true,
       })
       return { modifiedCount: 0, upsertedCount: 1 }
     }
@@ -105,21 +109,22 @@ export class User {
 
   static async findAll(limit = 50, offset = 0) {
     const rows = await query(
-      'SELECT id as _id, id, username, roles, permissions, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
+      'SELECT id as _id, id, username, roles, permissions, is_active, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
       [limit, offset]
     )
     return rows.map(mapUserRow)
   }
 
-  static async updateById(id, { passwordHash, roles, permissions }) {
+  static async updateById(id, { passwordHash, roles, permissions, isActive }) {
     const existing = await this.findById(id)
     if (!existing) return null
     const nextPassword = passwordHash ?? existing.passwordHash
     const nextRoles = roles ?? existing.roles ?? ['admin']
     const nextPermissions = permissions ?? existing.permissions ?? []
+    const nextActive = typeof isActive === 'boolean' ? isActive : existing.isActive !== false
     await query(
-      'UPDATE users SET password_hash = ?, roles = ?, permissions = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [nextPassword, JSON.stringify(nextRoles), JSON.stringify(nextPermissions), id]
+      'UPDATE users SET password_hash = ?, roles = ?, permissions = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [nextPassword, JSON.stringify(nextRoles), JSON.stringify(nextPermissions), nextActive ? 1 : 0, id]
     )
     return this.findById(id)
   }
