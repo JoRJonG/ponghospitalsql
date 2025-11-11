@@ -4,7 +4,7 @@ import HomeAnnouncements from '../components/HomeAnnouncements'
 import LatestActivities from '../components/LatestActivities'
 import UnitLinks from '../components/UnitLinks'
 import { useRef } from 'react'
-import { useHomepageRefresh } from '../contexts/HomepageRefreshContext'
+import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)

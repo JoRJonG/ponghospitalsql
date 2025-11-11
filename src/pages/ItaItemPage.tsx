@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-interface ItaItem { _id: number; title: string; content?: string | null; pdfUrl?: string | null; parentId?: number | null; }
-interface ItaChild extends ItaItem {}
+type ItaItem = { _id: number; title: string; content?: string | null; pdfUrl?: string | null; parentId?: number | null }
+type ItaChild = ItaItem
 
 export default function ItaItemPage() {
   const { id } = useParams<{ id: string }>()

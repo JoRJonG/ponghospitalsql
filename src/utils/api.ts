@@ -75,11 +75,23 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
         if (refreshResponse.ok) {
           const refreshData = await refreshResponse.json()
           localStorage.setItem('ph_admin_token', refreshData.token)
+          if (refreshData.user && typeof refreshData.user.username === 'string') {
+            const roles = Array.isArray(refreshData.user.roles) ? refreshData.user.roles : []
+            const permissions = Array.isArray(refreshData.user.permissions) ? refreshData.user.permissions : []
+            localStorage.setItem('ph_admin_user', JSON.stringify({
+              username: refreshData.user.username,
+              roles,
+              permissions,
+            }))
+          } else {
+            localStorage.removeItem('ph_admin_user')
+          }
           console.log('Token refreshed, retrying request...')
           response = await makeRequest() // Retry with new token
         } else {
           console.log('Token refresh failed, clearing token')
           localStorage.removeItem('ph_admin_token')
+          localStorage.removeItem('ph_admin_user')
           // Trigger logout by dispatching custom event
           window.dispatchEvent(new CustomEvent('auth:logout'))
         }
@@ -87,6 +99,7 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
     } catch (error) {
       console.error('Error during token refresh:', error)
       localStorage.removeItem('ph_admin_token')
+      localStorage.removeItem('ph_admin_user')
       window.dispatchEvent(new CustomEvent('auth:logout'))
     }
   }

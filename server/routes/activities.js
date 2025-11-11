@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import Activity from '../models/mysql/ActivityBlob.js'
 import multer from 'multer'
-import { requireAuth, optionalAuth } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { fileTypeFromBuffer } from 'file-type'
@@ -35,7 +35,7 @@ router.get('/', optionalAuth, microCache(5_000), async (req, res) => {
   const { published } = req.query
   const wantAll = published === 'false'
   const isAuthed = Boolean(req.user)
-  const allowAll = wantAll && isAuthed
+  const allowAll = wantAll && isAuthed && userHasPermission(req.user, 'activities')
   if (!req.app.locals.dbConnected) {
     return res.json([])
   }
@@ -116,7 +116,7 @@ router.post('/:id/view', async (req, res) => {
 })
 
 // Create with image uploads
-router.post('/', requireAuth, upload.array('images', 100), async (req, res) => {
+router.post('/', requireAuth, requirePermission('activities'), upload.array('images', 100), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }
@@ -196,7 +196,7 @@ router.post('/', requireAuth, upload.array('images', 100), async (req, res) => {
 })
 
 // Update - รองรับทั้ง JSON และ multipart/form-data
-router.put('/:id', requireAuth, (req, res, next) => {
+router.put('/:id', requireAuth, requirePermission('activities'), (req, res, next) => {
   // ถ้าเป็น multipart/form-data ให้ใช้ multer, ถ้าเป็น JSON ให้ข้าม
   const contentType = req.get('Content-Type') || ''
   if (contentType.includes('multipart/form-data')) {
@@ -277,7 +277,7 @@ router.put('/:id', requireAuth, (req, res, next) => {
 })
 
 // Delete
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requirePermission('activities'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }

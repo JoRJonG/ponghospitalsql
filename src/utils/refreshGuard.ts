@@ -11,8 +11,10 @@ export function installRefreshGuard(opts: Options = {}) {
 
   try {
     const now = Date.now()
-    const nav = (performance.getEntriesByType?.('navigation') as any[] | undefined)?.[0]
-    const type = nav?.type || (document as any).navigation?.type
+    const entries = performance.getEntriesByType ? performance.getEntriesByType('navigation') : []
+    const nav = Array.isArray(entries) && entries.length > 0 ? entries[0] as PerformanceNavigationTiming : undefined
+    const docNav = (document as unknown as { navigation?: { type?: string } }).navigation
+    const type = nav?.type || docNav?.type
     const isReload = type === 'reload'
     const key = 'app:last-reload'
     const last = parseInt(sessionStorage.getItem(key) || '0', 10) || 0
@@ -22,14 +24,20 @@ export function installRefreshGuard(opts: Options = {}) {
         showToast('คุณกำลังกดรีเฟรชบ่อยเกินไป กรุณารอสักครู่')
       }
     }
-  } catch {}
+  } catch (error) {
+    console.warn('Refresh guard: failed to inspect navigation entries', error)
+  }
 
   // Invalidate client cache when returning focus after a while
   let lastVisible = Date.now()
   const onVisible = () => {
     const now = Date.now()
     if (now - lastVisible > revalidateAfter) {
-      try { invalidateCache('/api/') } catch {}
+      try {
+        invalidateCache('/api/')
+      } catch (error) {
+        console.warn('Refresh guard: failed to invalidate cache', error)
+      }
     }
     lastVisible = now
   }
@@ -57,7 +65,9 @@ function showToast(message: string) {
     document.body.appendChild(el)
     setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = '0' }, 1500)
     setTimeout(() => { el.remove() }, 2000)
-  } catch {}
+  } catch (error) {
+    console.warn('Refresh guard: failed to show toast', error)
+  }
 }
 
 export default { installRefreshGuard }

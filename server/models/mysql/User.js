@@ -1,45 +1,66 @@
-import { pool, query, transaction } from '../../database.js'
+import { query } from '../../database.js'
+
+function parseJsonField(value, fallback) {
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string') {
+    try { return JSON.parse(value) } catch { return fallback }
+  }
+  if (value && typeof value === 'object') return value
+  return fallback
+}
+
+function mapUserRow(row) {
+  if (!row) return null
+  const roles = parseJsonField(row.roles, ['admin'])
+  const permissions = parseJsonField(row.permissions, [])
+  return {
+    _id: row._id ?? row.id,
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    roles,
+    permissions,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
 
 export class User {
   static async findOne(filter = {}) {
     let whereClause = 'WHERE 1=1'
-    let params = []
-    
+    const params = []
+
     if (filter.username) {
       whereClause += ' AND username = ?'
       params.push(filter.username)
     }
-    
+
     const rows = await query(
-      `SELECT id as _id, username, password_hash as passwordHash, roles, created_at, updated_at FROM users ${whereClause} LIMIT 1`,
+      `SELECT id as _id, id, username, password_hash, roles, permissions, created_at, updated_at FROM users ${whereClause} LIMIT 1`,
       params
     )
-    
-    if (!rows[0]) return null
-    
-    const user = rows[0]
-    // Parse roles if it's a string
-    if (typeof user.roles === 'string') {
-      user.roles = JSON.parse(user.roles)
-    }
-    // แปลง snake_case เป็น camelCase
-    user.createdAt = user.created_at
-    user.updatedAt = user.updated_at
-    delete user.created_at
-    delete user.updated_at
-    return user
+
+    return mapUserRow(rows[0])
   }
 
   static async findByUsername(username) {
     return this.findOne({ username })
   }
 
-  static async create({ username, passwordHash, roles = ['admin'] }) {
-    const result = await query(
-      'INSERT INTO users (username, password_hash, roles) VALUES (?, ?, ?)',
-      [username, passwordHash, JSON.stringify(roles)]
+  static async findById(id) {
+    const rows = await query(
+      'SELECT id as _id, id, username, password_hash, roles, permissions, created_at, updated_at FROM users WHERE id = ? LIMIT 1',
+      [id]
     )
-    return { id: result.insertId, username, roles }
+    return mapUserRow(rows[0])
+  }
+
+  static async create({ username, passwordHash, roles = ['admin'], permissions = [] }) {
+    const result = await query(
+      'INSERT INTO users (username, password_hash, roles, permissions) VALUES (?, ?, ?, ?)',
+      [username, passwordHash, JSON.stringify(roles), JSON.stringify(permissions)]
+    )
+    return this.findById(result.insertId)
   }
 
   static async updateOne(filter, update, options = {}) {
@@ -47,31 +68,34 @@ export class User {
     const { $set } = update
     const { upsert = false } = options
 
-    if (upsert) {
-      // ลองอัพเดทก่อน
-      const existing = await this.findByUsername(username)
-      if (existing) {
-        await query(
-          'UPDATE users SET password_hash = ?, roles = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?',
-          [$set.passwordHash, JSON.stringify($set.roles), username]
-        )
-        return { modifiedCount: 1, upsertedCount: 0 }
-      } else {
-        // สร้างใหม่
-        await this.create({ 
-          username: $set.username, 
-          passwordHash: $set.passwordHash, 
-          roles: $set.roles 
-        })
-        return { modifiedCount: 0, upsertedCount: 1 }
-      }
-    } else {
+    const existing = username ? await this.findByUsername(username) : null
+
+    if (existing) {
+      const passwordHash = $set.passwordHash ?? existing.passwordHash
+      const roles = $set.roles ?? existing.roles ?? ['admin']
+      const permissions = $set.permissions ?? existing.permissions ?? []
       const result = await query(
-        'UPDATE users SET password_hash = ?, roles = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?',
-        [$set.passwordHash, JSON.stringify($set.roles), username]
+        'UPDATE users SET password_hash = ?, roles = ?, permissions = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?',
+        [passwordHash, JSON.stringify(roles), JSON.stringify(permissions), username]
       )
       return { modifiedCount: result.affectedRows, upsertedCount: 0 }
     }
+
+    if (upsert) {
+      const newUsername = $set.username ?? username
+      if (!newUsername) throw new Error('Username is required for upsert')
+      const passwordHash = $set.passwordHash
+      if (!passwordHash) throw new Error('passwordHash is required for upsert')
+      await this.create({
+        username: newUsername,
+        passwordHash,
+        roles: $set.roles ?? ['admin'],
+        permissions: $set.permissions ?? [],
+      })
+      return { modifiedCount: 0, upsertedCount: 1 }
+    }
+
+    return { modifiedCount: 0, upsertedCount: 0 }
   }
 
   static async countDocuments(filter = {}) {
@@ -81,16 +105,28 @@ export class User {
 
   static async findAll(limit = 50, offset = 0) {
     const rows = await query(
-      'SELECT id as _id, username, roles, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
+      'SELECT id as _id, id, username, roles, permissions, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
       [limit, offset]
     )
-    return rows.map(row => ({
-      _id: row._id,
-      username: row.username,
-      roles: JSON.parse(row.roles || '["admin"]'),
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    }))
+    return rows.map(mapUserRow)
+  }
+
+  static async updateById(id, { passwordHash, roles, permissions }) {
+    const existing = await this.findById(id)
+    if (!existing) return null
+    const nextPassword = passwordHash ?? existing.passwordHash
+    const nextRoles = roles ?? existing.roles ?? ['admin']
+    const nextPermissions = permissions ?? existing.permissions ?? []
+    await query(
+      'UPDATE users SET password_hash = ?, roles = ?, permissions = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [nextPassword, JSON.stringify(nextRoles), JSON.stringify(nextPermissions), id]
+    )
+    return this.findById(id)
+  }
+
+  static async deleteById(id) {
+    const result = await query('DELETE FROM users WHERE id = ?', [id])
+    return result.affectedRows > 0
   }
 }
 

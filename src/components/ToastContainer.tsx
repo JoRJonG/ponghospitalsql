@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../contexts/ToastContext'
-import type { ToastType } from '../contexts/ToastContext'
+import type { Toast, ToastType } from '../contexts/ToastContext'
 
-function ToastItemInner({ toast, onRemove }: { toast: any, onRemove: (id: string) => void }) {
+function ToastItemInner({ toast, onRemove }: { toast: Toast, onRemove: (id: string) => void }) {
   const [leaving, setLeaving] = useState(false)
 
   const getIcon = (type: ToastType) => {
@@ -65,7 +65,7 @@ export function ToastContainer() {
 
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-      {toasts.map((toast: any) => (
+      {toasts.map((toast) => (
         <ToastItemInner
           key={toast.id}
           toast={toast}

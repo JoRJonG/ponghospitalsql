@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { requireAuth, optionalAuth } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import Announcement from '../models/mysql/Announcement.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
@@ -15,7 +15,7 @@ router.get('/', optionalAuth, microCache(5_000), async (req, res) => {
   const { category, published } = req.query
   const wantAll = published === 'false'
   const isAuthed = Boolean(req.user)
-  const allowAll = wantAll && isAuthed
+  const allowAll = wantAll && isAuthed && userHasPermission(req.user, 'announcements')
   if (!req.app.locals.dbConnected) {
     // Allow site to render even if DB is not configured yet
     return res.json([])
@@ -88,7 +88,7 @@ router.post('/:id/view', async (req, res) => {
   }
 })
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requirePermission('announcements'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }
@@ -127,7 +127,7 @@ router.post('/', requireAuth, async (req, res) => {
   }
 })
 
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAuth, requirePermission('announcements'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }
@@ -157,7 +157,7 @@ router.put('/:id', requireAuth, async (req, res) => {
   }
 })
 
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requirePermission('announcements'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }

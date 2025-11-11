@@ -82,8 +82,27 @@ export function requireRole(role) {
   return function(req, res, next) {
     const u = req.user
     if (!u) return res.status(401).json({ error: 'Unauthorized' })
-    const roles = Array.isArray(u?.roles) ? u.roles : []
-    if (roles.includes(role) || roles.includes('admin')) return next()
+    if (userHasPermission(u, role)) return next()
+    return res.status(403).json({ error: 'Forbidden' })
+  }
+}
+
+export function userHasPermission(user, permission) {
+  if (!user) return false
+  const roles = Array.isArray(user.roles) ? user.roles : []
+  if (roles.includes('admin')) return true
+  if (!permission) return false
+  const perms = Array.isArray(user.permissions) ? user.permissions : []
+  return perms.includes(permission)
+}
+
+export function requirePermission(permission) {
+  return function(req, res, next) {
+    const user = req.user
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
+    if (userHasPermission(user, permission)) {
+      return next()
+    }
     return res.status(403).json({ error: 'Forbidden' })
   }
 }

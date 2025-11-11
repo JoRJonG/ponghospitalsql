@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { requireAuth, optionalAuth } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import { ItaItem, saveItaPdf, getItaPdf, attachPdfToItem, listItemPdfs, deletePdf } from '../models/mysql/ItaItem.js'
 import multer from 'multer'
 import { fileTypeFromBuffer } from 'file-type'
@@ -17,7 +17,7 @@ router.get('/tree', optionalAuth, microCache(15_000), async (req, res) => {
     if (!req.app.locals.dbConnected) {
       return res.json([])
     }
-    const includeUnpublished = !!req.user
+  const includeUnpublished = !!req.user && userHasPermission(req.user, 'ita')
     const tree = await ItaItem.findTree({ includeUnpublished })
     res.json(tree)
   } catch (e) {
@@ -29,7 +29,7 @@ router.get('/tree', optionalAuth, microCache(15_000), async (req, res) => {
 // Flat list
 router.get('/', optionalAuth, microCache(15_000), async (req, res) => {
   try {
-    const includeUnpublished = !!req.user
+  const includeUnpublished = !!req.user && userHasPermission(req.user, 'ita')
     const all = await ItaItem.findAll({ includeUnpublished })
     res.json(all)
   } catch (e) {
@@ -43,7 +43,7 @@ router.get('/item/:id', optionalAuth, microCache(10_000), async (req, res) => {
   try {
     const id = Number(req.params.id)
     if (!id) return res.status(400).json({ error: 'Bad id' })
-    const includeUnpublished = !!req.user
+  const includeUnpublished = !!req.user && userHasPermission(req.user, 'ita')
     const item = await ItaItem.findById(id)
     if (!item) return res.status(404).json({ error: 'Not found' })
     if (!includeUnpublished && item.isPublished === false) return res.status(404).json({ error: 'Not found' })
@@ -57,7 +57,7 @@ router.get('/item/:id', optionalAuth, microCache(10_000), async (req, res) => {
   }
 })
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requirePermission('ita'), async (req, res) => {
   try {
     const { title, parentId, slug, content, isPublished, pdfUrl, pdfFileId } = req.body || {}
     if (!title) return res.status(400).json({ error: 'Missing title' })
@@ -69,7 +69,7 @@ router.post('/', requireAuth, async (req, res) => {
   }
 })
 
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAuth, requirePermission('ita'), async (req, res) => {
   try {
     const id = Number(req.params.id)
     const body = req.body || {}
@@ -86,7 +86,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 })
 
 // Upload PDF (returns file id)
-router.post('/upload/pdf', requireAuth, upload.single('file'), async (req, res) => {
+router.post('/upload/pdf', requireAuth, requirePermission('ita'), upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file' })
     let kind = null
@@ -109,7 +109,7 @@ router.post('/upload/pdf', requireAuth, upload.single('file'), async (req, res) 
 })
 
 // Upload & attach PDF to specific item (multipart)  /api/ita/:id/pdf
-router.post('/:id/pdf', requireAuth, upload.single('file'), async (req, res) => {
+router.post('/:id/pdf', requireAuth, requirePermission('ita'), upload.single('file'), async (req, res) => {
   try {
     const itemId = Number(req.params.id)
     if (!itemId) return res.status(400).json({ error: 'Invalid item id' })
@@ -142,7 +142,7 @@ router.get('/:id/pdfs', optionalAuth, async (req, res) => {
 })
 
 // Delete single PDF
-router.delete('/pdf/file/:fileId', requireAuth, async (req, res) => {
+router.delete('/pdf/file/:fileId', requireAuth, requirePermission('ita'), async (req, res) => {
   try {
     const fileId = Number(req.params.fileId)
     await deletePdf(fileId)
@@ -176,7 +176,7 @@ router.get('/pdf/:id', async (req, res) => {
   }
 })
 
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requirePermission('ita'), async (req, res) => {
   try {
     const id = Number(req.params.id)
     const item = await ItaItem.deleteById(id)
@@ -188,7 +188,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 })
 
-router.post('/reorder', requireAuth, async (req, res) => {
+router.post('/reorder', requireAuth, requirePermission('ita'), async (req, res) => {
   try {
     const { items } = req.body || {}
     if (!Array.isArray(items)) return res.status(400).json({ error: 'Invalid payload' })

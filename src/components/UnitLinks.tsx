@@ -18,9 +18,28 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
     const ac = new AbortController(); abortRef.current = ac
     setError(null)
     fetch('/api/units', { signal: ac.signal })
-      .then(async r => { if (!r.ok) throw new Error('ไม่สามารถดึงลิงก์หน่วยงานได้'); return r.json() })
-      .then((list: Unit[]) => setItems(list))
-      .catch((e) => { if ((e as any).name !== 'AbortError') { setItems([]); setError((e as any)?.message || 'เกิดข้อผิดพลาด') } })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('ไม่สามารถดึงลิงก์หน่วยงานได้')
+        }
+        return response.json()
+      })
+      .then((list: unknown) => {
+        if (Array.isArray(list)) {
+          setItems(list as Unit[])
+          return
+        }
+        throw new Error('รูปแบบข้อมูลไม่ถูกต้อง')
+      })
+      .catch((thrown: unknown) => {
+        if (thrown instanceof DOMException && thrown.name === 'AbortError') return
+        setItems([])
+        if (thrown instanceof Error) {
+          setError(thrown.message || 'เกิดข้อผิดพลาด')
+          return
+        }
+        setError('เกิดข้อผิดพลาด')
+      })
     return () => ac.abort()
   }, [])
 

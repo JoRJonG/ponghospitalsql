@@ -89,6 +89,7 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [removeImage, setRemoveImage] = useState(false)
+  const [showForm, setShowForm] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { showToast } = useToast()
 
@@ -111,9 +112,13 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       }
       const list: PopupRecord[] = Array.isArray(json?.data) ? json.data : []
       setPopups(list)
-    } catch (err: any) {
-      console.error('Failed to load popups', err)
-      setError(err?.message || 'เกิดข้อผิดพลาด')
+    } catch (thrown: unknown) {
+      console.error('Failed to load popups', thrown)
+      if (thrown instanceof Error) {
+        setError(thrown.message || 'เกิดข้อผิดพลาด')
+      } else {
+        setError('เกิดข้อผิดพลาด')
+      }
     } finally {
       setLoading(false)
     }
@@ -163,8 +168,9 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       if (prev) URL.revokeObjectURL(prev)
       return null
     })
-    setRemoveImage(false)
-    window.scrollTo({ top: 130, behavior: 'smooth' })
+  setRemoveImage(false)
+  setShowForm(true)
+  window.scrollTo({ top: 130, behavior: 'smooth' })
   }
 
   const handleDelete = async (id: number) => {
@@ -180,10 +186,12 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       showToast('ลบป๊อปอัปสำเร็จ', undefined, 'success', 2500)
       if (editingId === id) {
         resetForm()
+        setShowForm(false)
       }
-    } catch (err: any) {
-      console.error('Failed to delete popup', err)
-      showToast(err?.message || 'ลบป๊อปอัปไม่สำเร็จ', undefined, 'error', 3000)
+    } catch (thrown: unknown) {
+      console.error('Failed to delete popup', thrown)
+      const message = thrown instanceof Error ? thrown.message : 'ลบป๊อปอัปไม่สำเร็จ'
+      showToast(message, undefined, 'error', 3000)
     }
   }
 
@@ -217,9 +225,10 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       invalidateCache('/api/popups/active')
       await load()
       showToast('อัปเดตสถานะป๊อปอัปเรียบร้อย', undefined, 'success', 2500)
-    } catch (err: any) {
-      console.error('Failed to toggle popup', err)
-      showToast(err?.message || 'อัปเดตสถานะไม่สำเร็จ', undefined, 'error', 3000)
+    } catch (thrown: unknown) {
+      console.error('Failed to toggle popup', thrown)
+      const message = thrown instanceof Error ? thrown.message : 'อัปเดตสถานะไม่สำเร็จ'
+      showToast(message, undefined, 'error', 3000)
     }
   }
 
@@ -332,10 +341,12 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       invalidateCache('/api/popups/active')
       await load()
       resetForm()
+  setShowForm(false)
       showToast('บันทึกป๊อปอัปสำเร็จ', undefined, 'success', 2500)
-    } catch (err: any) {
-      console.error('Failed to save popup', err)
-      showToast(err?.message || 'บันทึกป๊อปอัปไม่สำเร็จ', undefined, 'error', 3000)
+    } catch (thrown: unknown) {
+      console.error('Failed to save popup', thrown)
+      const message = thrown instanceof Error ? thrown.message : 'บันทึกป๊อปอัปไม่สำเร็จ'
+      showToast(message, undefined, 'error', 3000)
     } finally {
       setSaving(false)
     }
@@ -361,15 +372,37 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
             <h2 className="text-xl font-semibold text-slate-900">ป๊อปอัปหน้าแรก</h2>
             <p className="text-sm text-slate-500">จัดการข้อความสำคัญที่ต้องการแสดงก่อนเข้าสู่เว็บไซต์</p>
           </div>
-          <button
-            type="button"
-            onClick={resetForm}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-          >
-            {editingId ? 'สร้างใหม่' : 'ล้างฟอร์ม'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {showForm && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="admin-btn admin-btn--outline"
+              >
+                {editingId ? 'เริ่มสร้างใหม่' : 'ล้างฟอร์ม'}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (showForm) {
+                  resetForm()
+                  setShowForm(false)
+                } else {
+                  resetForm()
+                  setShowForm(true)
+                  window.scrollTo({ top: 130, behavior: 'smooth' })
+                }
+              }}
+              className="admin-btn"
+            >
+              <span>{showForm ? '✕' : '+'}</span>
+              {showForm ? 'ปิดฟอร์มเพิ่มป๊อปอัป' : 'เพิ่มป๊อปอัปใหม่'}
+            </button>
+          </div>
         </div>
 
+        {showForm ? (
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className="text-sm font-medium text-slate-700">
@@ -516,12 +549,17 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
+              className="admin-btn"
             >
               {saving ? 'กำลังบันทึก...' : editingId ? 'บันทึกการแก้ไข' : 'สร้างป๊อปอัป' }
             </button>
           </div>
         </form>
+        ) : (
+          <div className="mt-6 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-6 text-center text-sm text-emerald-700">
+            กดปุ่ม "เพิ่มป๊อปอัปใหม่" เพื่อเปิดฟอร์มเพิ่มรายละเอียดป๊อปอัปหน้าแรก
+          </div>
+        )}
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -610,21 +648,33 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
                       <div className="inline-flex items-center gap-2">
                         <button
                           onClick={() => handleToggleActive(popup)}
-                          className="rounded-xl border border-slate-200 px-3 py-1 text-xs text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                          className="admin-btn admin-btn--outline admin-btn--sm"
                         >
-                          {popup.isActive ? 'ปิดการแสดง' : 'เปิดใช้งาน' }
+                          {popup.isActive ? (
+                            <>
+                              <span>🚫</span>
+                              <span>ปิดการแสดง</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>✅</span>
+                              <span>เปิดใช้งาน</span>
+                            </>
+                          )}
                         </button>
                         <button
                           onClick={() => handleEdit(popup)}
-                          className="rounded-xl border border-blue-200 px-3 py-1 text-xs text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+                          className="admin-btn admin-btn--outline admin-btn--sm"
                         >
-                          แก้ไข
+                          <span>✏️</span>
+                          <span>แก้ไข</span>
                         </button>
                         <button
                           onClick={() => handleDelete(popup.id)}
-                          className="rounded-xl border border-red-200 px-3 py-1 text-xs text-red-600 transition hover:border-red-300 hover:bg-red-50"
+                          className="admin-btn admin-btn--outline admin-btn--sm"
                         >
-                          ลบ
+                          <span>🗑️</span>
+                          <span>ลบ</span>
                         </button>
                       </div>
                     </td>

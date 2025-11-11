@@ -13,6 +13,7 @@ export default function CookieConsent() {
         setVisible(true)
       }
     } catch (error) {
+      console.warn('[cookie-consent] read storage failed', error)
       // localStorage not available (e.g. privacy settings)
       setVisible(true)
     }
@@ -22,6 +23,7 @@ export default function CookieConsent() {
     try {
       window.localStorage.setItem(STORAGE_KEY, CONSENT_VALUE)
     } catch (error) {
+      console.warn('[cookie-consent] write storage failed', error)
       // Ignore storage write issues; consent banner will reappear next visit
     }
     setVisible(false)

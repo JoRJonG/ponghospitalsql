@@ -3,6 +3,41 @@ import { responsiveImageProps, cloudinaryTransform, isCloudinaryUrl } from '../u
 
 type Slide = { src: string; alt?: string; caption?: string; href?: string; duration?: number }
 
+type ApiSlide = {
+  image?: { url?: string | null } | null
+  src?: string | null
+  title?: string | null
+  caption?: string | null
+  href?: string | null
+  url?: string | null
+  link?: string | null
+  duration?: number | string | null
+}
+
+const toSlide = (raw: ApiSlide): Slide | null => {
+  const imageUrl = typeof raw?.image?.url === 'string' && raw.image.url.trim() ? raw.image.url : undefined
+  const directSrc = typeof raw?.src === 'string' && raw.src.trim() ? raw.src : undefined
+  const fallbackSrcCandidate = typeof raw?.url === 'string' && raw.url.trim() ? raw.url : undefined
+  const linkSrcCandidate = typeof raw?.link === 'string' && raw.link.trim() ? raw.link : undefined
+  const src = imageUrl || directSrc || fallbackSrcCandidate || linkSrcCandidate
+  if (!src) return null
+
+  const title = typeof raw?.title === 'string' ? raw.title : undefined
+  const caption = typeof raw?.caption === 'string' ? raw.caption : title
+  const hrefCandidate = typeof raw?.href === 'string' && raw.href.trim() ? raw.href : undefined
+  const urlCandidate = typeof raw?.url === 'string' && raw.url.trim() ? raw.url : undefined
+  const linkCandidate = typeof raw?.link === 'string' && raw.link.trim() ? raw.link : undefined
+  const durationRaw = typeof raw?.duration === 'number' ? raw.duration : Number(raw?.duration)
+
+  return {
+    src,
+    alt: title || 'slide',
+    caption: caption || undefined,
+    href: hrefCandidate || urlCandidate || linkCandidate,
+    duration: Number.isFinite(durationRaw) && durationRaw > 0 ? durationRaw : undefined,
+  }
+}
+
 // No sample data by default; leave empty so the slider stays minimal when no API slides
 const fallbackSlides: Slide[] = []
 
@@ -17,21 +52,20 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
         const r = await fetch('/api/slides')
         if (!stop) {
           if (r.ok) {
-            const list = await r.json()
-            const mapped: Slide[] = (list || []).map((s: any) => ({
-              src: s?.image?.url || s?.src,
-              alt: s?.title || 'slide',
-              caption: s?.caption || s?.title,
-              href: s?.href || s?.url || s?.link,
-              duration: s?.duration || 5,
-            })).filter((s: Slide) => Boolean(s.src))
+            const list = await r.json() as unknown
+            const mapped: Slide[] = Array.isArray(list)
+              ? list
+                  .map(item => toSlide(item as ApiSlide))
+                  .filter((slide): slide is Slide => Boolean(slide))
+              : []
             if (mapped.length) setSlides(mapped)
             else if (!provided) setSlides(fallbackSlides)
           } else if (!provided) {
             setSlides(fallbackSlides)
           }
         }
-      } catch {
+      } catch (error) {
+        console.warn('[HeroSlider] failed to load slides', error)
         if (!stop && !provided) setSlides(fallbackSlides)
       }
     }

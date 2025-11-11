@@ -30,11 +30,13 @@ const tabs = [
   { key: 'ประกาศ', icon: 'fa-scroll' },
 ] as const
 
-export default function HomeAnnouncements({ limit = 5, embedded = false }: { limit?: number, embedded?: boolean }) {
+type TabKey = (typeof tabs)[number]['key']
+
+export default function HomeAnnouncements({ limit = 5, embedded = false }: { limit?: number; embedded?: boolean }) {
   const navigate = useNavigate()
   const [items, setItems] = useState<Announcement[] | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'ทั้งหมด' | Announcement['category']>('ทั้งหมด')
+  const [activeTab, setActiveTab] = useState<TabKey>('ทั้งหมด')
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
@@ -43,18 +45,33 @@ export default function HomeAnnouncements({ limit = 5, embedded = false }: { lim
     abortRef.current = ac
     setError(null)
     fetch('/api/announcements', { signal: ac.signal })
-      .then(async (r) => {
-        if (!r.ok) {
+      .then(async response => {
+        if (!response.ok) {
           let message = 'ไม่สามารถดึงประกาศล่าสุดได้'
-          try { const data = await r.json(); if (data?.error) message = data.error } catch {}
-          const err: any = new Error(message)
-          err.status = r.status
+          try {
+            const data = await response.json() as { error?: string }
+            if (data?.error) message = data.error
+          } catch (parseError) {
+            console.warn('[HomeAnnouncements] parse error response failed', parseError)
+          }
+          const err = Object.assign(new Error(message), { status: response.status })
           throw err
         }
-        return r.json()
+        return response.json() as Promise<Announcement[]>
       })
-      .then((list: Announcement[]) => setItems(list.slice(0, limit)))
-      .catch((e) => { if (e.name !== 'AbortError') { setItems([]); setError(e?.message || 'เกิดข้อผิดพลาด') } })
+      .then(list => setItems(list.slice(0, limit)))
+      .catch((thrown: unknown) => {
+        if (thrown instanceof DOMException && thrown.name === 'AbortError') {
+          return
+        }
+        if (thrown instanceof Error) {
+          setItems([])
+          setError(thrown.message || 'เกิดข้อผิดพลาด')
+          return
+        }
+        setItems([])
+        setError('เกิดข้อผิดพลาด')
+      })
     return () => ac.abort()
   }, [limit])
 
@@ -83,7 +100,7 @@ export default function HomeAnnouncements({ limit = 5, embedded = false }: { lim
                   role="tab"
                   aria-selected={activeTab === t.key}
                   aria-controls={`panel-${t.key}`}
-                  onClick={() => setActiveTab(t.key as any)}
+                  onClick={() => setActiveTab(t.key)}
                   className={`inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     activeTab === t.key
                       ? 'bg-green-600 text-white shadow'
@@ -180,7 +197,7 @@ export default function HomeAnnouncements({ limit = 5, embedded = false }: { lim
                   role="tab"
                   aria-selected={activeTab === t.key}
                   aria-controls={`panel-${t.key}`}
-                  onClick={() => setActiveTab(t.key as any)}
+                  onClick={() => setActiveTab(t.key)}
                   className={`inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     activeTab === t.key
                       ? 'bg-green-600 text-white shadow'

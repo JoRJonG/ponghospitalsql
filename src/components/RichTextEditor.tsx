@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 
@@ -7,11 +7,13 @@ type Props = {
   onChange?: (html: string) => void
   placeholder?: string
   className?: string
-  modules?: any
+  modules?: EditorModules
   formats?: string[]
 }
 
-const defaultModules = {
+type EditorModules = Record<string, unknown>
+
+const defaultModules: EditorModules = {
   toolbar: [
     [{ header: [1, 2, 3, false] }],
     ['bold', 'italic', 'underline'],
@@ -27,43 +29,47 @@ export default function RichTextEditor({ value, onChange, placeholder, className
   const containerRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<HTMLDivElement | null>(null)
   const quillRef = useRef<Quill | null>(null)
+  const onChangeRef = useRef(onChange)
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  const modulesConfig = useMemo<EditorModules>(() => modules ?? defaultModules, [modules])
+  const formatsConfig = useMemo(() => formats ?? defaultFormats, [formats])
 
   // init once
   useEffect(() => {
-    if (!containerRef.current) return
+    const container = containerRef.current
+    if (!container) return
     // Create an element for the editor root
     if (!editorRef.current) {
       editorRef.current = document.createElement('div')
-      containerRef.current.appendChild(editorRef.current)
+      container.appendChild(editorRef.current)
     }
-    const q = new Quill(editorRef.current!, {
+    const editorElement = editorRef.current
+    const q = new Quill(editorElement, {
       theme: 'snow',
       placeholder,
-      modules: modules || defaultModules,
-      formats: formats || defaultFormats,
+      modules: modulesConfig,
+      formats: formatsConfig,
     })
     quillRef.current = q
 
-    // Set initial value
-    if (value) {
-      const delta = q.clipboard.convert({ html: value })
-      q.setContents(delta, 'silent')
-    }
-
     const handler = () => {
       const html = editorRef.current?.querySelector('.ql-editor')?.innerHTML ?? ''
-      onChange?.(html)
+      onChangeRef.current?.(html)
     }
     q.on('text-change', handler)
     return () => {
       q.off('text-change', handler)
       quillRef.current = null
-      if (containerRef.current && editorRef.current) {
-        containerRef.current.removeChild(editorRef.current)
+      if (container.contains(editorElement)) {
+        container.removeChild(editorElement)
       }
       editorRef.current = null
     }
-  }, [])
+  }, [formatsConfig, modulesConfig, placeholder])
 
   // keep prop value in sync
   useEffect(() => {

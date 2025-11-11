@@ -2,7 +2,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import sharp from 'sharp'
 import { fileTypeFromBuffer } from 'file-type'
-import { requireAuth, requireRole, optionalAuth } from '../middleware/auth.js'
+import { requireAuth, requirePermission, optionalAuth } from '../middleware/auth.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import Popup from '../models/mysql/Popup.js'
@@ -164,7 +164,7 @@ router.get('/active', optionalAuth, microCache(15_000), async (req, res) => {
   }
 })
 
-router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
+router.get('/', requireAuth, requirePermission('popups'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.json({ success: true, data: [] })
   }
@@ -177,7 +177,7 @@ router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
   }
 })
 
-router.post('/', requireAuth, requireRole('admin'), upload.single('image'), async (req, res) => {
+router.post('/', requireAuth, requirePermission('popups'), upload.single('image'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ success: false, error: 'ฐานข้อมูลไม่พร้อมใช้งาน' })
   }
@@ -192,7 +192,7 @@ router.post('/', requireAuth, requireRole('admin'), upload.single('image'), asyn
   }
 })
 
-router.put('/:id', requireAuth, requireRole('admin'), upload.single('image'), async (req, res) => {
+router.put('/:id', requireAuth, requirePermission('popups'), upload.single('image'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ success: false, error: 'ฐานข้อมูลไม่พร้อมใช้งาน' })
   }
@@ -214,7 +214,7 @@ router.put('/:id', requireAuth, requireRole('admin'), upload.single('image'), as
   }
 })
 
-router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
+router.delete('/:id', requireAuth, requirePermission('popups'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ success: false, error: 'ฐานข้อมูลไม่พร้อมใช้งาน' })
   }

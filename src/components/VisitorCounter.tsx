@@ -7,6 +7,15 @@ interface VisitorStats {
   lifetimeTotal: number
 }
 
+type VisitorStatsResponse = {
+  success: boolean
+  data?: {
+    today?: number | string | null
+    lifetimeTotal?: number | string | null
+    total?: number | string | null
+  }
+}
+
 const VisitorCounter: React.FC = () => {
   const [stats, setStats] = useState<VisitorStats>({
     today: 0,
@@ -18,7 +27,7 @@ const VisitorCounter: React.FC = () => {
   useEffect(() => {
     const fetchVisitorStats = async () => {
       try {
-        const response = await fastFetch(buildApiUrl('/api/visitors/stats'))
+        const response = await fastFetch<VisitorStatsResponse>(buildApiUrl('/api/visitors/stats'))
         if (response.success) {
           const payload = response.data ?? {}
           setStats({

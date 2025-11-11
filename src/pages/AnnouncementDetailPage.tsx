@@ -85,18 +85,32 @@ export default function AnnouncementDetailPage() {
     fastFetch<Announcement>(`/api/announcements/${id}`, { ttlMs: 60_000, retries: 1 })
       .then((data) => {
         setItem(data)
-        // Increment view count: prefer navigator.sendBeacon, fallback to fetch with keepalive
-        try {
-          const url = `/api/announcements/${id}/view`
-          const body = ''
-          if (navigator && (navigator as any).sendBeacon) {
-            try { (navigator as any).sendBeacon(url, body) } catch (e) { /* ignore */ }
-          } else {
-            fetch(url, { method: 'POST', keepalive: true }).catch(console.error)
+        const url = `/api/announcements/${id}/view`
+        const body = ''
+
+        if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
+          try {
+            navigator.sendBeacon(url, body)
+          } catch (error) {
+            console.error('sendBeacon failed, falling back to fetch', error)
+            fetch(url, { method: 'POST', keepalive: true }).catch((fallbackError) => {
+              console.error('Failed to record announcement view via fetch', fallbackError)
+            })
           }
-        } catch (e) { /* ignore */ }
+          return
+        }
+
+        fetch(url, { method: 'POST', keepalive: true }).catch((fetchError) => {
+          console.error('Failed to record announcement view', fetchError)
+        })
       })
-      .catch((e) => setError(e?.message || 'เกิดข้อผิดพลาด'))
+      .catch((thrown: unknown) => {
+        if (thrown instanceof Error) {
+          setError(thrown.message || 'เกิดข้อผิดพลาด')
+        } else {
+          setError('เกิดข้อผิดพลาด')
+        }
+      })
   }, [id])
 
   return (

@@ -3,11 +3,13 @@
 // - request de-duplication
 // - retry with backoff on transient errors
 
-type CacheEntry<T = any> = { exp: number; data: T }
-const cache = new Map<string, CacheEntry>()
-const inflight = new Map<string, Promise<any>>()
+type CacheEntry<T> = { exp: number; data: T }
+const cache = new Map<string, CacheEntry<unknown>>()
+const inflight = new Map<string, Promise<unknown>>()
 
-export async function fastFetch<T = any>(input: string, init?: RequestInit & { ttlMs?: number; retries?: number }): Promise<T> {
+type FastFetchInit = RequestInit & { ttlMs?: number; retries?: number }
+
+export async function fastFetch<T>(input: string, init?: FastFetchInit): Promise<T> {
   const { ttlMs = 10_000, retries = 1, ...opts } = init || {}
   const key = `${opts.method || 'GET'}:${input}`
   const now = Date.now()
@@ -15,19 +17,19 @@ export async function fastFetch<T = any>(input: string, init?: RequestInit & { t
   if (hit && hit.exp > now) return hit.data as T
   if (inflight.has(key)) return inflight.get(key) as Promise<T>
 
-  const task = (async () => {
+  const task: Promise<T> = (async () => {
     let attempt = 0
-    let lastErr: any
+    let lastErr: unknown
     while (attempt <= retries) {
       try {
         const r = await fetch(input, opts)
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         const ct = r.headers.get('content-type') || ''
-        const data = ct.includes('application/json') ? await r.json() : (await r.text())
+        const data = ct.includes('application/json') ? await r.json() : await r.text()
         cache.set(key, { exp: Date.now() + ttlMs, data })
         return data as T
-      } catch (e) {
-        lastErr = e
+      } catch (error) {
+        lastErr = error
         if (attempt === retries) break
         await new Promise(res => setTimeout(res, 200 * Math.pow(2, attempt)))
       }

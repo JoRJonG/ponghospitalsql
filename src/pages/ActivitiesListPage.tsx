@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fastFetch } from '../utils/fastFetch'
 import { responsiveImageProps } from '../utils/image'
-import { useHomepageRefresh } from '../contexts/HomepageRefreshContext'
+import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 
 type Activity = {
   _id: string
@@ -58,7 +58,8 @@ export default function ActivitiesListPage() {
   }, [refreshKey])
 
   // Filter and search items
-  const filterItems = (items: Activity[]) => {
+  const filterItems = useCallback((list: Activity[]) => {
+    const items = [...list]
     let filtered = items
 
     // Search by title and description
@@ -81,12 +82,12 @@ export default function ActivitiesListPage() {
     })
 
     return filtered
-  }
+  }, [searchQuery, sortBy])
 
   const filteredItems = useMemo(() => {
     if (!Array.isArray(items)) return []
     return filterItems(items)
-  }, [items, searchQuery, sortBy])
+  }, [filterItems, items])
 
   // Clamp page when items change
   const pageCount = useMemo(() => Math.max(1, Math.ceil(filteredItems.length / perPage)), [filteredItems.length])

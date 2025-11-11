@@ -61,14 +61,20 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
             logger.warn('Failed login attempt', { ip: req.ip, username, method: 'db' })
             return res.status(401).json({ error: 'Invalid credentials' })
           }
-          const token = signToken({ sub: user._id.toString(), username: user.username, roles: user.roles })
-          const refreshToken = signRefreshToken({ sub: user._id.toString(), username: user.username, roles: user.roles })
+          const tokenPayload = {
+            sub: user._id.toString(),
+            username: user.username,
+            roles: user.roles,
+            permissions: user.permissions,
+          }
+          const token = signToken(tokenPayload)
+          const refreshToken = signRefreshToken(tokenPayload)
           // Also set httpOnly cookie for stronger security (frontend can still use token if desired)
           try {
             res.cookie('ph_token', token, sessionCookieOptions)
             res.cookie('ph_refresh_token', refreshToken, refreshCookieOptions)
           } catch {}
-          return res.json({ token, user: { username: user.username, roles: user.roles }, source: 'db' })
+          return res.json({ token, user: { username: user.username, roles: user.roles, permissions: user.permissions }, source: 'db' })
         }
       } catch (dbErr) {
         if (!allowEnvFallback) {
@@ -84,13 +90,15 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
     const DEMO_PASS = process.env.ADMIN_PASS || '1234'
     if (username === DEMO_USER && password === DEMO_PASS) {
       const roles = ['admin']
-      const token = signToken({ sub: 'admin', username, roles })
-      const refreshToken = signRefreshToken({ sub: 'admin', username, roles })
+      const permissions = ['*']
+      const payload = { sub: 'admin', username, roles, permissions }
+      const token = signToken(payload)
+      const refreshToken = signRefreshToken(payload)
       try {
         res.cookie('ph_token', token, sessionCookieOptions)
         res.cookie('ph_refresh_token', refreshToken, refreshCookieOptions)
       } catch {}
-      return res.json({ token, user: { username, roles }, source: 'env' })
+      return res.json({ token, user: { username, roles, permissions }, source: 'env' })
     }
     logger.warn('Failed login attempt', { ip: req.ip, username, method: 'env' })
     return res.status(401).json({ error: 'Invalid credentials' })
@@ -105,8 +113,14 @@ export default router
 router.post('/refresh', requireRefreshToken, (req, res) => {
   try {
     const user = req.user
-    const newToken = signToken({ sub: user.sub, username: user.username, roles: user.roles })
-    const newRefreshToken = signRefreshToken({ sub: user.sub, username: user.username, roles: user.roles })
+    const payload = {
+      sub: user.sub,
+      username: user.username,
+      roles: user.roles,
+      permissions: user.permissions,
+    }
+    const newToken = signToken(payload)
+    const newRefreshToken = signRefreshToken(payload)
 
     const isProduction = isProductionEnv
     const secureCookie = isProduction ? isRequestSecure(req) : false
@@ -129,7 +143,7 @@ router.post('/refresh', requireRefreshToken, (req, res) => {
     res.cookie('ph_token', newToken, sessionCookieOptions)
     res.cookie('ph_refresh_token', newRefreshToken, refreshCookieOptions)
 
-    return res.json({ token: newToken, user: { username: user.username, roles: user.roles } })
+  return res.json({ token: newToken, user: { username: user.username, roles: user.roles, permissions: user.permissions } })
   } catch (e) {
     logger.error('Token refresh failed', { error: e.message, user: req.user?.username })
     return res.status(500).json({ error: 'Token refresh failed' })

@@ -17,7 +17,7 @@ type Activity = {
   publishedAt?: string | null
 }
 
-export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
+export default function ActivityForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: () => void }) {
   const { getToken, refreshToken, logout } = useAuth()
   const [form, setForm] = useState<Activity>({ title: '', description: '', images: [], isPublished: true, publishedAt: null })
   const [imageUrl, setImageUrl] = useState('')
@@ -67,19 +67,30 @@ export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
       if (compressedFiles.length) {
         setPendingFiles(prev => [...prev, ...compressedFiles])
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Unexpected image processing error', error)
       alert('เกิดข้อผิดพลาดในการประมวลผลรูปภาพ')
     } finally { setUploading(false) }
   }
 
   const removeImageAt = async (idx: number) => {
-    const it = (form.images || [])[idx] as any
-    const newImages = [...(form.images||[])]
-    newImages.splice(idx, 1)
-    setForm(f => ({ ...f, images: newImages }))
-    if (typeof it === 'string' && it.startsWith('blob:')) {
-      setPendingFiles(prev => { const newFiles = [...prev]; newFiles.splice(idx, 1); return newFiles })
-      URL.revokeObjectURL(it)
+    const currentImages = form.images ?? []
+    const target = currentImages[idx]
+    if (!target) return
+    const nextImages = currentImages.filter((_, i) => i !== idx)
+    setForm(f => ({ ...f, images: nextImages }))
+    if (typeof target === 'string' && target.startsWith('blob:')) {
+      const blobIndex = currentImages
+        .slice(0, idx)
+        .filter(image => typeof image === 'string' && image.startsWith('blob:'))
+        .length
+      setPendingFiles(prev => {
+        if (blobIndex < 0 || blobIndex >= prev.length) return prev
+        const next = [...prev]
+        next.splice(blobIndex, 1)
+        return next
+      })
+      URL.revokeObjectURL(target)
     }
   }
 
@@ -136,8 +147,8 @@ export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
               return
             }
           }
-        } catch {
-          // If can't parse error, proceed with original response
+        } catch (error) {
+          console.error('Failed to parse activity creation error response', error)
         }
       }
       
@@ -147,7 +158,7 @@ export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
         return 
       }
       
-  invalidateCache('/api/activities')
+    invalidateCache('/api/activities')
   setForm({ title: '', description: '', images: [], isPublished: true, publishedAt: null })
       setPendingFiles([])
       onCreated()
@@ -155,6 +166,20 @@ export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
       console.error('Failed to submit activity', err)
       alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง')
     } finally { setLoading(false) }
+  }
+
+  const handleCancel = () => {
+    setForm(prev => {
+      ;(prev.images || []).forEach(img => {
+        if (typeof img === 'string' && img.startsWith('blob:')) {
+          URL.revokeObjectURL(img)
+        }
+      })
+      return { title: '', description: '', images: [], isPublished: true, publishedAt: null }
+    })
+    setPendingFiles([])
+    setImageUrl('')
+    onCancel?.()
   }
 
   return (
@@ -173,8 +198,8 @@ export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
         <label className="block text-sm mb-1">รูปภาพ</label>
         <div className="flex flex-wrap gap-2">
           <input value={imageUrl} onChange={e=>setImageUrl(e.target.value)} className="flex-1 rounded border px-3 py-2" placeholder="วางลิงก์รูป..." />
-          <button type="button" onClick={addImage} className="btn btn-outline">เพิ่มจากลิงก์</button>
-          <label className="btn btn-outline cursor-pointer">อัปโหลดไฟล์<input type="file" className="hidden" accept="image/*" multiple onChange={e=>{ const fs=e.target.files; if (fs && fs.length) onUploadFiles(fs) }} /></label>
+          <button type="button" onClick={addImage} className="admin-btn admin-btn--outline">เพิ่มจากลิงก์</button>
+          <label className="admin-btn admin-btn--outline cursor-pointer">อัปโหลดไฟล์<input type="file" className="hidden" accept="image/*" multiple onChange={e=>{ const fs=e.target.files; if (fs && fs.length) onUploadFiles(fs) }} /></label>
           {uploading && <span className="text-sm text-gray-600 self-center">กำลังอัปโหลด...</span>}
         </div>
         {form.images && form.images.length > 0 && (
@@ -199,8 +224,8 @@ export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
           <p className="mt-1 text-xs text-gray-600">ถ้ากำหนดเป็นอนาคต ระบบจะเผยแพร่เมื่อถึงเวลานั้น</p>
         </div>
       </div>
-      <div>
-        <button disabled={loading} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
+      <div className="flex gap-2">
+        <button disabled={loading} className="admin-btn">
           {loading ? (
             <>
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -210,6 +235,11 @@ export default function ActivityForm({ onCreated }: { onCreated: () => void }) {
             'บันทึก'
           )}
         </button>
+        {onCancel && (
+          <button type="button" onClick={handleCancel} className="admin-btn admin-btn--outline">
+            ยกเลิก
+          </button>
+        )}
       </div>
     </form>
   )

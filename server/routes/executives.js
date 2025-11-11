@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import Executive from '../models/mysql/Executive.js'
 import multer from 'multer'
-import { requireAuth, optionalAuth } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { fileTypeFromBuffer } from 'file-type'
@@ -28,7 +28,7 @@ router.use(createRateLimiter({ windowMs: 10_000, max: 40 }))
 // List executives
 router.get('/', optionalAuth, microCache(30_000), async (req, res) => {
   const { published } = req.query
-  const publishedOnly = published !== 'false' || !req.user
+  const publishedOnly = published !== 'false' || !req.user || !userHasPermission(req.user, 'executives')
   
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
@@ -59,7 +59,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
 })
 
 // Create executive
-router.post('/', requireAuth, upload.single('image'), async (req, res) => {
+router.post('/', requireAuth, requirePermission('executives'), upload.single('image'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }
@@ -122,7 +122,7 @@ router.post('/', requireAuth, upload.single('image'), async (req, res) => {
 })
 
 // Update executive
-router.put('/:id', requireAuth, (req, res, next) => {
+router.put('/:id', requireAuth, requirePermission('executives'), (req, res, next) => {
   // Support both JSON and multipart/form-data
   const contentType = req.get('Content-Type') || ''
   if (contentType.includes('multipart/form-data')) {
@@ -186,7 +186,7 @@ router.put('/:id', requireAuth, (req, res, next) => {
 })
 
 // Update display orders
-router.post('/reorder', requireAuth, async (req, res) => {
+router.post('/reorder', requireAuth, requirePermission('executives'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }
@@ -207,7 +207,7 @@ router.post('/reorder', requireAuth, async (req, res) => {
 })
 
 // Delete executive
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requirePermission('executives'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
   }

@@ -2,7 +2,7 @@ import { Router } from 'express'
 import Slide from '../models/mysql/SlideBlob.js'
 import multer from 'multer'
 import sharp from 'sharp'
-import { requireAuth, optionalAuth } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import { microCache } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { decodeUploadFilename } from '../utils/filename.js'
@@ -67,7 +67,7 @@ router.get('/', optionalAuth, microCache(5_000), async (req, res) => {
   const { published } = req.query
   const wantAll = published === 'false'
   const isAuthed = Boolean(req.user)
-  const allowAll = wantAll && isAuthed
+  const allowAll = wantAll && isAuthed && userHasPermission(req.user, 'slides')
   try {
     const query = allowAll ? {} : { isPublished: true }
     const list = await Slide.find(query, { sort: { order: 1, createdAt: -1 } })
@@ -92,7 +92,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
 })
 
 // Create with file upload
-router.post('/', requireAuth, upload.single('image'), async (req, res) => {
+router.post('/', requireAuth, requirePermission('slides'), upload.single('image'), async (req, res) => {
   if (!req.app.locals.dbConnected) return res.status(503).json({ error: 'Database unavailable' })
   try {
     if (!req.file) return res.status(400).json({ error: 'Image file is required' })
@@ -138,7 +138,7 @@ router.post('/', requireAuth, upload.single('image'), async (req, res) => {
 })
 
 // Update with optional file upload
-router.put('/:id', requireAuth, upload.single('image'), async (req, res) => {
+router.put('/:id', requireAuth, requirePermission('slides'), upload.single('image'), async (req, res) => {
   if (!req.app.locals.dbConnected) return res.status(503).json({ error: 'Database unavailable' })
   try {
     const before = await Slide.findById(req.params.id)
@@ -188,7 +188,7 @@ router.put('/:id', requireAuth, upload.single('image'), async (req, res) => {
 })
 
 // Delete
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requirePermission('slides'), async (req, res) => {
   if (!req.app.locals.dbConnected) return res.status(503).json({ error: 'Database unavailable' })
   try {
     const doc = await Slide.findById(req.params.id)
@@ -202,7 +202,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
 })
 
 // Bulk reorder slides: expects [{ _id, order }]
-router.post('/reorder', requireAuth, async (req, res) => {
+router.post('/reorder', requireAuth, requirePermission('slides'), async (req, res) => {
   if (!req.app.locals.dbConnected) return res.status(503).json({ error: 'Database unavailable' })
   try {
     const items = Array.isArray(req.body) ? req.body : []

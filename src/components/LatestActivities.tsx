@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { fastFetch } from '../utils/fastFetch'
 import { responsiveImageProps } from '../utils/image'
 import { buildApiUrl } from '../utils/api'
-import { useHomepageRefresh } from '../contexts/HomepageRefreshContext'
+import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 
 type Activity = {
   _id: string
@@ -50,7 +50,15 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
         const sorted = visible.slice().sort((a,b) => ts(b) - ts(a))
         setItems(sorted.slice(0, limit))
       })
-      .catch((e) => { if ((e as any).name !== 'AbortError') { setItems([]); setError((e as any)?.message || 'เกิดข้อผิดพลาด') } })
+      .catch((thrown: unknown) => {
+        if (thrown instanceof DOMException && thrown.name === 'AbortError') return
+        setItems([])
+        if (thrown instanceof Error) {
+          setError(thrown.message || 'เกิดข้อผิดพลาด')
+          return
+        }
+        setError('เกิดข้อผิดพลาด')
+      })
     return () => ac.abort()
   }, [limit, refreshKey])
 

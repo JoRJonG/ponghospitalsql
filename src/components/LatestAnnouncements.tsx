@@ -16,6 +16,8 @@ type Announcement = {
   publishedAt?: string
 }
 
+type HttpError = Error & { status?: number }
+
 const categoryToPath: Record<Announcement['category'], string> = {
   'สมัครงาน': '/announcements/jobs',
   'ประชาสัมพันธ์': '/announcements/news',
@@ -37,15 +39,28 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
       .then(async (r) => {
         if (!r.ok) {
           let message = 'ไม่สามารถดึงประกาศล่าสุดได้'
-          try { const data = await r.json(); if (data?.error) message = data.error } catch {}
-          const err: any = new Error(message)
+          try {
+            const data = await r.json() as { error?: string }
+            if (typeof data?.error === 'string') message = data.error
+          } catch (jsonError) {
+            console.error('Failed to parse announcements response', jsonError)
+          }
+          const err: HttpError = new Error(message)
           err.status = r.status
           throw err
         }
         return r.json()
       })
       .then((list: Announcement[]) => setItems(list.slice(0, limit)))
-      .catch((e) => { if (e.name !== 'AbortError') { setItems([]); setError(e?.message || 'เกิดข้อผิดพลาด') } })
+      .catch((thrown: unknown) => {
+        if (thrown instanceof DOMException && thrown.name === 'AbortError') return
+        setItems([])
+        if (thrown instanceof Error) {
+          setError(thrown.message || 'เกิดข้อผิดพลาด')
+          return
+        }
+        setError('เกิดข้อผิดพลาด')
+      })
     return () => ac.abort()
   }, [limit])
 

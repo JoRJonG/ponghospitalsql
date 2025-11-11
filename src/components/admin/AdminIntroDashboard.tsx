@@ -307,9 +307,13 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
         } else {
           setSystem(null)
         }
-      } catch (err: any) {
-        console.error('Failed to fetch visitor insights', err)
-        setError(err?.message || 'เกิดข้อผิดพลาด')
+      } catch (thrown: unknown) {
+        console.error('Failed to fetch visitor insights', thrown)
+        if (thrown instanceof Error) {
+          setError(thrown.message || 'เกิดข้อผิดพลาด')
+        } else {
+          setError('เกิดข้อผิดพลาด')
+        }
       } finally {
         setLoading(false)
       }
