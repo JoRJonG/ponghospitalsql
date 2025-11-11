@@ -111,7 +111,7 @@ body {
 }
 
 html.grayscale-mode {
-  filter: grayscale(1);
+  filter: grayscale(0.6) saturate(0.6);
 }
 
 /* Professional Responsive Container System */
@@ -280,6 +280,83 @@ html.grayscale-mode {
 .btn-ghost:hover:not(:disabled) {
   background-color: var(--hospital-gray-100);
   color: var(--hospital-text-primary);
+}
+
+/* Admin dashboard button system */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--hospital-space-2);
+  padding: 0.65rem 1.1rem;
+  border-radius: var(--hospital-radius);
+  font-size: var(--hospital-font-size-sm);
+  font-weight: 600;
+  line-height: 1.3;
+  border: 1px solid transparent;
+  color: #ffffff;
+  background: var(--hospital-gray-700);
+  box-shadow: var(--hospital-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.admin-btn:hover:not(:disabled) {
+  background: var(--hospital-gray-800);
+  box-shadow: var(--hospital-shadow-md);
+  transform: translateY(-1px);
+}
+
+.admin-btn:focus-visible {
+  outline: 2px solid var(--hospital-gray-500);
+  outline-offset: 2px;
+}
+
+.admin-btn:disabled {
+  background: var(--hospital-gray-400);
+  cursor: not-allowed;
+  opacity: 0.85;
+  box-shadow: none;
+  transform: none;
+}
+
+.admin-btn--outline {
+  background: #ffffff;
+  color: var(--hospital-gray-700);
+  border-color: var(--hospital-gray-300);
+}
+
+.admin-btn--outline:hover:not(:disabled) {
+  color: var(--hospital-primary);
+  border-color: var(--hospital-primary);
+  box-shadow: var(--hospital-shadow);
+}
+
+.admin-btn--ghost {
+  background: transparent;
+  color: var(--hospital-gray-600);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.admin-btn--ghost:hover:not(:disabled) {
+  background: var(--hospital-gray-100);
+  color: var(--hospital-gray-800);
+}
+
+.admin-btn--danger {
+  background: var(--hospital-error);
+  border-color: var(--hospital-error);
+}
+
+.admin-btn--danger:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  box-shadow: var(--hospital-shadow-md);
+}
+
+.admin-btn--sm {
+  padding: 0.45rem 0.85rem;
+  font-size: var(--hospital-font-size-xs);
 }
 
 /* Button sizes for different contexts */

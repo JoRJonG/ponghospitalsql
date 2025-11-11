@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { compressImage } from '../utils/imageCompressor'
@@ -23,23 +23,29 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
   const [imagePreview, setImagePreview] = useState<string>('')
   
   useEffect(() => {
-    if (initialId) {
-      // Fetch existing data
-      fetch(`/api/executives/${initialId}`, {
-        headers: { 'Authorization': `Bearer ${getToken()}` }
-      })
-        .then(r => r.json())
-        .then(data => {
-          setForm({
-            name: data.name || '',
-            position: data.position || '',
-            isPublished: data.isPublished ?? true
-          })
-          if (data.imageUrl) setImagePreview(data.imageUrl)
+    if (!initialId) return
+
+    const controller = new AbortController()
+    fetch(`/api/executives/${initialId}`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+      signal: controller.signal,
+    })
+      .then(r => r.json())
+      .then(data => {
+        setForm({
+          name: data.name || '',
+          position: data.position || '',
+          isPublished: data.isPublished ?? true,
         })
-        .catch(console.error)
-    }
-  }, [initialId])
+        if (data.imageUrl) setImagePreview(data.imageUrl)
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        console.error('[Executives] load detail failed', error)
+      })
+
+    return () => controller.abort()
+  }, [initialId, getToken])
   
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -54,7 +60,8 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
       // Create preview
       const url = URL.createObjectURL(compressed)
       setImagePreview(url)
-    } catch (err) {
+    } catch (error: unknown) {
+      console.error('[Executives] compress image failed', error)
       alert('ไม่สามารถประมวลผลรูปภาพได้')
     } finally {
       setUploading(false)
@@ -136,7 +143,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
             <div>
               <label className="block text-sm mb-1">รูปภาพ</label>
               <div className="flex gap-2">
-                <label className="btn btn-outline cursor-pointer">
+                <label className="admin-btn admin-btn--outline cursor-pointer">
                   {uploading ? 'กำลังประมวลผล...' : 'เลือกไฟล์'}
                   <input
                     type="file"
@@ -172,10 +179,10 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
           </div>
           
           <div className="card-footer flex gap-2 justify-end">
-            <button type="button" onClick={onClose} className="btn btn-outline">
+            <button type="button" onClick={onClose} className="admin-btn admin-btn--outline">
               ยกเลิก
             </button>
-            <button type="submit" disabled={loading || uploading} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
+            <button type="submit" disabled={loading || uploading} className="admin-btn">
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -192,7 +199,11 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
   )
 }
 
-export default forwardRef(function ExecutivesManagement(_props, ref) {
+export type ExecutivesManagementHandle = {
+  refreshExecutives: () => Promise<void>
+}
+
+const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function ExecutivesManagement(_props, ref) {
   const { getToken } = useAuth()
   const [executives, setExecutives] = useState<Executive[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -201,21 +212,21 @@ export default forwardRef(function ExecutivesManagement(_props, ref) {
   
   const { showToast } = useToast()
   
-  const refreshExecutives = async () => {
+  const refreshExecutives = useCallback(async () => {
     try {
       const token = getToken()
       const headers: Record<string, string> = {}
       if (token) headers['Authorization'] = `Bearer ${token}`
-      
+
       const res = await fetch('/api/executives?published=false', { headers })
       if (res.ok) {
         const data = await res.json()
         setExecutives(data)
       }
-    } catch (err) {
-      console.error('Failed to fetch executives:', err)
+    } catch (error: unknown) {
+      console.error('Failed to fetch executives:', error)
     }
-  }
+  }, [getToken])
   
   useImperativeHandle(ref, () => ({
     refreshExecutives
@@ -223,7 +234,7 @@ export default forwardRef(function ExecutivesManagement(_props, ref) {
   
   useEffect(() => {
     refreshExecutives()
-  }, [])
+  }, [refreshExecutives])
   
   const handleReorder = async (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return
@@ -256,8 +267,8 @@ export default forwardRef(function ExecutivesManagement(_props, ref) {
       
       if (!res.ok) throw new Error('Reorder failed')
       await refreshExecutives() // Refresh to get accurate data
-    } catch (err) {
-      console.error('Failed to reorder:', err)
+    } catch (error: unknown) {
+      console.error('Failed to reorder:', error)
       alert('ไม่สามารถเรียงลำดับใหม่ได้')
       await refreshExecutives() // Revert
     }
@@ -304,7 +315,8 @@ export default forwardRef(function ExecutivesManagement(_props, ref) {
       } else {
         showToast('ลบผู้บริหารไม่สำเร็จ', undefined, 'error', 4000)
       }
-    } catch (err) {
+    } catch (error: unknown) {
+      console.error('Failed to delete executive:', error)
       alert('เกิดข้อผิดพลาด')
     }
   }
@@ -318,7 +330,7 @@ export default forwardRef(function ExecutivesManagement(_props, ref) {
         </div>
         <button 
           onClick={() => { setShowForm(true); setEditingId(null) }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+          className="admin-btn"
         >
           <span>➕</span>
           เพิ่มผู้บริหาร
@@ -389,15 +401,17 @@ export default forwardRef(function ExecutivesManagement(_props, ref) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => { setEditingId(exec._id!); setShowForm(true) }}
-                    className="btn btn-outline btn-sm"
+                    className="admin-btn admin-btn--outline"
                   >
-                    ✏️ แก้ไข
+                    <span>✏️</span>
+                    <span>แก้ไข</span>
                   </button>
                   <button
                     onClick={() => handleDelete(exec._id!)}
-                    className="btn btn-outline btn-sm text-red-600 hover:bg-red-50"
+                    className="admin-btn admin-btn--outline"
                   >
-                    🗑️ ลบ
+                    <span>🗑️</span>
+                    <span>ลบ</span>
                   </button>
                 </div>
               </div>
@@ -408,3 +422,5 @@ export default forwardRef(function ExecutivesManagement(_props, ref) {
     </div>
   )
 })
+
+export default ExecutivesManagement

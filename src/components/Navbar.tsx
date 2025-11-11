@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
-import { useAuth } from '../auth/AuthContext.tsx'
+import { useAuth } from '../auth/AuthContext'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import logo from '../assets/logo-150x150.png'
 
@@ -17,17 +17,32 @@ export default function Navbar() {
   const [itaRoots, setItaRoots] = useState<ItaItem[]>([])
   const [itaOpen, setItaOpen] = useState(false)
   const [mobileItaOpen, setMobileItaOpen] = useState(false)
-  const itaTimer = useRef<any>(null)
+  const itaTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    fetch('/api/ita/tree').then(r=>r.json()).then((d) => {
-      if (Array.isArray(d)) {
-        // ใช้เฉพาะเมนูระดับบน
-        setItaRoots(d)
-      }
-    }).catch(()=>{})
+    const ac = new AbortController()
+    fetch('/api/ita/tree', { signal: ac.signal })
+      .then((response) => response.json())
+      .then((d: unknown) => {
+        if (Array.isArray(d)) {
+          // ใช้เฉพาะเมนูระดับบน
+          setItaRoots(d as ItaItem[])
+        }
+      })
+      .catch((thrown: unknown) => {
+        if (thrown instanceof DOMException && thrown.name === 'AbortError') return
+        console.error('Failed to load ITA tree', thrown)
+      })
+    return () => ac.abort()
   }, [])
-  const openIta = () => { clearTimeout(itaTimer.current); setItaOpen(true) }
-  const closeItaLater = () => { clearTimeout(itaTimer.current); itaTimer.current = setTimeout(()=>setItaOpen(false), 180) }
+  const openIta = () => {
+    if (itaTimer.current) clearTimeout(itaTimer.current)
+    itaTimer.current = null
+    setItaOpen(true)
+  }
+  const closeItaLater = () => {
+    if (itaTimer.current) clearTimeout(itaTimer.current)
+    itaTimer.current = setTimeout(() => setItaOpen(false), 180)
+  }
   const goItaAnchor = (id: number) => {
     setItaOpen(false)
     // เปลี่ยนพฤติกรรม: ทุกเมนูเปิดหน้าเฉพาะของตัวเอง

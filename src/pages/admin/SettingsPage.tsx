@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useAuth } from '../../auth/AuthContext.tsx'
+import { useAuth } from '../../auth/AuthContext'
 import { useTheme, type GrayscaleMode } from '../../contexts/ThemeContext'
 import { buildApiUrl } from '../../utils/api'
 
 export default function SettingsPage() {
-  const { getToken, logout } = useAuth() as any
+  const { getToken, logout } = useAuth()
   const { grayscaleMode, refreshDisplayMode } = useTheme()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -55,7 +55,8 @@ export default function SettingsPage() {
       if (!r.ok) { setError(j?.error || 'เปลี่ยนรหัสผ่านไม่สำเร็จ'); return }
       setMessage('เปลี่ยนรหัสผ่านสำเร็จ')
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
-    } catch (e) {
+    } catch (error) {
+      console.error('Failed to change password', error)
       setError('เกิดข้อผิดพลาดในการเชื่อมต่อ')
     } finally { setSaving(false) }
   }
@@ -83,8 +84,9 @@ export default function SettingsPage() {
       if (result?.data?.mode) {
         setDisplayMode(result.data.mode as GrayscaleMode)
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'ไม่สามารถบันทึกโหมดการแสดงผลได้'
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'ไม่สามารถบันทึกโหมดการแสดงผลได้'
+      console.error('Failed to update display mode', error)
       setModeError(message)
     } finally {
       setModeSaving(false)
@@ -147,12 +149,12 @@ export default function SettingsPage() {
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <button type="submit" className="btn btn-primary" disabled={modeSaving}>
+              <button type="submit" className="admin-btn" disabled={modeSaving}>
                 {modeSaving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
               </button>
               <button
                 type="button"
-                className="btn btn-outline"
+                className="admin-btn admin-btn--outline"
                 disabled={modeSaving || displayMode === grayscaleMode}
                 onClick={resetDisplayMode}
               >
@@ -182,13 +184,13 @@ export default function SettingsPage() {
               <input type="password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="w-full rounded border px-3 py-2" required />
             </div>
             <div className="flex items-center gap-2">
-              <button disabled={saving} className="btn btn-primary">{saving? 'กำลังบันทึก...':'เปลี่ยนรหัสผ่าน'}</button>
-              <button type="button" className="btn btn-outline" onClick={()=>{ setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setError(null); setMessage(null) }}>ล้างค่า</button>
+              <button disabled={saving} className="admin-btn">{saving? 'กำลังบันทึก...':'เปลี่ยนรหัสผ่าน'}</button>
+              <button type="button" className="admin-btn admin-btn--outline" onClick={()=>{ setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setError(null); setMessage(null) }}>ล้างค่า</button>
             </div>
             <div className="text-xs text-gray-500">หลังเปลี่ยนรหัสผ่าน แนะนำให้ออกจากระบบและเข้าสู่ระบบใหม่</div>
           </form>
           <div className="mt-6">
-            <button type="button" className="btn btn-outline" onClick={()=>logout?.()}>ออกจากระบบ</button>
+            <button type="button" className="admin-btn admin-btn--outline" onClick={()=>logout?.()}>ออกจากระบบ</button>
           </div>
         </div>
       </div>

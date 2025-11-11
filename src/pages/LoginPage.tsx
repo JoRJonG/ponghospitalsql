@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext.tsx'
-import { useToast } from '../contexts/ToastContext.tsx'
+import { useAuth } from '../auth/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')

@@ -1,4 +1,4 @@
-import { useEffect, useState, forwardRef, useImperativeHandle } from 'react'
+import { useCallback, useEffect, useMemo, useState, forwardRef, useImperativeHandle } from 'react'
 import RichTextEditor from './RichTextEditor'
 import { useAuth } from '../auth/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -16,8 +16,37 @@ type ItaItem = {
   pdfs?: Array<{ id: number; filename: string; url: string; size: number }>
 }
 
-export default forwardRef(function ItaManagement(_props, ref) {
-  const { getToken } = useAuth() as any
+export type ItaManagementHandle = {
+  refreshIta: () => Promise<void>
+}
+
+const flattenNodes = (nodes: ItaItem[], acc: ItaItem[] = []): ItaItem[] => {
+  for (const node of nodes) {
+    acc.push(node)
+    if (node.children?.length) {
+      flattenNodes(node.children, acc)
+    }
+  }
+  return acc
+}
+
+const escapeRegExp = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const formatFileSize = (bytes: number) => {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '-'
+  const units = ['B', 'KB', 'MB', 'GB']
+  let value = bytes
+  let unitIndex = 0
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024
+    unitIndex += 1
+  }
+  const precision = value >= 10 || unitIndex === 0 ? 0 : 1
+  return `${value.toFixed(precision)} ${units[unitIndex]}`
+}
+
+const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_props, ref) {
+  const { getToken } = useAuth()
   const [tree, setTree] = useState<ItaItem[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
@@ -33,12 +62,27 @@ export default forwardRef(function ItaManagement(_props, ref) {
   const [busy, setBusy] = useState(false)
   // เก็บไฟล์ PDF ระหว่างกำลังสร้างเมนูใหม่ (ยังไม่มี ID)
   const [pendingNewPdfs, setPendingNewPdfs] = useState<File[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [pdfSectionsOpen, setPdfSectionsOpen] = useState<Set<number>>(new Set())
 
   const { showToast } = useToast()
 
   // Provide headers for JSON or multipart (avoid setting Content-Type manually for FormData)
-  const authHeaders = (json: boolean = true): Record<string,string> => { const t=getToken(); const h: Record<string,string> = {}; if (json) h['Content-Type']='application/json'; if (t) h['Authorization'] = `Bearer ${t}`; return h }
-  const load = () => { setLoading(true); fetch('/api/ita/tree', { headers: authHeaders()}).then(r=>r.json()).then(d=>setTree(d||[])).finally(()=>setLoading(false)) }
+  const authHeaders = useCallback((json: boolean = true): Record<string, string> => {
+    const token = getToken()
+    const headers: Record<string, string> = {}
+    if (json) headers['Content-Type'] = 'application/json'
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    return headers
+  }, [getToken])
+
+  const load = useCallback(() => {
+    setLoading(true)
+    fetch('/api/ita/tree', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(d => setTree(d || []))
+      .finally(() => setLoading(false))
+  }, [authHeaders])
   
   const refreshIta = async () => {
     setLoading(true)
@@ -55,9 +99,16 @@ export default forwardRef(function ItaManagement(_props, ref) {
     refreshIta
   }))
   
-  useEffect(()=>{ load() }, [])
+  useEffect(() => { load() }, [load])
 
-  const toggle = (id: number) => { setExpanded(s => { const n=new Set(s); n.has(id)? n.delete(id): n.add(id); return n }) }
+  const toggle = (id: number) => {
+    setExpanded(source => {
+      const next = new Set(source)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const startNew = (parent: ItaItem | null) => { setParentForNew(parent); setEditing(null); setCreating(true); setForm({ title: '', content: '', isPublished: true, pdfUrl: '' }); setParentSelect(parent ? parent._id : null) }
   const startEdit = (item: ItaItem) => { setEditing(item); setParentForNew(null); setCreating(false); setForm({ title: item.title, content: item.content, isPublished: item.isPublished, slug: item.slug, pdfUrl: item.pdfUrl || '' }); setParentSelect(item.parentId ?? null) }
@@ -67,21 +118,23 @@ export default forwardRef(function ItaManagement(_props, ref) {
     e.preventDefault()
     if (!form.title) return
     setBusy(true)
-    let pdfFileId: number | undefined = undefined
     // If pdfUrl starts with 'file:upload:' treat it as a data URL waiting upload (not implemented now)
-    const body = JSON.stringify({
+    const normalizedPdfUrl = form.pdfUrl && form.pdfUrl.startsWith('/api/ita/pdf/')
+      ? form.pdfUrl
+      : form.pdfUrl || undefined
+    const payload = {
       title: form.title,
       content: form.content,
       isPublished: form.isPublished,
       slug: form.slug,
-      pdfUrl: form.pdfUrl && form.pdfUrl.startsWith('/api/ita/pdf/') ? form.pdfUrl : (form.pdfUrl || undefined),
-      pdfFileId,
+      pdfUrl: normalizedPdfUrl,
       parentId: parentSelect === null ? null : parentSelect
-    })
+    }
+    const body = JSON.stringify(payload)
     try {
       let ok = false
       if (editing) {
-        const r = await fetch(`/api/ita/${editing._id}`, { method:'PUT', headers: authHeaders(true), body })
+        const r = await fetch(`/api/ita/${editing._id}`, { method: 'PUT', headers: authHeaders(true), body })
         ok = r.ok
         if (ok && pendingNewPdfs.length) {
           // ถ้ามีไฟล์ที่เลือกไว้ตอนกำลังแก้ไข (กรณีพิเศษ)
@@ -89,10 +142,15 @@ export default forwardRef(function ItaManagement(_props, ref) {
           setPendingNewPdfs([])
         }
       } else {
-        const r = await fetch('/api/ita', { method:'POST', headers: authHeaders(true), body })
+        const r = await fetch('/api/ita', { method: 'POST', headers: authHeaders(true), body })
         ok = r.ok
-        let created: any = null
-        if (ok) { try { created = await r.json() } catch {}
+        let created: ItaItem | null = null
+        if (ok) {
+          try {
+            created = await r.json()
+          } catch (parseErr) {
+            console.warn('[ITA] อ่านผลการสร้างรายการไม่สำเร็จ', parseErr)
+          }
         }
         if (ok && created?._id && pendingNewPdfs.length) {
           for (const f of pendingNewPdfs) { await uploadPdfToItem(f, created._id) }
@@ -101,9 +159,13 @@ export default forwardRef(function ItaManagement(_props, ref) {
       }
       if (ok) {
         showToast(editing ? 'บันทึกการแก้ไขเมนูสำเร็จ' : 'เพิ่มเมนูสำเร็จ', undefined, 'success', 3000)
-        cancel(); load()
-      } else showToast('บันทึกไม่สำเร็จ', undefined, 'error', 4000)
-    } catch {
+        cancel()
+        load()
+      } else {
+        showToast('บันทึกไม่สำเร็จ', undefined, 'error', 4000)
+      }
+    } catch (err) {
+      console.error('[ITA] submit error', err)
       showToast('เกิดข้อผิดพลาดระหว่างบันทึก', undefined, 'error', 4000)
     } finally { setBusy(false) }
   }
@@ -155,11 +217,69 @@ export default forwardRef(function ItaManagement(_props, ref) {
     load()
   }
 
-  const flatten = (nodes: ItaItem[], acc: ItaItem[] = []): ItaItem[] => {
-    for (const n of nodes) { acc.push(n); if (n.children?.length) flatten(n.children, acc) }
-    return acc
+  const allItems = useMemo(() => flattenNodes(tree, []), [tree])
+  const searchValue = searchTerm.trim()
+  const searchLower = searchValue.toLowerCase()
+
+  const filteredTree = useMemo(() => {
+    if (!searchLower) {
+      return tree
+    }
+    const filterNodes = (items: ItaItem[]): ItaItem[] => {
+      const results: ItaItem[] = []
+      for (const item of items) {
+        const children = item.children ? filterNodes(item.children) : []
+        const matchesTitle = item.title.toLowerCase().includes(searchLower)
+        const matchesSlug = (item.slug || '').toLowerCase().includes(searchLower)
+        const matches = matchesTitle || matchesSlug
+        if (matches || children.length) {
+          results.push({ ...item, children })
+        }
+      }
+      return results
+    }
+    return filterNodes(tree)
+  }, [tree, searchLower])
+
+  const nodesToRender = searchValue ? filteredTree : tree
+  const flattenedVisibleItems = useMemo(
+    () => (searchValue ? flattenNodes(filteredTree, []) : allItems),
+    [searchValue, filteredTree, allItems]
+  )
+  const resultCount = flattenedVisibleItems.length
+  const isSearchMode = Boolean(searchValue)
+
+  const highlight = (text?: string | null) => {
+    if (!text) return ''
+    if (!searchValue) return text
+    const lowerTerm = searchLower
+    const regex = new RegExp(`(${escapeRegExp(searchValue)})`, 'gi')
+    return text.split(regex).map((part, index) =>
+      part.toLowerCase() === lowerTerm ? (
+        <mark key={index} className="rounded bg-yellow-200 px-1 py-0.5 text-gray-900">
+          {part}
+        </mark>
+      ) : (
+        <span key={index}>{part}</span>
+      ),
+    )
   }
-  const allItems = flatten(tree)
+
+  const togglePdfSection = (id: number) => {
+    setPdfSectionsOpen(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const expandAll = () => setExpanded(new Set(allItems.map(item => item._id)))
+  const collapseAll = () => {
+    setExpanded(new Set())
+    setPdfSectionsOpen(new Set())
+  }
+  const clearSearch = () => setSearchTerm('')
   const descendantsOfEditing = new Set<number>()
   const collectDesc = (n: ItaItem) => { descendantsOfEditing.add(n._id); n.children?.forEach(c => collectDesc(c)) }
   if (editing) collectDesc(editing)
@@ -190,39 +310,93 @@ export default forwardRef(function ItaManagement(_props, ref) {
     if (r.ok) setPdfList(list => list.filter(f => f.id !== id))
   }
 
-  const renderNodes = (nodes: ItaItem[], depth=0) => {
+  const renderNodes = (nodes: ItaItem[], depth = 0) => {
     return (
-      <ul className={depth? 'ml-5 border-l border-gray-200 pl-4 mt-2 space-y-1':'space-y-2'}>
+      <ul className={depth ? 'ml-5 border-l border-gray-200 pl-4 mt-2 space-y-1' : 'space-y-2'}>
         {nodes.map(n => {
           const hasChildren = !!(n.children && n.children.length)
-          const open = expanded.has(n._id)
+          const isOpen = isSearchMode || expanded.has(n._id)
+          const pdfCount = n.pdfs?.length ?? 0
+          const isPdfOpen = pdfSectionsOpen.has(n._id)
           return (
             <li key={n._id} className="bg-white/60 rounded border p-3">
               <div className="flex items-start gap-2">
                 {hasChildren && (
-                  <button onClick={()=>toggle(n._id)} className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" aria-label="toggle children">
-                    {open? '-':'+'}
+                  <button
+                    onClick={() => toggle(n._id)}
+                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    aria-label="toggle children"
+                  >
+                    {isOpen ? '-' : '+'}
                   </button>
                 )}
                 {!hasChildren && <span className="w-5" />}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-800">{n.title}</span>
-                    {n.pdfUrl && <a href={n.pdfUrl} target="_blank" rel="noopener" className="text-xs text-blue-700 underline">PDF</a>}
+                    <span className="font-medium text-gray-800">{highlight(n.title)}</span>
+                    {n.pdfUrl && (
+                      <a
+                        href={n.pdfUrl}
+                        target="_blank"
+                        rel="noopener"
+                        className="inline-flex items-center gap-1 text-xs text-blue-700 underline"
+                      >
+                        <span>🔗</span>
+                        <span>เปิดลิงก์</span>
+                      </a>
+                    )}
                     {!n.isPublished && <span className="badge gray">ซ่อน</span>}
                     <span className="text-[10px] text-gray-400">order:{n.order}</span>
                   </div>
                   {n.content && <div className="text-xs text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: n.content }} />}
+                  {(n.slug || pdfCount > 0) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-600">
+                      {n.slug && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
+                          <span className="text-gray-500">slug</span>
+                          <span className="font-medium text-gray-700">{highlight(n.slug)}</span>
+                        </span>
+                      )}
+                      {pdfCount > 0 && (
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-900"
+                          onClick={() => togglePdfSection(n._id)}
+                        >
+                          <span>📎</span>
+                          <span>{isPdfOpen ? 'ซ่อนไฟล์' : `ดูไฟล์ (${pdfCount})`}</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <button onClick={()=>startNew(n)} className="btn btn-outline">➕ เพิ่มเมนูย่อย</button>
-                    <button onClick={()=>startEdit(n)} className="btn btn-outline">✏️ แก้ไข</button>
-                    <button onClick={()=>del(n)} className="btn btn-outline">🗑️ ลบ</button>
-                    <button onClick={()=>move(n,-1)} className="btn btn-outline" aria-label="ย้ายขึ้น">⬆️</button>
-                    <button onClick={()=>move(n,1)} className="btn btn-outline" aria-label="ย้ายลง">⬇️</button>
+                    <button onClick={()=>startNew(n)} className="admin-btn admin-btn--outline">➕ เพิ่มเมนูย่อย</button>
+                    <button onClick={()=>startEdit(n)} className="admin-btn admin-btn--outline">✏️ แก้ไข</button>
+                    <button onClick={()=>del(n)} className="admin-btn admin-btn--outline">🗑️ ลบ</button>
+                    <button onClick={()=>move(n,-1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายขึ้น">⬆️</button>
+                    <button onClick={()=>move(n,1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายลง">⬇️</button>
                   </div>
+                  {pdfCount > 0 && isPdfOpen && (
+                    <ul className="mt-3 space-y-1 rounded border border-emerald-200 bg-emerald-50/60 p-2 text-xs">
+                      {n.pdfs!.map(pdf => (
+                        <li key={pdf.id} className="flex items-center gap-2">
+                          <a
+                            href={pdf.url}
+                            target="_blank"
+                            rel="noopener"
+                            className="flex-1 truncate text-emerald-700 hover:underline"
+                            title={pdf.filename}
+                          >
+                            {pdf.filename}
+                          </a>
+                          <span className="text-gray-400">{formatFileSize(pdf.size)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
-              {hasChildren && open && (
+              {hasChildren && isOpen && (
                 <div className="mt-2">
                   {renderNodes(n.children!, depth+1)}
                 </div>
@@ -238,20 +412,59 @@ export default forwardRef(function ItaManagement(_props, ref) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">จัดการเมนู ITA</h2>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md" onClick={()=>startNew(null)}>
+        <button className="admin-btn" onClick={()=>startNew(null)}>
           <span>➕</span>
           เพิ่มเมนูหลัก
         </button>
       </div>
-      {loading ? <div className="text-gray-600">กำลังโหลด...</div> : (
-        tree.length === 0 ? <div className="text-gray-500 mb-6">ยังไม่มีเมนู ITA</div> : renderNodes(tree)
+      {loading ? (
+        <div className="text-gray-600">กำลังโหลด...</div>
+      ) : (
+        <>
+          {tree.length > 0 || isSearchMode ? (
+            <div className="mb-4 flex flex-wrap items-center gap-3 rounded border border-gray-200 bg-white/60 p-3">
+              <div className="flex min-w-[240px] flex-1 items-center gap-2">
+                <label htmlFor="ita-search" className="text-xs font-medium text-gray-600">ค้นหา</label>
+                <input
+                  id="ita-search"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  placeholder="ค้นหาจากชื่อหรือ slug"
+                  className="flex-1 rounded border px-3 py-1.5 text-sm"
+                />
+                {searchTerm && (
+                  <button type="button" className="text-xs text-gray-500 underline" onClick={clearSearch}>
+                    ล้าง
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <span className="rounded-full bg-gray-100 px-2 py-0.5">ทั้งหมด {resultCount} รายการ</span>
+                <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={expandAll}>เปิดทั้งหมด</button>
+                <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={collapseAll}>
+                  ปิดทั้งหมด
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {nodesToRender.length === 0 ? (
+            tree.length === 0 && !isSearchMode ? (
+              <div className="text-gray-500 mb-6">ยังไม่มีเมนู ITA</div>
+            ) : (
+              <div className="text-gray-500 mb-6">ไม่พบรายการที่ตรงกับการค้นหา</div>
+            )
+          ) : (
+            renderNodes(nodesToRender)
+          )}
+        </>
       )}
 
       {(creating || editing) && (
         <div className="mt-8 card">
           <div className="card-header flex items-center justify-between">
             <span>{editing ? 'แก้ไขเมนู' : parentForNew ? 'เพิ่มเมนูย่อยของ: ' + parentForNew.title : 'เพิ่มเมนูหลัก'}</span>
-            <button className="btn btn-outline" onClick={cancel}>ปิด</button>
+            <button className="admin-btn admin-btn--outline" onClick={cancel}>ปิด</button>
           </div>
           <div className="card-body">
             <form onSubmit={submit} className="space-y-3">
@@ -277,7 +490,7 @@ export default forwardRef(function ItaManagement(_props, ref) {
               <div>
                 <label className="block text-sm mb-1">ไฟล์ PDF (อัปโหลดได้หลายไฟล์)</label>
                 <div className="flex flex-col md:flex-row gap-2">
-                  <label className="btn btn-outline cursor-pointer whitespace-nowrap">
+                  <label className="admin-btn admin-btn--outline cursor-pointer whitespace-nowrap">
                     เลือกไฟล์
                     <input type="file" accept="application/pdf" multiple className="hidden" onChange={async e=>{
                       const files = Array.from(e.target.files || [])
@@ -297,7 +510,7 @@ export default forwardRef(function ItaManagement(_props, ref) {
                       <li key={i} className="flex items-center gap-2">
                         <span className="truncate flex-1">{f.name}</span>
                         <span className="text-gray-400">{(f.size/1024).toFixed(1)} KB</span>
-                        <button type="button" className="btn btn-outline" onClick={()=>setPendingNewPdfs(list=>list.filter((_,x)=>x!==i))}>ลบ</button>
+                        <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>setPendingNewPdfs(list=>list.filter((_,x)=>x!==i))}>ลบ</button>
                       </li>
                     ))}
                   </ul>
@@ -306,7 +519,7 @@ export default forwardRef(function ItaManagement(_props, ref) {
                   <div className="mt-4 border-t pt-3">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium">ไฟล์ PDF ทั้งหมด ({pdfList.length})</span>
-                      <label className="btn btn-outline cursor-pointer text-xs">
+                      <label className="admin-btn admin-btn--outline cursor-pointer text-xs">
                         เพิ่มไฟล์
                         <input type="file" accept="application/pdf" multiple className="hidden" onChange={e=>{ const fs=Array.from(e.target.files||[]); fs.forEach(f=>uploadPdfToItem(f)) }} />
                       </label>
@@ -318,7 +531,7 @@ export default forwardRef(function ItaManagement(_props, ref) {
                             <li key={p.id} className="flex items-center gap-2">
                               <a href={p.url} target="_blank" className="text-blue-700 underline truncate flex-1" title={p.filename}>{p.filename}</a>
                               <span className="text-gray-400">{(p.size/1024).toFixed(1)} KB</span>
-                              <button type="button" className="btn btn-outline" onClick={()=>deletePdfFile(p.id)}>ลบ</button>
+                              <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>deletePdfFile(p.id)}>ลบ</button>
                             </li>
                           ))}
                         </ul>
@@ -335,7 +548,7 @@ export default forwardRef(function ItaManagement(_props, ref) {
               </div>
               <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm(f=>({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
               <div>
-                <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md" type="submit" disabled={busy}>
+                <button className="admin-btn" type="submit" disabled={busy}>
                   {busy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -354,3 +567,5 @@ export default forwardRef(function ItaManagement(_props, ref) {
     </div>
   )
 })
+
+export default ItaManagement

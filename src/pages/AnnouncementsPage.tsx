@@ -1,6 +1,6 @@
 import { NavLink, Routes, Route, Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react' // Added useCallback, useMemo
-import { useAuth } from '../auth/AuthContext.tsx'
+import { useAuth } from '../auth/AuthContext'
 import { fastFetch } from '../utils/fastFetch'
 
 const stripHtml = (html?: string) => {
@@ -124,8 +124,8 @@ function List({ category }: { category?: Announcement['category'] }) {
 
   // --- Page Synchronization and Clamping Effect ---
   useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize) || 1)
-    let nextPage = Math.min(Math.max(1, pageFromUrl), totalPages)
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize) || 1)
+  const nextPage = Math.min(Math.max(1, pageFromUrl), totalPages)
     
     // Check if the page needs to be clamped (e.g., search results decreased pages)
     if (nextPage !== page || pageFromUrl !== nextPage) {

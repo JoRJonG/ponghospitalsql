@@ -1,18 +1,27 @@
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import RichTextEditor from '../../components/RichTextEditor'
-import { useAuth } from '../../auth/AuthContext.tsx'
-import { useToast } from '../../contexts/ToastContext.tsx'
-import { useHomepageRefresh } from '../../contexts/HomepageRefreshContext.tsx'
+import { useAuth } from '../../auth/AuthContext'
+import { useToast } from '../../contexts/ToastContext'
+import { useHomepageRefresh } from '../../contexts/useHomepageRefresh'
 import { compressImage } from '../../utils/imageCompressor'
-import ExecutivesManagement from '../../components/ExecutivesManagement'
-import ItaManagement from '../../components/ItaManagement'
+import ExecutivesManagement, { type ExecutivesManagementHandle } from '../../components/ExecutivesManagement'
+import ItaManagement, { type ItaManagementHandle } from '../../components/ItaManagement'
 import AnnouncementForm from '../../components/admin/AnnouncementForm'
 import ActivityForm from '../../components/admin/ActivityForm'
 import AdminIntroDashboard, { type AdminIntroDashboardHandle } from '../../components/admin/AdminIntroDashboard'
 import PopupsManager, { type PopupsManagerHandle } from '../../components/admin/PopupsManager'
+import UserManagement, { type UserManagementHandle } from '../../components/admin/UserManagement'
 
 // Types
 // ----------------------------------------------------------------------------
+type AnnouncementAttachment = {
+  url: string
+  publicId?: string
+  kind?: 'image' | 'pdf' | 'file'
+  name?: string
+  bytes?: number
+}
+
 type Announcement = {
   _id?: string
   title: string
@@ -20,11 +29,11 @@ type Announcement = {
   content?: string
   isPublished?: boolean
   publishedAt?: string | null
-  createdBy?: any
-  updatedBy?: any
+  createdBy?: string | null
+  updatedBy?: string | null
   createdAt?: string
   updatedAt?: string
-  attachments?: Array<{ url: string; publicId?: string; kind?: 'image'|'pdf'|'file'; name?: string; bytes?: number }>
+  attachments?: AnnouncementAttachment[]
 }
 
 type CloudImg = { url: string; publicId?: string }
@@ -33,13 +42,41 @@ type Activity = {
   _id?: string
   title: string
   description?: string
-  images?: Array<string | CloudImg>
+  images?: ActivityImage[]
   isPublished?: boolean
   publishedAt?: string | null
-  createdBy?: any
-  updatedBy?: any
+  createdBy?: string | null
+  updatedBy?: string | null
   createdAt?: string
   updatedAt?: string
+}
+
+type ActivityImage = string | { url: string; publicId?: string | null; displayOrder?: number | null }
+
+type SlideImage = {
+  url: string
+  fileName?: string
+  mimeType?: string
+  size?: number
+  publicId?: string
+}
+
+type SlideItem = {
+  _id?: string | number
+  id?: string | number
+  title?: string
+  caption?: string
+  alt?: string
+  href?: string
+  url?: string
+  link?: string
+  order?: number
+  duration?: number
+  isPublished?: boolean
+  publishedAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+  image?: SlideImage | null
 }
 
 type Unit = {
@@ -52,6 +89,12 @@ type Unit = {
   createdAt?: string
   updatedAt?: string
 }
+
+type AdminTab = 'intro'|'popups'|'overview'|'announce'|'activity'|'slide'|'unit'|'executive'|'ita'|'users'
+
+const ADMIN_TABS: readonly AdminTab[] = ['intro','popups','overview','announce','activity','slide','unit','executive','users','ita'] as const
+
+const isAdminTab = (value: string): value is AdminTab => (ADMIN_TABS as readonly string[]).includes(value)
 
 
 // Shared editor toolbar configuration
@@ -106,8 +149,8 @@ const statusInfo = (it: { isPublished?: boolean; publishedAt?: string | null }) 
 
 
 export default function AdminPage() {
-  const { getToken } = useAuth()
-  const [tab, setTab] = useState<'intro'|'popups'|'overview'|'announce'|'activity'|'slide'|'unit'|'executive'|'ita'>('intro')
+  const { getToken, hasPermission } = useAuth()
+  const [tab, setTab] = useState<AdminTab>('intro')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [annCount, setAnnCount] = useState(0)
   const [actCount, setActCount] = useState(0)
@@ -115,9 +158,63 @@ export default function AdminPage() {
   const [unitCount, setUnitCount] = useState(0)
   const [annList, setAnnList] = useState<Announcement[]>([])
   const [actList, setActList] = useState<Activity[]>([])
-  const [slideList, setSlideList] = useState<any[]>([])
+  const [slideList, setSlideList] = useState<SlideItem[]>([])
   const [unitList, setUnitList] = useState<Unit[]>([])
   const [creatingSlide, setCreatingSlide] = useState(false)
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
+  const [showActivityForm, setShowActivityForm] = useState(false)
+  const [showUnitForm, setShowUnitForm] = useState(false)
+
+  const permissions = useMemo(() => ({
+    popups: hasPermission('popups'),
+    announcements: hasPermission('announcements'),
+    activities: hasPermission('activities'),
+    slides: hasPermission('slides'),
+    units: hasPermission('units'),
+    executives: hasPermission('executives'),
+    ita: hasPermission('ita'),
+    users: hasPermission('users'),
+    admin: hasPermission('admin'),
+  }), [hasPermission])
+
+  const allowedTabs = useMemo<Record<AdminTab, boolean>>(() => {
+    const hasAnyContentPermission = permissions.popups
+      || permissions.announcements
+      || permissions.activities
+      || permissions.slides
+      || permissions.units
+      || permissions.executives
+      || permissions.ita
+      || permissions.users
+
+    return {
+      intro: true,
+      popups: permissions.popups,
+      overview: Boolean(hasAnyContentPermission || permissions.admin),
+      announce: permissions.announcements,
+      activity: permissions.activities,
+      slide: permissions.slides,
+      unit: permissions.units,
+      executive: permissions.executives,
+      ita: permissions.ita,
+      users: permissions.users,
+    }
+  }, [permissions])
+
+  useEffect(() => {
+    if (allowedTabs[tab]) return
+  const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'users', 'ita']
+    const nextTab = preferredOrder.find(key => allowedTabs[key]) || 'intro'
+    if (nextTab !== tab) {
+      setTab(nextTab)
+    }
+  }, [allowedTabs, tab])
+
+  const canManageAnnouncements = allowedTabs.announce
+  const canManageActivities = allowedTabs.activity
+  const canManageSlides = allowedTabs.slide
+  const canManageUnits = allowedTabs.unit
+  const canManageUsers = allowedTabs.users
 
   // Simple per-tab search query
   const [query, setQuery] = useState<{ announce: string; activity: string; slide: string; unit: string }>({ announce: '', activity: '', slide: '', unit: '' })
@@ -131,36 +228,110 @@ export default function AdminPage() {
   // Refs for component methods
   const introRef = useRef<AdminIntroDashboardHandle>(null)
   const popupsRef = useRef<PopupsManagerHandle>(null)
-  const executivesRef = useRef<any>(null)
-  const itaRef = useRef<any>(null)
+  const executivesRef = useRef<ExecutivesManagementHandle | null>(null)
+  const itaRef = useRef<ItaManagementHandle | null>(null)
+  const usersRef = useRef<UserManagementHandle>(null)
 
-  const refreshAnn = () => {
+  const refreshAnn = useCallback(async () => {
+    if (!permissions.announcements) {
+      setAnnList([])
+      setAnnCount(0)
+      return
+    }
     const token = getToken()
     const headers: Record<string, string> = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
-    return fetch('/api/announcements?published=false', { headers }).then(r=>r.json()).then((d: Announcement[])=>{ setAnnList(d); setAnnCount(d.length) }).catch(()=>{})
-  }
-  const refreshAct = () => {
+    try {
+      const response = await fetch('/api/announcements?published=false', { headers })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const data = await response.json() as Announcement[]
+      setAnnList(data)
+      setAnnCount(data.length)
+    } catch (error) {
+      console.error('Failed to load announcements', error)
+      setAnnList([])
+      setAnnCount(0)
+    }
+  }, [getToken, permissions.announcements])
+
+  const refreshAct = useCallback(async () => {
+    if (!permissions.activities) {
+      setActList([])
+      setActCount(0)
+      return
+    }
     const token = getToken()
     const headers: Record<string, string> = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
-    return fetch('/api/activities?published=false', { headers }).then(r=>r.json()).then((d: Activity[])=>{ setActList(d); setActCount(d.length) }).catch(()=>{})
-  }
-  const refreshSlides = () => {
+    try {
+      const response = await fetch('/api/activities?published=false', { headers })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const data = await response.json() as Activity[]
+      setActList(data)
+      setActCount(data.length)
+    } catch (error) {
+      console.error('Failed to load activities', error)
+      setActList([])
+      setActCount(0)
+    }
+  }, [getToken, permissions.activities])
+
+  const refreshSlides = useCallback(async () => {
+    if (!permissions.slides) {
+      setSlideList([])
+      setSlideCount(0)
+      return
+    }
     const token = getToken()
     const headers: Record<string, string> = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
-    return fetch('/api/slides?published=false', { headers }).then(r=>r.json()).then((d: any[])=>{ setSlideList(d); setSlideCount(d.length) }).catch(()=>{})
-  }
-  const refreshUnits = () => {
+    try {
+      const response = await fetch('/api/slides?published=false', { headers })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const data = await response.json()
+      setSlideList(data)
+      setSlideCount(Array.isArray(data) ? data.length : 0)
+    } catch (error) {
+      console.error('Failed to load slides', error)
+      setSlideList([])
+      setSlideCount(0)
+    }
+  }, [getToken, permissions.slides])
+
+  const refreshUnits = useCallback(async () => {
+    if (!permissions.units) {
+      setUnitList([])
+      setUnitCount(0)
+      return
+    }
     const token = getToken()
     const headers: Record<string, string> = {}
     if (token) headers['Authorization'] = `Bearer ${token}`
-    return fetch('/api/units?published=false', { headers }).then(r=>r.json()).then((d: Unit[])=>{ setUnitList(d); setUnitCount(d.length) }).catch(()=>{})
-  }
+    try {
+      const response = await fetch('/api/units?published=false', { headers })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const data = await response.json() as Unit[]
+      setUnitList(data)
+      setUnitCount(data.length)
+    } catch (error) {
+      console.error('Failed to load units', error)
+      setUnitList([])
+      setUnitCount(0)
+    }
+  }, [getToken, permissions.units])
+
   useEffect(() => {
-    refreshAnn(); refreshAct(); refreshSlides(); refreshUnits()
-  }, [])
+    refreshAnn()
+    refreshAct()
+    refreshSlides()
+    refreshUnits()
+  }, [refreshAnn, refreshAct, refreshSlides, refreshUnits])
+
+  useEffect(() => {
+    if (tab !== 'announce') setShowAnnouncementForm(false)
+    if (tab !== 'activity') setShowActivityForm(false)
+    if (tab !== 'unit') setShowUnitForm(false)
+  }, [tab])
 
   // Scroll to top when tab changes
   useEffect(() => {
@@ -176,9 +347,10 @@ export default function AdminPage() {
     try {
       const params = new URLSearchParams(window.location.search)
       const tabParam = (params.get('tab') || '').toLowerCase()
-      const allowed = ['intro','popups','overview','announce','activity','slide','unit','executive','ita'] as const
-      if (allowed.includes(tabParam as any)) setTab(tabParam as any)
-    } catch {}
+      if (isAdminTab(tabParam)) setTab(tabParam)
+    } catch (error) {
+      console.debug('Failed to read admin tab from URL', error)
+    }
   }, [])
 
   // Filtered lists for nicer UX when searching
@@ -223,8 +395,8 @@ export default function AdminPage() {
         (s?.href || s?.url || s?.link || '').toLowerCase().includes(q)
       )
     }
-    if (status.slide === 'published') arr = arr.filter((s:any) => !!s?.isPublished)
-    else if (status.slide === 'hidden') arr = arr.filter((s:any) => !s?.isPublished)
+    if (status.slide === 'published') arr = arr.filter(s => Boolean(s?.isPublished))
+    else if (status.slide === 'hidden') arr = arr.filter(s => !s?.isPublished)
     return arr
   }, [slideList, query.slide, status.slide])
   return (
@@ -279,122 +451,158 @@ export default function AdminPage() {
               <span>Intro Page</span>
             </button>
 
-            <button
-              onClick={() => {
-                setTab('popups');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'popups'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">🪟</span>
-              <span>ป๊อปอัปหน้าแรก</span>
-            </button>
+            {allowedTabs.overview && (
+              <button
+                onClick={() => {
+                  setTab('overview')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'overview'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">📊</span>
+                <span>ภาพรวม</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => setTab('overview')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'overview'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">📊</span>
-              <span>ภาพรวม</span>
-            </button>
+            {allowedTabs.popups && (
+              <button
+                onClick={() => {
+                  setTab('popups')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'popups'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">🪟</span>
+                <span>ป๊อปอัปหน้าแรก</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setTab('announce');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'announce'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">📢</span>
-              <span>ประกาศ</span>
-            </button>
+            {allowedTabs.announce && (
+              <button
+                onClick={() => {
+                  setTab('announce')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'announce'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">📢</span>
+                <span>ประกาศ</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setTab('activity');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'activity'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">📸</span>
-              <span>กิจกรรม</span>
-            </button>
+            {allowedTabs.activity && (
+              <button
+                onClick={() => {
+                  setTab('activity')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'activity'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">📸</span>
+                <span>กิจกรรม</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setTab('slide');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'slide'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">🖼️</span>
-              <span>สไลด์</span>
-            </button>
+            {allowedTabs.slide && (
+              <button
+                onClick={() => {
+                  setTab('slide')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'slide'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">🖼️</span>
+                <span>สไลด์</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setTab('unit');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'unit'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">🏢</span>
-              <span>หน่วยงาน</span>
-            </button>
+            {allowedTabs.unit && (
+              <button
+                onClick={() => {
+                  setTab('unit')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'unit'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">🏢</span>
+                <span>หน่วยงาน</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setTab('executive');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'executive'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">👔</span>
-              <span>ผู้บริหาร</span>
-            </button>
+            {allowedTabs.executive && (
+              <button
+                onClick={() => {
+                  setTab('executive')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'executive'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">👔</span>
+                <span>ผู้บริหาร</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setTab('ita');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'ita'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
-            >
-              <span className="text-xl">⚖️</span>
-              <span>ITA</span>
-            </button>
+            {allowedTabs.users && (
+              <button
+                onClick={() => {
+                  setTab('users')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'users'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">👥</span>
+                <span>ผู้ใช้</span>
+              </button>
+            )}
+
+            {allowedTabs.ita && (
+              <button
+                onClick={() => {
+                  setTab('ita')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'ita'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">⚖️</span>
+                <span>ITA</span>
+              </button>
+            )}
           </nav>
 
           {/* Sidebar Footer */}
@@ -436,6 +644,7 @@ export default function AdminPage() {
                     {tab === 'unit' && 'จัดการหน่วยงาน'}
                     {tab === 'executive' && 'จัดการผู้บริหาร'}
                     {tab === 'ita' && 'จัดการ ITA'}
+                    {tab === 'users' && 'จัดการผู้ใช้'}
                   </h1>
                   <p className="text-gray-600 text-sm mt-1 hidden sm:block">
                     {tab === 'intro' && 'ข้อมูลสรุปการเข้าเว็บไซต์และผู้ใช้ล่าสุด'}
@@ -447,6 +656,7 @@ export default function AdminPage() {
                     {tab === 'unit' && 'จัดการลิงก์หน่วยงาน'}
                     {tab === 'executive' && 'จัดการข้อมูลผู้บริหาร'}
                     {tab === 'ita' && 'จัดการข้อมูล ITA'}
+                    {tab === 'users' && 'เพิ่ม แก้ไข ลบผู้ใช้ และกำหนดสิทธิ์การเข้าถึง'}
                   </p>
                 </div>
               </div>
@@ -479,6 +689,14 @@ export default function AdminPage() {
                     else if (tab === 'unit') refreshUnits().then(() => showToast('โหลดข้อมูลหน่วยงานเสร็จสิ้น', undefined, 'success', 2000));
                     else if (tab === 'executive') executivesRef.current?.refreshExecutives().then(() => showToast('โหลดข้อมูลผู้บริหารเสร็จสิ้น', undefined, 'success', 2000));
                     else if (tab === 'ita') itaRef.current?.refreshIta().then(() => showToast('โหลดข้อมูล ITA เสร็จสิ้น', undefined, 'success', 2000));
+                    else if (tab === 'users') {
+                      const userTask = usersRef.current?.refresh()
+                      if (userTask) {
+                        userTask.then(() => showToast('โหลดข้อมูลผู้ใช้เสร็จสิ้น', undefined, 'success', 2000))
+                      } else {
+                        showToast('โหลดข้อมูลผู้ใช้เสร็จสิ้น', undefined, 'success', 2000)
+                      }
+                    }
                     else refreshAnn().then(() => showToast('โหลดข้อมูลเสร็จสิ้น', undefined, 'success', 2000)); // Default
                   }}
                 >
@@ -518,116 +736,140 @@ export default function AdminPage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
-                  <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-blue-600 text-xs lg:text-sm font-medium mb-1">ประกาศทั้งหมด</div>
-                        <div className="text-2xl lg:text-3xl font-bold text-gray-900">{annCount}</div>
-                        <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                      </div>
-                      <div className="inline-flex h-10 lg:h-12 w-10 lg:w-12 items-center justify-center rounded-xl bg-blue-50">
-                        <span className="text-lg lg:text-xl">📢</span>
+                  {canManageAnnouncements && (
+                    <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-blue-600 text-xs lg:text-sm font-medium mb-1">ประกาศทั้งหมด</div>
+                          <div className="text-2xl lg:text-3xl font-bold text-gray-900">{annCount}</div>
+                          <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                        </div>
+                        <div className="inline-flex h-10 lg:h-12 w-10 lg:w-12 items-center justify-center rounded-xl bg-blue-50">
+                          <span className="text-lg lg:text-xl">📢</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-emerald-600 text-sm font-medium mb-1">กิจกรรมทั้งหมด</div>
-                        <div className="text-3xl font-bold text-gray-900">{actCount}</div>
-                        <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                      </div>
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
-                        <span className="text-xl">📸</span>
+                  {canManageActivities && (
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-emerald-600 text-sm font-medium mb-1">กิจกรรมทั้งหมด</div>
+                          <div className="text-3xl font-bold text-gray-900">{actCount}</div>
+                          <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                        </div>
+                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
+                          <span className="text-xl">📸</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-purple-600 text-sm font-medium mb-1">สไลด์ทั้งหมด</div>
-                        <div className="text-3xl font-bold text-gray-900">{slideCount}</div>
-                        <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                      </div>
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-purple-50">
-                        <span className="text-xl">🖼️</span>
+                  {canManageSlides && (
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-purple-600 text-sm font-medium mb-1">สไลด์ทั้งหมด</div>
+                          <div className="text-3xl font-bold text-gray-900">{slideCount}</div>
+                          <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                        </div>
+                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-purple-50">
+                          <span className="text-xl">🖼️</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-orange-600 text-sm font-medium mb-1">หน่วยงานทั้งหมด</div>
-                        <div className="text-3xl font-bold text-gray-900">{unitCount}</div>
-                        <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                      </div>
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50">
-                        <span className="text-xl">🏢</span>
+                  {canManageUnits && (
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-orange-600 text-sm font-medium mb-1">หน่วยงานทั้งหมด</div>
+                          <div className="text-3xl font-bold text-gray-900">{unitCount}</div>
+                          <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                        </div>
+                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50">
+                          <span className="text-xl">🏢</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {!canManageAnnouncements && !canManageActivities && !canManageSlides && !canManageUnits && (
+                    <div className="col-span-full bg-white rounded-2xl p-6 text-center text-gray-500 border border-dashed border-gray-200">
+                      ยังไม่มีสิทธิ์ดูสถิติของส่วนนี้
+                    </div>
+                  )}
                 </div>
 
                 {/* Recent Activity */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                  <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="text-blue-600">🕒</span>
-                      กิจกรรมล่าสุด
-                    </h3>
-                    <div className="space-y-3">
-                      {actList.slice(0, 3).map((activity, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 flex-shrink-0">
-                            <span className="text-sm">📸</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 truncate">{activity.title}</div>
-                            <div className="text-xs text-gray-500">
-                              {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                  {canManageActivities && (
+                    <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span className="text-blue-600">🕒</span>
+                        กิจกรรมล่าสุด
+                      </h3>
+                      <div className="space-y-3">
+                        {actList.slice(0, 3).map((activity, index) => (
+                          <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 flex-shrink-0">
+                              <span className="text-sm">📸</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-900 truncate">{activity.title}</div>
+                              <div className="text-xs text-gray-500">
+                                {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                      {actList.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <span className="text-3xl mb-2">📭</span>
-                          <div className="text-sm">ยังไม่มีกิจกรรม</div>
-                        </div>
-                      )}
+                        ))}
+                        {actList.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            <span className="text-3xl mb-2">📭</span>
+                            <div className="text-sm">ยังไม่มีกิจกรรม</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="text-purple-600">📢</span>
-                      ประกาศล่าสุด
-                    </h3>
-                    <div className="space-y-3">
-                      {annList.slice(0, 3).map((announcement, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
-                            <span className="text-sm">📢</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 truncate">{announcement.title}</div>
-                            <div className="text-xs text-gray-500">
-                              {announcement.category} • {announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                  {canManageAnnouncements && (
+                    <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span className="text-purple-600">📢</span>
+                        ประกาศล่าสุด
+                      </h3>
+                      <div className="space-y-3">
+                        {annList.slice(0, 3).map((announcement, index) => (
+                          <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
+                              <span className="text-sm">📢</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-900 truncate">{announcement.title}</div>
+                              <div className="text-xs text-gray-500">
+                                {announcement.category} • {announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                      {annList.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <span className="text-3xl mb-2">📭</span>
-                          <div className="text-sm">ยังไม่มีประกาศ</div>
-                        </div>
-                      )}
+                        ))}
+                        {annList.length === 0 && (
+                          <div className="text-center py-8 text-gray-500">
+                            <span className="text-3xl mb-2">📭</span>
+                            <div className="text-sm">ยังไม่มีประกาศ</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {!canManageActivities && !canManageAnnouncements && (
+                    <div className="col-span-full bg-white rounded-2xl p-6 text-center text-gray-500 border border-dashed border-gray-200">
+                      ยังไม่มีสิทธิ์ดูบันทึกล่าสุดในส่วนนี้
+                    </div>
+                  )}
                 </div>
 
                 {/* Quick Actions */}
@@ -637,51 +879,122 @@ export default function AdminPage() {
                     การดำเนินการด่วน
                   </h3>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                    <button
-                      onClick={() => { setTab('announce'); setSidebarOpen(false); }}
-                      className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors group"
-                    >
-                      <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
-                        <span className="text-sm lg:text-base">📝</span>
-                      </div>
-                      <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มประกาศ</span>
-                    </button>
+                    {canManageAnnouncements && (
+                      <button
+                        onClick={() => {
+                          setTab('announce')
+                          setSidebarOpen(false)
+                          setShowAnnouncementForm(true)
+                          setShowActivityForm(false)
+                          setShowUnitForm(false)
+                        }}
+                        className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors group"
+                      >
+                        <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
+                          <span className="text-sm lg:text-base">📝</span>
+                        </div>
+                        <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มประกาศ</span>
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => { setTab('activity'); setSidebarOpen(false); }}
-                      className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors group"
-                    >
-                      <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-emerald-100 group-hover:bg-emerald-200 transition-colors">
-                        <span className="text-sm lg:text-base">📸</span>
-                      </div>
-                      <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มกิจกรรม</span>
-                    </button>
+                    {canManageActivities && (
+                      <button
+                        onClick={() => {
+                          setTab('activity')
+                          setSidebarOpen(false)
+                          setShowActivityForm(true)
+                          setShowAnnouncementForm(false)
+                          setShowUnitForm(false)
+                        }}
+                        className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors group"
+                      >
+                        <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-emerald-100 group-hover:bg-emerald-200 transition-colors">
+                          <span className="text-sm lg:text-base">📸</span>
+                        </div>
+                        <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มกิจกรรม</span>
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => { setTab('slide'); setSidebarOpen(false); }}
-                      className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group"
-                    >
-                      <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors">
-                        <span className="text-sm lg:text-base">🖼️</span>
-                      </div>
-                      <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มสไลด์</span>
-                    </button>
+                    {canManageSlides && (
+                      <button
+                        onClick={() => { setTab('slide'); setSidebarOpen(false) }}
+                        className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group"
+                      >
+                        <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors">
+                          <span className="text-sm lg:text-base">🖼️</span>
+                        </div>
+                        <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มสไลด์</span>
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => { setTab('unit'); setSidebarOpen(false); }}
-                      className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors group"
-                    >
-                      <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-orange-100 group-hover:bg-orange-200 transition-colors">
-                        <span className="text-sm lg:text-base">🏢</span>
+                    {canManageUnits && (
+                      <button
+                        onClick={() => {
+                          setTab('unit')
+                          setSidebarOpen(false)
+                          setShowUnitForm(true)
+                          setShowAnnouncementForm(false)
+                          setShowActivityForm(false)
+                        }}
+                        className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors group"
+                      >
+                        <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-orange-100 group-hover:bg-orange-200 transition-colors">
+                          <span className="text-sm lg:text-base">🏢</span>
+                        </div>
+                        <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มหน่วยงาน</span>
+                      </button>
+                    )}
+
+                    {canManageUsers && (
+                      <button
+                        onClick={() => { setTab('users'); setSidebarOpen(false) }}
+                        className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-colors group"
+                      >
+                        <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-indigo-100 group-hover:bg-indigo-200 transition-colors">
+                          <span className="text-sm lg:text-base">👥</span>
+                        </div>
+                        <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">จัดการผู้ใช้</span>
+                      </button>
+                    )}
+
+                    {!canManageAnnouncements && !canManageActivities && !canManageSlides && !canManageUnits && !canManageUsers && (
+                      <div className="col-span-full text-center text-gray-500 bg-white border border-dashed border-gray-200 rounded-xl py-6">
+                        ยังไม่มีสิทธิ์ดำเนินการด่วนในส่วนนี้
                       </div>
-                      <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มหน่วยงาน</span>
-                    </button>
+                    )}
                   </div>
                 </div>
               </div>
+            ) : tab === 'users' ? (
+              <div className="space-y-6">
+                <UserManagement ref={usersRef} />
+              </div>
             ) : tab === 'announce' ? (
               <div className="space-y-4 lg:space-y-6">
-                <AnnouncementForm onCreated={() => { refreshAnn(); triggerRefresh(); showToast('บันทึกประกาศสำเร็จ', undefined, 'success', 3000) }} />
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setShowAnnouncementForm(prev => !prev)}
+                    className="admin-btn"
+                  >
+                    <span>{showAnnouncementForm ? '✕' : '+'}</span>
+                    {showAnnouncementForm ? 'ปิดฟอร์มเพิ่มประกาศ' : 'เพิ่มประกาศใหม่'}
+                  </button>
+                </div>
+                {showAnnouncementForm ? (
+                  <AnnouncementForm
+                    onCreated={() => {
+                      refreshAnn()
+                      triggerRefresh()
+                      showToast('บันทึกประกาศสำเร็จ', undefined, 'success', 3000)
+                      setShowAnnouncementForm(false)
+                    }}
+                    onCancel={() => setShowAnnouncementForm(false)}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50/60 px-4 py-6 text-center text-sm text-blue-700">
+                    กดปุ่ม "เพิ่มประกาศใหม่" เพื่อเปิดฟอร์มเพิ่มประกาศ
+                  </div>
+                )}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                   <div className="flex items-center gap-4">
                     <select
@@ -712,7 +1025,30 @@ export default function AdminPage() {
               </div>
             ) : tab === 'activity' ? (
               <div className="space-y-4 lg:space-y-6">
-                <ActivityForm onCreated={() => { refreshAct(); triggerRefresh(); showToast('บันทึกกิจกรรมสำเร็จ', undefined, 'success', 3000) }} />
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setShowActivityForm(prev => !prev)}
+                    className="admin-btn"
+                  >
+                    <span>{showActivityForm ? '✕' : '+'}</span>
+                    {showActivityForm ? 'ปิดฟอร์มเพิ่มกิจกรรม' : 'เพิ่มกิจกรรมใหม่'}
+                  </button>
+                </div>
+                {showActivityForm ? (
+                  <ActivityForm
+                    onCreated={() => {
+                      refreshAct()
+                      triggerRefresh()
+                      showToast('บันทึกกิจกรรมสำเร็จ', undefined, 'success', 3000)
+                      setShowActivityForm(false)
+                    }}
+                    onCancel={() => setShowActivityForm(false)}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-6 text-center text-sm text-emerald-700">
+                    กดปุ่ม "เพิ่มกิจกรรมใหม่" เพื่อเปิดฟอร์มเพิ่มกิจกรรม
+                  </div>
+                )}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                   <div className="flex items-center gap-4">
                     <select
@@ -773,7 +1109,30 @@ export default function AdminPage() {
             </div>
           ) : tab==='unit' ? (
             <div className="space-y-4 lg:space-y-6">
-              <UnitsForm onCreated={async () => { await refreshUnits(); triggerRefresh(); showToast('บันทึกลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000) }} />
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowUnitForm(prev => !prev)}
+                  className="admin-btn"
+                >
+                  <span>{showUnitForm ? '✕' : '+'}</span>
+                  {showUnitForm ? 'ปิดฟอร์มเพิ่มหน่วยงาน' : 'เพิ่มหน่วยงานใหม่'}
+                </button>
+              </div>
+              {showUnitForm ? (
+                <UnitsForm
+                  onCreated={async () => {
+                    await refreshUnits()
+                    triggerRefresh()
+                    showToast('บันทึกลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000)
+                    setShowUnitForm(false)
+                  }}
+                  onCancel={() => setShowUnitForm(false)}
+                />
+              ) : (
+                <div className="rounded-xl border border-dashed border-orange-200 bg-orange-50/60 px-4 py-6 text-center text-sm text-orange-700">
+                  กดปุ่ม "เพิ่มหน่วยงานใหม่" เพื่อเปิดฟอร์มเพิ่มลิงก์หน่วยงาน
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-600">พบ {unitList.length} รายการ</span>
@@ -808,7 +1167,7 @@ export default function AdminPage() {
   )
 }
 
-function UnitsForm({ onCreated }: { onCreated: () => void }) {
+function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: () => void }) {
   const { getToken, refreshToken } = useAuth()
   const [name, setName] = useState('')
   const [href, setHref] = useState('')
@@ -895,13 +1254,28 @@ function UnitsForm({ onCreated }: { onCreated: () => void }) {
       const r = await fetch('/api/units', { method: 'POST', headers, body: fd })
       if (!r.ok) {
         let msg = 'บันทึกลิงก์หน่วยงานไม่สำเร็จ'
-        try { const j = await r.json(); if (j?.details || j?.error) msg += `: ${j.details || j.error}` } catch {}
+        try {
+          const j = await r.json()
+          if (j?.details || j?.error) msg += `: ${j.details || j.error}`
+        } catch (parseError) {
+          console.debug('Failed to parse unit creation error response', parseError)
+        }
         alert(msg)
         return
       }
       setName(''); setHref(''); setImage(null); setImageUrl(''); setOrder(0); setIsPublished(true)
       onCreated()
     } finally { setSaving(false) }
+  }
+
+  const handleCancel = () => {
+    setName('')
+    setHref('')
+    setImage(null)
+    setImageUrl('')
+    setOrder(0)
+    setIsPublished(true)
+    onCancel?.()
   }
 
   return (
@@ -917,7 +1291,7 @@ function UnitsForm({ onCreated }: { onCreated: () => void }) {
       <div>
         <label className="block text-sm mb-1">โลโก้ (อัปโหลด หรือปล่อยว่าง)</label>
         <div className="flex items-center gap-2">
-          <label className="btn btn-outline cursor-pointer">
+          <label className="admin-btn admin-btn--outline cursor-pointer">
             อัปโหลดรูปโลโก้
             <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
           </label>
@@ -931,7 +1305,7 @@ function UnitsForm({ onCreated }: { onCreated: () => void }) {
             className="w-full rounded border px-3 py-2"
             inputMode="url"
           />
-          <button type="button" className="btn btn-outline" onClick={applyImageUrl}>ใช้ URL</button>
+          <button type="button" className="admin-btn admin-btn--outline" onClick={applyImageUrl}>ใช้ URL</button>
         </div>
         {image && (
           <div className="mt-2">
@@ -948,8 +1322,8 @@ function UnitsForm({ onCreated }: { onCreated: () => void }) {
           <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={isPublished} onChange={e=>setIsPublished(e.target.checked)} /> เผยแพร่</label>
         </div>
       </div>
-      <div>
-        <button disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
+      <div className="flex gap-2">
+        <button disabled={saving} className="admin-btn">
           {saving ? (
             <>
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -959,6 +1333,11 @@ function UnitsForm({ onCreated }: { onCreated: () => void }) {
             'บันทึก'
           )}
         </button>
+        {onCancel && (
+          <button type="button" onClick={handleCancel} className="admin-btn admin-btn--outline">
+            ยกเลิก
+          </button>
+        )}
       </div>
     </form>
   )
@@ -1009,10 +1388,10 @@ function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved
                 )}
                 <div className="text-xs text-gray-500">ลำดับ: {u.order ?? 0}</div>
                 <div className="mt-2 flex gap-2">
-                  <button className="btn btn-outline" aria-label="แก้ไขหน่วยงาน" onClick={()=>setEditing(u)}>
+                  <button className="admin-btn admin-btn--outline" aria-label="แก้ไขหน่วยงาน" onClick={()=>setEditing(u)}>
                     ✏️ <span>แก้ไข</span>
                   </button>
-                  <button className="btn btn-outline" aria-label="ลบหน่วยงาน" onClick={()=>remove(u._id)}>
+                  <button className="admin-btn admin-btn--outline" aria-label="ลบหน่วยงาน" onClick={()=>remove(u._id)}>
                     🗑️ <span>ลบ</span>
                   </button>
                 </div>
@@ -1024,9 +1403,9 @@ function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="btn btn-outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="btn btn-outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
@@ -1072,7 +1451,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
       const hasNewImage = form.image?.url && !form.image.url.startsWith('/api/images/units/')
       
       let body: FormData | string
-      let headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
+  const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
       
       if (hasNewImage && form.image) {
         // ส่ง FormData พร้อมไฟล์ใหม่
@@ -1114,9 +1493,9 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
   }
 
   const removeImage = async () => {
-    const it = form.image as any
-    if (it?.publicId) {
-      fetch(`/api/uploads/image/${encodeURIComponent(it.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(()=>{})
+    const publicId = form.image?.publicId
+    if (publicId) {
+      fetch(`/api/uploads/image/${encodeURIComponent(publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete unit image', err))
     }
     setForm(f => ({ ...f, image: null }))
   }
@@ -1126,7 +1505,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
       <div className="bg-white rounded-lg shadow-lg w-full max-w-lg">
         <div className="p-4 border-b flex items-center justify-between">
           <div className="font-semibold">แก้ไขลิงก์หน่วยงาน</div>
-          <button className="btn btn-outline" onClick={onClose}>ปิด</button>
+          <button className="admin-btn admin-btn--outline" onClick={onClose}>ปิด</button>
         </div>
         <div className="p-4 space-y-3">
           <div>
@@ -1142,10 +1521,10 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
             {form.image?.url ? (
               <div className="flex items-center gap-3">
                 <img src={form.image.url} loading="lazy" decoding="async" width={160} height={64} className="h-16 object-contain" />
-                <button className="btn btn-outline" onClick={removeImage}>ลบรูป</button>
+                <button className="admin-btn admin-btn--outline" onClick={removeImage}>ลบรูป</button>
               </div>
             ) : (
-              <label className="btn btn-outline cursor-pointer">
+              <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดรูปโลโก้
                 <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
               </label>
@@ -1161,7 +1540,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
               />
               <button
                 type="button"
-                className="btn btn-outline"
+                className="admin-btn admin-btn--outline"
                 onClick={()=>{
                   const u = imageUrl.trim()
                   if (!u) { setForm(f=>({ ...f, image: null })); return }
@@ -1182,8 +1561,8 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
           </div>
         </div>
         <div className="p-4 border-t flex items-center justify-end gap-2">
-          <button className="btn btn-outline" onClick={onClose}>ยกเลิก</button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md" onClick={save} disabled={saving}>
+          <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
+          <button className="admin-btn" onClick={save} disabled={saving}>
             {saving ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -1283,12 +1662,21 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
       const r = await fetch('/api/slides', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
       if (!r.ok) {
         let msg = 'บันทึกสไลด์ไม่สำเร็จ'
-        try { const j = await r.json(); if (j?.details || j?.error) msg += `: ${j.details || j.error}` } catch {}
+        try {
+          const j = await r.json()
+          if (j?.details || j?.error) msg += `: ${j.details || j.error}`
+        } catch (parseError) {
+          console.debug('Failed to parse slide creation error response', parseError)
+        }
         alert(msg)
         return
       }
-      let created: any = null
-      try { created = await r.json() } catch {}
+      let created: SlideItem | null = null
+      try {
+        created = await r.json() as SlideItem
+      } catch (parseError) {
+        console.debug('Failed to parse slide creation response', parseError)
+      }
       // console.log('[SlidesForm] create response:', created)
       if (created && !created.href && !created.link && !created.url && cleanHref) {
         console.warn('[SlidesForm] Backend ไม่ได้บันทึก URL ของสไลด์ โปรดตรวจสอบ schema/ตัวรับค่า ของ API')
@@ -1322,7 +1710,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
         {!image ? (
           <>
             <div className="flex items-center gap-2">
-              <label className="btn btn-outline cursor-pointer">
+              <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดรูป
                 <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
               </label>
@@ -1336,13 +1724,13 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
                 className="w-full rounded border px-3 py-2"
                 inputMode="url"
               />
-              <button type="button" className="btn btn-outline" onClick={applyImageUrl}>ใช้ URL</button>
+              <button type="button" className="admin-btn admin-btn--outline" onClick={applyImageUrl}>ใช้ URL</button>
             </div>
           </>
         ) : (
           <div className="mt-2 flex items-center gap-3">
             <img src={image.url} loading="lazy" decoding="async" width={200} height={120} className="h-24 rounded" />
-            <button type="button" className="btn btn-outline" onClick={()=>setImage(null)}>ลบรูป</button>
+            <button type="button" className="admin-btn admin-btn--outline" onClick={()=>setImage(null)}>ลบรูป</button>
           </div>
         )}
         <p className="mt-2 text-xs text-gray-600">
@@ -1365,8 +1753,8 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
         </div>
       </div>
       <div className="flex gap-2">
-        <button type="button" onClick={onCancel} className="btn btn-outline">ยกเลิก</button>
-        <button disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
+        <button type="button" onClick={onCancel} className="admin-btn admin-btn--outline">ยกเลิก</button>
+        <button disabled={saving} className="admin-btn">
           {saving ? (
             <>
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -1381,12 +1769,11 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
   )
 }
 
-function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: any[]; onEditSaved: ()=>void; onDeleted: ()=>void; onCreate: ()=>void }) {
+function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: SlideItem[]; onEditSaved: ()=>void; onDeleted: ()=>void; onCreate: ()=>void }) {
   const { getToken } = useAuth()
-  const [editing, setEditing] = useState<any | null>(null)
-  const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState<SlideItem | null>(null)
   const [draggingId, setDraggingId] = useState<string | number | null>(null)
-  const [local, setLocal] = useState<any[]>(list)
+  const [local, setLocal] = useState<SlideItem[]>(list)
   useEffect(()=>{ setLocal(list) }, [list])
   const [page, setPage] = useState(1)
   const perPage = 10
@@ -1399,12 +1786,13 @@ function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: any[]; o
     const pc = Math.max(1, Math.ceil((list?.length || 0) / perPage))
     setPage(p => Math.min(Math.max(1, p), pc))
   }, [list?.length])
-  const remove = async (id?: string) => {
-    if (!id) return
+  const remove = async (id?: string | number) => {
+    if (id === undefined || id === null) return
     if (!confirm('ยืนยันการลบสไลด์นี้?')) return
-    const r = await fetch(`/api/slides/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
+    const idStr = String(id)
+    const r = await fetch(`/api/slides/${encodeURIComponent(idStr)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
     if (r.ok) {
-      setLocal(local.filter(s => s._id !== id))
+      setLocal(prev => prev.filter(s => String(s._id ?? s.id) !== idStr))
       onDeleted()
     }
   }
@@ -1412,37 +1800,39 @@ function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: any[]; o
   const onDragOver = (e: React.DragEvent, overId: string | number) => {
     e.preventDefault()
     if (!draggingId || draggingId === overId) return
-    const cur = [...local]
-    const from = cur.findIndex(s => s._id === draggingId)
-    const to = cur.findIndex(s => s._id === overId)
-    if (from === -1 || to === -1) return
-    const [moved] = cur.splice(from, 1)
-    cur.splice(to, 0, moved)
-    // Recompute order numbers (0..n)
-    cur.forEach((s, i) => { s.order = i })
-    setLocal(cur)
+    const working = [...local]
+    const fromIndex = working.findIndex(s => String(s._id ?? s.id) === String(draggingId))
+    const toIndex = working.findIndex(s => String(s._id ?? s.id) === String(overId))
+    if (fromIndex === -1 || toIndex === -1) return
+    const updated = [...working]
+    const [moved] = updated.splice(fromIndex, 1)
+    updated.splice(toIndex, 0, moved)
+    const reindexed = updated.map((slide, index) => ({ ...slide, order: index }))
+    setLocal(reindexed)
   }
   const onDragEnd = () => setDraggingId(null)
   const saveOrder = async () => {
     const token = getToken()
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (token) headers['Authorization'] = `Bearer ${token}`
-    const body = local.map(s => ({ _id: s._id, order: s.order ?? 0 }))
+    const body = local.map(s => ({ _id: s._id ?? s.id, order: s.order ?? 0 }))
     const r = await fetch('/api/slides/reorder', { method: 'POST', headers, body: JSON.stringify(body) })
     if (r.ok) onEditSaved()
   }
   return (
     <div className="mt-8">
-    <div className="flex items-center justify-between mb-3">
-        <div className="font-semibold">รายการสไลด์</div>
-        <div className="flex gap-2">
-          <button className="btn btn-outline" onClick={saveOrder} disabled={!local.length}>บันทึกลำดับ</button>
-          <button className="btn btn-primary" onClick={onCreate}>สร้างสไลด์ใหม่</button>
+  <div className="flex items-center justify-between mb-3">
+    <div className="font-semibold">รายการสไลด์</div>
+    <div className="flex gap-2">
+  <button className="admin-btn admin-btn--outline" onClick={saveOrder} disabled={!local.length}>บันทึกลำดับ</button>
+      <button className="admin-btn" onClick={onCreate}>สร้างสไลด์ใหม่</button>
         </div>
       </div>
       <div className="grid md:grid-cols-2 gap-3">
-        {paged.map(s => (
-          <div key={s._id} className="card" draggable onDragStart={()=>onDragStart(s._id)} onDragOver={(e)=>onDragOver(e, s._id)} onDragEnd={onDragEnd}>
+        {paged.map((s, index) => {
+          const identifier = String(s._id ?? s.id ?? `temp-${index}`)
+          return (
+          <div key={identifier} className="card" draggable onDragStart={()=>onDragStart(identifier)} onDragOver={(e)=>onDragOver(e, identifier)} onDragEnd={onDragEnd}>
             <div className="card-body flex gap-3">
               <img src={`${s?.image?.url}?t=${Date.now()}`} loading="lazy" decoding="async" width={96} height={64} className="h-16 w-24 object-cover rounded" alt={s?.title ? `ภาพสไลด์: ${s.title}` : 'ภาพสไลด์'} />
               <div className="flex-1 min-w-0">
@@ -1466,49 +1856,47 @@ function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: any[]; o
                   </div>
                 )}
                 <div className="mt-2 flex gap-2">
-                  <button className="btn btn-outline" aria-label="แก้ไขสไลด์" onClick={()=>setEditing(s)}>
+                  <button className="admin-btn admin-btn--outline" aria-label="แก้ไขสไลด์" onClick={()=>setEditing(s)}>
                     ✏️ <span>แก้ไข</span>
                   </button>
-                  <button className="btn btn-outline" aria-label="ลบสไลด์" onClick={()=>remove(s._id)}>
+                  <button className="admin-btn admin-btn--outline" aria-label="ลบสไลด์" onClick={()=>remove(identifier)}>
                     🗑️ <span>ลบ</span>
                   </button>
                 </div>
               </div>
             </div>
           </div>
-        ))}
+          )
+        })}
         {list.length === 0 && <div className="text-gray-500">ยังไม่มีสไลด์</div>}
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="btn btn-outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="btn btn-outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
         <EditSlideModal initial={editing} onClose={()=>setEditing(null)} onSaved={()=>{ setEditing(null); onEditSaved() }} />
       )}
-      {creating && (
-        <EditSlideModal initial={{}} onClose={()=>setCreating(false)} onSaved={()=>{ setCreating(false); onEditSaved() }} />
-      )}
     </div>
   )
 }
 
-function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: ()=>void; onSaved: ()=>void }) {
+function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onClose: ()=>void; onSaved: ()=>void }) {
   const { getToken, refreshToken } = useAuth()
-  const [form, setForm] = useState<any>({ ...initial, href: initial?.href || initial?.url || initial?.link || '' })
+  const [form, setForm] = useState<SlideItem>({ ...initial, href: initial?.href || initial?.url || initial?.link || '' })
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [imageUrl, setImageUrl] = useState<string>(initial?.image?.url || '')
   
   const removeImage = async () => {
-    const it = form?.image as any
-    if (it?.publicId && String(it.publicId).startsWith('ponghospital/')) {
-      fetch(`/api/uploads/image/${encodeURIComponent(it.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(()=>{})
+    const publicId = form.image?.publicId
+    if (publicId && String(publicId).startsWith('ponghospital/')) {
+      fetch(`/api/uploads/image/${encodeURIComponent(publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete slide image', err))
     }
-    setForm((f:any)=>({ ...f, image: null }))
+    setForm(prev => ({ ...prev, image: null }))
   }
   
   const onUpload = async (file: File) => {
@@ -1526,8 +1914,8 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
       }
       
       if (!r.ok) throw new Error('upload failed')
-      const data = await r.json()
-      setForm((f:any) => ({ ...f, image: { url: data.url, publicId: data.publicId } }))
+  const data = await r.json() as { url: string; publicId?: string }
+  setForm(prev => ({ ...prev, image: { url: data.url, publicId: data.publicId } }))
     } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
   }
   
@@ -1541,7 +1929,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
       const hasNewImage = form.image?.url?.startsWith('data:')
       
       let body: FormData | string
-      let headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
+  const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
       let method = 'PUT'
       let url = `/api/slides/${initial._id}`
       
@@ -1559,8 +1947,10 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
         }
         
         const fd = new FormData()
-        const blob = await dataUrlToBlob(form.image.url)
-        const fileName = form.image.publicId ? `slide-${form.image.publicId}.gif` : 'slide.gif'
+        const imageUrl = form.image?.url
+        if (!imageUrl) { alert('ไม่พบข้อมูลรูปภาพใหม่ กรุณาลองอีกครั้ง'); return }
+        const blob = await dataUrlToBlob(imageUrl)
+  const fileName = form.image?.publicId ? `slide-${form.image?.publicId}.gif` : 'slide.gif'
         fd.append('image', blob, fileName)
         fd.append('title', form.title || '')
         fd.append('caption', form.caption || '')
@@ -1589,7 +1979,12 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
       if (r.ok) onSaved()
       else {
         let msg = 'บันทึกสไลด์ไม่สำเร็จ'
-        try { const j = await r.json(); if (j?.details || j?.error) msg += `: ${j.details || j.error}` } catch {}
+        try {
+          const j = await r.json()
+          if (j?.details || j?.error) msg += `: ${j.details || j.error}`
+        } catch (parseError) {
+          console.debug('Failed to parse slide update error response', parseError)
+        }
         alert(msg)
       }
     } finally { setSaving(false) }
@@ -1602,33 +1997,33 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
         <div className="card-body space-y-3">
           <div>
             <label className="block text-sm mb-1">หัวข้อ</label>
-            <input value={form.title || ''} onChange={e=>setForm((f:any)=>({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.title || ''} onChange={e=>setForm(prev => ({ ...prev, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm mb-1">คำบรรยาย</label>
-            <input value={form.caption || ''} onChange={e=>setForm((f:any)=>({ ...f, caption: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.caption || ''} onChange={e=>setForm(prev => ({ ...prev, caption: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm mb-1">ข้อความคำอธิบายรูป (alt)</label>
-            <input value={form.alt || ''} onChange={e=>setForm((f:any)=>({ ...f, alt: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="ช่วยการเข้าถึงและ SEO" required={form.isPublished ?? true} />
+            <input value={form.alt || ''} onChange={e=>setForm(prev => ({ ...prev, alt: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="ช่วยการเข้าถึงและ SEO" required={form.isPublished ?? true} />
           </div>
           <div>
             <label className="block text-sm mb-1">ลิงก์เมื่อคลิก (URL)</label>
-            <input value={form.href || ''} onChange={e=>setForm((f:any)=>({ ...f, href: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="เช่น https://ponghospital.go.th/ หรือ /announcements/123" />
+            <input value={form.href || ''} onChange={e=>setForm(prev => ({ ...prev, href: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="เช่น https://ponghospital.go.th/ หรือ /announcements/123" />
             <p className="mt-1 text-xs text-gray-600">ปล่อยว่างเพื่อลบลิงก์เดิม หรือกรอก URL/พาธ ภายในเว็บเพื่อตั้งลิงก์ใหม่</p>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-sm mb-1">ลำดับ</label>
-              <input type="number" value={form.order ?? 0} onChange={e=>setForm((f:any)=>({ ...f, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
+              <input type="number" value={form.order ?? 0} onChange={e=>setForm(prev => ({ ...prev, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
             </div>
             <div>
               <label className="block text-sm mb-1">ระยะเวลาแสดง (วินาที)</label>
-              <input type="number" value={form.duration ?? 5} onChange={e=>setForm((f:any)=>({ ...f, duration: Number(e.target.value) }))} min="1" max="60" className="w-full rounded border px-3 py-2" />
+              <input type="number" value={form.duration ?? 5} onChange={e=>setForm(prev => ({ ...prev, duration: Number(e.target.value) }))} min="1" max="60" className="w-full rounded border px-3 py-2" />
               <p className="mt-1 text-xs text-gray-600">1-60 วินาที</p>
             </div>
             <div className="flex items-end">
-              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm((f:any)=>({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
+              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm(prev => ({ ...prev, isPublished: e.target.checked }))} /> เผยแพร่</label>
             </div>
           </div>
           <div>
@@ -1636,12 +2031,12 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
             {form?.image?.url ? (
               <div className="flex items-center gap-3">
                 <img src={form.image.url} loading="lazy" decoding="async" width={240} height={160} className="h-28 rounded" />
-                <button type="button" className="btn btn-outline" onClick={removeImage}>ลบรูป</button>
+                <button type="button" className="admin-btn admin-btn--outline" onClick={removeImage}>ลบรูป</button>
               </div>
             ) : (
               <>
                 <div className="flex items-center gap-2">
-                  <label className="btn btn-outline cursor-pointer">
+                  <label className="admin-btn admin-btn--outline cursor-pointer">
                     อัปโหลดรูปใหม่
                     <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
                   </label>
@@ -1657,13 +2052,13 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
                   />
                   <button
                     type="button"
-                    className="btn btn-outline"
+                    className="admin-btn admin-btn--outline"
                     onClick={()=>{
                       const u = imageUrl.trim()
-                      if (!u) { setForm((f:any)=>({ ...f, image: null })); return }
+                      if (!u) { setForm(prev => ({ ...prev, image: null })); return }
                       try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { alert('URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)'); return }
                       try { new URL(u) } catch { alert('URL ไม่ถูกต้อง'); return }
-                      setForm((f:any)=>({ ...f, image: { url: u } }))
+                      setForm(prev => ({ ...prev, image: { url: u } }))
                     }}
                   >ใช้ URL</button>
                 </div>
@@ -1676,8 +2071,8 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: any; onClose: 
           </div>
         </div>
         <div className="card-footer flex gap-2 justify-end">
-          <button className="btn btn-outline" onClick={onClose}>ยกเลิก</button>
-          <button disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md" onClick={save}>
+          <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
+          <button disabled={saving} className="admin-btn" onClick={save}>
             {saving ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -1744,10 +2139,10 @@ function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcemen
                 </td>
                 <td className="py-2">
                   <div className="flex gap-2">
-                    <button className="btn btn-outline" aria-label="แก้ไขประกาศ" onClick={()=>setEditing(a)}>
+                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขประกาศ" onClick={()=>setEditing(a)}>
                       ✏️ <span>แก้ไข</span>
                     </button>
-                    <button className="btn btn-outline" aria-label="ลบประกาศ" onClick={()=>remove(a._id)}>
+                    <button className="admin-btn admin-btn--outline" aria-label="ลบประกาศ" onClick={()=>remove(a._id)}>
                       🗑️ <span>ลบ</span>
                     </button>
                   </div>
@@ -1762,9 +2157,9 @@ function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcemen
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="btn btn-outline" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="btn btn-outline" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
@@ -1805,21 +2200,21 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
     } catch { alert('อัปโหลดไฟล์ไม่สำเร็จ') } finally { setUploading(false) }
   }
   const removeAttachmentAt = async (idx: number) => {
-    const it = (form.attachments || [])[idx] as any
-    const next = [...(form.attachments||[])]
-    next.splice(idx, 1)
+    const attachments = form.attachments ?? []
+    const target = attachments[idx]
+    const next = attachments.filter((_, index) => index !== idx)
     setForm(f => ({ ...f, attachments: next }))
-    if (it && it.publicId) {
-      fetch(`/api/uploads/image/${encodeURIComponent(it.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(()=>{})
+    if (target?.publicId) {
+      fetch(`/api/uploads/image/${encodeURIComponent(target.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete attachment', err))
     }
   }
   const save = async () => {
     if (!initial._id) return
     setLoading(true)
     try {
-  const payload: any = { ...form }
-  if (!form.publishedAt) delete payload.publishedAt
-  const r = await fetch(`/api/announcements/${initial._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, body: JSON.stringify(payload) })
+      const payload: Partial<Announcement> = { ...form }
+      if (!form.publishedAt) delete payload.publishedAt
+      const r = await fetch(`/api/announcements/${initial._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, body: JSON.stringify(payload) })
       if (r.ok) onSaved()
     } finally { setLoading(false) }
   }
@@ -1854,11 +2249,11 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
           <div>
             <label className="block text-sm mb-1">ไฟล์แนบ (รูป/เอกสาร)</label>
             <div className="flex flex-wrap gap-2">
-              <label className="btn btn-outline cursor-pointer">
+              <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดรูป
                 <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUploadImage(f) }} />
               </label>
-              <label className="btn btn-outline cursor-pointer">
+              <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดไฟล์ (PDF/อื่นๆ)
                 <input type="file" className="hidden" accept="application/pdf,application/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUploadFile(f) }} />
               </label>
@@ -1877,7 +2272,7 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
                       <div className="truncate text-sm">{att.name || att.url}</div>
                       <a href={att.url} target="_blank" className="text-green-700 text-xs hover:underline">เปิดดู</a>
                     </div>
-                    <button type="button" className="btn btn-outline" onClick={()=>removeAttachmentAt(i)}>ลบ</button>
+                    <button type="button" className="admin-btn admin-btn--outline" onClick={()=>removeAttachmentAt(i)}>ลบ</button>
                   </div>
                 ))}
               </div>
@@ -1893,8 +2288,8 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
           </div>
         </div>
         <div className="card-footer flex gap-2 justify-end">
-          <button className="btn btn-outline" onClick={onClose}>ยกเลิก</button>
-          <button disabled={loading} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md" onClick={save}>
+          <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
+          <button disabled={loading} className="admin-btn" onClick={save}>
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -1940,20 +2335,28 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
           const src = typeof first === 'string' ? first : first?.url
           return (
             <div key={a._id} className="card">
-              <div className="card-body flex gap-3">
-                <img src={src || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=400&auto=format&fit=crop'} loading="lazy" decoding="async" width={96} height={64} className="h-16 w-24 object-cover rounded" alt={a.title ? `ภาพกิจกรรม: ${a.title}` : 'ภาพกิจกรรม'} />
+              <div className="card-body flex flex-col gap-3 sm:flex-row">
+                <img
+                  src={src || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=400&auto=format&fit=crop'}
+                  loading="lazy"
+                  decoding="async"
+                  width={288}
+                  height={192}
+                  className="h-48 w-full rounded-lg object-cover sm:h-24 sm:w-40"
+                  alt={a.title ? `ภาพกิจกรรม: ${a.title}` : 'ภาพกิจกรรม'}
+                />
                 <div className="flex-1">
-                  <div className="font-semibold flex items-center gap-2">
-                    <span className="truncate">{a.title}</span>
+                  <div className="font-semibold flex flex-wrap items-center gap-2">
+                    <span className="truncate max-w-full sm:max-w-[240px]">{a.title}</span>
                     {(()=>{ const s = statusInfo(a); return <span className={`badge ${s.color}`}>{s.label}</span> })()}
                   </div>
-                  <div className="text-sm text-gray-600 line-clamp-2">{stripHtml(a.description)}</div>
-                  {a.publishedAt && <div className="text-xs text-gray-500 mt-1">เริ่มเผยแพร่: {fmtDateTime(a.publishedAt)}</div>}
-                  <div className="mt-2 flex gap-2">
-                    <button className="btn btn-outline" aria-label="แก้ไขกิจกรรม" onClick={()=>setEditing(a)}>
+                  <div className="mt-1 text-sm text-gray-600 line-clamp-3 sm:line-clamp-2">{stripHtml(a.description)}</div>
+                  {a.publishedAt && <div className="text-xs text-gray-500 mt-2">เริ่มเผยแพร่: {fmtDateTime(a.publishedAt)}</div>}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขกิจกรรม" onClick={()=>setEditing(a)}>
                       ✏️ <span>แก้ไข</span>
                     </button>
-                    <button className="btn btn-outline" aria-label="ลบกิจกรรม" onClick={()=>remove(a._id)}>
+                    <button className="admin-btn admin-btn--outline" aria-label="ลบกิจกรรม" onClick={()=>remove(a._id)}>
                       🗑️ <span>ลบ</span>
                     </button>
                   </div>
@@ -1966,9 +2369,9 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="btn btn-outline" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="btn btn-outline" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
@@ -1998,12 +2401,12 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
     } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
   }
   const removeImageAt = async (idx: number) => {
-    const it = (form.images || [])[idx] as any
-    const newImages = [...(form.images||[])]
-    newImages.splice(idx, 1)
-    setForm(f => ({ ...f, images: newImages }))
-    if (it && typeof it !== 'string' && it.publicId) {
-  fetch(`/api/uploads/image/${encodeURIComponent(it.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(()=>{})
+    const images = form.images ?? []
+    const target = images[idx]
+    const next = images.filter((_, index) => index !== idx)
+    setForm(f => ({ ...f, images: next }))
+    if (typeof target !== 'string' && target?.publicId) {
+      fetch(`/api/uploads/image/${encodeURIComponent(target.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete activity image', err))
     }
   }
   const save = async () => {
@@ -2011,7 +2414,8 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
     setSaving(true)
     try {
       // ส่งเฉพาะข้อมูลที่ต้องการแก้ไข ไม่ส่ง images เพื่อเก็บรูปเดิมไว้
-      const { images, ...dataToUpdate } = form
+      const dataToUpdate: Partial<Activity> = { ...form }
+      delete dataToUpdate.images
       let r = await fetch(`/api/activities/${initial._id}`, { 
         method: 'PUT', 
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, 
@@ -2071,7 +2475,7 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
           <div>
             <label className="block text-sm mb-1">รูปภาพ</label>
             <div className="flex flex-wrap gap-2">
-              <label className="btn btn-outline cursor-pointer">
+              <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดไฟล์
                 <input type="file" className="hidden" accept="image/*" multiple onChange={e=>{ const fs=e.target.files; if (fs && fs.length) onUploadFiles(fs) }} />
               </label>
@@ -2096,8 +2500,8 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
           </div>
         </div>
         <div className="card-footer flex gap-2 justify-end">
-          <button className="btn btn-outline" onClick={onClose}>ยกเลิก</button>
-          <button disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md" onClick={save}>
+          <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
+          <button disabled={saving} className="admin-btn" onClick={save}>
             {saving ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
