@@ -223,7 +223,6 @@ export class Visitor {
             )
             VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
             ON DUPLICATE KEY UPDATE
-              hit_count = hit_count + 1,
               last_seen = NOW(),
               user_agent = VALUES(user_agent),
               ip_address = VALUES(ip_address),
@@ -245,7 +244,6 @@ export class Visitor {
             )
             VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())
             ON DUPLICATE KEY UPDATE
-              hit_count = hit_count + 1,
               last_seen = NOW(),
               user_agent = VALUES(user_agent),
               path = VALUES(path)
@@ -265,7 +263,7 @@ export class Visitor {
           [dateKey]
         )
       } else {
-        console.log(`[VisitorCount] Existing session: ${resolvedSessionId}, incrementing hit_count only`)
+        console.log(`[VisitorCount] Existing session: ${resolvedSessionId}, ignoring refresh for visit_count`)
       }
 
       return {
