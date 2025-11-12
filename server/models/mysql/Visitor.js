@@ -49,6 +49,13 @@ function normalizeDistinctIp(expr = 'ip_address') {
   return `COUNT(DISTINCT CASE WHEN ${expr} IS NULL OR ${expr} = '' OR ${expr} = 'unknown' THEN NULL ELSE ${expr} END)`
 }
 
+function distinctVisitorKeyExpr(hasIpColumn) {
+  if (hasIpColumn) {
+    return "CONCAT_WS('|', COALESCE(ip_address, 'unknown'), COALESCE(user_agent, 'unknown'))"
+  }
+  return "CONCAT_WS('|', ip_hash, COALESCE(user_agent, 'unknown'))"
+}
+
 export class Visitor {
   static sessionSchema = { ...SESSION_SCHEMA_DEFAULT }
 
@@ -336,10 +343,11 @@ export class Visitor {
     const todayKey = toDateKey()
     const { hasIpColumn } = await this.ensureSessionSchema()
     const ipExpr = hasIpColumn ? 'ip_address' : 'ip_hash'
+    const distinctKeyExpr = distinctVisitorKeyExpr(hasIpColumn)
 
     const [todayRow] = await query(`
       SELECT
-        COUNT(*) AS uniqueVisitors,
+        COUNT(DISTINCT ${distinctKeyExpr}) AS uniqueVisitors,
         COALESCE(SUM(hit_count), 0) AS totalHits,
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
@@ -348,7 +356,7 @@ export class Visitor {
 
     const [rangeRow] = await query(`
       SELECT
-        COUNT(*) AS uniqueVisitors,
+        COUNT(DISTINCT ${distinctKeyExpr}) AS uniqueVisitors,
         COALESCE(SUM(hit_count), 0) AS totalHits,
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
@@ -357,7 +365,7 @@ export class Visitor {
 
     const [lifetimeRow] = await query(`
       SELECT
-        COUNT(*) AS uniqueVisitors,
+        COUNT(DISTINCT ${distinctKeyExpr}) AS uniqueVisitors,
         COALESCE(SUM(hit_count), 0) AS totalHits,
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
