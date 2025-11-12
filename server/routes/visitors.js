@@ -37,6 +37,11 @@ router.post('/track', optionalAuth, async (req, res) => {
       return res.json({ success: true, data: { counted: false, reason: 'bot' } })
     }
 
+    // Skip tracking for admin users
+    if (req.user && req.user.roles && req.user.roles.includes('admin')) {
+      return res.json({ success: true, data: { counted: false, reason: 'admin' } })
+    }
+
     const path = resolveTrackedPath(req)
     if (!isTrackedPath(path)) {
       return res.json({ success: true, data: { counted: false, reason: 'ignored-path' } })
