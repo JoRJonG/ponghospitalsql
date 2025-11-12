@@ -106,6 +106,7 @@ export function parseVisitorSessionCookie(value) {
 export function resolveVisitorSession(req, now = Date.now()) {
   const parsed = parseVisitorSessionCookie(req.cookies?.[SESSION_COOKIE])
   if (!parsed) {
+    console.log('[VisitorSession] New session: missing cookie')
     return {
       sessionId: generateSessionId(),
       lastSeen: now,
@@ -116,6 +117,7 @@ export function resolveVisitorSession(req, now = Date.now()) {
 
   const expired = now - parsed.lastSeen >= SESSION_TIMEOUT_MS
   if (expired) {
+    console.log(`[VisitorSession] New session: expired (${Math.round((now - parsed.lastSeen) / 1000 / 60)} min ago)`)
     return {
       sessionId: generateSessionId(),
       lastSeen: now,
@@ -125,6 +127,7 @@ export function resolveVisitorSession(req, now = Date.now()) {
     }
   }
 
+  console.log(`[VisitorSession] Existing session: ${parsed.sessionId} (${Math.round((now - parsed.lastSeen) / 1000 / 60)} min ago)`)
   return {
     sessionId: parsed.sessionId,
     lastSeen: parsed.lastSeen,

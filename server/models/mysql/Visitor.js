@@ -257,12 +257,15 @@ export class Visitor {
       const isNewSession = sessionResult.affectedRows === 1
 
       if (isNewSession) {
+        console.log(`[VisitorCount] New session: ${resolvedSessionId}, incrementing visit_count`)
         await conn.execute(
           `INSERT INTO visitors (visit_date, visit_count)
             VALUES (?, 1)
             ON DUPLICATE KEY UPDATE visit_count = visit_count + 1`,
           [dateKey]
         )
+      } else {
+        console.log(`[VisitorCount] Existing session: ${resolvedSessionId}, incrementing hit_count only`)
       }
 
       return {
