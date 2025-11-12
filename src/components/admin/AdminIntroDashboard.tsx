@@ -629,7 +629,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                 return (
                   <div
                     key={`${session.lastSeen}-${idx}`}
-                    className="group rounded-2xl border border-slate-100 bg-gradient-to-r from-slate-50/60 to-white p-4 shadow-sm transition hover:border-sky-100 hover:shadow-md"
+                    className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-sky-100 hover:shadow-md"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -645,26 +645,16 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                               {agentInfo.label}
                             </span>
                           </div>
-                          {agentInfo.detail && (
-                            <div className="mt-1 truncate text-[11px] text-slate-500">
-                              {agentInfo.detail}
-                            </div>
-                          )}
+                          {/* Removed raw user agent detail per request */}
                         </div>
                       </div>
                       <div className="text-right text-xs text-slate-500">
                         <div className="font-semibold text-slate-700">{formatDate(session.lastSeen)}</div>
                         {relative && <div className="mt-1 text-[11px] text-slate-400">{relative}</div>}
-                        <div className="mt-2 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
-                          {numberFormatter.format(session.hits)} ครั้ง
+                        <div className="mt-2 text-[11px] font-semibold text-slate-600">
+                          จำนวนครั้ง: {numberFormatter.format(session.hits)}
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-slate-600 shadow-sm">
-                        <span className="text-sky-500">📍</span>
-                        {session.path || '/'}
-                      </span>
                     </div>
                   </div>
                 )
@@ -737,9 +727,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                         {numberFormatter.format(agent.hits)} ครั้ง
                       </div>
                     </div>
-                    {agentInfo.detail && (
-                      <div className="mt-1 truncate text-[11px] text-slate-500">{agentInfo.detail}</div>
-                    )}
+                    {/* Removed raw user agent detail per request */}
                   </div>
                 )
               })}
