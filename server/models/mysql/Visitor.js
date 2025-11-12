@@ -26,6 +26,17 @@ function toDateKey(date = new Date()) {
   return dateFormatter.format(date)
 }
 
+function startKeyForRange(days) {
+  const safeDays = Math.max(1, Math.floor(days))
+  if (safeDays <= 1) {
+    return toDateKey()
+  }
+  const now = new Date()
+  const start = new Date(now.getTime())
+  start.setUTCDate(start.getUTCDate() - (safeDays - 1))
+  return toDateKey(start)
+}
+
 function normalizeDistinctIp(expr = 'ip_address') {
   return `COUNT(DISTINCT CASE WHEN ${expr} IS NULL OR ${expr} = '' OR ${expr} = 'unknown' THEN NULL ELSE ${expr} END)`
 }
@@ -124,11 +135,12 @@ export class Visitor {
   static async getVisitorCount(rangeDays) {
     if (rangeDays && Number.isFinite(rangeDays)) {
       const days = Math.max(1, Math.floor(rangeDays))
+      const startKey = startKeyForRange(days)
       const rows = await query(`
         SELECT COALESCE(SUM(visit_count), 0) AS total_visitors
         FROM visitors
-        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL ${days - 1} DAY)
-      `)
+        WHERE visit_date >= ?
+      `, [startKey])
       return rows[0]?.total_visitors || 0
     }
 
@@ -141,12 +153,13 @@ export class Visitor {
 
   // Get visitor count for today
   static async getTodayVisitorCount() {
+    const todayKey = toDateKey()
     const rows = await query(`
       SELECT visit_count
       FROM visitors
-      WHERE visit_date = CURDATE()
+      WHERE visit_date = ?
       LIMIT 1
-    `)
+    `, [todayKey])
 
     return rows[0]?.visit_count || 0
   }
@@ -154,12 +167,13 @@ export class Visitor {
   // Get daily trend within the specified window
   static async getDailyVisitors(rangeDays = DEFAULT_STATS_RANGE_DAYS) {
     const days = Math.max(1, Math.floor(rangeDays))
+    const startKey = startKeyForRange(days)
     const rows = await query(`
       SELECT visit_date AS date, visit_count AS count
       FROM visitors
-      WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL ${days - 1} DAY)
+      WHERE visit_date >= ?
       ORDER BY visit_date ASC
-    `)
+    `, [startKey])
     return rows.map(row => ({
       date: row.date,
       count: Number(row.count) || 0
@@ -296,7 +310,8 @@ export class Visitor {
 
   static async getVisitorInsights(rangeDays = DEFAULT_STATS_RANGE_DAYS) {
     const days = Math.max(1, Math.floor(rangeDays))
-    const windowSpan = Math.max(0, days - 1)
+    const startKey = startKeyForRange(days)
+    const todayKey = toDateKey()
     const { hasIpColumn } = await this.ensureSessionSchema()
     const ipExpr = hasIpColumn ? 'ip_address' : 'ip_hash'
 
@@ -306,8 +321,8 @@ export class Visitor {
         COALESCE(SUM(hit_count), 0) AS totalHits,
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
-      WHERE visit_date = CURDATE()
-    `)
+      WHERE visit_date = ?
+    `, [todayKey])
 
     const [rangeRow] = await query(`
       SELECT
@@ -315,8 +330,8 @@ export class Visitor {
         COALESCE(SUM(hit_count), 0) AS totalHits,
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
-      WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-    `, [windowSpan])
+      WHERE visit_date >= ?
+    `, [startKey])
 
     const [lifetimeRow] = await query(`
       SELECT
@@ -332,32 +347,32 @@ export class Visitor {
         COALESCE(SUM(hit_count), 0) AS hits,
         COUNT(*) AS uniqueVisitors
       FROM visitor_sessions
-      WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+      WHERE visit_date >= ?
       GROUP BY visit_date
       ORDER BY visit_date ASC
-    `, [windowSpan])
+    `, [startKey])
 
     const topPaths = await query(`
       SELECT
         COALESCE(NULLIF(path, ''), '/') AS path,
         COALESCE(SUM(hit_count), 0) AS hits
       FROM visitor_sessions
-      WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+      WHERE visit_date >= ?
       GROUP BY COALESCE(NULLIF(path, ''), '/')
       ORDER BY hits DESC
       LIMIT 5
-    `, [windowSpan])
+    `, [startKey])
 
     const topAgents = await query(`
       SELECT
         COALESCE(NULLIF(user_agent, ''), 'unknown') AS userAgent,
         COALESCE(SUM(hit_count), 0) AS hits
       FROM visitor_sessions
-      WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+      WHERE visit_date >= ?
       GROUP BY COALESCE(NULLIF(user_agent, ''), 'unknown')
       ORDER BY hits DESC
       LIMIT 5
-    `, [windowSpan])
+    `, [startKey])
 
     const recentSessions = await query(`
       SELECT
