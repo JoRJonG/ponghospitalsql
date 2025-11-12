@@ -17,6 +17,14 @@ const SESSION_SCHEMA_DEFAULT = {
   lastChecked: 0,
   lastError: null,
 }
+const DEFAULT_RECENT_SESSION_LIMIT = 50
+const RECENT_SESSION_LIMIT = (() => {
+  const raw = Number.parseInt(process.env.VISITOR_RECENT_SESSION_LIMIT || '', 10)
+  if (Number.isFinite(raw) && raw > 0 && raw <= 500) {
+    return raw
+  }
+  return DEFAULT_RECENT_SESSION_LIMIT
+})()
 
 const dateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: APP_TIMEZONE,
@@ -392,7 +400,7 @@ export class Visitor {
         last_seen
       FROM visitor_sessions
       ORDER BY last_seen DESC
-      LIMIT 10
+      LIMIT ${RECENT_SESSION_LIMIT}
     `)
 
     return {
