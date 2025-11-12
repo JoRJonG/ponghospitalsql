@@ -235,7 +235,7 @@ export class Visitor {
               user_agent = VALUES(user_agent),
               ip_address = VALUES(ip_address),
               path = VALUES(path),
-              hit_count = hit_count + 1
+              hit_count = LEAST(hit_count + 1, 2)
           `,
           [dateKey, resolvedSessionId, ipHash, ipForStorage, truncatedAgent || null, safePath]
         )
@@ -256,7 +256,7 @@ export class Visitor {
               last_seen = NOW(),
               user_agent = VALUES(user_agent),
               path = VALUES(path),
-              hit_count = hit_count + 1
+              hit_count = LEAST(hit_count + 1, 2)
           `,
           [dateKey, resolvedSessionId, ipHash, truncatedAgent || null, safePath]
         )
