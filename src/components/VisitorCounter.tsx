@@ -98,7 +98,7 @@ const VisitorCounter: React.FC = () => {
 
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-end sm:gap-10">
           <div className="flex flex-1 flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ผู้เข้าชมวันนี้ (ไม่ซ้ำ)</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ผู้เข้าชมวันนี้</span>
             <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.today)}</span>
             <span className="text-[11px] uppercase tracking-widest text-slate-400">นับเฉพาะผู้ที่เปิดหน้าเว็บไซต์ใหม่หลังปิดเบราว์เซอร์</span>
           </div>
@@ -106,7 +106,7 @@ const VisitorCounter: React.FC = () => {
           <div className="flex flex-1 flex-col gap-1 text-left sm:text-right">
             <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ยอดสะสมทั้งหมด</span>
             <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.lifetimeTotal)}</span>
-            <span className="text-[11px] uppercase tracking-widest text-slate-400">ตั้งแต่เริ่มเก็บข้อมูล (ผู้เข้าชมไม่ซ้ำ)</span>
+            <span className="text-[11px] uppercase tracking-widest text-slate-400">ตั้งแต่เริ่มเก็บข้อมูล</span>
           </div>
         </div>
       </div>
