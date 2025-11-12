@@ -405,6 +405,32 @@ export class Visitor {
       LIMIT ${RECENT_SESSION_LIMIT}
     `)
 
+    const recentSessionEntries = recentSessions.map(row => ({
+      visitDate: row.visit_date,
+      ipAddress: row.ip_address || null,
+      userAgent: row.user_agent || null,
+      path: row.path || '/',
+      hits: Math.max(1, Math.min(Number(row.hit_count ?? 0), 2)),
+      lastSeen: row.last_seen,
+    }))
+
+    const duplicateBuckets = new Map()
+    for (const session of recentSessionEntries) {
+      const key = `${session.ipAddress || 'unknown'}|${session.userAgent || ''}`
+      if (!duplicateBuckets.has(key)) {
+        duplicateBuckets.set(key, [])
+      }
+      duplicateBuckets.get(key).push(session)
+    }
+
+    for (const bucket of duplicateBuckets.values()) {
+      if (bucket.length > 1) {
+        for (const entry of bucket) {
+          entry.hits = 2
+        }
+      }
+    }
+
     return {
       rangeDays: days,
       today: {
@@ -434,14 +460,7 @@ export class Visitor {
         userAgent: row.userAgent || 'unknown',
         hits: Number(row.hits ?? 0),
       })),
-      recentSessions: recentSessions.map(row => ({
-        visitDate: row.visit_date,
-        ipAddress: row.ip_address || null,
-        userAgent: row.user_agent || null,
-        path: row.path || '/',
-        hits: Number(row.hit_count ?? 0),
-        lastSeen: row.last_seen,
-      })),
+      recentSessions: recentSessionEntries,
     }
   }
 }
