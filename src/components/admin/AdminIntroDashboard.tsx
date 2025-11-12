@@ -8,7 +8,6 @@ export type AdminIntroDashboardHandle = {
 
 type VisitorTrend = {
   date: string
-  hits: number
   uniqueVisitors: number
 }
 
@@ -373,7 +372,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
 
     const trendMax = useMemo(() => {
       if (!insights?.trend?.length) return 1
-      return Math.max(...insights.trend.map(item => item.hits || 0), 1)
+      return Math.max(...insights.trend.map(item => item.uniqueVisitors || 0), 1)
     }, [insights])
 
     const renderLoading = () => (
@@ -565,7 +564,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
               <span className="text-emerald-500">📈</span>
-              แนวโน้มการเข้าชม {rangeDays} วันล่าสุด
+              แนวโน้มผู้เข้าชมไม่ซ้ำ {rangeDays} วันล่าสุด
             </h3>
             <div className="mt-4 space-y-3">
               {trend.length === 0 && (
@@ -574,7 +573,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                 </div>
               )}
               {trend.map(item => {
-                const width = Math.round(((item.hits || 0) / trendMax) * 100)
+                const width = Math.round(((item.uniqueVisitors || 0) / trendMax) * 100)
                 return (
                   <div key={item.date} className="flex items-center gap-3">
                     <div className="w-20 text-xs font-medium text-slate-500">{formatDay(item.date)}</div>
@@ -587,7 +586,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                       </div>
                     </div>
                     <div className="w-20 text-right text-xs text-slate-500">
-                      {numberFormatter.format(item.hits)} ครั้ง
+                      {numberFormatter.format(item.uniqueVisitors)} คน
                     </div>
                   </div>
                 )

@@ -353,13 +353,9 @@ export class Visitor {
     `)
 
     const trendRows = await query(`
-      SELECT
-        visit_date AS date,
-        COALESCE(SUM(hit_count), 0) AS hits,
-        COUNT(*) AS uniqueVisitors
-      FROM visitor_sessions
+      SELECT visit_date AS date, visit_count AS uniqueVisitors
+      FROM visitors
       WHERE visit_date >= ?
-      GROUP BY visit_date
       ORDER BY visit_date ASC
     `, [startKey])
 
@@ -417,7 +413,6 @@ export class Visitor {
       },
       trend: trendRows.map(row => ({
         date: row.date,
-        hits: Number(row.hits ?? 0),
         uniqueVisitors: Number(row.uniqueVisitors ?? 0),
       })),
       topPaths: topPaths.map(row => ({
