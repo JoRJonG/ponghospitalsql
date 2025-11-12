@@ -5,8 +5,6 @@ import { isBotUserAgent } from '../utils/botDetector.js'
 const VISITOR_COOKIE = 'visited_today'
 const TRACKED_PATH_PREFIXES = [
   '/',
-  '/announcements',
-  '/announcement',
   '/activities',
   '/management',
   '/executives',
