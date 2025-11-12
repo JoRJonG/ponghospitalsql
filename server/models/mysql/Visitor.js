@@ -248,15 +248,17 @@ export class Visitor {
 
       const isNewSession = sessionResult.affectedRows === 1
 
-      await conn.execute(
-        `INSERT INTO visitors (visit_date, visit_count)
-          VALUES (?, 1)
-          ON DUPLICATE KEY UPDATE visit_count = visit_count + 1`,
-        [dateKey]
-      )
+      if (isNewSession) {
+        await conn.execute(
+          `INSERT INTO visitors (visit_date, visit_count)
+            VALUES (?, 1)
+            ON DUPLICATE KEY UPDATE visit_count = visit_count + 1`,
+          [dateKey]
+        )
+      }
 
       return {
-        counted: true,
+        counted: isNewSession,
         fingerprint: dailyFingerprint,
       }
     }
