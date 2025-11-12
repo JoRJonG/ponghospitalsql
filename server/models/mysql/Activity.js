@@ -123,10 +123,14 @@ export class Activity {
     }
 
     let limitClause = ''
-    if (options.limit) {
-      limitClause = `LIMIT ${options.limit}`
-      if (options.skip) {
-        limitClause += ` OFFSET ${options.skip}`
+    const limitVal = Number.parseInt(options.limit, 10)
+    if (Number.isFinite(limitVal) && limitVal > 0) {
+      limitClause = 'LIMIT ?'
+      params.push(limitVal)
+      const offsetVal = Number.parseInt(options.skip, 10)
+      if (Number.isFinite(offsetVal) && offsetVal >= 0) {
+        limitClause += ' OFFSET ?'
+        params.push(offsetVal)
       }
     }
 

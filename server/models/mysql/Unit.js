@@ -18,8 +18,10 @@ export class Unit {
     }
 
     let limitClause = ''
-    if (options.limit) {
-      limitClause = `LIMIT ${options.limit}`
+    const limitVal = Number.parseInt(options.limit, 10)
+    if (Number.isFinite(limitVal) && limitVal > 0) {
+      limitClause = 'LIMIT ?'
+      params.push(limitVal)
     }
 
     const rows = await query(`
