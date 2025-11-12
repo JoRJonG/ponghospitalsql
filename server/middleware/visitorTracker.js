@@ -1,9 +1,20 @@
-// Middleware to track website visitors with bot filtering and unique session handling
+// Middleware to track website visitors with bot filtering and session handling
+import crypto from 'crypto'
 import { Visitor } from '../models/mysql/Visitor.js'
 import { isBotUserAgent } from '../utils/botDetector.js'
 
-export const VISITOR_COOKIE = 'visited_today'
-const APP_TIMEZONE = process.env.APP_TIMEZONE || 'Asia/Bangkok'
+const DEFAULT_SESSION_TIMEOUT_MS = 30 * 60 * 1000
+const SESSION_TIMEOUT_MINUTES = Number.parseInt(process.env.VISITOR_SESSION_TIMEOUT_MINUTES || '', 10)
+const SESSION_TIMEOUT_MS_ENV = Number.parseInt(process.env.VISITOR_SESSION_TIMEOUT_MS || '', 10)
+export const SESSION_TIMEOUT_MS = Number.isFinite(SESSION_TIMEOUT_MS_ENV) && SESSION_TIMEOUT_MS_ENV >= 60_000
+  ? SESSION_TIMEOUT_MS_ENV
+  : Number.isFinite(SESSION_TIMEOUT_MINUTES) && SESSION_TIMEOUT_MINUTES > 0
+    ? SESSION_TIMEOUT_MINUTES * 60_000
+    : DEFAULT_SESSION_TIMEOUT_MS
+
+export const SESSION_COOKIE = 'visitor_session'
+const SESSION_COOKIE_SEPARATOR = '|'
+
 const TRACKED_PATH_PREFIXES = [
   '/',
   '/activities',
@@ -76,54 +87,60 @@ function isSecureRequest(req) {
   return String(proto).split(',')[0].trim().toLowerCase() === 'https'
 }
 
-function getDateParts(date, timeZone) {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hour12: false,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-  const parts = formatter.formatToParts(date)
-  const map = {}
-  for (const part of parts) {
-    if (part.type !== 'literal') {
-      map[part.type] = Number(part.value)
+function generateSessionId() {
+  return crypto.randomBytes(16).toString('hex')
+}
+
+export function parseVisitorSessionCookie(value) {
+  if (typeof value !== 'string') return null
+  const [rawId, rawTimestamp] = value.split(SESSION_COOKIE_SEPARATOR)
+  const sessionId = rawId?.trim()
+  if (!sessionId) return null
+  const lastSeen = Number.parseInt(rawTimestamp, 10)
+  if (!Number.isFinite(lastSeen) || lastSeen <= 0) {
+    return null
+  }
+  return { sessionId, lastSeen }
+}
+
+export function resolveVisitorSession(req, now = Date.now()) {
+  const parsed = parseVisitorSessionCookie(req.cookies?.[SESSION_COOKIE])
+  if (!parsed) {
+    return {
+      sessionId: generateSessionId(),
+      lastSeen: now,
+      isNew: true,
+      reason: 'missing',
     }
   }
-  const fallback = {
-    year: date.getUTCFullYear(),
-    month: date.getUTCMonth() + 1,
-    day: date.getUTCDate(),
-    hour: date.getUTCHours(),
-    minute: date.getUTCMinutes(),
-    second: date.getUTCSeconds(),
+
+  const expired = now - parsed.lastSeen >= SESSION_TIMEOUT_MS
+  if (expired) {
+    return {
+      sessionId: generateSessionId(),
+      lastSeen: now,
+      isNew: true,
+      reason: 'expired',
+      previousSessionId: parsed.sessionId,
+    }
   }
+
   return {
-    year: Number.isFinite(map.year) ? map.year : fallback.year,
-    month: Number.isFinite(map.month) ? map.month : fallback.month,
-    day: Number.isFinite(map.day) ? map.day : fallback.day,
-    hour: Number.isFinite(map.hour) ? map.hour : fallback.hour,
-    minute: Number.isFinite(map.minute) ? map.minute : fallback.minute,
-    second: Number.isFinite(map.second) ? map.second : fallback.second,
+    sessionId: parsed.sessionId,
+    lastSeen: parsed.lastSeen,
+    isNew: false,
+    reason: 'active',
   }
 }
 
-function cookieExpiryAtMidnight() {
-  const now = new Date()
-  const { year, month, day, hour, minute, second } = getDateParts(now, APP_TIMEZONE)
-  const localNowUtcMs = Date.UTC(year, month - 1, day, hour, minute, second)
-  const localMidnightUtcMs = Date.UTC(year, month - 1, day + 1, 0, 0, 0)
-  const msUntilMidnight = localMidnightUtcMs - localNowUtcMs
-  return new Date(now.getTime() + msUntilMidnight)
+function encodeSessionCookie(sessionId, lastSeenMs) {
+  return `${sessionId}${SESSION_COOKIE_SEPARATOR}${Math.max(0, Math.floor(lastSeenMs))}`
 }
 
-export function setVisitorCookie(res, req, fingerprint) {
-  res.cookie(VISITOR_COOKIE, fingerprint, {
-    expires: cookieExpiryAtMidnight(),
+export function setVisitorCookie(res, req, session) {
+  const { sessionId, lastSeen } = session
+  res.cookie(SESSION_COOKIE, encodeSessionCookie(sessionId, lastSeen ?? Date.now()), {
+    maxAge: SESSION_TIMEOUT_MS,
     httpOnly: true,
     secure: isSecureRequest(req),
     sameSite: 'lax',
@@ -143,24 +160,22 @@ export async function trackVisitors(req, res, next) {
     }
 
     const clientIp = getClientIp(req)
-    const fingerprint = Visitor.createDailyFingerprint(clientIp, userAgent)
-    const existingToken = req.cookies?.[VISITOR_COOKIE]
-    if (existingToken === fingerprint) {
-      return next()
-    }
+    const now = Date.now()
+    const session = resolveVisitorSession(req, now)
 
     const result = await Visitor.recordVisit({
+      sessionId: session.sessionId,
       ip: clientIp,
       userAgent,
       path: req.path,
-      fingerprint,
     })
 
-    if (!result.counted) {
+    if (!result) {
       return next()
     }
 
-    setVisitorCookie(res, req, result.fingerprint)
+    const nextSessionId = result.sessionId || session.sessionId
+    setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: now })
   } catch (error) {
     console.error('Error tracking visitor:', error)
   }

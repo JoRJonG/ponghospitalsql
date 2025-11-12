@@ -118,17 +118,15 @@ export class Visitor {
     return crypto.createHash('sha256').update(value || '').digest('hex')
   }
 
-  static createDailyFingerprint(ip, userAgent, date = new Date()) {
-    const dateKey = toDateKey(date)
-    const normalizedIp = this.normalizeIp(ip).toLowerCase()
-    const normalizedAgent = this.normalizeUserAgent(userAgent).toLowerCase()
-    return crypto.createHash('sha256')
-      .update(dateKey)
-      .update('|')
-      .update(normalizedIp)
-      .update('|')
-      .update(normalizedAgent)
-      .digest('hex')
+  static generateSessionId() {
+    return crypto.randomBytes(16).toString('hex')
+  }
+
+  static normalizeSessionId(sessionId) {
+    if (!sessionId) return null
+    const trimmed = String(sessionId).trim()
+    if (!trimmed) return null
+    return trimmed.slice(0, 64)
   }
 
   // Get aggregated visitor count; optionally limit to the last `rangeDays`
@@ -191,12 +189,12 @@ export class Visitor {
   }
 
   // Record a visitor session and ensure unique daily counts
-  static async recordVisit({ ip, userAgent, path, fingerprint }) {
+  static async recordVisit({ sessionId, ip, userAgent, path }) {
     let schema = await this.ensureSessionSchema()
     const normalizedIp = this.normalizeIp(ip)
     const normalizedAgent = this.normalizeUserAgent(userAgent)
     const safePath = (path || '/').slice(0, MAX_PATH_LENGTH)
-    const dailyFingerprint = fingerprint || this.createDailyFingerprint(normalizedIp, normalizedAgent)
+    const resolvedSessionId = this.normalizeSessionId(sessionId) || this.generateSessionId()
     const ipHash = this.hashValue(normalizedIp.toLowerCase())
     const dateKey = toDateKey()
     const truncatedAgent = normalizedAgent.slice(0, MAX_USER_AGENT_LENGTH)
@@ -231,7 +229,7 @@ export class Visitor {
               ip_address = VALUES(ip_address),
               path = VALUES(path)
           `,
-          [dateKey, dailyFingerprint, ipHash, ipForStorage, truncatedAgent || null, safePath]
+          [dateKey, resolvedSessionId, ipHash, ipForStorage, truncatedAgent || null, safePath]
         )
       } else {
         ;[sessionResult] = await conn.execute(
@@ -252,7 +250,7 @@ export class Visitor {
               user_agent = VALUES(user_agent),
               path = VALUES(path)
           `,
-          [dateKey, dailyFingerprint, ipHash, truncatedAgent || null, safePath]
+          [dateKey, resolvedSessionId, ipHash, truncatedAgent || null, safePath]
         )
       }
 
@@ -269,7 +267,7 @@ export class Visitor {
 
       return {
         counted: isNewSession,
-        fingerprint: dailyFingerprint,
+        sessionId: resolvedSessionId,
       }
     }
 

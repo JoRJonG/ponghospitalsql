@@ -2,7 +2,7 @@
 import express from 'express'
 import { Visitor } from '../models/mysql/Visitor.js'
 import { optionalAuth } from '../middleware/auth.js'
-import { VISITOR_COOKIE, getClientIp, isTrackedPath, setVisitorCookie } from '../middleware/visitorTracker.js'
+import { SESSION_TIMEOUT_MS, getClientIp, isTrackedPath, resolveVisitorSession, setVisitorCookie } from '../middleware/visitorTracker.js'
 import { isBotUserAgent } from '../utils/botDetector.js'
 
 const router = express.Router()
@@ -43,22 +43,30 @@ router.post('/track', optionalAuth, async (req, res) => {
     }
 
     const ip = getClientIp(req)
-    const fingerprint = Visitor.createDailyFingerprint(ip, userAgent)
-    if (req.cookies?.[VISITOR_COOKIE] === fingerprint) {
-      return res.json({ success: true, data: { counted: false, reason: 'already-counted', fingerprint } })
-    }
+    const now = Date.now()
+    const session = resolveVisitorSession(req, now)
+
     const result = await Visitor.recordVisit({
+      sessionId: session.sessionId,
       ip,
       userAgent,
       path,
-      fingerprint,
     })
 
-    if (result.counted) {
-      setVisitorCookie(res, req, result.fingerprint)
-    }
+    const nextSessionId = result?.sessionId || session.sessionId
+    setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: now })
 
-    return res.json({ success: true, data: { counted: result.counted, fingerprint: result.fingerprint } })
+    const reason = result?.counted ? 'new-session' : 'existing-session'
+
+    return res.json({
+      success: true,
+      data: {
+        counted: Boolean(result?.counted),
+        sessionId: nextSessionId,
+        sessionTimeoutMs: SESSION_TIMEOUT_MS,
+        reason,
+      }
+    })
   } catch (error) {
     console.error('Error recording visitor from API:', error)
     return res.status(500).json({ success: false, error: 'Failed to record visit' })
