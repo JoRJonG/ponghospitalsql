@@ -1,5 +1,5 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
@@ -24,6 +24,7 @@ import ItaItemPage from './pages/ItaItemPage'
 import { ToastContainer } from './components/ToastContainer'
 import { useScrollToTop } from './utils/scrollToTop'
 import CookieConsent from './components/CookieConsent'
+import { buildApiUrl } from './utils/api'
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth()
@@ -36,6 +37,44 @@ function ScrollToTopWrapper() {
   return null
 }
 
+function VisitorTrackingBeacon() {
+  const location = useLocation()
+
+  const { pathname, search } = location
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (pathname.startsWith('/admin')) return
+
+    const trackUrl = buildApiUrl('/api/visitors/track')
+    const payload = {
+      path: `${pathname}${search || ''}`,
+      referrer: document.referrer || undefined,
+    }
+
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' })
+        navigator.sendBeacon(trackUrl, blob)
+      } else {
+        void fetch(trackUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true,
+          credentials: 'include',
+        }).catch(() => {})
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.debug('[VisitorTracking] failed', error)
+      }
+    }
+  }, [pathname, search])
+
+  return null
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -44,6 +83,7 @@ function App() {
           <AuthProvider>
             <BrowserRouter>
               <ScrollToTopWrapper />
+              <VisitorTrackingBeacon />
               <div className="relative flex min-h-screen flex-col text-gray-800 bg-gradient-to-b from-[#f6fbf7] via-white to-white">
                 <BackgroundPattern />
                 <Navbar />

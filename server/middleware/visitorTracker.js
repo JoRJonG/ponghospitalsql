@@ -23,7 +23,7 @@ function normalizePath(value) {
   return value.startsWith('/') ? value : `/${value}`
 }
 
-function isTrackedPath(path) {
+export function isTrackedPath(path) {
   const normalized = normalizePath(path)
   if (normalized === '/') return true
   return TRACKED_PATH_PREFIXES.some(prefix => (
@@ -39,7 +39,7 @@ function shouldTrackRequest(req) {
     isTrackedPath(req.path)
 }
 
-function getClientIp(req) {
+export function getClientIp(req) {
   const priorityHeaders = [
     'cf-connecting-ip',
     'true-client-ip',

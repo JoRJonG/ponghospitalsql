@@ -2,8 +2,61 @@
 import express from 'express'
 import { Visitor } from '../models/mysql/Visitor.js'
 import { optionalAuth } from '../middleware/auth.js'
+import { getClientIp, isTrackedPath } from '../middleware/visitorTracker.js'
+import { isBotUserAgent } from '../utils/botDetector.js'
 
 const router = express.Router()
+
+const MAX_PATH_LENGTH = 255
+
+function resolveTrackedPath(req) {
+  const bodyPath = typeof req.body?.path === 'string' ? req.body.path : null
+  const queryPath = typeof req.query?.path === 'string' ? req.query.path : null
+  const headerPath = typeof req.headers['x-tracked-path'] === 'string' ? req.headers['x-tracked-path'] : null
+  const candidate = bodyPath || queryPath || headerPath
+  if (candidate && candidate.trim().length > 0) {
+    return candidate.trim().slice(0, MAX_PATH_LENGTH)
+  }
+  const referer = req.get('referer')
+  if (typeof referer === 'string' && referer.startsWith('http')) {
+    try {
+      const url = new URL(referer)
+      const path = `${url.pathname || '/'}` + (url.search || '')
+      if (path.trim().length > 0) {
+        return path.slice(0, MAX_PATH_LENGTH)
+      }
+    } catch {}
+  }
+  return req.path || '/'
+}
+
+router.post('/track', optionalAuth, async (req, res) => {
+  try {
+    const userAgent = req.get('user-agent') || ''
+    if (isBotUserAgent(userAgent)) {
+      return res.json({ success: true, data: { counted: false, reason: 'bot' } })
+    }
+
+    const path = resolveTrackedPath(req)
+    if (!isTrackedPath(path)) {
+      return res.json({ success: true, data: { counted: false, reason: 'ignored-path' } })
+    }
+
+    const ip = getClientIp(req)
+    const fingerprint = Visitor.createDailyFingerprint(ip, userAgent)
+    const result = await Visitor.recordVisit({
+      ip,
+      userAgent,
+      path,
+      fingerprint,
+    })
+
+    return res.json({ success: true, data: { counted: result.counted, fingerprint: result.fingerprint } })
+  } catch (error) {
+    console.error('Error recording visitor from API:', error)
+    return res.status(500).json({ success: false, error: 'Failed to record visit' })
+  }
+})
 
 // Helper to clamp the requested range
 function parseRangeDays(value, fallback) {
