@@ -3,7 +3,8 @@ import { buildApiUrl } from '../utils/api'
 import { fastFetch } from '../utils/fastFetch'
 
 interface VisitorStats {
-  today: number
+  todayUnique: number
+  todayPageViews: number
   lifetimeTotal: number
 }
 
@@ -11,6 +12,8 @@ type VisitorStatsResponse = {
   success: boolean
   data?: {
     today?: number | string | null
+    todayUnique?: number | string | null
+    todayPageViews?: number | string | null
     lifetimeTotal?: number | string | null
     total?: number | string | null
   }
@@ -18,7 +21,8 @@ type VisitorStatsResponse = {
 
 const VisitorCounter: React.FC = () => {
   const [stats, setStats] = useState<VisitorStats>({
-    today: 0,
+    todayUnique: 0,
+    todayPageViews: 0,
     lifetimeTotal: 0,
   })
   const [loading, setLoading] = useState(true)
@@ -30,8 +34,11 @@ const VisitorCounter: React.FC = () => {
         const response = await fastFetch<VisitorStatsResponse>(buildApiUrl('/api/visitors/stats'))
         if (response.success) {
           const payload = response.data ?? {}
+          const todayUnique = Number(payload.todayUnique ?? payload.today) || 0
+          const todayPageViews = Number(payload.todayPageViews ?? todayUnique) || 0
           setStats({
-            today: Number(payload.today) || 0,
+            todayUnique,
+            todayPageViews,
             lifetimeTotal: Number(payload.lifetimeTotal ?? payload.total) || 0,
           })
         } else {
@@ -95,14 +102,15 @@ const VisitorCounter: React.FC = () => {
 
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-end sm:gap-10">
           <div className="flex flex-1 flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">วันนี้</span>
-            <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.today)}</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">จำนวนครั้งที่เข้าชมวันนี้</span>
+            <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.todayPageViews)}</span>
+            <span className="text-[11px] uppercase tracking-widest text-slate-400">ผู้เข้าชมไม่ซ้ำ {formatNumber(stats.todayUnique)} คน</span>
           </div>
           <div className="hidden h-14 w-px rounded-full bg-gradient-to-b from-emerald-200 via-slate-200 to-teal-200 sm:block" />
           <div className="flex flex-1 flex-col gap-1 text-left sm:text-right">
             <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ยอดสะสมทั้งหมด</span>
             <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.lifetimeTotal)}</span>
-            <span className="text-[11px] uppercase tracking-widest text-slate-400">ตั้งแต่เริ่มเก็บข้อมูล</span>
+            <span className="text-[11px] uppercase tracking-widest text-slate-400">ตั้งแต่เริ่มเก็บข้อมูล (ผู้เข้าชมไม่ซ้ำ)</span>
           </div>
         </div>
       </div>

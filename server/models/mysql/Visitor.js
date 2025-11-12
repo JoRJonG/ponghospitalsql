@@ -164,6 +164,16 @@ export class Visitor {
     return rows[0]?.visit_count || 0
   }
 
+  static async getTodayPageViews() {
+    const todayKey = toDateKey()
+    const rows = await query(`
+      SELECT COALESCE(SUM(hit_count), 0) AS total_hits
+      FROM visitor_sessions
+      WHERE visit_date = ?
+    `, [todayKey])
+    return rows[0]?.total_hits || 0
+  }
+
   // Get daily trend within the specified window
   static async getDailyVisitors(rangeDays = DEFAULT_STATS_RANGE_DAYS) {
     const days = Math.max(1, Math.floor(rangeDays))
@@ -291,9 +301,10 @@ export class Visitor {
 
   // Get visitor statistics for dashboard display
   static async getVisitorStats(rangeDays = DEFAULT_STATS_RANGE_DAYS) {
-    const [total, today, trend] = await Promise.all([
+    const [total, todayUnique, todayPageViews, trend] = await Promise.all([
       this.getVisitorCount(rangeDays),
       this.getTodayVisitorCount(),
+      this.getTodayPageViews(),
       this.getDailyVisitors(rangeDays)
     ])
 
@@ -301,7 +312,9 @@ export class Visitor {
 
     return {
       total,
-      today,
+      today: todayUnique,
+      todayUnique,
+      todayPageViews,
       average,
       rangeDays,
       trend

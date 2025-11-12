@@ -137,22 +137,12 @@ export async function trackVisitors(req, res, next) {
 
     const clientIp = getClientIp(req)
     const fingerprint = Visitor.createDailyFingerprint(clientIp, userAgent)
-    const existingToken = req.cookies?.[VISITOR_COOKIE]
-
-    if (existingToken === fingerprint) {
-      return next()
-    }
-
     const result = await Visitor.recordVisit({
       ip: clientIp,
       userAgent,
       path: req.path,
       fingerprint,
     })
-
-    if (!result.counted) {
-      return next()
-    }
 
     res.cookie(VISITOR_COOKIE, result.fingerprint, {
       expires: cookieExpiryAtMidnight(),
