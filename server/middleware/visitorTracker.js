@@ -171,6 +171,7 @@ export async function trackVisitors(req, res, next) {
       ip: clientIp,
       userAgent,
       path: req.path,
+      isNewSession: session.isNew,
     })
 
     if (!result) {

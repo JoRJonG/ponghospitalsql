@@ -56,17 +56,24 @@ router.post('/track', optionalAuth, async (req, res) => {
       ip,
       userAgent,
       path,
+      isNewSession: session.isNew,
     })
 
     const nextSessionId = result?.sessionId || session.sessionId
     setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: now })
 
-    const reason = result?.counted ? 'new-session' : 'existing-session'
+    let reason = 'existing-session'
+    if (result?.counted) {
+      reason = 'new-session'
+    } else if (result?.merged) {
+      reason = 'merged-session'
+    }
 
     return res.json({
       success: true,
       data: {
         counted: Boolean(result?.counted),
+        merged: Boolean(result?.merged),
         sessionId: nextSessionId,
         sessionTimeoutMs: SESSION_TIMEOUT_MS,
         reason,

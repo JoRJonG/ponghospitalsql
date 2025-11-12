@@ -205,16 +205,17 @@ export class Visitor {
   }
 
   // Record a visitor session and ensure unique daily counts
-  static async recordVisit({ sessionId, ip, userAgent, path }) {
+  static async recordVisit({ sessionId, ip, userAgent, path, isNewSession = false }) {
     let schema = await this.ensureSessionSchema()
     const normalizedIp = this.normalizeIp(ip)
     const normalizedAgent = this.normalizeUserAgent(userAgent)
     const safePath = (path || '/').slice(0, MAX_PATH_LENGTH)
-    const resolvedSessionId = this.normalizeSessionId(sessionId) || this.generateSessionId()
+    const initialSessionId = this.normalizeSessionId(sessionId) || this.generateSessionId()
     const ipHash = this.hashValue(normalizedIp.toLowerCase())
     const dateKey = toDateKey()
     const truncatedAgent = normalizedAgent.slice(0, MAX_USER_AGENT_LENGTH)
     const ipForStorage = normalizedIp === 'unknown' ? null : normalizedIp
+    const canMergeByIp = normalizedIp !== 'unknown'
 
     if (!schema.hasIpColumn && ipForStorage) {
       schema = await this.ensureSessionSchema({ force: true })
@@ -222,80 +223,117 @@ export class Visitor {
 
     const includeIpColumn = schema.hasIpColumn && Boolean(ipForStorage)
 
-    const attemptRecord = async (conn, useIpColumn) => {
-      let sessionResult
-      if (useIpColumn) {
-        ;[sessionResult] = await conn.execute(
-          `INSERT INTO visitor_sessions (
-              visit_date,
-              fingerprint,
-              ip_hash,
-              ip_address,
-              user_agent,
-              path,
-              hit_count,
-              first_seen,
-              last_seen
+    let effectiveSessionId = initialSessionId
+    let reusedExistingSession = false
+
+    if (isNewSession && canMergeByIp) {
+      try {
+        const existingSessions = await query(`
+          SELECT fingerprint
+          FROM visitor_sessions
+          WHERE visit_date = ?
+            AND ip_hash = ?
+            AND (
+              (? IS NULL AND (user_agent IS NULL OR user_agent = ''))
+              OR user_agent = ?
             )
-            VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
-            ON DUPLICATE KEY UPDATE
-              last_seen = NOW(),
-              user_agent = VALUES(user_agent),
-              ip_address = VALUES(ip_address),
-              path = VALUES(path)
-          `,
-          [dateKey, resolvedSessionId, ipHash, ipForStorage, truncatedAgent || null, safePath]
-        )
-      } else {
-        ;[sessionResult] = await conn.execute(
-          `INSERT INTO visitor_sessions (
-              visit_date,
-              fingerprint,
-              ip_hash,
-              user_agent,
-              path,
-              hit_count,
-              first_seen,
-              last_seen
-            )
-            VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())
-            ON DUPLICATE KEY UPDATE
-              last_seen = NOW(),
-              user_agent = VALUES(user_agent),
-              path = VALUES(path)
-          `,
-          [dateKey, resolvedSessionId, ipHash, truncatedAgent || null, safePath]
-        )
+          ORDER BY last_seen DESC
+          LIMIT 1
+        `, [dateKey, ipHash, truncatedAgent || null, truncatedAgent || null])
+
+        if (existingSessions.length > 0) {
+          const existingFingerprint = existingSessions[0].fingerprint
+          if (existingFingerprint) {
+            effectiveSessionId = existingFingerprint
+            reusedExistingSession = existingFingerprint !== initialSessionId
+          }
+        }
+      } catch (lookupError) {
+        console.warn('[Visitor] Failed to lookup existing session for merge:', lookupError?.message || lookupError)
       }
+    }
 
-      const isNewSession = sessionResult.affectedRows === 1
+    const hitIncrement = 1
 
-      if (isNewSession) {
-        console.log(`[VisitorCount] New session: ${resolvedSessionId}, incrementing visit_count`)
+    const sqlWithIp = `
+      INSERT INTO visitor_sessions (
+        visit_date,
+        fingerprint,
+        ip_hash,
+        ip_address,
+        user_agent,
+        path,
+        hit_count,
+        first_seen,
+        last_seen
+      )
+      VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+      ON DUPLICATE KEY UPDATE
+        last_seen = NOW(),
+        user_agent = VALUES(user_agent),
+        ip_address = VALUES(ip_address),
+        path = VALUES(path),
+        hit_count = hit_count + ?
+    `
+
+    const sqlWithoutIp = `
+      INSERT INTO visitor_sessions (
+        visit_date,
+        fingerprint,
+        ip_hash,
+        user_agent,
+        path,
+        hit_count,
+        first_seen,
+        last_seen
+      )
+      VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())
+      ON DUPLICATE KEY UPDATE
+        last_seen = NOW(),
+        user_agent = VALUES(user_agent),
+        path = VALUES(path),
+        hit_count = hit_count + ?
+    `
+
+    const attemptRecord = async (conn, useIpColumn) => {
+      const params = useIpColumn
+        ? [dateKey, effectiveSessionId, ipHash, ipForStorage, truncatedAgent || null, safePath, hitIncrement]
+        : [dateKey, effectiveSessionId, ipHash, truncatedAgent || null, safePath, hitIncrement]
+
+      const [sessionResult] = await conn.execute(
+        useIpColumn ? sqlWithIp : sqlWithoutIp,
+        params
+      )
+
+      const insertedNewRow = sessionResult.affectedRows === 1
+
+      if (insertedNewRow) {
+        console.log(`[VisitorCount] New session: ${effectiveSessionId}, incrementing visit_count`)
         await conn.execute(
           `INSERT INTO visitors (visit_date, visit_count)
             VALUES (?, 1)
             ON DUPLICATE KEY UPDATE visit_count = visit_count + 1`,
           [dateKey]
         )
+      } else if (reusedExistingSession) {
+        console.log(`[VisitorCount] Merged visit into existing session: ${effectiveSessionId}, incrementing hit_count`)
       } else {
-        console.log(`[VisitorCount] Existing session: ${resolvedSessionId}, ignoring refresh for visit_count`)
+        console.log(`[VisitorCount] Returning visitor: ${effectiveSessionId}, incrementing hit_count`)
       }
 
       return {
-        counted: isNewSession,
-        sessionId: resolvedSessionId,
+        counted: insertedNewRow,
+        merged: reusedExistingSession,
+        sessionId: effectiveSessionId,
       }
     }
 
     try {
-      const result = await transaction(async (conn) => attemptRecord(conn, includeIpColumn))
-      return result
+      return await transaction(async (conn) => attemptRecord(conn, includeIpColumn))
     } catch (error) {
       if (includeIpColumn && this.isMissingIpColumnError(error)) {
         await this.ensureSessionSchema({ force: true })
-        const fallbackResult = await transaction(async (conn) => attemptRecord(conn, false))
-        return fallbackResult
+        return transaction(async (conn) => attemptRecord(conn, false))
       }
       throw error
     }
