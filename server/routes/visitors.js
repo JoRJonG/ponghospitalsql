@@ -2,7 +2,7 @@
 import express from 'express'
 import { Visitor } from '../models/mysql/Visitor.js'
 import { optionalAuth } from '../middleware/auth.js'
-import { getClientIp, isTrackedPath } from '../middleware/visitorTracker.js'
+import { VISITOR_COOKIE, getClientIp, isTrackedPath, setVisitorCookie } from '../middleware/visitorTracker.js'
 import { isBotUserAgent } from '../utils/botDetector.js'
 
 const router = express.Router()
@@ -44,12 +44,19 @@ router.post('/track', optionalAuth, async (req, res) => {
 
     const ip = getClientIp(req)
     const fingerprint = Visitor.createDailyFingerprint(ip, userAgent)
+    if (req.cookies?.[VISITOR_COOKIE] === fingerprint) {
+      return res.json({ success: true, data: { counted: false, reason: 'already-counted', fingerprint } })
+    }
     const result = await Visitor.recordVisit({
       ip,
       userAgent,
       path,
       fingerprint,
     })
+
+    if (result.counted) {
+      setVisitorCookie(res, req, result.fingerprint)
+    }
 
     return res.json({ success: true, data: { counted: result.counted, fingerprint: result.fingerprint } })
   } catch (error) {
