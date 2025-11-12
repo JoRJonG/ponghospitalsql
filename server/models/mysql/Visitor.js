@@ -241,8 +241,7 @@ export class Visitor {
               last_seen = NOW(),
               user_agent = VALUES(user_agent),
               ip_address = VALUES(ip_address),
-              path = VALUES(path),
-              hit_count = LEAST(hit_count + 1, 2)
+              path = VALUES(path)
           `,
           [dateKey, resolvedSessionId, ipHash, ipForStorage, truncatedAgent || null, safePath]
         )
@@ -262,8 +261,7 @@ export class Visitor {
             ON DUPLICATE KEY UPDATE
               last_seen = NOW(),
               user_agent = VALUES(user_agent),
-              path = VALUES(path),
-              hit_count = LEAST(hit_count + 1, 2)
+              path = VALUES(path)
           `,
           [dateKey, resolvedSessionId, ipHash, truncatedAgent || null, safePath]
         )
@@ -400,6 +398,20 @@ export class Visitor {
       LIMIT 5
     `, [startKey])
 
+    const todaySessionsRaw = await query(`
+      SELECT
+        ${hasIpColumn ? 'ip_address' : 'NULL'} AS ip_address,
+        user_agent
+      FROM visitor_sessions
+      WHERE visit_date = ?
+    `, [todayKey])
+
+    const todaySessionCounts = new Map()
+    for (const row of todaySessionsRaw) {
+      const key = `${row.ip_address || 'unknown'}|${row.user_agent || ''}`
+      todaySessionCounts.set(key, (todaySessionCounts.get(key) ?? 0) + 1)
+    }
+
     const recentSessions = await query(`
       SELECT
         visit_date,
@@ -413,31 +425,20 @@ export class Visitor {
       LIMIT ${RECENT_SESSION_LIMIT}
     `)
 
-    const recentSessionEntries = recentSessions.map(row => ({
-      visitDate: row.visit_date,
-      ipAddress: row.ip_address || null,
-      userAgent: row.user_agent || null,
-      path: row.path || '/',
-      hits: Math.max(1, Math.min(Number(row.hit_count ?? 0), 2)),
-      lastSeen: row.last_seen,
-    }))
-
-    const duplicateBuckets = new Map()
-    for (const session of recentSessionEntries) {
-      const key = `${session.ipAddress || 'unknown'}|${session.userAgent || ''}`
-      if (!duplicateBuckets.has(key)) {
-        duplicateBuckets.set(key, [])
+    const recentSessionEntries = recentSessions.map(row => {
+      const key = `${row.ip_address || 'unknown'}|${row.user_agent || ''}`
+      const baseHits = Math.max(1, Number(row.hit_count ?? 0))
+      const todayHits = todaySessionCounts.get(key)
+      const hits = row.visit_date === todayKey ? Math.max(baseHits, todayHits ?? baseHits) : baseHits
+      return {
+        visitDate: row.visit_date,
+        ipAddress: row.ip_address || null,
+        userAgent: row.user_agent || null,
+        path: row.path || '/',
+        hits,
+        lastSeen: row.last_seen,
       }
-      duplicateBuckets.get(key).push(session)
-    }
-
-    for (const bucket of duplicateBuckets.values()) {
-      if (bucket.length > 1) {
-        for (const entry of bucket) {
-          entry.hits = 2
-        }
-      }
-    }
+    })
 
     return {
       rangeDays: days,
