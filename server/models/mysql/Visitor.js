@@ -1,6 +1,7 @@
 // Visitor model for tracking website visitors with retention-aware aggregations
 import crypto from 'crypto'
 import { query, exec, transaction } from '../../database.js'
+import { isBotUserAgent } from '../../utils/botDetector.js'
 
 const DEFAULT_RETENTION_DAYS = 90
 const DEFAULT_STATS_RANGE_DAYS = 30
@@ -408,6 +409,7 @@ export class Visitor {
 
     const todaySessionCounts = new Map()
     for (const row of todaySessionsRaw) {
+      if (isBotUserAgent(row.user_agent)) continue
       const key = `${row.ip_address || 'unknown'}|${row.user_agent || ''}`
       todaySessionCounts.set(key, (todaySessionCounts.get(key) ?? 0) + 1)
     }
@@ -425,7 +427,9 @@ export class Visitor {
       LIMIT ${RECENT_SESSION_LIMIT}
     `)
 
-    const recentSessionEntries = recentSessions.map(row => {
+    const filteredRecentSessions = recentSessions.filter(row => !isBotUserAgent(row.user_agent))
+
+    const recentSessionEntries = filteredRecentSessions.map(row => {
       const key = `${row.ip_address || 'unknown'}|${row.user_agent || ''}`
       const baseHits = Math.max(1, Number(row.hit_count ?? 0))
       const todayHits = todaySessionCounts.get(key)
@@ -465,10 +469,12 @@ export class Visitor {
         path: row.path || '/',
         hits: Number(row.hits ?? 0),
       })),
-      topAgents: topAgents.map(row => ({
-        userAgent: row.userAgent || 'unknown',
-        hits: Number(row.hits ?? 0),
-      })),
+      topAgents: topAgents
+        .map(row => ({
+          userAgent: row.userAgent || 'unknown',
+          hits: Number(row.hits ?? 0),
+        }))
+        .filter(agent => !isBotUserAgent(agent.userAgent)),
       recentSessions: recentSessionEntries,
     }
   }

@@ -259,8 +259,6 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     const [system, setSystem] = useState<SystemStatus | null>(null)
     const [recentPage, setRecentPage] = useState(1)
     const [agentPage, setAgentPage] = useState(1)
-  const [showBots, setShowBots] = useState(false)
-
     const load = useCallback(async () => {
       setLoading(true)
       setError(null)
@@ -326,27 +324,16 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
 
     const filteredRecentSessions = useMemo(() => {
       const sessions = insights?.recentSessions ?? []
-      if (showBots) return sessions
       return sessions.filter(session => !summarizeUserAgent(session.userAgent).isBot)
-    }, [insights, showBots])
+    }, [insights])
 
     const filteredTopAgents = useMemo(() => {
       const agents = insights?.topAgents ?? []
-      if (showBots) return agents
       return agents.filter(agent => !summarizeUserAgent(agent.userAgent).isBot)
-    }, [insights, showBots])
+    }, [insights])
 
-    const originalRecentCount = insights?.recentSessions?.length ?? 0
-    const originalAgentCount = insights?.topAgents?.length ?? 0
     const recentLength = filteredRecentSessions.length
     const agentLength = filteredTopAgents.length
-    const hiddenRecentCount = Math.max(0, originalRecentCount - recentLength)
-    const hiddenAgentCount = Math.max(0, originalAgentCount - agentLength)
-
-    useEffect(() => {
-      setRecentPage(1)
-      setAgentPage(1)
-    }, [showBots])
 
     useEffect(() => {
       const maxPages = recentLength ? Math.ceil(recentLength / RECENT_PAGE_SIZE) : 1
@@ -605,19 +592,8 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
               </h3>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400">
-                  {recentLength
-                    ? `ทั้งหมด ${recentLength} รายการ${!showBots && hiddenRecentCount ? ` (ซ่อน ${hiddenRecentCount} Bot)` : ''}`
-                    : 'ยังไม่มีข้อมูล'}
+                  {recentLength ? `ทั้งหมด ${recentLength} รายการ` : 'ยังไม่มีข้อมูล'}
                 </span>
-                {originalRecentCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowBots(value => !value)}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600"
-                  >
-                    {showBots ? 'ซ่อน Bot/Scanner' : 'แสดง Bot/Scanner'}
-                  </button>
-                )}
               </div>
             </div>
             <div className="mt-4 space-y-3">
@@ -694,20 +670,11 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                 <span className="text-violet-500">🛰️</span>
                 อุปกรณ์ยอดนิยม
               </h3>
-              {originalAgentCount > 0 && (
+              {agentLength > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400">
-                    {agentLength
-                      ? `${agentLength} รายการ${!showBots && hiddenAgentCount ? ` (ซ่อน ${hiddenAgentCount} Bot)` : ''}`
-                      : 'ไม่มีอุปกรณ์ที่ตรงเกณฑ์'}
+                    {`${agentLength} รายการ`}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowBots(value => !value)}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-violet-200 hover:text-violet-600"
-                  >
-                    {showBots ? 'ซ่อน Bot/Scanner' : 'แสดง Bot/Scanner'}
-                  </button>
                 </div>
               )}
             </div>
