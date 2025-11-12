@@ -89,18 +89,18 @@ const VisitorCounter: React.FC = () => {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-emerald-600/80">Website Insight</p>
             <h3 className="mt-1 text-lg font-semibold text-slate-900">สถิติผู้เข้าชมเว็บไซต์</h3>
-            <p className="mt-1 text-sm text-slate-500">ข้อมูลอัปเดตอัตโนมัติจากระบบติดตามผู้เข้าชม</p>
+            <p className="mt-1 text-sm text-slate-500">จำนวนครั้งที่เข้าชมวันนี้</p>
           </div>
         </div>
 
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-end sm:gap-10">
           <div className="flex flex-1 flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">วันนี้</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">เข้าชมวันนี้</span>
             <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.today)}</span>
           </div>
           <div className="hidden h-14 w-px rounded-full bg-gradient-to-b from-emerald-200 via-slate-200 to-teal-200 sm:block" />
           <div className="flex flex-1 flex-col gap-1 text-left sm:text-right">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ยอดสะสมทั้งหมด</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ยอดเข้าชมทั้งหมด</span>
             <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.lifetimeTotal)}</span>
             <span className="text-[11px] uppercase tracking-widest text-slate-400">ตั้งแต่เริ่มเก็บข้อมูล</span>
           </div>
