@@ -311,8 +311,8 @@ export class Visitor {
 
       const insertedNewRow = sessionResult.affectedRows === 1
 
-      // Count as new visit if it's a new session (even if merged with existing IP)
-      const shouldCountAsNewVisit = insertedNewRow || (isNewSession && reusedExistingSession)
+      // Count as new visit when hit_count increases (new session or returning after timeout)
+      const shouldCountAsNewVisit = hitIncrement > 0
 
       if (shouldCountAsNewVisit) {
         console.log(`[VisitorCount] New session: ${effectiveSessionId}, incrementing visit_count`)
@@ -322,8 +322,6 @@ export class Visitor {
             ON DUPLICATE KEY UPDATE visit_count = visit_count + 1`,
           [dateKey]
         )
-      } else if (hitIncrement > 0) {
-        console.log(`[VisitorCount] Returning visitor: ${effectiveSessionId}, incrementing hit_count`)
       } else {
         console.log(`[VisitorCount] Refreshed session: ${effectiveSessionId}, updated path and last_seen`)
       }
