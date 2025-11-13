@@ -92,7 +92,8 @@ router.post('/image', requireAuth, uploadTimeout, upload.single('file'), async (
     
     // Return as data URL
     const base64 = optimizedBuffer.toString('base64')
-    const dataUrl = `data:${req.file.mimetype};base64,${base64}`
+    const finalMimetype = req.file.mimetype === 'image/gif' ? 'image/gif' : 'image/webp'
+    const dataUrl = `data:${finalMimetype};base64,${base64}`
     
     const filename = decodeUploadFilename(req.file.originalname)
     res.json({ 
