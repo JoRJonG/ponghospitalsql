@@ -30,7 +30,7 @@ async function optimizeImage(buffer, mimetype) {
     }
     
     // Convert to WebP for better compression
-    pipeline = pipeline.webp({ quality: 85 })
+    pipeline = pipeline.webp({ quality: 90 })
     
     return await pipeline.toBuffer()
   } catch (error) {
