@@ -30,12 +30,7 @@ async function optimizeImage(buffer, mimetype) {
     }
     
     // Convert to WebP for better compression
-    if (metadata.width > 100) {
-      pipeline = pipeline.webp({ quality: 85 })
-    } else {
-      // For small images, keep original format but compress
-      pipeline = pipeline.jpeg({ quality: 90 })
-    }
+    pipeline = pipeline.webp({ quality: 85 })
     
     return await pipeline.toBuffer()
   } catch (error) {

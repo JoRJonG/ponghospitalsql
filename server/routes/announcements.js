@@ -137,19 +137,6 @@ router.put('/:id', requireAuth, requirePermission('announcements'), async (req, 
     if (req.user?.username) payload.updatedBy = req.user.username
     const doc = await Announcement.findByIdAndUpdate(req.params.id, payload, { new: true })
     if (!doc) return res.status(404).json({ error: 'Not found' })
-    // cleanup removed attachments on Cloudinary
-    try {
-      const cloud = (await import('../cloudinary.js')).cloudinary
-      if (before && Array.isArray(before.attachments) && Array.isArray(doc.attachments) && cloud.config().cloud_name) {
-        const beforeIds = new Set(before.attachments.map(it => it?.publicId).filter(Boolean))
-        const afterIds = new Set(doc.attachments.map(it => it?.publicId).filter(Boolean))
-        for (const id of beforeIds) {
-          if (!afterIds.has(id)) {
-            await cloud.uploader.destroy(id, { resource_type: 'auto' })
-          }
-        }
-      }
-    } catch {}
     purgeCachePrefix('/api/announcements')
     res.json(doc)
   } catch (e) {
@@ -164,16 +151,6 @@ router.delete('/:id', requireAuth, requirePermission('announcements'), async (re
   try {
     const doc = await Announcement.findByIdAndDelete(req.params.id)
     if (!doc) return res.status(404).json({ error: 'Not found' })
-    try {
-      const cloud = (await import('../cloudinary.js')).cloudinary
-      if (doc.attachments && Array.isArray(doc.attachments) && cloud.config().cloud_name) {
-        for (const it of doc.attachments) {
-          if (it && it.publicId) {
-            await cloud.uploader.destroy(it.publicId, { resource_type: 'auto' })
-          }
-        }
-      }
-    } catch {}
     purgeCachePrefix('/api/announcements')
     res.json({ ok: true })
   } catch (e) {
