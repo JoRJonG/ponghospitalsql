@@ -538,7 +538,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
           <article className="rounded-2xl border border-violet-100 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-violet-600">ผู้ใช้ไม่ซ้ำทั้งหมด</p>
             <p className="mt-3 text-3xl font-semibold text-slate-900">{numberFormatter.format(lifetime.uniqueVisitors)}</p>
-            <p className="mt-1 text-xs text-slate-500">นับตั้งแต่เปิดระบบ</p>
+            <p className="mt-1 text-xs text-slate-500">90 วันล่าสุด</p>
           </article>
           <article className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">จำนวนครั้งทั้งหมด</p>

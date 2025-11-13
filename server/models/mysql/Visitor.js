@@ -146,6 +146,133 @@ export class Visitor {
     return trimmed.slice(0, 64)
   }
 
+  /**
+   * ลบข้อมูล visitor_sessions ที่เก่าเกินกำหนด
+   * @param {number} retentionDays - จำนวนวันที่ต้องการเก็บไว้ (default: 90)
+   * @returns {Promise<{deletedCount: number, retainedCount: number, oldestDate: string, sizeSaved: string}>}
+   */
+  static async cleanupOldVisits(retentionDays = DEFAULT_RETENTION_DAYS) {
+    const safeDays = Math.max(1, Math.floor(retentionDays))
+    const cutoffDate = new Date()
+    cutoffDate.setUTCDate(cutoffDate.getUTCDate() - safeDays)
+    const cutoffDateKey = toDateKey(cutoffDate)
+
+    try {
+      // นับจำนวนข้อมูลก่อนลบ
+      const [countResult] = await query(
+        'SELECT COUNT(*) as total FROM visitor_sessions WHERE visit_date < ?',
+        [cutoffDateKey]
+      )
+      const toDelete = countResult?.total || 0
+
+      if (toDelete === 0) {
+        console.log(`[Visitor.cleanupOldVisits] ไม่มีข้อมูลที่เก่ากว่า ${safeDays} วัน (cutoff: ${cutoffDateKey})`)
+        return { deletedCount: 0, retainedCount: 0, oldestDate: null, sizeSaved: '0 rows' }
+      }
+
+      // ลบข้อมูลเก่า
+      const result = await exec(
+        'DELETE FROM visitor_sessions WHERE visit_date < ?',
+        [cutoffDateKey]
+      )
+
+      // หาวันที่เก่าสุดที่เหลืออยู่
+      const [oldestResult] = await query(
+        'SELECT MIN(visit_date) as oldest FROM visitor_sessions'
+      )
+      const oldestDate = oldestResult?.oldest || null
+
+      // นับจำนวนข้อมูลที่เหลือ
+      const [retainedResult] = await query('SELECT COUNT(*) as total FROM visitor_sessions')
+      const retained = retainedResult?.total || 0
+
+      console.log(
+        `[Visitor.cleanupOldVisits] ลบข้อมูลเก่า ${result.affectedRows} รายการ (เก่ากว่า ${cutoffDateKey}), ` +
+        `เหลือ ${retained} รายการ, วันที่เก่าสุด: ${oldestDate || 'N/A'}`
+      )
+
+      return {
+        deletedCount: result.affectedRows || 0,
+        retainedCount: retained,
+        oldestDate,
+        sizeSaved: `${result.affectedRows} rows`,
+      }
+    } catch (error) {
+      console.error('[Visitor.cleanupOldVisits] Error:', error)
+      throw error
+    }
+  }
+
+  /**
+   * ตรวจสอบสถิติข้อมูลเก่าที่จะถูกลบ (ไม่ลบจริง)
+   * @param {number} retentionDays - จำนวนวันที่ต้องการเก็บไว้
+   * @returns {Promise<{oldCount: number, oldestDate: string, newestOldDate: string, totalCount: number, retainedCount: number, cutoffDate: string}>}
+   */
+  static async getOldSessionsStats(retentionDays = DEFAULT_RETENTION_DAYS) {
+    const safeDays = Math.max(1, Math.floor(retentionDays))
+    const cutoffDate = new Date()
+    cutoffDate.setUTCDate(cutoffDate.getUTCDate() - safeDays)
+    const cutoffDateKey = toDateKey(cutoffDate)
+
+    try {
+      const [oldStats] = await query(
+        `SELECT 
+          COUNT(*) as old_count,
+          MIN(visit_date) as oldest_date,
+          MAX(visit_date) as newest_old_date
+        FROM visitor_sessions 
+        WHERE visit_date < ?`,
+        [cutoffDateKey]
+      )
+
+      const [totalStats] = await query('SELECT COUNT(*) as total FROM visitor_sessions')
+      const total = totalStats?.total || 0
+      const old = oldStats?.old_count || 0
+
+      return {
+        oldCount: old,
+        oldestDate: oldStats?.oldest_date || null,
+        newestOldDate: oldStats?.newest_old_date || null,
+        totalCount: total,
+        retainedCount: total - old,
+        cutoffDate: cutoffDateKey,
+        retentionDays: safeDays,
+      }
+    } catch (error) {
+      console.error('[Visitor.getOldSessionsStats] Error:', error)
+      throw error
+    }
+  }
+
+  /**
+   * ดูขนาดตารางฐานข้อมูล visitor_sessions
+   * @returns {Promise<{tableSizeMB: number, indexSizeMB: number, totalSizeMB: number, rowCount: number}>}
+   */
+  static async getSessionsTableSize() {
+    try {
+      const [sizeInfo] = await query(`
+        SELECT 
+          ROUND((DATA_LENGTH) / 1024 / 1024, 2) AS table_size_mb,
+          ROUND((INDEX_LENGTH) / 1024 / 1024, 2) AS index_size_mb,
+          ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) AS total_size_mb,
+          TABLE_ROWS as row_count
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'visitor_sessions'
+      `)
+
+      return {
+        tableSizeMB: sizeInfo?.table_size_mb || 0,
+        indexSizeMB: sizeInfo?.index_size_mb || 0,
+        totalSizeMB: sizeInfo?.total_size_mb || 0,
+        rowCount: sizeInfo?.row_count || 0,
+      }
+    } catch (error) {
+      console.error('[Visitor.getSessionsTableSize] Error:', error)
+      throw error
+    }
+  }
+
   // Get aggregated visitor count; optionally limit to the last `rangeDays`
   static async getVisitorCount(rangeDays) {
     if (rangeDays && Number.isFinite(rangeDays)) {

@@ -175,4 +175,64 @@ router.get('/insights', optionalAuth, async (req, res) => {
   }
 })
 
+// Admin-only: ดูสถิติข้อมูลเก่า
+router.get('/admin/old-sessions-stats', optionalAuth, async (req, res) => {
+  try {
+    // ตรวจสอบว่าเป็น admin
+    if (!req.user || !req.user.roles || !req.user.roles.includes('admin')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      })
+    }
+
+    const retentionDays = parseInt(req.query.retentionDays) || 90
+    const [stats, tableSize] = await Promise.all([
+      Visitor.getOldSessionsStats(retentionDays),
+      Visitor.getSessionsTableSize(),
+    ])
+
+    res.json({
+      success: true,
+      data: {
+        ...stats,
+        tableSize,
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching old sessions stats:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch old sessions stats'
+    })
+  }
+})
+
+// Admin-only: ลบข้อมูลเก่า
+router.post('/admin/cleanup-old-sessions', optionalAuth, async (req, res) => {
+  try {
+    // ตรวจสอบว่าเป็น admin
+    if (!req.user || !req.user.roles || !req.user.roles.includes('admin')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      })
+    }
+
+    const retentionDays = parseInt(req.body.retentionDays) || 90
+    const result = await Visitor.cleanupOldVisits(retentionDays)
+
+    res.json({
+      success: true,
+      data: result,
+    })
+  } catch (error) {
+    console.error('Error cleaning up old sessions:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to cleanup old sessions'
+    })
+  }
+})
+
 export default router
