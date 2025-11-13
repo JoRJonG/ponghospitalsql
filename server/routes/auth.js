@@ -78,6 +78,12 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
           try {
             res.cookie('ph_token', token, sessionCookieOptions)
             res.cookie('ph_refresh_token', refreshToken, refreshCookieOptions)
+            res.cookie('ph_last_activity', String(Date.now()), {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              maxAge: 30 * 60 * 1000 // 30 minutes
+            })
           } catch {}
           return res.json({ token, user: { username: user.username, roles: user.roles, permissions: user.permissions }, source: 'db' })
         }
@@ -102,6 +108,12 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
       try {
         res.cookie('ph_token', token, sessionCookieOptions)
         res.cookie('ph_refresh_token', refreshToken, refreshCookieOptions)
+        res.cookie('ph_last_activity', String(Date.now()), {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 30 * 60 * 1000 // 30 minutes
+        })
       } catch {}
       return res.json({ token, user: { username, roles, permissions }, source: 'env' })
     }
@@ -172,6 +184,7 @@ router.post('/logout', (req, res) => {
   try {
     res.clearCookie('ph_token', { path: '/' })
     res.clearCookie('ph_refresh_token', { path: '/' })
+    res.clearCookie('ph_last_activity', { path: '/' })
     return res.json({ ok: true, message: 'Logged out successfully' })
   } catch (e) {
     logger.error('Logout failed', { error: e.message })

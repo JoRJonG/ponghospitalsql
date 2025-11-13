@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'devsecret-change-me'
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh-devsecret-change-me'
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
 
 // Access token: short-lived (15 minutes)
 export function signToken(payload) {
@@ -54,6 +55,29 @@ export function requireAuth(req, res, next) {
     }
     if (!jwtToken) return res.status(401).json({ error: 'Unauthorized' })
     const decoded = jwt.verify(jwtToken, JWT_SECRET)
+    
+    // Check inactivity timeout
+    const lastActivity = req.cookies?.ph_last_activity
+    const now = Date.now()
+    if (lastActivity) {
+      const lastActivityTime = Number.parseInt(lastActivity, 10)
+      if (Number.isFinite(lastActivityTime) && (now - lastActivityTime) > INACTIVITY_TIMEOUT_MS) {
+        // Clear cookies and return session expired
+        res.clearCookie('ph_token')
+        res.clearCookie('ph_refresh_token')
+        res.clearCookie('ph_last_activity')
+        return res.status(401).json({ error: 'Session expired due to inactivity', code: 'INACTIVITY_TIMEOUT' })
+      }
+    }
+    
+    // Update last activity time
+    res.cookie('ph_last_activity', String(now), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: INACTIVITY_TIMEOUT_MS
+    })
+    
     req.user = decoded
     next()
   } catch (e) {
