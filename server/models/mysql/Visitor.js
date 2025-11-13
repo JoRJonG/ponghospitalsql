@@ -2,6 +2,7 @@
 import crypto from 'crypto'
 import { query, exec, transaction } from '../../database.js'
 import { isBotUserAgent } from '../../utils/botDetector.js'
+import { normalizeUserAgent } from '../../utils/userAgentParser.js'
 
 const DEFAULT_RETENTION_DAYS = 90
 const DEFAULT_STATS_RANGE_DAYS = 30
@@ -431,16 +432,28 @@ export class Visitor {
 
     const topAgents = await query(`
       SELECT
-        COALESCE(NULLIF(user_agent, ''), 'unknown') AS userAgent,
+        user_agent,
         COALESCE(SUM(hit_count), 0) AS hits
       FROM visitor_sessions
       WHERE visit_date >= ?
         AND user_agent IS NOT NULL
         AND user_agent NOT REGEXP 'bot|crawler|spider|preview|python-requests|wget|curl|httpclient|libwww-perl|java/|postmanruntime|monitor|uptime|masscan|scanner|sqlmap|okhttp|go-http-client|axios|headlesschrome|phantomjs|hello[[:space:]]*world|friendly|facebookexternalhit|slurp|bingpreview|yandex'
-      GROUP BY COALESCE(NULLIF(user_agent, ''), 'unknown')
+      GROUP BY user_agent
       ORDER BY hits DESC
-      LIMIT 5
     `, [startKey])
+
+    // Normalize and aggregate user agents in JavaScript
+    const agentMap = new Map()
+    for (const row of topAgents) {
+      const normalized = normalizeUserAgent(row.user_agent)
+      const current = agentMap.get(normalized) || 0
+      agentMap.set(normalized, current + Number(row.hits || 0))
+    }
+
+    const topAgentsNormalized = Array.from(agentMap.entries())
+      .map(([userAgent, hits]) => ({ userAgent, hits }))
+      .sort((a, b) => b.hits - a.hits)
+      .slice(0, 5)
 
     const recentSessions = await query(`
       SELECT
@@ -491,10 +504,7 @@ export class Visitor {
         path: row.path || '/',
         hits: Number(row.hits ?? 0),
       })),
-      topAgents: topAgents.map(row => ({
-        userAgent: row.userAgent || 'unknown',
-        hits: Number(row.hits ?? 0),
-      })),
+      topAgents: topAgentsNormalized,
       recentSessions: recentSessionEntries,
     }
   }
