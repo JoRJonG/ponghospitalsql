@@ -60,7 +60,8 @@ router.post('/track', optionalAuth, async (req, res) => {
     })
 
     const nextSessionId = result?.sessionId || session.sessionId
-    setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: now })
+    const updatedLastSeen = result?.merged ? now : session.lastSeen
+    setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: updatedLastSeen })
 
     let reason = 'existing-session'
     if (result?.counted) {

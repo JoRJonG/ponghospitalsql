@@ -179,7 +179,8 @@ export async function trackVisitors(req, res, next) {
     }
 
     const nextSessionId = result.sessionId || session.sessionId
-    setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: now })
+    const updatedLastSeen = result.merged ? now : session.lastSeen
+    setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: updatedLastSeen })
   } catch (error) {
     console.error('Error tracking visitor:', error)
   }

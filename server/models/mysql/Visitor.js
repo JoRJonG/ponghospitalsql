@@ -226,7 +226,8 @@ export class Visitor {
     let effectiveSessionId = initialSessionId
     let reusedExistingSession = false
 
-    if (isNewSession && canMergeByIp) {
+    // Always try to merge with existing session from same IP on same day
+    if (canMergeByIp) {
       try {
         const existingSessions = await query(`
           SELECT fingerprint
