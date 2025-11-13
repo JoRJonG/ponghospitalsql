@@ -34,3 +34,22 @@ export function isBotUserAgent(userAgent) {
   if (!userAgent) return false
   return BOT_PATTERNS.some(pattern => pattern.test(userAgent))
 }
+
+// Generate SQL WHERE condition to filter out bots
+export function getBotFilterSQL(userAgentColumn = 'user_agent') {
+  // Create SQL pattern matching for all bot patterns
+  const conditions = BOT_PATTERNS.map(() => 
+    `${userAgentColumn} NOT REGEXP ?`
+  ).join(' AND ')
+  
+  return conditions
+}
+
+// Get bot patterns for SQL REGEXP
+export function getBotPatternsForSQL() {
+  return BOT_PATTERNS.map(pattern => {
+    // Convert JavaScript regex to MySQL REGEXP pattern
+    const source = pattern.source
+    return source
+  })
+}

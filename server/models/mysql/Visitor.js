@@ -435,25 +435,12 @@ export class Visitor {
         COALESCE(SUM(hit_count), 0) AS hits
       FROM visitor_sessions
       WHERE visit_date >= ?
+        AND user_agent IS NOT NULL
+        AND user_agent NOT REGEXP 'bot|crawler|spider|preview|python-requests|wget|curl|httpclient|libwww-perl|java/|postmanruntime|monitor|uptime|masscan|scanner|sqlmap|okhttp|go-http-client|axios|headlesschrome|phantomjs|hello[[:space:]]*world|friendly|facebookexternalhit|slurp|bingpreview|yandex'
       GROUP BY COALESCE(NULLIF(user_agent, ''), 'unknown')
       ORDER BY hits DESC
       LIMIT 5
     `, [startKey])
-
-    const todaySessionsRaw = await query(`
-      SELECT
-        ${hasIpColumn ? 'ip_address' : 'NULL'} AS ip_address,
-        user_agent
-      FROM visitor_sessions
-      WHERE visit_date = ?
-    `, [todayKey])
-
-    const todaySessionCounts = new Map()
-    for (const row of todaySessionsRaw) {
-      if (isBotUserAgent(row.user_agent)) continue
-      const key = `${row.ip_address || 'unknown'}|${row.user_agent || ''}`
-      todaySessionCounts.set(key, (todaySessionCounts.get(key) ?? 0) + 1)
-    }
 
     const recentSessions = await query(`
       SELECT
@@ -464,26 +451,20 @@ export class Visitor {
         hit_count,
         last_seen
       FROM visitor_sessions
+      WHERE user_agent IS NULL 
+        OR user_agent NOT REGEXP 'bot|crawler|spider|preview|python-requests|wget|curl|httpclient|libwww-perl|java/|postmanruntime|monitor|uptime|masscan|scanner|sqlmap|okhttp|go-http-client|axios|headlesschrome|phantomjs|hello[[:space:]]*world|friendly|facebookexternalhit|slurp|bingpreview|yandex'
       ORDER BY last_seen DESC
       LIMIT ${RECENT_SESSION_LIMIT}
     `)
 
-    const filteredRecentSessions = recentSessions.filter(row => !isBotUserAgent(row.user_agent))
-
-    const recentSessionEntries = filteredRecentSessions.map(row => {
-      const key = `${row.ip_address || 'unknown'}|${row.user_agent || ''}`
-      const baseHits = Math.max(1, Number(row.hit_count ?? 0))
-      const todayHits = todaySessionCounts.get(key)
-      const hits = row.visit_date === todayKey ? Math.max(baseHits, todayHits ?? baseHits) : baseHits
-      return {
-        visitDate: row.visit_date,
-        ipAddress: row.ip_address || null,
-        userAgent: row.user_agent || null,
-        path: row.path || '/',
-        hits,
-        lastSeen: row.last_seen,
-      }
-    })
+    const recentSessionEntries = recentSessions.map(row => ({
+      visitDate: row.visit_date,
+      ipAddress: row.ip_address || null,
+      userAgent: row.user_agent || null,
+      path: row.path || '/',
+      hits: Math.max(1, Number(row.hit_count ?? 0)),
+      lastSeen: row.last_seen,
+    }))
 
     return {
       rangeDays: days,
@@ -510,12 +491,10 @@ export class Visitor {
         path: row.path || '/',
         hits: Number(row.hits ?? 0),
       })),
-      topAgents: topAgents
-        .map(row => ({
-          userAgent: row.userAgent || 'unknown',
-          hits: Number(row.hits ?? 0),
-        }))
-        .filter(agent => !isBotUserAgent(agent.userAgent)),
+      topAgents: topAgents.map(row => ({
+        userAgent: row.userAgent || 'unknown',
+        hits: Number(row.hits ?? 0),
+      })),
       recentSessions: recentSessionEntries,
     }
   }
