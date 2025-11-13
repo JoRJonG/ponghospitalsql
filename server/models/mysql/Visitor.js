@@ -311,7 +311,10 @@ export class Visitor {
 
       const insertedNewRow = sessionResult.affectedRows === 1
 
-      if (insertedNewRow) {
+      // Count as new visit if it's a new session (even if merged with existing IP)
+      const shouldCountAsNewVisit = insertedNewRow || (isNewSession && reusedExistingSession)
+
+      if (shouldCountAsNewVisit) {
         console.log(`[VisitorCount] New session: ${effectiveSessionId}, incrementing visit_count`)
         await conn.execute(
           `INSERT INTO visitors (visit_date, visit_count)
@@ -319,8 +322,6 @@ export class Visitor {
             ON DUPLICATE KEY UPDATE visit_count = visit_count + 1`,
           [dateKey]
         )
-      } else if (reusedExistingSession) {
-        console.log(`[VisitorCount] Merged visit into existing session: ${effectiveSessionId}, incrementing hit_count`)
       } else if (hitIncrement > 0) {
         console.log(`[VisitorCount] Returning visitor: ${effectiveSessionId}, incrementing hit_count`)
       } else {
