@@ -253,7 +253,7 @@ export class Visitor {
       }
     }
 
-    const hitIncrement = 1
+    const hitIncrement = (isNewSession || reusedExistingSession) ? 1 : 0
 
     const sqlWithIp = `
       INSERT INTO visitor_sessions (
@@ -270,9 +270,9 @@ export class Visitor {
       VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
       ON DUPLICATE KEY UPDATE
         last_seen = NOW(),
+        path = VALUES(path),
         user_agent = VALUES(user_agent),
         ip_address = VALUES(ip_address),
-        path = VALUES(path),
         hit_count = hit_count + ?
     `
 
@@ -290,8 +290,8 @@ export class Visitor {
       VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())
       ON DUPLICATE KEY UPDATE
         last_seen = NOW(),
-        user_agent = VALUES(user_agent),
         path = VALUES(path),
+        user_agent = VALUES(user_agent),
         hit_count = hit_count + ?
     `
 
@@ -317,8 +317,10 @@ export class Visitor {
         )
       } else if (reusedExistingSession) {
         console.log(`[VisitorCount] Merged visit into existing session: ${effectiveSessionId}, incrementing hit_count`)
-      } else {
+      } else if (hitIncrement > 0) {
         console.log(`[VisitorCount] Returning visitor: ${effectiveSessionId}, incrementing hit_count`)
+      } else {
+        console.log(`[VisitorCount] Refreshed session: ${effectiveSessionId}, updated path and last_seen`)
       }
 
       return {
