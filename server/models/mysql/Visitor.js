@@ -1,7 +1,7 @@
 // Visitor model for tracking website visitors with retention-aware aggregations
 import crypto from 'crypto'
 import { query, exec, transaction } from '../../database.js'
-import { isBotUserAgent } from '../../utils/botDetector.js'
+import { isBotUserAgent, getBotFilterWhereClause } from '../../utils/botDetector.js'
 import { normalizeUserAgent } from '../../utils/userAgentParser.js'
 
 const DEFAULT_RETENTION_DAYS = 90
@@ -181,10 +181,12 @@ export class Visitor {
 
   static async getTodayPageViews() {
     const todayKey = toDateKey()
+    const botFilter = getBotFilterWhereClause()
     const rows = await query(`
       SELECT COALESCE(SUM(hit_count), 0) AS total_hits
       FROM visitor_sessions
       WHERE visit_date = ?
+        AND ${botFilter}
     `, [todayKey])
     return rows[0]?.total_hits || 0
   }
@@ -385,6 +387,7 @@ export class Visitor {
     const { hasIpColumn } = await this.ensureSessionSchema()
     const ipExpr = hasIpColumn ? 'ip_address' : 'ip_hash'
     const distinctKeyExpr = distinctVisitorKeyExpr(hasIpColumn)
+    const botFilter = getBotFilterWhereClause()
 
     const [todayRow] = await query(`
       SELECT
@@ -393,6 +396,7 @@ export class Visitor {
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
       WHERE visit_date = ?
+        AND ${botFilter}
     `, [todayKey])
 
     const [rangeRow] = await query(`
@@ -402,6 +406,7 @@ export class Visitor {
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
       WHERE visit_date >= ?
+        AND ${botFilter}
     `, [startKey])
 
     const [lifetimeRow] = await query(`
@@ -410,6 +415,7 @@ export class Visitor {
         COALESCE(SUM(hit_count), 0) AS totalHits,
         ${normalizeDistinctIp(ipExpr)} AS distinctIps
       FROM visitor_sessions
+      WHERE ${botFilter}
     `)
 
     const trendRows = await query(`
@@ -425,6 +431,7 @@ export class Visitor {
         COALESCE(SUM(hit_count), 0) AS hits
       FROM visitor_sessions
       WHERE visit_date >= ?
+        AND ${botFilter}
       GROUP BY COALESCE(NULLIF(path, ''), '/')
       ORDER BY hits DESC
       LIMIT 5
@@ -437,7 +444,7 @@ export class Visitor {
       FROM visitor_sessions
       WHERE visit_date >= ?
         AND user_agent IS NOT NULL
-        AND user_agent NOT REGEXP 'bot|crawler|spider|preview|python-requests|wget|curl|httpclient|libwww-perl|java/|postmanruntime|monitor|uptime|masscan|scanner|sqlmap|okhttp|go-http-client|axios|headlesschrome|phantomjs|hello[[:space:]]*world|friendly|facebookexternalhit|slurp|bingpreview|yandex'
+        AND ${botFilter}
       GROUP BY user_agent
       ORDER BY hits DESC
     `, [startKey])
@@ -464,8 +471,7 @@ export class Visitor {
         hit_count,
         last_seen
       FROM visitor_sessions
-      WHERE user_agent IS NULL 
-        OR user_agent NOT REGEXP 'bot|crawler|spider|preview|python-requests|wget|curl|httpclient|libwww-perl|java/|postmanruntime|monitor|uptime|masscan|scanner|sqlmap|okhttp|go-http-client|axios|headlesschrome|phantomjs|hello[[:space:]]*world|friendly|facebookexternalhit|slurp|bingpreview|yandex'
+      WHERE ${botFilter}
       ORDER BY last_seen DESC
       LIMIT ${RECENT_SESSION_LIMIT}
     `)
