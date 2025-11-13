@@ -14,6 +14,11 @@ const router = Router()
 // Optimize image buffer using sharp
 async function optimizeImage(buffer, mimetype) {
   try {
+    // For GIF files, don't optimize to preserve animation
+    if (mimetype === 'image/gif') {
+      return buffer
+    }
+    
     let pipeline = sharp(buffer)
     
     // Get image info
