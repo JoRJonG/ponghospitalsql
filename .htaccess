@@ -1,0 +1,30 @@
+# GEO-BLOCKING: THAILAND ONLY
+<IfModule mod_geoip2.c>
+    SetEnvIf GEOIP2_COUNTRY_CODE !^TH$ BlockedCountry
+    
+    <RequireAll>
+        Require all granted
+        Require not env BlockedCountry
+    </RequireAll>
+</IfModule>
+
+# ROUTING
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 1. Static files (assets, images) → serve directly
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+    
+    # 2. API requests → proxy to Node.js (DO NOT redirect to index.html)
+    # ถ้า hosting มี reverse proxy ให้ Node.js รัน port 5000
+    # ถ้าไม่มี ให้ comment out บรรทัดนี้
+    # RewriteCond %{REQUEST_URI} ^/api/
+    # RewriteRule ^(.*)$ http://localhost:5000/$1 [P,L]
+    
+    # 3. SPA routing → everything else goes to index.html
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api/
+    RewriteRule ^ /index.html [L]
+</IfModule>
