@@ -12,6 +12,7 @@ import unitsRouter from './routes/units.js'
 import authRouter from './routes/auth.js'
 import systemRouter from './routes/system.js'
 import { optionalAuth } from './middleware/auth.js'
+import geoBlockingMiddleware from './middleware/geoBlocking.js'
 
 export async function createServer() {
   dotenv.config()
@@ -23,6 +24,7 @@ export async function createServer() {
   app.use(cors({ origin: true, credentials: true }))
   app.use(compression())
   app.use(express.json({ limit: '5mb' }))
+  app.use(geoBlockingMiddleware) // Apply geo-blocking to all routes
   app.use(optionalAuth)
 
   // Security headers (helmet-lite)
