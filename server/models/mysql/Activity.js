@@ -35,10 +35,6 @@ export class Activity {
       date: activity.date,
       publishedAt: activity.published_at,
       isPublished: activity.is_published,
-      createdBy: activity.created_by,
-      updatedBy: activity.updated_by,
-      createdAt: activity.created_at,
-      updatedAt: activity.updated_at,
       images: images || []
     }
   }
@@ -155,8 +151,6 @@ export class Activity {
       // แปลง snake_case เป็น camelCase
       activity.publishedAt = activity.published_at
       activity.isPublished = activity.is_published
-      activity.createdBy = activity.created_by
-      activity.updatedBy = activity.updated_by
       activity.createdAt = activity.created_at
       activity.updatedAt = activity.updated_at
       delete activity.published_at

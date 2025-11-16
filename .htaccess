@@ -1,4 +1,26 @@
+# BLOCK SPECIFIC IPs
+<RequireAll>
+    Require all granted
+    Require not ip 54.155.140.84
+    Require not ip 2a06:98c0:3600::103
+	Require not ip 104.131.189.0
+	Require not ip 213.108.0.73
+	Require not ip 182.79.81.30
+	Require not ip 43.159.152.184
+	Require not ip 89.104.111.58
+</RequireAll>
+
 # GEO-BLOCKING: THAILAND ONLY
+<IfModule mod_geoip.c>
+    # ลองใช้ GEOIP_COUNTRY_CODE (GeoIP Legacy)
+    SetEnvIf GEOIP_COUNTRY_CODE !^TH$ BlockedCountry
+    
+    Order Allow,Deny
+    Allow from all
+    Deny from env=BlockedCountry
+</IfModule>
+
+# หรือ GeoIP2
 <IfModule mod_geoip2.c>
     SetEnvIf GEOIP2_COUNTRY_CODE !^TH$ BlockedCountry
     
@@ -6,25 +28,4 @@
         Require all granted
         Require not env BlockedCountry
     </RequireAll>
-</IfModule>
-
-# ROUTING
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    
-    # 1. Static files (assets, images) → serve directly
-    RewriteCond %{REQUEST_FILENAME} -f
-    RewriteRule ^ - [L]
-    
-    # 2. API requests → proxy to Node.js (DO NOT redirect to index.html)
-    # ถ้า hosting มี reverse proxy ให้ Node.js รัน port 5000
-    # ถ้าไม่มี ให้ comment out บรรทัดนี้
-    # RewriteCond %{REQUEST_URI} ^/api/
-    # RewriteRule ^(.*)$ http://localhost:5000/$1 [P,L]
-    
-    # 3. SPA routing → everything else goes to index.html
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} !^/api/
-    RewriteRule ^ /index.html [L]
 </IfModule>

@@ -36,8 +36,6 @@ export class Activity {
       date: activity.date,
       publishedAt: activity.published_at,
       isPublished: activity.is_published,
-      createdBy: activity.created_by,
-      updatedBy: activity.updated_by,
       createdAt: activity.created_at,
       updatedAt: activity.updated_at,
       viewCount: activity.view_count,
@@ -171,8 +169,6 @@ export class Activity {
       
       activity.publishedAt = activity.published_at
       activity.isPublished = activity.is_published
-      activity.createdBy = activity.created_by
-      activity.updatedBy = activity.updated_by
       activity.createdAt = activity.created_at
       activity.updatedAt = activity.updated_at
       activity.viewCount = activity.view_count

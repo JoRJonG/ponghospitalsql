@@ -48,8 +48,6 @@ export class Announcement {
       content: announcement.content,
       publishedAt: announcement.published_at,
       isPublished: announcement.is_published,
-      createdBy: announcement.created_by,
-      updatedBy: announcement.updated_by,
       createdAt: announcement.created_at,
       updatedAt: announcement.updated_at,
       viewCount: announcement.view_count,
@@ -185,8 +183,6 @@ export class Announcement {
       announcement.categoryCode = announcement.category_code
       announcement.publishedAt = announcement.published_at
       announcement.isPublished = announcement.is_published
-      announcement.createdBy = announcement.created_by
-      announcement.updatedBy = announcement.updated_by
       announcement.createdAt = announcement.created_at
       announcement.updatedAt = announcement.updated_at
       announcement.viewCount = announcement.view_count

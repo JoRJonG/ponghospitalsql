@@ -2,27 +2,44 @@
 
 ## ขั้นตอนการตั้งค่า Geo-blocking ใน cPanel ModSecurity WAF
 
-### ที่ 1: ตรวจสอบว่า ModSecurity มีแล้ว
+### ❌ วิธีเก่า (ผิด)
 
-จากรูป: **Web application firewall mode = On** ✅
+เมื่อกี้ให้ใส่ rule แบบนี้:
+```
+GEO:COUNTRY_CODE != "TH" action:deny status:403 msg:'Access Denied - Thailand Only'
+```
+
+**Error:** `The rule ID should consist of digits or range of digits like 913100`
+
+**เหตุผล:** cPanel WAF ต้องการ Rule ID ตัวเลข ไม่ใช่ expression
 
 ---
 
-### ที่ 2: ใช้ Custom Rules ใน cPanel
+### ✅ วิธีถูก: ใช้ .htaccess (แนะนำ)
 
-#### วิธีที่ 1: ผ่าน cPanel UI (ง่ายที่สุด)
+**ดูคู่มือ: `CPANEL_WAF_SETUP_CORRECT.md`** ← เริ่มจากนี่
 
-1. เข้า cPanel → **Home**
-2. ไปที่ **Websites & Domains** → **phayaohub.com**
-3. ไปที่ **Web Application Firewall**
-4. ในส่วน **Switch off security rules** → **Regular expressions in rule messages**
+#### วิธีที่ 1: ผ่าน File Manager (ง่ายที่สุด)
 
-   เพิ่ม rule นี้:
-   ```
-   GEO:COUNTRY_CODE != "TH" action:deny status:403 msg:'Access Denied - Thailand Only'
-   ```
+1. เข้า cPanel → **File Manager**
+2. ไปที่ `/public_html/`
+3. สร้าง/แก้ไข ไฟล์ `.htaccess`
+4. เพิ่มเนื้อหา:
 
-5. Click **OK** และ **Apply**
+```apache
+# GEO-BLOCKING: THAILAND ONLY
+<IfModule mod_geoip2.c>
+    SetEnvIf GEOIP2_COUNTRY_CODE !^TH$ BlockedCountry
+    
+    <RequireAll>
+        Require all granted
+        Require not env BlockedCountry
+    </RequireAll>
+</IfModule>
+```
+
+5. Save
+6. Test ด้วย VPN ต่างประเทศ
 
 #### วิธีที่ 2: Upload Rules File (ถ้า hosting อนุญาต)
 
