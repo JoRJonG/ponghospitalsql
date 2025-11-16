@@ -787,4 +787,10 @@ html {
     background: #ffffff;
     border: 1px solid #e5e7eb;
   }
+
+  /* Ensure button text is visible on mobile */
+  .btn-outline {
+    color: #000000 !important;
+    border-color: #d1d5db !important;
+  }
 }
