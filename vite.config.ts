@@ -38,8 +38,8 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-      // Enable source maps for production debugging
-      sourcemap: true,
+      // Disable source maps in production to avoid exposing original source files in DevTools
+      sourcemap: false,
       // Optimize chunk size
       chunkSizeWarningLimit: 1000,
     },
