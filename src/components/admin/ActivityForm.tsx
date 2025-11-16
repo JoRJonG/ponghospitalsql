@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { compressImage } from '../../utils/imageCompressor'
 import { buildApiUrl } from '../../utils/api'
 import { invalidateCache } from '../../utils/fastFetch'
+import { sanitizeText, sanitizeHtml } from '../../utils/sanitize'
 import { quillModules, quillFormats, toDateTimeLocalValue, fromDateTimeLocalValue } from './helpers'
 
 const MAX_UPLOAD_IMAGES = 80
@@ -104,8 +105,8 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
       const endpoint = buildApiUrl('/api/activities', { preferBackend: true })
       const makeRequest = async (token: string) => {
         const fd = new FormData()
-        fd.append('title', form.title || '')
-        fd.append('description', form.description || '')
+        fd.append('title', sanitizeText(form.title || ''))
+        fd.append('description', sanitizeHtml(form.description || ''))
         fd.append('isPublished', String(form.isPublished ?? true))
         if (form.publishedAt) fd.append('publishedAt', form.publishedAt)
         for (const f of pendingFiles) fd.append('images', f)

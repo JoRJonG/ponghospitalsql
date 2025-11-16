@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import RichTextEditor from '../../components/RichTextEditor'
 import { useAuth } from '../../auth/AuthContext'
 import { compressImage } from '../../utils/imageCompressor'
+import { sanitizeText, sanitizeHtml } from '../../utils/sanitize'
 import { quillModules, quillFormats, toDateTimeLocalValue, fromDateTimeLocalValue } from './helpers'
 
 type Announcement = {
@@ -114,6 +115,10 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     setLoading(true)
     try {
       const payload: Announcement = { ...form }
+      // Sanitize inputs
+      payload.title = sanitizeText(payload.title)
+      payload.content = sanitizeHtml(payload.content || '')
+      payload.category = sanitizeText(payload.category) as Announcement['category']
       if (!form.publishedAt) delete payload.publishedAt
       const r = await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, body: JSON.stringify(payload) })
       if (!r.ok) {
