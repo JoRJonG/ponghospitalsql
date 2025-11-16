@@ -7,6 +7,7 @@ import { createRateLimiter } from '../middleware/ratelimit.js'
 import { fileTypeFromBuffer } from 'file-type'
 import { decodeUploadFilename } from '../utils/filename.js'
 import { viewCache, VIEW_COOLDOWN_MS } from '../utils/viewCache.js'
+import { sanitizeHtml, sanitizeText } from '../utils/sanitization.js'
 
 const router = Router()
 
@@ -124,6 +125,10 @@ router.post('/', requireAuth, requirePermission('activities'), upload.array('ima
     const payload = { ...req.body }
     if (req.user?.username) payload.createdBy = req.user.username
     
+    // Sanitize user inputs
+    if (payload.title) payload.title = sanitizeText(payload.title)
+    if (payload.description) payload.description = sanitizeHtml(payload.description)
+    
     // แปลง isPublished จาก string เป็น boolean
     if (payload.isPublished !== undefined) {
       payload.isPublished = payload.isPublished === 'true' || payload.isPublished === true
@@ -213,6 +218,10 @@ router.put('/:id', requireAuth, requirePermission('activities'), (req, res, next
     
     const payload = { ...req.body }
     if (req.user?.username) payload.updatedBy = req.user.username
+    
+    // Sanitize user inputs
+    if (payload.title) payload.title = sanitizeText(payload.title)
+    if (payload.description) payload.description = sanitizeHtml(payload.description)
     
     // แปลง isPublished จาก string เป็น boolean (สำหรับ FormData)
     if (payload.isPublished !== undefined && typeof payload.isPublished === 'string') {

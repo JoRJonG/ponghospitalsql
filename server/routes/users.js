@@ -2,6 +2,7 @@ import { Router } from 'express'
 import bcryptPkg from 'bcryptjs'
 import User from '../models/mysql/User.js'
 import { requireAuth, requirePermission } from '../middleware/auth.js'
+import { sanitizeText } from '../utils/sanitization.js'
 
 const router = Router()
 const { hash } = bcryptPkg
@@ -56,20 +57,21 @@ router.get('/', requireAuth, requirePermission('users'), async (req, res) => {
 router.post('/', requireAuth, requirePermission('users'), async (req, res) => {
   try {
     const { username, password, permissions = [], isActive } = req.body || {}
-    if (!username || typeof username !== 'string' || username.length < 3) {
+    const sanitizedUsername = sanitizeText(username || '')
+    if (!sanitizedUsername || sanitizedUsername.length < 3) {
       return res.status(400).json({ success: false, error: 'กรุณาระบุชื่อผู้ใช้อย่างน้อย 3 ตัวอักษร' })
     }
     if (!isStrongPassword(password)) {
       return res.status(400).json({ success: false, error: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร และประกอบด้วยตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข' })
     }
-    const existing = await User.findByUsername(username)
+    const existing = await User.findByUsername(sanitizedUsername)
     if (existing) {
       return res.status(409).json({ success: false, error: 'มีชื่อผู้ใช้นี้อยู่แล้ว' })
     }
     const passwordHash = await hash(password, 10)
     const sanitizedPermissions = sanitizePermissions(permissions)
     const created = await User.create({
-      username,
+      username: sanitizedUsername,
       passwordHash,
       roles: ['editor'],
       permissions: sanitizedPermissions,

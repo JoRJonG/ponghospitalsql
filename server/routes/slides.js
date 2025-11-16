@@ -7,6 +7,7 @@ import { microCache } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { decodeUploadFilename } from '../utils/filename.js'
 import { pool } from '../database.js'
+import { sanitizeText } from '../utils/sanitization.js'
 
 const router = Router()
 
@@ -101,6 +102,12 @@ router.post('/', requireAuth, requirePermission('slides'), upload.single('image'
     const link = (body.href || body.link || body.url || '').toString().trim()
     if (link) body.href = link
 
+    // Sanitize user inputs
+    if (body.title) body.title = sanitizeText(body.title)
+    if (body.caption) body.caption = sanitizeText(body.caption)
+    if (body.alt) body.alt = sanitizeText(body.alt)
+    if (body.href) body.href = sanitizeText(body.href)
+
     if (body.isPublished !== false) {
       const alt = (body.alt || '').toString().trim()
       if (!alt) return res.status(400).json({ error: 'Alt text is required when publishing a slide' })
@@ -147,6 +154,12 @@ router.put('/:id', requireAuth, requirePermission('slides'), upload.single('imag
     const body = { ...req.body }
     const link = (body.href || body.link || body.url || '').toString().trim()
     if (link) body.href = link
+
+    // Sanitize user inputs
+    if (body.title) body.title = sanitizeText(body.title)
+    if (body.caption) body.caption = sanitizeText(body.caption)
+    if (body.alt) body.alt = sanitizeText(body.alt)
+    if (body.href) body.href = sanitizeText(body.href)
 
     const updateData = {}
     if (body.title !== undefined) updateData.title = body.title

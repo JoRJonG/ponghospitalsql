@@ -4,6 +4,7 @@ import Announcement from '../models/mysql/Announcement.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { viewCache, VIEW_COOLDOWN_MS } from '../utils/viewCache.js'
+import { sanitizeHtml, sanitizeText } from '../utils/sanitization.js'
 
 const router = Router()
 
@@ -96,6 +97,11 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
     const payload = { ...req.body }
     if (req.user?.username) payload.createdBy = req.user.username
     
+    // Sanitize user inputs
+    if (payload.title) payload.title = sanitizeText(payload.title)
+    if (payload.content) payload.content = sanitizeHtml(payload.content)
+    if (payload.category) payload.category = sanitizeText(payload.category)
+    
     // จำกัด attachments ไม่เกิน 5 รายการ และแต่ละไฟล์ไม่เกิน 10MB (base64)
     if (payload.attachments && Array.isArray(payload.attachments)) {
       if (payload.attachments.length > 5) {
@@ -135,6 +141,12 @@ router.put('/:id', requireAuth, requirePermission('announcements'), async (req, 
     const before = await Announcement.findById(req.params.id)
     const payload = { ...req.body }
     if (req.user?.username) payload.updatedBy = req.user.username
+    
+    // Sanitize user inputs
+    if (payload.title) payload.title = sanitizeText(payload.title)
+    if (payload.content) payload.content = sanitizeHtml(payload.content)
+    if (payload.category) payload.category = sanitizeText(payload.category)
+    
     const doc = await Announcement.findByIdAndUpdate(req.params.id, payload, { new: true })
     if (!doc) return res.status(404).json({ error: 'Not found' })
     purgeCachePrefix('/api/announcements')

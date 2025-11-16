@@ -6,6 +6,7 @@ import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { fileTypeFromBuffer } from 'file-type'
 import { decodeUploadFilename } from '../utils/filename.js'
+import { sanitizeHtml, sanitizeText } from '../utils/sanitization.js'
 
 const router = Router()
 
@@ -66,6 +67,11 @@ router.post('/', requireAuth, requirePermission('executives'), upload.single('im
   
   try {
     const payload = { ...req.body }
+    
+    // Sanitize user inputs
+    if (payload.name) payload.name = sanitizeText(payload.name)
+    if (payload.position) payload.position = sanitizeText(payload.position)
+    if (payload.bio) payload.bio = sanitizeHtml(payload.bio)
     
     // Parse isPublished
     if (payload.isPublished !== undefined) {
@@ -136,6 +142,11 @@ router.put('/:id', requireAuth, requirePermission('executives'), (req, res, next
   
   try {
     const payload = { ...req.body }
+    
+    // Sanitize user inputs
+    if (payload.name) payload.name = sanitizeText(payload.name)
+    if (payload.position) payload.position = sanitizeText(payload.position)
+    if (payload.bio) payload.bio = sanitizeHtml(payload.bio)
     
     // Parse isPublished
     if (payload.isPublished !== undefined && typeof payload.isPublished === 'string') {
