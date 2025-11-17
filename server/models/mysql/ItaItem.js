@@ -66,12 +66,17 @@ async function ensurePdfTable() {
     id INT AUTO_INCREMENT PRIMARY KEY,
     filename VARCHAR(255) NOT NULL,
     mimetype VARCHAR(100) NOT NULL,
+    description TEXT NULL,
     bytes LONGBLOB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, [])
 
   if (!(await columnExists('ita_files', 'ita_item_id'))) {
     await exec('ALTER TABLE ita_files ADD COLUMN ita_item_id INT NULL', [])
+  }
+
+  if (!(await columnExists('ita_files', 'description'))) {
+    await exec('ALTER TABLE ita_files ADD COLUMN description TEXT NULL', [])
   }
 
   if (!(await indexExists('ita_files', 'idx_ita_files_item'))) {
@@ -184,28 +189,44 @@ export class ItaItem {
   }
 }
 
-export async function saveItaPdf({ filename, mimetype, buffer }) {
+export async function saveItaPdf({ filename, mimetype, buffer, description = null }) {
   await ensurePdfTable()
-  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes) VALUES (?,?,?)', [filename, mimetype, buffer])
+  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, description) VALUES (?,?,?,?)', [filename, mimetype, buffer, description])
   return { id: result.insertId }
 }
 export async function getItaPdf(id) {
   await ensurePdfTable()
-  const rows = await query('SELECT id, filename, mimetype, bytes FROM ita_files WHERE id = ?', [id])
+  const rows = await query('SELECT id, filename, mimetype, bytes, description FROM ita_files WHERE id = ?', [id])
   if (!rows[0]) return null
   const r = rows[0]
-  return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: r.bytes }
+  return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: r.bytes, description: r.description }
 }
 
-export async function attachPdfToItem(itemId, { filename, mimetype, buffer }) {
+export async function getItaPdfByFilename(filename) {
   await ensurePdfTable()
-  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, ita_item_id) VALUES (?,?,?,?)', [filename, mimetype, buffer, itemId])
+  const rows = await query('SELECT id, filename, mimetype, bytes, description FROM ita_files WHERE filename = ? ORDER BY id DESC LIMIT 1', [filename])
+  if (!rows[0]) return null
+  const r = rows[0]
+  return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: r.bytes, description: r.description }
+}
+
+export async function attachPdfToItem(itemId, { filename, mimetype, buffer, description = null }) {
+  await ensurePdfTable()
+  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, ita_item_id, description) VALUES (?,?,?,?,?)', [filename, mimetype, buffer, itemId, description])
   return { id: result.insertId }
 }
 export async function listItemPdfs(itemId) {
   await ensurePdfTable()
-  const rows = await query('SELECT id, filename, mimetype, OCTET_LENGTH(bytes) AS size, created_at FROM ita_files WHERE ita_item_id = ? ORDER BY id ASC', [itemId])
-  return rows.map(r => ({ id: r.id, filename: r.filename, mimetype: r.mimetype, size: r.size, url: `/api/ita/pdf/${r.id}`, createdAt: r.created_at }))
+  const rows = await query('SELECT id, filename, mimetype, OCTET_LENGTH(bytes) AS size, created_at, description FROM ita_files WHERE ita_item_id = ? ORDER BY id ASC', [itemId])
+  return rows.map(r => ({
+    id: r.id,
+    filename: r.filename,
+    mimetype: r.mimetype,
+    size: r.size,
+    description: r.description || null,
+    url: `/api/ita/pdf/${encodeURIComponent(r.filename)}`,
+    createdAt: r.created_at,
+  }))
 }
 export async function deletePdf(fileId) {
   await ensurePdfTable()

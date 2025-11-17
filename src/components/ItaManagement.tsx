@@ -32,6 +32,9 @@ const flattenNodes = (nodes: ItaItem[], acc: ItaItem[] = []): ItaItem[] => {
 
 const escapeRegExp = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+const MAX_PDF_SIZE = 100 * 1024 * 1024
+const PDFS_PER_PAGE = 20
+
 const formatFileSize = (bytes: number) => {
   if (!Number.isFinite(bytes) || bytes <= 0) return '-'
   const units = ['B', 'KB', 'MB', 'GB']
@@ -62,6 +65,8 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
   const [busy, setBusy] = useState(false)
   // เก็บไฟล์ PDF ระหว่างกำลังสร้างเมนูใหม่ (ยังไม่มี ID)
   const [pendingNewPdfs, setPendingNewPdfs] = useState<File[]>([])
+  const [pdfFilter, setPdfFilter] = useState('')
+  const [pdfPage, setPdfPage] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [pdfSectionsOpen, setPdfSectionsOpen] = useState<Set<number>>(new Set())
 
@@ -286,10 +291,27 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
 
   // Load multiple PDFs for the editing item
   useEffect(() => {
-    if (!editing) { setPdfList([]); return }
+    if (!editing) { setPdfList([]); setPdfFilter(''); setPdfPage(0); return }
     setPdfLoading(true)
+    setPdfFilter('')
+    setPdfPage(0)
     fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) }).catch(()=>{}).finally(()=>setPdfLoading(false))
   }, [editing])
+
+  const filteredPdfFiles = useMemo(() => {
+    const term = pdfFilter.trim().toLowerCase()
+    if (!term) return pdfList
+    return pdfList.filter(p => p.filename.toLowerCase().includes(term))
+  }, [pdfFilter, pdfList])
+  const totalPdfPages = Math.max(1, Math.ceil(filteredPdfFiles.length / PDFS_PER_PAGE))
+  const currentPdfFiles = filteredPdfFiles.slice(pdfPage * PDFS_PER_PAGE, pdfPage * PDFS_PER_PAGE + PDFS_PER_PAGE)
+
+  useEffect(() => {
+    setPdfPage(0)
+  }, [pdfFilter])
+  useEffect(() => {
+    setPdfPage(prev => Math.min(prev, totalPdfPages - 1))
+  }, [totalPdfPages])
 
   const uploadPdfToItem = async (file: File, forcedItemId?: number) => {
     const itemId = forcedItemId ?? editing?._id
@@ -492,49 +514,133 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                 <div className="flex flex-col md:flex-row gap-2">
                   <label className="admin-btn admin-btn--outline cursor-pointer whitespace-nowrap">
                     เลือกไฟล์
-                    <input type="file" accept="application/pdf" multiple className="hidden" onChange={async e=>{
-                      const files = Array.from(e.target.files || [])
-                      if (!files.length) return
-                      if (editing) {
-                        for (const file of files) { await uploadPdfToItem(file) }
-                        fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) })
-                      } else {
-                        setPendingNewPdfs(prev => [...prev, ...files])
-                      }
-                    }} />
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      multiple
+                      className="hidden"
+                      onChange={async e => {
+                        const files = Array.from(e.target.files || [])
+                        if (!files.length) return
+                        const valid: File[] = []
+                        for (const file of files) {
+                          if (file.size > MAX_PDF_SIZE) {
+                            showToast(`ไฟล์ ${file.name} มีขนาดเกิน 100MB`, undefined, 'error', 4000)
+                            continue
+                          }
+                          valid.push(file)
+                        }
+                        if (!valid.length) return
+                        if (editing) {
+                          for (const file of valid) {
+                            await uploadPdfToItem(file)
+                          }
+                          fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) })
+                        } else {
+                          setPendingNewPdfs(prev => [...prev, ...valid])
+                        }
+                      }}
+                    />
                   </label>
                 </div>
                 {!editing && pendingNewPdfs.length > 0 && (
-                  <ul className="mt-2 text-xs space-y-1">
-                    {pendingNewPdfs.map((f,i)=>(
-                      <li key={i} className="flex items-center gap-2">
-                        <span className="truncate flex-1">{f.name}</span>
-                        <span className="text-gray-400">{(f.size/1024).toFixed(1)} KB</span>
-                        <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>setPendingNewPdfs(list=>list.filter((_,x)=>x!==i))}>ลบ</button>
-                      </li>
-                    ))}
-                  </ul>
+                        <ul className="mt-2 text-xs space-y-1">
+                          {pendingNewPdfs.map((f,i)=>(
+                            <li key={i} className="flex items-center gap-2">
+                              <span className="truncate flex-1">{f.name}</span>
+                              <span className="text-gray-400">{formatFileSize(f.size)}</span>
+                              <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>setPendingNewPdfs(list=>list.filter((_,x)=>x!==i))}>ลบ</button>
+                            </li>
+                          ))}
+                        </ul>
                 )}
                 {editing && (
-                  <div className="mt-4 border-t pt-3">
+                  <div className="mt-4 border-t pt-3 space-y-3">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium">ไฟล์ PDF ทั้งหมด ({pdfList.length})</span>
                       <label className="admin-btn admin-btn--outline cursor-pointer text-xs">
                         เพิ่มไฟล์
-                        <input type="file" accept="application/pdf" multiple className="hidden" onChange={e=>{ const fs=Array.from(e.target.files||[]); fs.forEach(f=>uploadPdfToItem(f)) }} />
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          multiple
+                          className="hidden"
+                          onChange={async e => {
+                            const files = Array.from(e.target.files || [])
+                            if (!files.length) return
+                            const valid: File[] = []
+                            for (const file of files) {
+                              if (file.size > MAX_PDF_SIZE) {
+                                showToast(`ไฟล์ ${file.name} มีขนาดเกิน 100MB`, undefined, 'error', 4000)
+                                continue
+                              }
+                              valid.push(file)
+                            }
+                            if (!valid.length) return
+                            for (const file of valid) {
+                              await uploadPdfToItem(file)
+                            }
+                            fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) })
+                          }}
+                        />
                       </label>
                     </div>
                     {pdfLoading ? <div className="text-xs text-gray-500">กำลังโหลด...</div> : (
                       pdfList.length === 0 ? <div className="text-xs text-gray-500">ยังไม่มีไฟล์</div> : (
-                        <ul className="space-y-1 text-xs">
-                          {pdfList.map(p => (
-                            <li key={p.id} className="flex items-center gap-2">
-                              <a href={p.url} target="_blank" className="text-blue-700 underline truncate flex-1" title={p.filename}>{p.filename}</a>
-                              <span className="text-gray-400">{(p.size/1024).toFixed(1)} KB</span>
-                              <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>deletePdfFile(p.id)}>ลบ</button>
-                            </li>
-                          ))}
-                        </ul>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 mb-2">
+                            <label htmlFor="pdf-filter" className="font-medium">ค้นหาไฟล์</label>
+                            <input
+                              id="pdf-filter"
+                              value={pdfFilter}
+                              onChange={e => setPdfFilter(e.target.value)}
+                              placeholder="ชื่อไฟล์"
+                              className="rounded border px-2 py-1 text-xs"
+                            />
+                            <span className="text-gray-500">แสดง {currentPdfFiles.length} / {filteredPdfFiles.length} รายการ</span>
+                          </div>
+                          <div className="overflow-x-auto border rounded">
+                            <table className="w-full text-xs">
+                              <thead className="bg-gray-100 border-b sticky top-0">
+                                <tr>
+                                  <th className="px-3 py-2 text-left font-medium">ไฟล์</th>
+                                  <th className="px-3 py-2 text-left font-medium">ขนาด</th>
+                                  <th className="px-3 py-2 w-24 font-medium">ลบ</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                {currentPdfFiles.map(p => (
+                                  <tr key={p.id} className="hover:bg-gray-50">
+                                    <td className="px-3 py-2">
+                                      <a href={p.url} target="_blank" rel="noopener" className="text-blue-700 underline truncate block" title={p.filename}>{p.filename}</a>
+                                    </td>
+                                    <td className="px-3 py-2 whitespace-nowrap">{formatFileSize(p.size)}</td>
+                                    <td className="px-3 py-2">
+                                      <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>deletePdfFile(p.id)}>🗑️ ลบ</button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                            <span>หน้า {pdfPage + 1} / {totalPdfPages}</span>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn--outline admin-btn--sm"
+                                onClick={() => setPdfPage(prev => Math.max(0, prev - 1))}
+                                disabled={pdfPage === 0}
+                              >ก่อนหน้า</button>
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn--outline admin-btn--sm"
+                                onClick={() => setPdfPage(prev => Math.min(totalPdfPages - 1, prev + 1))}
+                                disabled={pdfPage >= totalPdfPages - 1}
+                              >ถัดไป</button>
+                            </div>
+                          </div>
+                        </div>
                       )
                     )}
                   </div>

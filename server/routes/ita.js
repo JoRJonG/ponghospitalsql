@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
-import { ItaItem, saveItaPdf, getItaPdf, attachPdfToItem, listItemPdfs, deletePdf } from '../models/mysql/ItaItem.js'
+import { ItaItem, saveItaPdf, getItaPdf, getItaPdfByFilename, attachPdfToItem, listItemPdfs, deletePdf } from '../models/mysql/ItaItem.js'
 import multer from 'multer'
 import { fileTypeFromBuffer } from 'file-type'
 import { createRateLimiter } from '../middleware/ratelimit.js'
@@ -9,7 +9,7 @@ import { decodeUploadFilename } from '../utils/filename.js'
 
 const router = Router()
 router.use(createRateLimiter({ windowMs: 10_000, max: 60 }))
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } })
 
 // List as tree
 router.get('/tree', optionalAuth, microCache(15_000), async (req, res) => {
@@ -99,9 +99,10 @@ router.post('/upload/pdf', requireAuth, requirePermission('ita'), upload.single(
       return res.status(400).json({ error: 'Only PDF allowed', details: `declared=${declared} sniff=${sniff}` })
     }
   const filename = decodedName
-  const saved = await saveItaPdf({ filename, mimetype: 'application/pdf', buffer: req.file.buffer })
+  const description = typeof req.body.description === 'string' && req.body.description.trim() ? req.body.description : null
+  const saved = await saveItaPdf({ filename, mimetype: 'application/pdf', buffer: req.file.buffer, description })
     if (!saved?.id) return res.status(500).json({ error: 'Insert failed' })
-    res.json({ id: saved.id, url: `/api/ita/pdf/${saved.id}` })
+    res.json({ id: saved.id, url: `/api/ita/pdf/${encodeURIComponent(filename)}` })
   } catch (e) {
     console.error('[ITA upload] error:', e?.message)
     res.status(400).json({ error: 'Upload failed', details: e?.message })
@@ -122,8 +123,9 @@ router.post('/:id/pdf', requireAuth, requirePermission('ita'), upload.single('fi
   const looksPdf = declared === 'application/pdf' || sniff === 'application/pdf' || decodedName.toLowerCase().endsWith('.pdf')
     if (!looksPdf) return res.status(400).json({ error: 'Only PDF allowed' })
   const filename = decodedName
-    const saved = await attachPdfToItem(itemId, { filename, mimetype: 'application/pdf', buffer: req.file.buffer })
-    res.json({ id: saved.id, url: `/api/ita/pdf/${saved.id}` })
+    const description = typeof req.body.description === 'string' && req.body.description.trim() ? req.body.description : null
+    const saved = await attachPdfToItem(itemId, { filename, mimetype: 'application/pdf', buffer: req.file.buffer, description })
+    res.json({ id: saved.id, url: `/api/ita/pdf/${encodeURIComponent(filename)}` })
   } catch (e) {
     console.error('[ITA upload item pdf] error:', e?.message)
     res.status(400).json({ error: 'Upload failed', details: e?.message })
@@ -155,8 +157,14 @@ router.delete('/pdf/file/:fileId', requireAuth, requirePermission('ita'), async 
 // Serve PDF
 router.get('/pdf/:id', async (req, res) => {
   try {
-    const id = Number(req.params.id)
-    const file = await getItaPdf(id)
+    const idParam = req.params.id
+    let file = null
+    if (/^\d+$/.test(idParam)) {
+      file = await getItaPdf(Number(idParam))
+    }
+    if (!file) {
+      file = await getItaPdfByFilename(idParam)
+    }
     if (!file) return res.status(404).json({ error: 'Not found' })
     if (!file.bytes) return res.status(500).json({ error: 'Corrupt PDF (no data)' })
     res.setHeader('Content-Type', file.mimetype || 'application/pdf')
