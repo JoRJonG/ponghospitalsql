@@ -7,7 +7,7 @@ import { createRateLimiter } from '../middleware/ratelimit.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { decodeUploadFilename } from '../utils/filename.js'
 
-const MAX_PDF_FILE_SIZE = 200 * 1024 * 1024
+const MAX_PDF_FILE_SIZE = 300 * 1024 * 1024
 const router = Router()
 router.use(createRateLimiter({ windowMs: 10_000, max: 60 }))
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_PDF_FILE_SIZE } })
