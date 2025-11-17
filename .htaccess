@@ -39,3 +39,10 @@ RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.vscode)(
     </IfModule>
 
 </RequireAll>
+
+# PHP Configuration for large file uploads (for phpMyAdmin and PHP scripts)
+php_value upload_max_filesize 64M
+php_value post_max_size 128M
+php_value max_execution_time 300
+php_value memory_limit 256M
+php_value max_input_time 300
