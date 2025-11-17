@@ -7,9 +7,23 @@ import { createRateLimiter } from '../middleware/ratelimit.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { decodeUploadFilename } from '../utils/filename.js'
 
+const MAX_PDF_FILE_SIZE = 200 * 1024 * 1024
 const router = Router()
 router.use(createRateLimiter({ windowMs: 10_000, max: 60 }))
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } })
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_PDF_FILE_SIZE } })
+
+function multerUploadMiddleware(req, res, next) {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        const sizeMb = Math.round(MAX_PDF_FILE_SIZE / (1024 * 1024))
+        return res.status(400).json({ error: 'File too large', details: `File must be ${sizeMb}MB or smaller` })
+      }
+      return next(err)
+    }
+    next()
+  })
+}
 
 // List as tree
 router.get('/tree', optionalAuth, microCache(15_000), async (req, res) => {
@@ -86,7 +100,7 @@ router.put('/:id', requireAuth, requirePermission('ita'), async (req, res) => {
 })
 
 // Upload PDF (returns file id)
-router.post('/upload/pdf', requireAuth, requirePermission('ita'), upload.single('file'), async (req, res) => {
+router.post('/upload/pdf', requireAuth, requirePermission('ita'), multerUploadMiddleware, async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file' })
     let kind = null
@@ -110,7 +124,7 @@ router.post('/upload/pdf', requireAuth, requirePermission('ita'), upload.single(
 })
 
 // Upload & attach PDF to specific item (multipart)  /api/ita/:id/pdf
-router.post('/:id/pdf', requireAuth, requirePermission('ita'), upload.single('file'), async (req, res) => {
+router.post('/:id/pdf', requireAuth, requirePermission('ita'), multerUploadMiddleware, async (req, res) => {
   try {
     const itemId = Number(req.params.id)
     if (!itemId) return res.status(400).json({ error: 'Invalid item id' })

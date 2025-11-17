@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_URL || 'http://localhost:5000',
           changeOrigin: true,
           secure: false,
+          timeout: 0,
+          proxyTimeout: 0,
         },
       },
     },

@@ -85,9 +85,9 @@ export async function createServer() {
   app.set('trust proxy', 1)
 
   // Body parser for JSON requests
-  app.use(express.json({ limit: '10mb' }))
+  app.use(express.json({ limit: '60mb' }))
   // Body parser for form data (multipart handled by multer per-route)
-  app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+  app.use(express.urlencoded({ extended: true, limit: '250mb' }))
 
   // Cookie parser
   app.use(cookieParser())

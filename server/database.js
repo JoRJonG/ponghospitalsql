@@ -22,9 +22,13 @@ const dbConfig = {
   waitForConnections: true,
   // Increased timeout for BLOB operations
   connectTimeout: 120000, // 2 minutes
+  acquireTimeout: 120000, // 2 minutes to acquire connection
+  timeout: 120000, // 2 minutes for query execution
   // Keep connection alive for long operations
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
+  // Allow large packets for PDF uploads (256MB)
+  maxAllowedPacket: 268435456,
   // SSL settings (ถ้าต้องการ)
   ssl: process.env.MYSQL_SSL === 'true' ? {
     rejectUnauthorized: false
@@ -70,7 +74,10 @@ const RECOVERABLE_PATTERNS = [
   /closed state/i,
   /connection lost/i,
   /server has gone away/i,
-  /ec?onn?reset/i
+  /ec?onn?reset/i,
+  /econnaborted/i,
+  /connection.*aborted/i,
+  /connection.*terminated/i,
 ]
 
 const isRecoverableDbError = (error) => {
@@ -84,6 +91,7 @@ async function executeWithRetry(fn, retries = 1) {
   } catch (error) {
     if (retries > 0 && isRecoverableDbError(error)) {
       console.warn('[DB] Recoverable error detected, retrying:', error.message)
+      await new Promise(resolve => setTimeout(resolve, 1000))
       return executeWithRetry(fn, retries - 1)
     }
     console.error('[DB] Fatal error:', error.message)
@@ -100,7 +108,7 @@ export async function query(sql, params = [], retries = 1) {
 }
 
 // Helper function สำหรับ insert/update/delete
-export async function exec(sql, params = [], retries = 1) {
+export async function exec(sql, params = [], retries = 3) {
   return executeWithRetry(async () => {
     const [result] = await pool.execute(sql, params)
     return result
