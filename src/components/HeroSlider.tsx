@@ -94,9 +94,9 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
   }, [slides])
 
   return (
-    <div className="md:w-full py-2 md:py-0">
-      <div className="md:container-narrow">
-        <div className="relative w-full h-[200px] md:h-[70vh] lg:h-[92vh] overflow-hidden bg-white md:bg-transparent rounded-xl md:rounded-none shadow md:shadow-none">
+    <div className="w-full md:py-0 py-6">
+      <div className="md:mx-0 mx-4">
+        <div className="relative w-full h-[280px] md:h-[60vh] overflow-hidden bg-slate-50 md:rounded-none rounded-2xl md:shadow-none shadow-lg md:border-0 border border-slate-200">
         {slides.map((s, i) => {
           const props = responsiveImageProps(s.src, { widths: [480, 768, 1024, 1440], crop: 'fit', sizes: '100vw' })
           const bg = bgUrls[i]

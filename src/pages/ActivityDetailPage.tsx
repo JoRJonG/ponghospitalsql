@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { shareItem } from '../utils/share'
 import { sanitize } from '../utils/sanitize'
 import { fastFetch } from '../utils/fastFetch'
 import { responsiveImageProps } from '../utils/image'
@@ -77,10 +78,25 @@ export default function ActivityDetailPage() {
 
   return (
     <div className="container-narrow py-8">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">รายละเอียดกิจกรรม</h1>
-  <Link to="/activities" className="text-sm text-green-700 hover:underline">กลับไปดูกิจกรรมทั้งหมด</Link>
-      </div>
+          <div className="mb-4 flex items-center justify-between">
+            <h1 className="text-2xl font-bold">รายละเอียดกิจกรรม</h1>
+            <div className="flex items-center gap-3">
+              <Link to="/activities" className="text-sm text-green-700 hover:underline">กลับไปดูกิจกรรมทั้งหมด</Link>
+              <button
+                type="button"
+                className="text-slate-600 hover:underline inline-flex items-center gap-1 text-sm"
+                onClick={() => {
+                  const first = item?.images && item.images.length ? item.images[0] : undefined
+                  const img = typeof first === 'string' ? first : first?.url
+                  const idVal = id || item?._id
+                  const previewUrl = `${window.location.origin}/o/activity/${idVal}`
+                  shareItem({ title: item?.title, url: previewUrl, image: img })
+                }}
+              >
+                <i className="fa-solid fa-share-nodes mr-1" /> แชร์
+              </button>
+            </div>
+          </div>
 
       {!item && !error && (
         <div className="space-y-3">

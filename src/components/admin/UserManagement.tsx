@@ -37,6 +37,7 @@ const PERMISSION_OPTIONS: PermissionOption[] = [
   { value: 'slides', label: 'สไลด์', description: 'จัดการรูปสไลด์ในหน้าแรก' },
   { value: 'units', label: 'หน่วยงาน', description: 'แก้ไขลิงก์หน่วยงาน' },
   { value: 'executives', label: 'ผู้บริหาร', description: 'แก้ไขข้อมูลผู้บริหาร' },
+  { value: 'infographics', label: 'Infographic', description: 'จัดการรูปภาพ Infographic' },
   { value: 'ita', label: 'ITA', description: 'จัดการเมนู ITA' },
   { value: 'users', label: 'ผู้ใช้', description: 'จัดการบัญชีผู้ใช้และสิทธิ์' },
   { value: 'system', label: 'ระบบ', description: 'เข้าถึงการตั้งค่าระบบเพิ่มเติม' },

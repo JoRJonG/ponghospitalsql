@@ -45,41 +45,34 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
 
   return embedded ? (
     <>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          แผนกและหน่วยงาน
-        </h2>
-        <p className="text-sm text-gray-600">ค้นหาและติดต่อแผนกต่างๆ ของโรงพยาบาล</p>
+      <div className="mb-10 text-center">
+        <h2 className="text-2xl font-semibold text-slate-800">ระบบสารสนเทศภายใน</h2>
       </div>
       {error && (
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
       )}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {items.map(u => {
           const src = u.image?.url
           const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
           const card = (
-            <div className="card h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-              <div className="card-body flex flex-col items-center text-center gap-2">
-                <div className="h-16 flex items-center justify-center">
-                  {src ? (
-                    <img
-                      loading="lazy" decoding="async"
-                      src={rsrc}
-                      srcSet={srcSet}
-                      sizes={sizes}
-                      alt={u.name}
-                      className="max-h-16 w-auto object-contain"
-                      width={160} height={64}
-                    />
-                  ) : (
-                    <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                      <i className="fa-solid fa-building" />
-                    </div>
-                  )}
-                </div>
-                <div className="text-sm font-medium text-gray-800 line-clamp-2">{u.name}</div>
+            <div className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-lg transition duration-300 h-full">
+              <div className="w-14 h-14 mb-3 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl group-hover:scale-110 transition duration-300">
+                {src ? (
+                  <img
+                    loading="lazy" decoding="async"
+                    src={rsrc}
+                    srcSet={srcSet}
+                    sizes={sizes}
+                    alt={u.name}
+                    className="max-h-10 w-auto object-contain"
+                    width={40} height={40}
+                  />
+                ) : (
+                  <i className="fa-solid fa-building-user" />
+                )}
               </div>
+              <span className="font-bold text-slate-700 group-hover:text-emerald-700 text-center line-clamp-2">{u.name}</span>
             </div>
           )
           return u.href ? (
@@ -96,7 +89,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
       </div>
     </>
   ) : (
-    <section className="py-12 bg-gray-50">
+    <section className="py-8 bg-gray-50">
       <div className="container-narrow">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -107,32 +100,28 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
         {error && (
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
         )}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {items.map(u => {
             const src = u.image?.url
             const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
             const card = (
-              <div className="card h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-                <div className="card-body flex flex-col items-center text-center gap-2">
-                  <div className="h-16 flex items-center justify-center">
-                    {src ? (
-                      <img
-                        loading="lazy" decoding="async"
-                        src={rsrc}
-                        srcSet={srcSet}
-                        sizes={sizes}
-                        alt={u.name}
-                        className="max-h-16 w-auto object-contain"
-                        width={160} height={64}
-                      />
-                    ) : (
-                      <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                        <i className="fa-solid fa-building" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-sm font-medium text-gray-800 line-clamp-2">{u.name}</div>
+              <div className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-lg transition duration-300 h-full">
+                <div className="w-14 h-14 mb-3 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl group-hover:scale-110 transition duration-300">
+                  {src ? (
+                    <img
+                      loading="lazy" decoding="async"
+                      src={rsrc}
+                      srcSet={srcSet}
+                      sizes={sizes}
+                      alt={u.name}
+                      className="max-h-10 w-auto object-contain"
+                      width={40} height={40}
+                    />
+                  ) : (
+                    <i className="fa-solid fa-building" />
+                  )}
                 </div>
+                <span className="font-bold text-slate-700 group-hover:text-emerald-700 text-center line-clamp-2">{u.name}</span>
               </div>
             )
             return u.href ? (

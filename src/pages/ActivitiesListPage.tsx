@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+// Remove HTML tags from description (same as LatestActivities)
+const stripHtml = (html?: string) => {
+  if (!html) return ''
+  const tmp = document.createElement('div')
+  tmp.innerHTML = html
+  return tmp.textContent || tmp.innerText || ''
+}
 import { Link } from 'react-router-dom'
 import { fastFetch } from '../utils/fastFetch'
 import { responsiveImageProps } from '../utils/image'
@@ -22,7 +29,7 @@ export default function ActivitiesListPage() {
   const [error, setError] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const [page, setPage] = useState(1)
-  const perPage = 6
+  const perPage = 8
   const { refreshKey } = useHomepageRefresh()
   
   // Search and filter states
@@ -158,12 +165,13 @@ export default function ActivitiesListPage() {
             ))}
           </div>
           {/* Desktop/tablet skeleton: grid cards */}
-          <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4 mt-1">
-            {[...Array(6)].map((_, i) => (
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6 mt-1">
+            {[...Array(8)].map((_, i) => (
               <div key={i} className="card overflow-hidden animate-pulse">
-                <div className="bg-gray-200 aspect-[4/3] w-full" />
-                <div className="card-body">
-                  <div className="h-4 w-2/3 bg-gray-200 rounded" />
+                <div className="bg-gray-200 aspect-[4/3] w-full rounded-lg" />
+                <div className="card-body p-4">
+                  <div className="h-4 w-2/3 bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-1/2 bg-gray-200 rounded" />
                 </div>
               </div>
             ))}
@@ -197,6 +205,9 @@ export default function ActivitiesListPage() {
                         {a.date && <div>{new Date(a.date).toLocaleDateString()}</div>}
                         {a.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</div>}
                       </div>
+                      <div className="mt-2">
+                        
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -204,15 +215,15 @@ export default function ActivitiesListPage() {
             })}
           </div>
           {/* Desktop/tablet: grid cards */}
-          <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6">
             {pagedItems.map(a => {
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
                 || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=800&auto=format&fit=crop'
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
               return (
-                <Link to={`/activities/${a._id}`} key={a._id} className="card overflow-hidden group">
-                  <div className="relative">
+                <Link to={`/activities/${a._id}`} key={a._id} className="group block">
+                  <div className="overflow-hidden rounded-lg shadow-sm mb-4 relative aspect-[4/3] bg-gray-100">
                     <img
                       loading="lazy"
                       decoding="async"
@@ -220,16 +231,30 @@ export default function ActivitiesListPage() {
                       srcSet={srcSet}
                       sizes={sizes}
                       alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
-                      className="w-full aspect-[4/3] object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 transform"
                     />
-                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent text-white text-sm">
-                      <div className="font-semibold line-clamp-2">{a.title}</div>
-                      <div className="flex items-center gap-2 opacity-80">
-                        {a.date && <div>{new Date(a.date).toLocaleDateString()}</div>}
-                        {a.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</div>}
-                      </div>
-                    </div>
                   </div>
+                  <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
+                    {a.date && (
+                      <>
+                        <span><i className="far fa-calendar mr-1"></i> {new Date(a.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
+                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                      </>
+                    )}
+                    {a.viewCount !== undefined && a.viewCount > 0 && (
+                      <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
+                    )}
+                  </div>
+                  <h3 className="text-base md:text-lg font-semibold text-emerald-700 leading-snug group-hover:text-emerald-900 transition mb-2">
+                    {a.title}
+                  </h3>
+                  {a.description && (
+                    <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                      {stripHtml(a.description)}
+                    </p>
+                  )}
+                   <div className="mt-2">
+                   </div>
                 </Link>
               )
             })}

@@ -8,7 +8,7 @@ import { quillModules, quillFormats, toDateTimeLocalValue, fromDateTimeLocalValu
 type Announcement = {
   _id?: string
   title: string
-  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ'
+  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ' | 'ประกาศจัดซื้อจัดจ้าง'
   content?: string
   isPublished?: boolean
   publishedAt?: string | null
@@ -154,6 +154,7 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
           <option>สมัครงาน</option>
           <option>ประชาสัมพันธ์</option>
           <option>ประกาศ</option>
+          <option>ประกาศจัดซื้อจัดจ้าง</option>
         </select>
       </div>
       <div>

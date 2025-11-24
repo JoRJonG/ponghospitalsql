@@ -11,7 +11,7 @@ const stripHtml = (html?: string) => {
 type Announcement = {
   _id: string
   title: string
-  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ'
+  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ' | 'ประกาศจัดซื้อจัดจ้าง'
   content?: string
   publishedAt?: string
 }
@@ -22,6 +22,7 @@ const categoryToPath: Record<Announcement['category'], string> = {
   'สมัครงาน': '/announcements/jobs',
   'ประชาสัมพันธ์': '/announcements/news',
   'ประกาศ': '/announcements/notices',
+  'ประกาศจัดซื้อจัดจ้าง': '/announcements/procurement',
 }
 
 export default function LatestAnnouncements({ limit = 5, embedded = false }: { limit?: number, embedded?: boolean }) {
@@ -130,6 +131,7 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
                   >
                     ดูหมวดนี้ →
                   </button>
+                  
                 </div>
               </div>
             </Link>
@@ -141,7 +143,7 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
       )}
     </>
   ) : (
-    <section className="py-12 bg-gray-50">
+    <section className="py-8 bg-gray-50">
       <div className="container-narrow">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -208,6 +210,7 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
                   >
                     ดูหมวดนี้ →
                   </button>
+                  
                 </div>
               </div>
             </Link>

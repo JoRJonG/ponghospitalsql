@@ -17,6 +17,7 @@ const PERMISSION_OPTIONS = new Set([
   'slides',
   'units',
   'executives',
+  'infographics',
   'ita',
   'users',
   'system',

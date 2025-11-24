@@ -5,7 +5,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import logo from '../assets/logo-150x150.png'
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-2 rounded hover:bg-green-50 ${isActive ? 'text-green-700 font-semibold' : 'text-gray-700'}`
+  `px-4 py-2 text-base font-medium transition-colors ${isActive ? 'text-teal-700' : 'text-slate-700 hover:text-teal-600'}`
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
@@ -51,81 +51,102 @@ export default function Navbar() {
     navigate(`/ita/item/${id}`)
   }
   return (
-    <header className="border-b border-gray-200 bg-white/85 sticky top-0 z-40 backdrop-blur">
-      <div className="container-narrow flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt="Pong Hospital logo"
-            className="h-10 w-10 rounded"
-            loading="eager"
-          />
-          <span className="font-bold text-lg text-gray-800">โรงพยาบาลปง</span>
-        </Link>
-        <nav className="hidden md:flex items-center gap-1">
-          <NavLink to="/" className={navItemClass} end>หน้าหลัก</NavLink>
-          <NavLink to="/announcements" className={navItemClass}>ประกาศ</NavLink>
-          <NavLink to="/executives" className={navItemClass}>ผู้บริหาร</NavLink>
-          <div className="relative" onMouseEnter={openIta} onMouseLeave={closeItaLater}>
-            <NavLink to="/ita" className={navItemClass} onClick={()=>setItaOpen(o=>!o)}>ITA ▾</NavLink>
-            {itaOpen && itaRoots.length > 0 && (
-              <div className="absolute left-0 mt-1 w-72 max-h-[70vh] overflow-auto rounded-lg border border-gray-200/80 bg-white/95 shadow-[0_4px_18px_-2px_rgba(0,0,0,0.08)] backdrop-blur-sm p-2 z-50 animate-fade-in">
-                <ul className="space-y-1">
-                  {itaRoots.map(r => (
-                    <li key={r._id} className="group">
-                      <button onClick={()=>goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-green-50/80 text-sm text-gray-700 flex items-center justify-between">
-                        <span className="truncate pr-2">{r.title}</span>
-                        {r.children && r.children.length > 0 && <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-green-600 transition-colors" />}
-                      </button>
-                      {r.children && r.children.length > 0 && (
-                        <ul className="ml-2 mt-1 border-l border-dashed border-gray-200 pl-2 space-y-1">
-                          {r.children.slice(0,6).map(c => (
-                            <li key={c._id}>
-                              <button onClick={()=>goItaAnchor(c._id)} className="w-full text-left px-2 py-0.5 rounded hover:bg-green-50/70 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
-                                <i className="fa-regular fa-circle text-[6px] text-gray-400" />
-                                <span className="truncate">{c.title}</span>
-                              </button>
-                            </li>
-                          ))}
-                          {r.children.length > 6 && (
-                            <li><span className="text-[11px] text-gray-400 px-2 italic">+ {r.children.length-6} รายการ</span></li>
-                          )}
-                        </ul>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+    <>
+      {/* Top Bar */}
+      <div className="bg-teal-900 text-white text-sm">
+        <div className="container-narrow flex items-center h-10">
+          <div className="flex items-center gap-6">
+            <a href="tel:1669" className="flex items-center gap-2 hover:text-teal-200 transition">
+              <i className="fa-solid fa-truck-medical" />
+              <span>ฉุกเฉิน 1669</span>
+            </a>
+            <span className="text-teal-400">|</span>
+            <a href="tel:054497030" className="flex items-center gap-2 hover:text-teal-200 transition">
+              <i className="fa-solid fa-phone" />
+              <span>สายด่วน รพ. 054-497030</span>
+            </a>
           </div>
-          <NavLink to="/about" className={navItemClass}>เกี่ยวกับเรา</NavLink>
-          <NavLink to="/contact" className={navItemClass}>ติดต่อเรา</NavLink>
-          <div className="ml-1 flex items-center gap-1">
-          </div>
-          <span className="mx-1" />
-          {isAuthenticated && (
-            <>
-              <NavLink to="/admin" className={navItemClass} end><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
-              <NavLink to="/admin/settings" className={navItemClass}>
-                <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
-              </NavLink>
-              <button onClick={doLogout} className="px-3 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600" aria-label="ออกจากระบบ">
-                <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
-              </button>
-            </>
-          )}
-          {!isAuthenticated && null}
-        </nav>
-        <button className="md:hidden p-2 text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600" aria-label={open? 'ปิดเมนู':'เปิดเมนู'} onClick={() => setOpen(o=>!o)}>
-          <i className={`fa-solid ${open ? 'fa-xmark' : 'fa-bars'} text-xl`} />
-        </button>
+        </div>
       </div>
+      
+      {/* Main Navbar */}
+      <header className="border-b border-gray-200 bg-white sticky top-0 z-40 shadow-sm">
+        <div className="container-narrow flex items-center justify-between h-20">
+          <Link to="/" className="flex items-center gap-3">
+            <img
+              src={logo}
+              alt="Pong Hospital logo"
+              className="h-14 w-14 rounded"
+              loading="eager"
+            />
+            <div className="flex flex-col">
+              <span className="font-bold text-xl text-teal-800">โรงพยาบาลปง</span>
+              <span className="text-xs text-slate-500 -mt-0.5">PONG HOSPITAL, PHAYAO</span>
+            </div>
+          </Link>
+          <nav className="hidden md:flex items-center gap-1">
+            <NavLink to="/" className={navItemClass} end>หน้าหลัก</NavLink>
+            <NavLink to="/announcements" className={navItemClass}>ประกาศ</NavLink>
+            <NavLink to="/executives" className={navItemClass}>ผู้บริหาร</NavLink>
+            <div className="relative" onMouseEnter={openIta} onMouseLeave={closeItaLater}>
+              <NavLink to="/ita" className={navItemClass} onClick={()=>setItaOpen(o=>!o)}>ITA ▾</NavLink>
+              {itaOpen && itaRoots.length > 0 && (
+                <div className="absolute left-0 mt-1 w-72 max-h-[70vh] overflow-auto rounded-lg border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-sm p-2 z-50 animate-fade-in">
+                  <ul className="space-y-1">
+                    {itaRoots.map(r => (
+                      <li key={r._id} className="group">
+                        <button onClick={()=>goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center justify-between">
+                          <span className="truncate pr-2">{r.title}</span>
+                          {r.children && r.children.length > 0 && <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-teal-600 transition-colors" />}
+                        </button>
+                        {r.children && r.children.length > 0 && (
+                          <ul className="ml-2 mt-1 border-l border-dashed border-gray-200 pl-2 space-y-1">
+                            {r.children.slice(0,6).map(c => (
+                              <li key={c._id}>
+                                <button onClick={()=>goItaAnchor(c._id)} className="w-full text-left px-2 py-0.5 rounded hover:bg-teal-50 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
+                                  <i className="fa-regular fa-circle text-[6px] text-gray-400" />
+                                  <span className="truncate">{c.title}</span>
+                                </button>
+                              </li>
+                            ))}
+                            {r.children.length > 6 && (
+                              <li><span className="text-[11px] text-gray-400 px-2 italic">+ {r.children.length-6} รายการ</span></li>
+                            )}
+                          </ul>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <NavLink to="/about" className={navItemClass}>เกี่ยวกับเรา</NavLink>
+            <NavLink to="/contact" className={navItemClass}>ติดต่อเรา</NavLink>
+            {isAuthenticated && (
+              <>
+                <span className="mx-1 text-slate-300">|</span>
+                <NavLink to="/admin" className={navItemClass} end><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
+                <NavLink to="/admin/settings" className={navItemClass}>
+                  <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
+                </NavLink>
+                <button onClick={doLogout} className="px-3 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm" aria-label="ออกจากระบบ">
+                  <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
+                </button>
+              </>
+            )}
+          </nav>
+          <button className="md:hidden p-2 text-gray-700" aria-label={open? 'ปิดเมนู':'เปิดเมนู'} onClick={() => setOpen(o=>!o)}>
+            <i className={`fa-solid ${open ? 'fa-xmark' : 'fa-bars'} text-xl`} />
+          </button>
+        </div>
+      </header>
       {open && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
+        <div className="md:hidden border-t border-gray-200 bg-white sticky top-20 z-40 shadow-md max-h-[calc(100vh-5rem)] overflow-y-auto">
           <div className="container-narrow py-2 flex flex-col">
             <NavLink to="/" className={navItemClass} end onClick={()=>setOpen(false)}>หน้าหลัก</NavLink>
             <NavLink to="/announcements" className={navItemClass} onClick={()=>setOpen(false)}>ประกาศ</NavLink>
             <NavLink to="/executives" className={navItemClass} onClick={()=>setOpen(false)}>ผู้บริหาร</NavLink>
+            <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
             <div>
               <button
                 type="button"
@@ -142,7 +163,7 @@ export default function Navbar() {
                     <li key={r._id}>
                       <button
                         onClick={()=>{ navigate(`/ita/item/${r._id}`); setOpen(false); setMobileItaOpen(false) }}
-                        className="w-full text-left text-sm px-2 py-1 rounded hover:bg-green-50 text-gray-700 truncate"
+                        className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 truncate"
                       >{r.title}</button>
                       {r.children && r.children.length>0 && (
                         <ul className="mt-1 ml-2 border-l border-dashed border-gray-200 pl-2 space-y-0.5">
@@ -150,7 +171,7 @@ export default function Navbar() {
                             <li key={c._id}>
                               <button
                                 onClick={()=>{ navigate(`/ita/item/${c._id}`); setOpen(false); setMobileItaOpen(false) }}
-                                className="w-full text-left text-[12.5px] px-2 py-0.5 rounded hover:bg-green-50 text-gray-600 truncate"
+                                className="w-full text-left text-[12.5px] px-2 py-0.5 rounded hover:bg-teal-50 text-gray-600 truncate"
                                 title={c.title}
                               >{c.title}</button>
                             </li>
@@ -165,23 +186,21 @@ export default function Navbar() {
             </div>
             <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
             <NavLink to="/contact" className={navItemClass} onClick={()=>setOpen(false)}>ติดต่อเรา</NavLink>
-            <div className="mt-2 flex items-center gap-2">
-            </div>
             {isAuthenticated && (
               <>
+                <div className="border-t border-gray-200 my-2"></div>
                 <NavLink to="/admin" className={navItemClass} end onClick={()=>setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
                 <NavLink to="/admin/settings" className={navItemClass} onClick={()=>setOpen(false)}>
                   <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
                 </NavLink>
-                <button className="text-left px-3 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700" onClick={doLogout}>
+                <button className="text-left px-4 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm" onClick={doLogout}>
                   <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
                 </button>
               </>
             )}
-            {!isAuthenticated && null}
           </div>
         </div>
       )}
-    </header>
+    </>
   )
 }

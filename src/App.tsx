@@ -97,7 +97,7 @@ function App() {
                       <Route path="/executives" element={<ManagementPage />} />
                       <Route path="/ita" element={<ItaPage />} />
                       <Route path="/ita/item/:id" element={<ItaItemPage />} />
-                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="/about/*" element={<AboutPage />} />
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/activities" element={<ActivitiesListPage />} />
                       <Route path="/activities/:id" element={<ActivityDetailPage />} />

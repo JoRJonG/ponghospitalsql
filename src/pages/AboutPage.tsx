@@ -1,20 +1,10 @@
 import { motion } from 'framer-motion'
+import { NavLink, Routes, Route } from 'react-router-dom'
+import InfographicPage from './InfographicPage'
 
-export default function AboutPage() {
+function AboutContent() {
   return (
-    <div className="container-narrow py-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-8"
-      >
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">เกี่ยวกับเรา</h1>
-        <p className="mt-2 text-gray-600">โรงพยาบาลปง อำเภอปง จังหวัดพะเยา</p>
-      </motion.div>
-
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* ประวัติองค์กร */}
         <motion.section
           initial={{ opacity: 0, y: 30 }}
@@ -446,6 +436,63 @@ export default function AboutPage() {
           </a>
         </motion.div>
       </div>
+  )
+}
+
+export default function AboutPage() {
+  return (
+    <div className="container-narrow py-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-6"
+      >
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">เกี่ยวกับเรา</h1>
+        <p className="mt-2 text-gray-600">โรงพยาบาลปง อำเภอปง จังหวัดพะเยา</p>
+      </motion.div>
+
+      {/* Sub Navigation */}
+      <div className="mb-6">
+        <div className="relative rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm">
+          <div className="flex flex-wrap gap-2 px-3 py-3 text-sm">
+            <NavLink
+              to="/about"
+              end
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                  isActive
+                    ? 'bg-green-600 text-white shadow'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                }`
+              }
+            >
+              <i className="fa-solid fa-info-circle" aria-hidden="true" />
+              ข้อมูลทั่วไป
+            </NavLink>
+            <NavLink
+              to="/about/infographic"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                  isActive
+                    ? 'bg-green-600 text-white shadow'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                }`
+              }
+            >
+              <i className="fa-solid fa-chart-bar" aria-hidden="true" />
+              Infographic
+            </NavLink>
+          </div>
+        </div>
+      </div>
+
+      {/* Routes */}
+      <Routes>
+        <Route index element={<AboutContent />} />
+        <Route path="infographic" element={<InfographicPage />} />
+      </Routes>
     </div>
   )
 }

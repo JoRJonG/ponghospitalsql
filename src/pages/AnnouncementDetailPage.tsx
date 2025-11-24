@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import PdfViewer from '../components/PdfViewer'
 import { Link, useParams } from 'react-router-dom'
+import { shareItem } from '../utils/share'
 import { fastFetch } from '../utils/fastFetch'
 
 type Attachment = { url: string; publicId?: string; kind?: 'image'|'pdf'|'file'; name?: string; bytes?: number }
@@ -117,7 +118,25 @@ export default function AnnouncementDetailPage() {
     <div className="container-narrow py-8">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">รายละเอียดประกาศ</h1>
-        <Link to="/announcements" className="text-sm text-green-700 hover:underline">กลับไปดูประกาศทั้งหมด</Link>
+        <div className="flex items-center gap-3">
+          <Link to="/announcements" className="text-sm text-green-700 hover:underline">กลับไปดูประกาศทั้งหมด</Link>
+          <button
+            type="button"
+            className="text-slate-600 hover:underline inline-flex items-center gap-1 text-sm"
+            onClick={() => {
+              // Try to find a sensible image attachment (if any)
+              const img = item?.attachments?.find(att => {
+                if (!att?.url) return false
+                return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(att.url) || att.kind === 'image'
+              })?.url
+              const idVal = id || item?._id
+              const previewUrl = `${window.location.origin}/o/announcement/${idVal}`
+              shareItem({ title: item?.title, url: previewUrl, image: img })
+            }}
+          >
+            <i className="fa-solid fa-share-nodes mr-1" /> แชร์
+          </button>
+        </div>
       </div>
 
       {!item && !error && (
@@ -136,7 +155,13 @@ export default function AnnouncementDetailPage() {
         <article className="space-y-4">
           <div className="text-sm text-gray-500 flex items-center gap-2">
             <span className="badge blue">{item.category}</span>
-            <span>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : ''}</span>
+            <span>{item.publishedAt ?
+              new Date(item.publishedAt).toLocaleDateString('th-TH', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
+            </span>
             {item.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs" aria-hidden="true"></i> {item.viewCount} ครั้ง</span>}
           </div>
           <h2 className="text-xl font-semibold">{item.title}</h2>

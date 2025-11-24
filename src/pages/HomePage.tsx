@@ -44,22 +44,26 @@ export default function HomePage() {
   useEffect(() => { setMounted(true) }, [])
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-slate-50">
       <div className={`transform transition-all duration-700 ease-out ${mounted ? 'animate-fade-in' : 'opacity-0 translate-y-4'}`}>
         <HeroSlider />
       </div>
 
-      <section ref={useReveal<HTMLDivElement>()} className="relative py-8">
+      <section className="py-8 md:py-16 bg-white">
         <div className="container-narrow">
-          <LatestActivities key={`activities-${refreshKey}`} limit={6} embedded={true} />
+          <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
+        </div>
+      </section>
 
-          <div className="mt-8">
-            <HomeAnnouncements key={`announcements-${refreshKey}`} limit={10} embedded={true} />
-          </div>
+      <section ref={useReveal<HTMLDivElement>()} className="py-8 md:py-16 bg-slate-50 border-t border-slate-200">
+        <div className="container-narrow">
+          <HomeAnnouncements key={`announcements-${refreshKey}`} limit={6} embedded={true} />
+        </div>
+      </section>
 
-          <div className="mt-8">
-            <UnitLinks embedded={true} />
-          </div>
+      <section className="py-6 md:py-12 bg-white">
+        <div className="container-narrow">
+          <UnitLinks embedded={true} />
         </div>
       </section>
     </div>

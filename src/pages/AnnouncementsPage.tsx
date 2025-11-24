@@ -13,7 +13,7 @@ const stripHtml = (html?: string) => {
 type Announcement = {
   _id: string
   title: string
-  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ'
+  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ' | 'ประกาศจัดซื้อจัดจ้าง'
   content?: string
   publishedAt?: string
   viewCount?: number
@@ -183,6 +183,14 @@ function List({ category }: { category?: Announcement['category'] }) {
   // Check if we are on a category-specific route
   const isCategoryRoute = !!category 
 
+  // Badge classes per category to match HomeAnnouncements
+  const badgeClass: Record<Announcement['category'], string> = {
+    'ประกาศจัดซื้อจัดจ้าง': 'bg-blue-50 text-blue-700 border border-blue-200',
+    'สมัครงาน': 'bg-emerald-100 text-emerald-700',
+    'ประชาสัมพันธ์': 'bg-purple-100 text-purple-700',
+    'ประกาศ': 'bg-slate-100 text-slate-700',
+  }
+
   return (
     <div className="space-y-4">
       {/* Search and Filter Controls */}
@@ -211,6 +219,7 @@ function List({ category }: { category?: Announcement['category'] }) {
               <option value="all">ทุกหมวดหมู่</option>
               <option value="ประชาสัมพันธ์">ประชาสัมพันธ์</option>
               <option value="ประกาศ">ประกาศ</option>
+              <option value="ประกาศจัดซื้อจัดจ้าง">ประกาศจัดซื้อจัดจ้าง</option>
               <option value="สมัครงาน">สมัครงาน</option>
             </select>
           </div>
@@ -234,6 +243,7 @@ function List({ category }: { category?: Announcement['category'] }) {
             พบ {filteredItems.length} รายการ {searchQuery && `สำหรับ "${searchQuery}"`}
           </div>
         )}
+        {/* (Removed duplicate News Update-style tabs; original NavLink row above remains) */}
       </div>
 
       {/* Announcements List */}
@@ -262,8 +272,14 @@ function List({ category }: { category?: Announcement['category'] }) {
         >
           <div className="card-body">
             <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2 mb-1">
-              <span className="badge blue">{a.category}</span>
-              <span>{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || 'bg-slate-100 text-slate-700'} group-hover:bg-emerald-100 group-hover:text-emerald-700`}>{a.category}</span>
+              <span>{a.publishedAt ?
+                new Date(a.publishedAt).toLocaleDateString('th-TH', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
+              </span>
               {a.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>}
               {isNew(a) && (
                 <span className="chip-new">
@@ -277,6 +293,9 @@ function List({ category }: { category?: Announcement['category'] }) {
             </div>
             <div className="font-semibold text-gray-800">{a.title}</div>
             {a.content && <p className="text-sm text-gray-600 line-clamp-2">{stripHtml(a.content)}</p>}
+            <div className="mt-2">
+              
+            </div>
           </div>
         </Link>
       ))}
@@ -387,6 +406,19 @@ export default function AnnouncementsPage() {
               <i className="fa-solid fa-scroll" aria-hidden="true" />
               ประกาศ
             </NavLink>
+            <NavLink
+              to="/announcements/procurement"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all ${
+                  isActive
+                    ? 'bg-green-600 text-white shadow'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                }`
+              }
+            >
+              <i className="fa-solid fa-shopping-cart" aria-hidden="true" />
+              ประกาศจัดซื้อจัดจ้าง
+            </NavLink>
           </div>
         </div>
       </div>
@@ -396,6 +428,7 @@ export default function AnnouncementsPage() {
         <Route path="jobs" element={<List category="สมัครงาน" />} /> 
         <Route path="news" element={<List category="ประชาสัมพันธ์" />} />
         <Route path="notices" element={<List category="ประกาศ" />} />
+        <Route path="procurement" element={<List category="ประกาศจัดซื้อจัดจ้าง" />} />
       </Routes>
       </div>
     </div>

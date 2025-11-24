@@ -11,6 +11,7 @@ import slidesRouter from './routes/slides.js'
 import unitsRouter from './routes/units.js'
 import authRouter from './routes/auth.js'
 import systemRouter from './routes/system.js'
+import previewRouter from './routes/preview.js'
 import { optionalAuth } from './middleware/auth.js'
 import geoBlockingMiddleware from './middleware/geoBlocking.js'
 
@@ -97,6 +98,8 @@ export async function createServer() {
   app.use('/api/activities', activitiesRouter)
   app.use('/api/announcements', announcementsRouter)
   app.use('/api/uploads', uploadsRouter)
+  // Public preview endpoints used by social scrapers to generate Open Graph previews
+  app.use('/o', previewRouter)
   app.use('/api/slides', slidesRouter)
   app.use('/api/units', unitsRouter)
   app.use('/api/auth', authRouter)

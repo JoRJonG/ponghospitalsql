@@ -78,34 +78,32 @@ const VisitorCounter: React.FC = () => {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-lg">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-400" />
-
-      <div className="relative flex flex-col gap-6 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-inner">
-            <svg className="h-6 w-6" fill="black" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-emerald-600/80">Website Insight</p>
-            <h3 className="mt-1 text-lg font-semibold text-slate-900">สถิติผู้เข้าชมเว็บไซต์</h3>
-          </div>
+    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-emerald-900/50 rounded flex items-center justify-center border border-emerald-800 text-emerald-500">
+          <i className="fa-solid fa-chart-pie text-xl"></i>
         </div>
-
-        <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-end sm:gap-10">
-          <div className="flex flex-1 flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ผู้เข้าชมวันนี้</span>
-            <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.today)}</span>
-          </div>
-          <div className="hidden h-14 w-px rounded-full bg-gradient-to-b from-emerald-200 via-slate-200 to-teal-200 sm:block" />
-          <div className="flex flex-1 flex-col gap-1 text-left sm:text-right">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ยอดสะสมทั้งหมด</span>
-            <span className="text-3xl font-bold text-slate-900 sm:text-4xl">{formatNumber(stats.lifetimeTotal)}</span>
-          </div>
+        <div>
+          <h4 className="text-white font-semibold text-sm tracking-widest uppercase">Website Statistics</h4>
+          <p className="text-slate-400 text-xs">ข้อมูลสถิติการเข้าชมเว็บไซต์</p>
         </div>
+      </div>
+
+      <div className="flex items-center gap-12">
+        <div className="text-center">
+          <span className="block text-3xl font-bold text-emerald-400">{formatNumber(stats.today)}</span>
+          <span className="text-xs text-slate-500 uppercase tracking-wide">Visits Today</span>
+        </div>
+        <div className="h-8 w-px bg-slate-700"></div>
+        <div className="text-center">
+          <span className="block text-3xl font-bold text-white">{formatNumber(stats.lifetimeTotal)}</span>
+          <span className="text-xs text-slate-500 uppercase tracking-wide">Total Visits</span>
+        </div>
+      </div>
+      
+      <div className="hidden md:block text-slate-600 text-xs">
+        Last update: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
       </div>
     </div>
   )

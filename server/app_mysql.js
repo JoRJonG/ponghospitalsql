@@ -12,6 +12,7 @@ import announcementsRouter from './routes/announcements.js'
 import slidesRouter from './routes/slides.js'
 import unitsRouter from './routes/units.js'
 import executivesRouter from './routes/executives.js'
+import infographicsRouter from './routes/infographics.js'
 import itaRouter from './routes/ita.js'
 import authRouter from './routes/auth.js'
 import imagesRouter from './routes/images.js'
@@ -138,6 +139,7 @@ export async function createServer() {
   app.use('/api/slides', slidesRouter)
   app.use('/api/units', unitsRouter)
   app.use('/api/executives', executivesRouter)
+  app.use('/api/infographics', infographicsRouter)
   app.use('/api/ita', itaRouter)
   app.use('/api/auth', authRouter)
   app.use('/api/images', imagesRouter)

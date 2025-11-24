@@ -5,6 +5,7 @@ import { useToast } from '../../contexts/ToastContext'
 import { useHomepageRefresh } from '../../contexts/useHomepageRefresh'
 import { compressImage } from '../../utils/imageCompressor'
 import ExecutivesManagement, { type ExecutivesManagementHandle } from '../../components/ExecutivesManagement'
+import InfographicsManagement, { type InfographicsManagementHandle } from '../../components/InfographicsManagement'
 import ItaManagement, { type ItaManagementHandle } from '../../components/ItaManagement'
 import AnnouncementForm from '../../components/admin/AnnouncementForm'
 import ActivityForm from '../../components/admin/ActivityForm'
@@ -25,7 +26,7 @@ type AnnouncementAttachment = {
 type Announcement = {
   _id?: string
   title: string
-  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ'
+  category: 'สมัครงาน' | 'ประชาสัมพันธ์' | 'ประกาศ' | 'ประกาศจัดซื้อจัดจ้าง'
   content?: string
   isPublished?: boolean
   publishedAt?: string | null
@@ -90,7 +91,7 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro'|'popups'|'overview'|'announce'|'activity'|'slide'|'unit'|'executive'|'ita'|'users'
+type AdminTab = 'intro'|'popups'|'overview'|'announce'|'activity'|'slide'|'unit'|'executive'|'infographic'|'ita'|'users'
 
 const ADMIN_TABS: readonly AdminTab[] = ['intro','popups','overview','announce','activity','slide','unit','executive','users','ita'] as const
 
@@ -172,6 +173,7 @@ export default function AdminPage() {
     slides: hasPermission('slides'),
     units: hasPermission('units'),
     executives: hasPermission('executives'),
+    infographics: hasPermission('infographics'),
     ita: hasPermission('ita'),
     users: hasPermission('users'),
     admin: hasPermission('admin'),
@@ -185,6 +187,7 @@ export default function AdminPage() {
       || permissions.slides
       || permissions.units
       || permissions.executives
+      || permissions.infographics
       || permissions.ita
       || permissions.users
 
@@ -197,6 +200,7 @@ export default function AdminPage() {
       slide: permissions.slides,
       unit: permissions.units,
       executive: permissions.executives,
+      infographic: permissions.infographics,
       ita: permissions.ita,
       users: permissions.users,
     }
@@ -204,7 +208,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (allowedTabs[tab]) return
-  const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'users', 'ita']
+  const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita']
     const nextTab = preferredOrder.find(key => allowedTabs[key]) || 'intro'
     if (nextTab !== tab) {
       setTab(nextTab)
@@ -230,6 +234,7 @@ export default function AdminPage() {
   const introRef = useRef<AdminIntroDashboardHandle>(null)
   const popupsRef = useRef<PopupsManagerHandle>(null)
   const executivesRef = useRef<ExecutivesManagementHandle | null>(null)
+  const infographicsRef = useRef<InfographicsManagementHandle | null>(null)
   const itaRef = useRef<ItaManagementHandle | null>(null)
   const usersRef = useRef<UserManagementHandle>(null)
 
@@ -571,6 +576,23 @@ export default function AdminPage() {
               </button>
             )}
 
+            {allowedTabs.infographic && (
+              <button
+                onClick={() => {
+                  setTab('infographic')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
+                  tab === 'infographic'
+                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+              >
+                <span className="text-xl">📊</span>
+                <span>Infographic</span>
+              </button>
+            )}
+
             {allowedTabs.users && (
               <button
                 onClick={() => {
@@ -644,6 +666,7 @@ export default function AdminPage() {
                     {tab === 'slide' && 'จัดการสไลด์'}
                     {tab === 'unit' && 'จัดการหน่วยงาน'}
                     {tab === 'executive' && 'จัดการผู้บริหาร'}
+                    {tab === 'infographic' && 'จัดการ Infographic'}
                     {tab === 'ita' && 'จัดการ ITA'}
                     {tab === 'users' && 'จัดการผู้ใช้'}
                   </h1>
@@ -656,6 +679,7 @@ export default function AdminPage() {
                     {tab === 'slide' && 'จัดการสไลด์แสดงผล'}
                     {tab === 'unit' && 'จัดการลิงก์หน่วยงาน'}
                     {tab === 'executive' && 'จัดการข้อมูลผู้บริหาร'}
+                    {tab === 'infographic' && 'จัดการรูปภาพ Infographic แบบเรียงกัน'}
                     {tab === 'ita' && 'จัดการข้อมูล ITA'}
                     {tab === 'users' && 'เพิ่ม แก้ไข ลบผู้ใช้ และกำหนดสิทธิ์การเข้าถึง'}
                   </p>
@@ -1155,6 +1179,10 @@ export default function AdminPage() {
           ) : tab==='executive' ? (
             <div className="space-y-4 lg:space-y-6">
               <ExecutivesManagement ref={executivesRef} />
+            </div>
+          ) : tab==='infographic' ? (
+            <div className="space-y-4 lg:space-y-6">
+              <InfographicsManagement ref={infographicsRef} />
             </div>
           ) : tab==='ita' ? (
             <div className="space-y-4 lg:space-y-6">
@@ -2234,6 +2262,7 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
               <option>สมัครงาน</option>
               <option>ประชาสัมพันธ์</option>
               <option>ประกาศ</option>
+              <option>ประกาศจัดซื้อจัดจ้าง</option>
             </select>
           </div>
           <div>

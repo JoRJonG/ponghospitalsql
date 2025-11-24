@@ -77,6 +77,29 @@ router.get('/executives/:id', async (req, res) => {
   }
 })
 
+// ดึงรูปภาพจาก Infographics
+router.get('/infographics/:id', async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT image_data, mime_type, title
+      FROM infographics WHERE id = ?
+    `, [req.params.id])
+    
+    if (!rows[0]) {
+      return res.status(404).json({ error: 'Image not found' })
+    }
+    
+    const imageData = rows[0]
+    res.setHeader('Content-Type', imageData.mime_type)
+    res.setHeader('Content-Disposition', contentDisposition('inline', imageData.title || 'infographic'))
+    applyNoCache(res)
+    res.send(imageData.image_data)
+  } catch (error) {
+    console.error('Error fetching infographic image:', error)
+    res.status(500).json({ error: 'Failed to fetch image' })
+  }
+})
+
 // ดึงรูปภาพจาก Homepage Popups
 router.get('/popups/:id', async (req, res) => {
   try {
