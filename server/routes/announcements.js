@@ -1,5 +1,8 @@
 import { Router } from 'express'
 import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
+import multer from 'multer'
+import { fileTypeFromBuffer } from 'file-type'
+import { query } from '../database.js'
 import Announcement from '../models/mysql/Announcement.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
@@ -130,6 +133,64 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
   } catch (e) {
     console.error('[announcements] POST error:', e.message)
     res.status(400).json({ error: 'Failed to create announcement', details: e.message })
+  }
+})
+
+// Support multipart uploads for attachments (attach to existing announcement)
+const MAX_ATTACHMENT_SIZE = 300 * 1024 * 1024 // 300MB
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_ATTACHMENT_SIZE } })
+function uploadMdw(fieldName) {
+  return (req, res, next) => {
+    upload.single(fieldName)(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          const mb = Math.round(MAX_ATTACHMENT_SIZE / (1024 * 1024))
+          return res.status(400).json({ error: 'File too large', details: `File must be ${mb}MB or smaller` })
+        }
+        return next(err)
+      }
+      next()
+    })
+  }
+}
+
+// POST /api/announcements/:id/attachment - attach file (PDF or image) to announcement
+router.post('/:id/attachment', requireAuth, requirePermission('announcements'), uploadMdw('file'), async (req, res) => {
+  try {
+    const announcementId = Number(req.params.id)
+    if (!announcementId) return res.status(400).json({ error: 'Invalid announcement id' })
+    if (!req.file) return res.status(400).json({ error: 'No file' })
+
+    let kind = null
+    try { kind = await fileTypeFromBuffer(req.file.buffer) } catch (e) { console.warn('[announcements upload] fileTypeFromBuffer failed:', e?.message) }
+    const sniff = kind?.mime
+    const declared = req.file.mimetype
+
+    const isPdf = declared === 'application/pdf' || sniff === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf')
+    const isImg = declared.startsWith('image/') && sniff && sniff.startsWith('image/')
+    if (!isPdf && !isImg) return res.status(400).json({ error: 'Only PDF or image files are allowed' })
+
+    const fileName = req.file.originalname
+    const mimeType = isPdf ? 'application/pdf' : (kind?.mime || req.file.mimetype)
+    const fileSize = req.file.size
+    const fileBuffer = req.file.buffer
+
+    // determine next display_order
+    const rows = await query('SELECT COALESCE(MAX(display_order), -1) as max_order FROM announcement_attachments WHERE announcement_id = ?', [announcementId])
+    const nextOrder = (rows && rows[0] && typeof rows[0].max_order === 'number') ? rows[0].max_order + 1 : 0
+
+    const result = await query(
+      `INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [announcementId, fileBuffer, mimeType, fileSize, isPdf ? 'pdf' : 'image', fileName, nextOrder]
+    )
+
+    const attachmentId = result.insertId
+    const url = `/api/images/announcements/${announcementId}/${attachmentId}`
+    res.json({ id: attachmentId, url, name: fileName, bytes: fileSize, kind: isPdf ? 'pdf' : 'image' })
+  } catch (e) {
+    console.error('[announcements upload] error:', e?.message)
+    res.status(400).json({ error: 'Upload failed', details: e?.message })
   }
 })
 
