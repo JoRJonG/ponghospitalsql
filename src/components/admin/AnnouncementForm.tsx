@@ -74,8 +74,8 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
       return
     }
     // Check file size (30MB limit)
-    if (file.size > 30 * 1024 * 1024) {
-      alert('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 30 MB)')
+    if (file.size > 50 * 1024 * 1024) {
+      alert('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 50 MB)')
       return
     }
     const fd = new FormData(); fd.append('file', file); setUploading(true)
