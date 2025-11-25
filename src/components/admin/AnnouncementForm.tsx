@@ -33,8 +33,10 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
   const [form, setForm] = useState<Announcement>({ title: '', category: 'ประชาสัมพันธ์', content: '', isPublished: true, attachments: [], publishedAt: null })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [stagedFiles, setStagedFiles] = useState<File[]>([])
 
   const onUploadImage = async (file: File) => {
+    // Stage image locally (no immediate upload) to avoid embedding large base64 in JSON
     if (hasDuplicateAttachment(form.attachments, file.name, file.size)) {
       alert('ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)')
       return
@@ -42,65 +44,40 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     setUploading(true)
     try {
       const compressed = await compressImage(file, 1200, 0.7)
-      const fd = new FormData(); fd.append('file', compressed)
-      const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      if (!r.ok) throw new Error('upload failed')
-      const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
-      const candidateName = data.name || file.name
-      const candidateBytes = typeof data.bytes === 'number' ? data.bytes : file.size
-      let duplicateDetected = false
-      setForm((current: Announcement) => {
-        if (hasDuplicateAttachment(current.attachments, candidateName, candidateBytes)) {
-          duplicateDetected = true
-          return current
-        }
-        return {
-          ...current,
-          attachments: [...(current.attachments || []), { url: data.url, publicId: data.publicId, kind: 'image', name: candidateName, bytes: candidateBytes }]
-        }
-      })
-      if (duplicateDetected) {
-        alert('ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)')
-      }
+      const stagedFile = new File([compressed], file.name, { type: compressed.type })
+      const objectUrl = URL.createObjectURL(stagedFile)
+      setStagedFiles(prev => [...prev, stagedFile])
+      setForm(current => ({
+        ...current,
+        attachments: [...(current.attachments || []), { url: objectUrl, name: stagedFile.name, bytes: stagedFile.size, kind: 'image' }]
+      }))
     } catch (err) {
-      console.error('Upload image error:', err)
-      alert('อัปโหลดรูปไม่สำเร็จ')
+      console.error('Stage image error:', err)
+      alert('เตรียมรูปไม่สำเร็จ')
     } finally { setUploading(false) }
   }
 
   const onUploadFile = async (file: File) => {
+    // Stage file locally (no immediate upload) to avoid embedding large base64 in JSON
     if (hasDuplicateAttachment(form.attachments, file.name, file.size)) {
       alert('ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)')
       return
     }
-    // Check file size (50MB limit)
-    if (file.size > 50 * 1024 * 1024) {
-      alert('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 50 MB)')
+    if (file.size > 300 * 1024 * 1024) {
+      alert('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 300 MB)')
       return
     }
-    const fd = new FormData(); fd.append('file', file); setUploading(true)
+    setUploading(true)
     try {
-      const r = await fetch('/api/uploads/file', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      if (!r.ok) throw new Error('upload failed')
-      const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
-      const kind = (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
-      const candidateName = data.name || file.name
-      const candidateBytes = typeof data.bytes === 'number' ? data.bytes : file.size
-      let duplicateDetected = false
-      setForm((current: Announcement) => {
-        if (hasDuplicateAttachment(current.attachments, candidateName, candidateBytes)) {
-          duplicateDetected = true
-          return current
-        }
-        return {
-          ...current,
-          attachments: [...(current.attachments || []), { url: data.url, publicId: data.publicId, kind, name: candidateName, bytes: candidateBytes }]
-        }
-      })
-      if (duplicateDetected) {
-        alert('ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)')
-      }
-    } catch { alert('อัปโหลดไฟล์ไม่สำเร็จ') } finally { setUploading(false) }
+      // No compression for PDFs/other files; just stage
+      const objectUrl = URL.createObjectURL(file)
+      setStagedFiles(prev => [...prev, file])
+      const kind = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
+      setForm(current => ({ ...current, attachments: [...(current.attachments || []), { url: objectUrl, name: file.name, bytes: file.size, kind }] }))
+    } catch (err) {
+      console.error('Stage file error:', err)
+      alert('เตรียมไฟล์ไม่สำเร็จ')
+    } finally { setUploading(false) }
   }
 
   const removeAttachmentAt = async (idx: number) => {
@@ -108,6 +85,12 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     const target = attachments[idx]
     attachments.splice(idx, 1)
     setForm((prev: Announcement) => ({ ...prev, attachments }))
+    // If this was a staged file (object URL), also remove from stagedFiles
+    if (target?.url && target.url.startsWith('blob:')) {
+      setStagedFiles(prev => {
+        return prev.filter(f => f.name !== target.name || f.size !== target.bytes)
+      })
+    }
     if (target?.publicId) {
       fetch(`/api/uploads/image/${encodeURIComponent(target.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => {
         console.warn('ไม่สามารถลบไฟล์จากเซิร์ฟเวอร์ได้', err)
@@ -119,23 +102,75 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     e.preventDefault()
     setLoading(true)
     try {
-      const payload: Announcement = { ...form }
-      // Sanitize inputs
-      payload.title = sanitizeText(payload.title)
-      payload.content = sanitizeHtml(payload.content || '')
-      payload.category = sanitizeText(payload.category) as Announcement['category']
-      if (!form.publishedAt) delete payload.publishedAt
-      const r = await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, body: JSON.stringify(payload) })
-      if (!r.ok) {
-        let msg = 'บันทึกประกาศไม่สำเร็จ'
-        try {
-          const j = await r.json()
-          if (j?.details) msg += `: ${j.details}`
-        } catch (parseErr) {
-          console.warn('อ่านรายละเอียดข้อผิดพลาดไม่สำเร็จ', parseErr)
+      // Prepare payload fields (exclude staged files from attachments)
+      const payloadBase: Partial<Announcement> = { ...form }
+      payloadBase.title = sanitizeText(String(payloadBase.title || ''))
+      payloadBase.content = sanitizeHtml(payloadBase.content || '')
+      payloadBase.category = sanitizeText(String(payloadBase.category || form.category)) as Announcement['category']
+      if (!form.publishedAt) delete payloadBase.publishedAt
+
+      // Determine staged object URLs (blob:) to send as files in multipart
+      const stagedCount = stagedFiles.length
+      if (stagedCount > 0) {
+        // Remove staged entries from attachments in payload; server will append uploaded files
+        const attachmentsToKeep = (form.attachments || []).filter(att => att.url && !att.url.startsWith('blob:'))
+        payloadBase.attachments = attachmentsToKeep
+
+        const fd = new FormData()
+        fd.append('payload', JSON.stringify(payloadBase))
+        for (const f of stagedFiles) fd.append('file', f)
+
+        const r = await fetch('/api/announcements', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
+        if (!r.ok) {
+          let msg = 'บันทึกประกาศไม่สำเร็จ'
+          if (r.status === 413) {
+            msg = '⚠️ ไฟล์มีขนาดใหญ่เกินไป!\n\nกรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่ม client_max_body_size ใน nginx config บน server\n(localhost ใช้ได้ แต่ server จริงตัดคำขอก่อนถึง Node.js)'
+          } else {
+            try {
+              const text = await r.text()
+              if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                msg += ' (Web server ส่งกลับ HTML แทน JSON - ตรวจสอบ nginx/proxy config)'
+              } else {
+                const j = JSON.parse(text)
+                if (j?.details) msg += `: ${j.details}`
+              }
+            } catch (parseErr) {
+              console.warn('อ่านรายละเอียดข้อผิดพลาดไม่สำเร็จ', parseErr)
+            }
+          }
+          alert(msg)
+          return
         }
-        alert(msg)
-        return
+      } else {
+        const payload: Announcement = {
+          title: payloadBase.title as string,
+          category: payloadBase.category as Announcement['category'],
+          content: payloadBase.content || '',
+          isPublished: typeof payloadBase.isPublished === 'boolean' ? payloadBase.isPublished : true,
+          publishedAt: payloadBase.publishedAt ?? null,
+          attachments: payloadBase.attachments ?? []
+        }
+        const r = await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, body: JSON.stringify(payload) })
+        if (!r.ok) {
+          let msg = 'บันทึกประกาศไม่สำเร็จ'
+          if (r.status === 413) {
+            msg = '⚠️ ไฟล์มีขนาดใหญ่เกินไป!\n\nกรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่ม client_max_body_size ใน nginx config บน server'
+          } else {
+            try {
+              const text = await r.text()
+              if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                msg += ' (Web server ส่งกลับ HTML แทน JSON - ตรวจสอบ nginx/proxy config)'
+              } else {
+                const j = JSON.parse(text)
+                if (j?.details) msg += `: ${j.details}`
+              }
+            } catch (parseErr) {
+              console.warn('อ่านรายละเอียดข้อผิดพลาดไม่สำเร็จ', parseErr)
+            }
+          }
+          alert(msg)
+          return
+        }
       }
       setForm({ title: '', category: form.category, content: '', isPublished: true, attachments: [], publishedAt: null })
       onCreated()
