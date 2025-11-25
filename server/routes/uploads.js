@@ -41,7 +41,7 @@ async function optimizeImage(buffer, mimetype) {
 }
 const upload = multer({ 
   storage: multer.memoryStorage(), 
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
+  limits: { fileSize: 40 * 1024 * 1024 }, // 20MB limit
   fileFilter: (req, file, cb) => {
     // Allow images and PDFs
     if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
