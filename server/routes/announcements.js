@@ -126,6 +126,14 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
       }
     }
     
+    // Validate required fields to avoid passing undefined bind params to SQL
+    if (!payload.title || typeof payload.title !== 'string' || payload.title.trim() === '') {
+      return res.status(400).json({ error: 'Title is required' })
+    }
+    if (!payload.category || typeof payload.category !== 'string' || payload.category.trim() === '') {
+      return res.status(400).json({ error: 'Category is required' })
+    }
+
     const doc = await Announcement.create(payload)
     // purge caches on write
     purgeCachePrefix('/api/announcements')

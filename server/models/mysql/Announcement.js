@@ -202,6 +202,10 @@ export class Announcement {
 
   static async create(data) {
     return await transaction(async (connection) => {
+      // Basic validation to avoid undefined SQL bind parameters
+      if (!data || typeof data !== 'object') throw new Error('Invalid data for create')
+      if (!data.title || typeof data.title !== 'string') throw new Error('Title is required')
+      if (!data.category || typeof data.category !== 'string') throw new Error('Category is required')
       // หา category_id (ค้นหาทั้ง name และ display_name)
       const [categories] = await connection.execute(
         'SELECT id FROM announcement_categories WHERE name = ? OR display_name = ?',
