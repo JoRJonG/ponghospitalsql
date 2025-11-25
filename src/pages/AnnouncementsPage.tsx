@@ -282,11 +282,7 @@ function List({ category }: { category?: Announcement['category'] }) {
               </span>
               {a.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>}
               {isNew(a) && (
-                <span className="chip-new">
-                  <span className="dot-pulse">
-                    <span className="dot-pulse__ping" />
-                    <span className="dot-pulse__dot" />
-                  </span>
+                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                   ใหม่
                 </span>
               )}

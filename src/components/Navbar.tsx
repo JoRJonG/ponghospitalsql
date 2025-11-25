@@ -14,6 +14,42 @@ export default function Navbar() {
   const settingsLabel = canAccessSettings ? 'ตั้งค่า' : 'บัญชี'
   const navigate = useNavigate()
   const doLogout = () => { logout(); setOpen(false); navigate('/') }
+  
+  // Check for new announcements (within 3 days)
+  const [hasNewAnnouncements, setHasNewAnnouncements] = useState(false)
+  
+  useEffect(() => {
+    const checkNewAnnouncements = async () => {
+      try {
+        const response = await fetch('/api/announcements')
+        if (response.ok) {
+          const data = await response.json()
+          // API returns array directly
+          if (Array.isArray(data) && data.length > 0) {
+            // Check for new announcements in any category
+            const hasNew = data.some(announcement => {
+              if (!announcement.publishedAt) return false
+              
+              const publishedDate = new Date(announcement.publishedAt)
+              const now = new Date()
+              const diffTime = now.getTime() - publishedDate.getTime()
+              const diffDays = diffTime / (1000 * 3600 * 24)
+              return diffDays <= 3
+            })
+            setHasNewAnnouncements(hasNew)
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to check for new announcements:', error)
+      }
+    }
+    
+    checkNewAnnouncements()
+    // Check every 5 minutes
+    const interval = setInterval(checkNewAnnouncements, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+  
   // ITA dynamic menu
   type ItaItem = { _id: number; title: string; slug?: string | null; children?: ItaItem[] }
   const [itaRoots, setItaRoots] = useState<ItaItem[]>([])
@@ -86,7 +122,14 @@ export default function Navbar() {
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             <NavLink to="/" className={navItemClass} end>หน้าหลัก</NavLink>
-            <NavLink to="/announcements" className={navItemClass}>ประกาศ</NavLink>
+            <NavLink to="/announcements" className={`${navItemClass} relative`}>
+              ประกาศ
+              {hasNewAnnouncements && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse">
+                  ใหม่
+                </span>
+              )}
+            </NavLink>
             <NavLink to="/executives" className={navItemClass}>ผู้บริหาร</NavLink>
             <div className="relative" onMouseEnter={openIta} onMouseLeave={closeItaLater}>
               <NavLink to="/ita" className={navItemClass} onClick={()=>setItaOpen(o=>!o)}>ITA ▾</NavLink>
@@ -144,7 +187,14 @@ export default function Navbar() {
         <div className="md:hidden border-t border-gray-200 bg-white sticky top-20 z-40 shadow-md max-h-[calc(100vh-5rem)] overflow-y-auto">
           <div className="container-narrow py-2 flex flex-col">
             <NavLink to="/" className={navItemClass} end onClick={()=>setOpen(false)}>หน้าหลัก</NavLink>
-            <NavLink to="/announcements" className={navItemClass} onClick={()=>setOpen(false)}>ประกาศ</NavLink>
+            <NavLink to="/announcements" className={`${navItemClass} relative`} onClick={()=>setOpen(false)}>
+              ประกาศ
+              {hasNewAnnouncements && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse">
+                  ใหม่
+                </span>
+              )}
+            </NavLink>
             <NavLink to="/executives" className={navItemClass} onClick={()=>setOpen(false)}>ผู้บริหาร</NavLink>
             <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
             <div>

@@ -186,11 +186,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                           </>
                         )}
                         {isNew(a) && (
-                          <span className="chip-new">
-                            <span className="dot-pulse">
-                              <span className="dot-pulse__ping" />
-                              <span className="dot-pulse__dot" />
-                            </span>
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             ใหม่
                           </span>
                         )}
@@ -304,11 +300,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || style.badge} group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors duration-200`}>{a.category}</span>
                         {isNew(a) && (
-                          <span className="chip-new ml-1">
-                            <span className="dot-pulse">
-                              <span className="dot-pulse__ping" />
-                              <span className="dot-pulse__dot" />
-                            </span>
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             ใหม่
                           </span>
                         )}
