@@ -52,6 +52,21 @@ const upload = multer({
   }
 })
 
+// Wrapper to run multer single upload and return JSON errors instead of HTML
+function uploadSingle(fieldName) {
+  return (req, res, next) => {
+    upload.single(fieldName)(req, res, (err) => {
+      if (!err) return next()
+      // Multer file size exceeded
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large (max 50MB)' })
+      }
+      // Multer file filter or other errors
+      return res.status(400).json({ error: err.message || 'Upload error' })
+    })
+  }
+}
+
 // Timeout middleware for uploads
 const uploadTimeout = (req, res, next) => {
   req.setTimeout(30000) // 30 second timeout
@@ -60,7 +75,7 @@ const uploadTimeout = (req, res, next) => {
 }
 
 // Upload image for RichTextEditor
-router.post('/image', requireAuth, uploadTimeout, upload.single('file'), async (req, res) => {
+router.post('/image', requireAuth, uploadTimeout, uploadSingle('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file' })
     
@@ -118,7 +133,7 @@ router.post('/image', requireAuth, uploadTimeout, upload.single('file'), async (
 })
 
 // Upload file (PDF, etc) for announcements
-router.post('/file', requireAuth, uploadTimeout, upload.single('file'), async (req, res) => {
+router.post('/file', requireAuth, uploadTimeout, uploadSingle('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file' })
     const kind = await fileTypeFromBuffer(req.file.buffer)
