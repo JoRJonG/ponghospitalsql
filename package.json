@@ -50,6 +50,7 @@
     "react-router-dom": "^7.9.2",
     "sharp": "^0.34.4",
     "tailwindcss": "^4.1.13",
+    "iconv-lite": "^0.6.5",
     "winston": "^3.18.3"
   },
   "devDependencies": {

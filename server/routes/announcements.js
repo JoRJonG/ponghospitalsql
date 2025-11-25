@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import multer from 'multer'
+import iconv from 'iconv-lite'
 import { fileTypeFromBuffer } from 'file-type'
 import { query } from '../database.js'
 import Announcement from '../models/mysql/Announcement.js'
@@ -10,6 +11,27 @@ import { viewCache, VIEW_COOLDOWN_MS } from '../utils/viewCache.js'
 import { sanitizeHtml, sanitizeText } from '../utils/sanitization.js'
 
 const router = Router()
+
+// Normalize uploaded filenames: try UTF-8, fall back to Windows-874 (common on Thai Windows clients)
+function normalizeFilename(name) {
+  if (!name) return name
+  try {
+    // Get raw bytes as binary (latin1) to preserve original octets
+    const raw = Buffer.from(String(name), 'binary')
+    let decoded = raw.toString('utf8')
+    // If decoded contains replacement characters or many question marks, try windows-874
+    const looksBad = decoded.includes('\uFFFD') || /\?{2,}/.test(decoded) || !(/[\u0E00-\u0E7F]/.test(decoded) || /[A-Za-z0-9]/.test(decoded))
+    if (looksBad) {
+      const alt = iconv.decode(raw, 'windows-874')
+      // If alt contains Thai characters, prefer it
+      if (/[\u0E00-\u0E7F]/.test(alt)) decoded = alt
+    }
+    return decoded
+  } catch (e) {
+    console.warn('[normalizeFilename] decode failed:', e?.message)
+    return name
+  }
+}
 
 // Apply a small burst limiter to protect DB when users refresh rapidly
 router.use(createRateLimiter({ windowMs: 10_000, max: 40 })) // 40 req/10s per IP
@@ -178,7 +200,7 @@ router.post('/:id/attachment', requireAuth, requirePermission('announcements'), 
     const isImg = declared.startsWith('image/') && sniff && sniff.startsWith('image/')
     if (!isPdf && !isImg) return res.status(400).json({ error: 'Only PDF or image files are allowed' })
 
-    const fileName = req.file.originalname
+    let fileName = normalizeFilename(req.file.originalname)
     const mimeType = isPdf ? 'application/pdf' : (kind?.mime || req.file.mimetype)
     const fileSize = req.file.size
     const fileBuffer = req.file.buffer
@@ -249,7 +271,8 @@ router.post('/', requireAuth, requirePermission('announcements'), optionalMultip
       payload.attachments = payload.attachments && Array.isArray(payload.attachments) ? payload.attachments.slice() : []
       for (const f of files) {
         const dataUrl = `data:${f.mimetype};base64,${f.buffer.toString('base64')}`
-        payload.attachments.push({ url: dataUrl, name: f.originalname, bytes: f.size, kind: f.mimetype === 'application/pdf' ? 'pdf' : 'image' })
+        const safeName = normalizeFilename(f.originalname)
+        payload.attachments.push({ url: dataUrl, name: safeName, bytes: f.size, kind: f.mimetype === 'application/pdf' ? 'pdf' : 'image' })
       }
     } else {
       payload = { ...req.body }
