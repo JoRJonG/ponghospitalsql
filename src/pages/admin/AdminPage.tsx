@@ -2209,10 +2209,18 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
       // Compress รูปภาพก่อนอัปโหลด (max 1200px, quality 0.7)
       const compressed = await compressImage(file, 1200, 0.7)
       const fd = new FormData(); fd.append('file', compressed)
-      const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      if (!r.ok) throw new Error('upload failed')
-      const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
-      setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: data.publicId, kind: 'image', name: data.name, bytes: data.bytes }] }))
+      // If editing an existing announcement, upload directly to attachment endpoint
+      if (initial && initial._id) {
+        const r = await fetch(`/api/announcements/${initial._id}/attachment`, { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
+        if (!r.ok) throw new Error('upload failed')
+        const data = await r.json() as { id: number; url: string; name?: string; bytes?: number; kind?: string }
+        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: String(data.id), kind: 'image', name: data.name, bytes: data.bytes }] }))
+      } else {
+        const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
+        if (!r.ok) throw new Error('upload failed')
+        const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
+        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: data.publicId, kind: 'image', name: data.name, bytes: data.bytes }] }))
+      }
     } catch (err) {
       console.error('Upload image error:', err)
       alert('อัปโหลดรูปไม่สำเร็จ')
@@ -2221,11 +2229,19 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
   const onUploadFile = async (file: File) => {
     const fd = new FormData(); fd.append('file', file); setUploading(true)
     try {
-      const r = await fetch('/api/uploads/file', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      if (!r.ok) throw new Error('upload failed')
-      const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
-      const kind = (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
-      setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: data.publicId, kind, name: data.name, bytes: data.bytes }] }))
+      if (initial && initial._id) {
+        const r = await fetch(`/api/announcements/${initial._id}/attachment`, { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
+        if (!r.ok) throw new Error('upload failed')
+        const data = await r.json() as { id: number; url: string; name?: string; bytes?: number; kind?: string }
+        const kind = data.kind === 'pdf' || (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
+        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: String(data.id), kind, name: data.name, bytes: data.bytes }] }))
+      } else {
+        const r = await fetch('/api/uploads/file', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
+        if (!r.ok) throw new Error('upload failed')
+        const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
+        const kind = (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
+        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: data.publicId, kind, name: data.name, bytes: data.bytes }] }))
+      }
     } catch { alert('อัปโหลดไฟล์ไม่สำเร็จ') } finally { setUploading(false) }
   }
   const removeAttachmentAt = async (idx: number) => {
