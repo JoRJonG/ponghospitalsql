@@ -194,6 +194,82 @@ router.post('/:id/attachment', requireAuth, requirePermission('announcements'), 
   }
 })
 
+// Allow creating announcement with multipart/form-data (files + fields)
+// If request Content-Type is multipart/* we will parse files and inject attachments
+function optionalMultipart() {
+  return (req, res, next) => {
+    const ct = (req.headers['content-type'] || '').toString()
+    if (!ct.startsWith('multipart/')) return next()
+    // reuse upload instance
+    upload.any()(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(413).json({ error: 'File too large' })
+        }
+        return res.status(400).json({ error: err.message || 'Upload error' })
+      }
+      next()
+    })
+  }
+}
+
+// Modify POST / to accept multipart: fields as normal form fields; files will be converted to data URLs
+router.post('/', requireAuth, requirePermission('announcements'), optionalMultipart(), async (req, res) => {
+  if (!req.app.locals.dbConnected) {
+    return res.status(503).json({ error: 'Database unavailable' })
+  }
+
+  try {
+    // Build payload from either JSON body (when not multipart) or form fields
+    let payload = {}
+    if (req.is('multipart/*')) {
+      // Multer stores non-file fields in req.body as strings
+      try {
+        // If client sent a `payload` JSON string, parse it
+        if (req.body && req.body.payload) {
+          payload = JSON.parse(req.body.payload)
+        } else {
+          payload = { ...req.body }
+        }
+      } catch (e) {
+        console.warn('Failed to parse multipart payload JSON:', e?.message)
+        payload = { ...req.body }
+      }
+
+      // Convert uploaded files into attachments (data URLs) and append to payload.attachments
+      const files = req.files || []
+      payload.attachments = payload.attachments && Array.isArray(payload.attachments) ? payload.attachments.slice() : []
+      for (const f of files) {
+        const dataUrl = `data:${f.mimetype};base64,${f.buffer.toString('base64')}`
+        payload.attachments.push({ url: dataUrl, name: f.originalname, bytes: f.size, kind: f.mimetype === 'application/pdf' ? 'pdf' : 'image' })
+      }
+    } else {
+      payload = { ...req.body }
+    }
+
+    // Sanitize user inputs
+    if (payload.title) payload.title = sanitizeText(payload.title)
+    if (payload.content) payload.content = sanitizeHtml(payload.content)
+    if (payload.category) payload.category = sanitizeText(payload.category)
+
+    // Attachment count/size checks are already in model create, but keep guard here
+    if (payload.attachments && Array.isArray(payload.attachments)) {
+      if (payload.attachments.length > 10) {
+        return res.status(400).json({ error: 'Too many attachments (max 10)' })
+      }
+    }
+
+    if (req.user?.username) payload.createdBy = req.user.username
+
+    const doc = await Announcement.create(payload)
+    purgeCachePrefix('/api/announcements')
+    res.status(201).json(doc)
+  } catch (e) {
+    console.error('[announcements] POST multipart error:', e?.message)
+    res.status(400).json({ error: 'Failed to create announcement', details: e?.message })
+  }
+})
+
 router.put('/:id', requireAuth, requirePermission('announcements'), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.status(503).json({ error: 'Database unavailable' })
