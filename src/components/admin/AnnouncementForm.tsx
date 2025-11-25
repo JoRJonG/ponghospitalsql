@@ -73,6 +73,11 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
       alert('ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)')
       return
     }
+    // Check file size (30MB limit)
+    if (file.size > 30 * 1024 * 1024) {
+      alert('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 30 MB)')
+      return
+    }
     const fd = new FormData(); fd.append('file', file); setUploading(true)
     try {
       const r = await fetch('/api/uploads/file', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
