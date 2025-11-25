@@ -122,7 +122,7 @@ export default function Navbar() {
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             <NavLink to="/" className={navItemClass} end>หน้าหลัก</NavLink>
-            <NavLink to="/announcements" className={`${navItemClass} relative`}>
+            <NavLink to="/announcements" className={({ isActive }) => `${navItemClass({ isActive })} relative`}>
               ประกาศ
               {hasNewAnnouncements && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse">
@@ -187,10 +187,10 @@ export default function Navbar() {
         <div className="md:hidden border-t border-gray-200 bg-white sticky top-20 z-40 shadow-md max-h-[calc(100vh-5rem)] overflow-y-auto">
           <div className="container-narrow py-2 flex flex-col">
             <NavLink to="/" className={navItemClass} end onClick={()=>setOpen(false)}>หน้าหลัก</NavLink>
-            <NavLink to="/announcements" className={`${navItemClass} relative`} onClick={()=>setOpen(false)}>
-              ประกาศ
+            <NavLink to="/announcements" className={({ isActive }) => `${navItemClass({ isActive })} flex items-center justify-between`} onClick={()=>setOpen(false)}>
+              <span>ประกาศ</span>
               {hasNewAnnouncements && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse">
+                <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse ml-2">
                   ใหม่
                 </span>
               )}
