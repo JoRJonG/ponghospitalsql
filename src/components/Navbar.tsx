@@ -87,7 +87,7 @@ export default function Navbar() {
     navigate(`/ita/item/${id}`)
   }
   return (
-    <>
+    <div>
       {/* Top Bar */}
       <div className="bg-teal-900 text-white text-sm">
         <div className="container-narrow flex items-center h-10">
@@ -184,73 +184,63 @@ export default function Navbar() {
         </div>
       </header>
       {open && (
-        <div className="md:hidden border-t border-gray-200 bg-white sticky top-20 z-40 shadow-md max-h-[calc(100vh-5rem)] overflow-y-auto">
-          <div className="container-narrow py-2 flex flex-col">
-            <NavLink to="/" className={navItemClass} end onClick={()=>setOpen(false)}>หน้าหลัก</NavLink>
-            <NavLink to="/announcements" className={({ isActive }) => `${navItemClass({ isActive })} flex items-center justify-between`} onClick={()=>setOpen(false)}>
-              <span>ประกาศ</span>
-              {hasNewAnnouncements && (
-                <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse ml-2">
-                  ใหม่
-                </span>
-              )}
-            </NavLink>
-            <NavLink to="/executives" className={navItemClass} onClick={()=>setOpen(false)}>ผู้บริหาร</NavLink>
-            <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
-            <div>
-              <button
-                type="button"
-                onClick={()=>setMobileItaOpen(o=>!o)}
-                className={`w-full text-left ${navItemClass({ isActive: location.pathname.startsWith('/ita') })} flex items-center justify-between`}
-                aria-expanded={mobileItaOpen}
-              >
-                <span>ITA</span>
-                <i className={`fa-solid fa-chevron-${mobileItaOpen? 'up':'down'} text-xs ml-2`} />
-              </button>
-              {mobileItaOpen && itaRoots.length > 0 && (
-                <ul className="mt-1 mb-2 ml-3 border-l border-gray-200 pl-3 space-y-1">
-                  {itaRoots.map(r => (
-                    <li key={r._id}>
-                      <button
-                        onClick={()=>{ navigate(`/ita/item/${r._id}`); setOpen(false); setMobileItaOpen(false) }}
-                        className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 truncate"
-                      >{r.title}</button>
-                      {r.children && r.children.length>0 && (
-                        <ul className="mt-1 ml-2 border-l border-dashed border-gray-200 pl-2 space-y-0.5">
-                          {r.children.slice(0,6).map(c => (
-                            <li key={c._id}>
-                              <button
-                                onClick={()=>{ navigate(`/ita/item/${c._id}`); setOpen(false); setMobileItaOpen(false) }}
-                                className="w-full text-left text-[12.5px] px-2 py-0.5 rounded hover:bg-teal-50 text-gray-600 truncate"
-                                title={c.title}
-                              >{c.title}</button>
-                            </li>
-                          ))}
-                          {r.children.length>6 && <li><span className="text-[11px] text-gray-400 italic px-2">+ {r.children.length-6} รายการ</span></li>}
-                        </ul>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
-            <NavLink to="/contact" className={navItemClass} onClick={()=>setOpen(false)}>ติดต่อเรา</NavLink>
-            {isAuthenticated && (
-              <>
-                <div className="border-t border-gray-200 my-2"></div>
-                <NavLink to="/admin" className={navItemClass} end onClick={()=>setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
-                <NavLink to="/admin/settings" className={navItemClass} onClick={()=>setOpen(false)}>
-                  <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
+        <div>
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={()=>setOpen(false)} />
+          <div className="md:hidden fixed inset-x-0 top-20 bottom-0 z-50 overflow-y-auto">
+            <div className="bg-white border-t border-gray-200 shadow-md">
+              <div className="container-narrow py-4 flex flex-col">
+                <NavLink to="/" className={navItemClass} end onClick={()=>setOpen(false)}>หน้าหลัก</NavLink>
+                <NavLink to="/announcements" className={({ isActive }) => navItemClass({ isActive })} onClick={()=>setOpen(false)}>
+                  <div className="flex items-center gap-2">
+                    <span>ประกาศ</span>
+                    {hasNewAnnouncements && (
+                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">ใหม่</span>
+                    )}
+                  </div>
                 </NavLink>
-                <button className="text-left px-4 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm" onClick={doLogout}>
-                  <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
-                </button>
-              </>
-            )}
+                <div>
+                  <button
+                    type="button"
+                    onClick={()=>setMobileItaOpen(o=>!o)}
+                    className={navItemClass({ isActive: window.location.pathname.startsWith('/ita') }) + ' w-full flex items-center justify-between'}
+                    aria-expanded={mobileItaOpen}
+                  >
+                    <span>ITA</span>
+                    <i className={`fa-solid fa-chevron-${mobileItaOpen? 'up':'down'} text-xs ml-2`} />
+                  </button>
+                  {mobileItaOpen && itaRoots.length > 0 && (
+                    <ul className="mt-1 mb-2 ml-3 border-l border-gray-200 pl-3 space-y-1">
+                      {itaRoots.map(r => (
+                        <li key={r._id}>
+                          <button
+                            onClick={()=>{ navigate(`/ita/item/${r._id}`); setOpen(false); setMobileItaOpen(false) }}
+                            className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 truncate"
+                          >{r.title}</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <NavLink to="/executives" className={navItemClass} onClick={()=>setOpen(false)}>ผู้บริหาร</NavLink>
+                <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
+                <NavLink to="/contact" className={navItemClass} onClick={()=>setOpen(false)}>ติดต่อเรา</NavLink>
+                {isAuthenticated && (
+                  <>
+                    <div className="border-t border-gray-200 my-2"></div>
+                    <NavLink to="/admin" className={navItemClass} end onClick={()=>setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
+                    <NavLink to="/admin/settings" className={navItemClass} onClick={()=>setOpen(false)}>
+                      <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
+                    </NavLink>
+                    <button className="text-left px-4 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm" onClick={doLogout}>
+                      <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
-    </>
-  )
+  </div>
+)
 }
