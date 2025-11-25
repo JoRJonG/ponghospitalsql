@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { query } from '../database.js'
 import multer from 'multer'
+import sharp from 'sharp'
 import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
@@ -9,6 +10,34 @@ import { decodeUploadFilename } from '../utils/filename.js'
 import { sanitizeText } from '../utils/sanitization.js'
 
 const router = Router()
+
+// Optimize image buffer using sharp (convert to WebP when appropriate)
+async function optimizeImage(buffer, mimetype) {
+  try {
+    // Preserve GIFs (avoid converting animated GIFs)
+    if (mimetype === 'image/gif') return buffer
+
+    let pipeline = sharp(buffer)
+    const metadata = await pipeline.metadata()
+
+    // Resize if width is very large
+    if (metadata.width && metadata.width > 1920) {
+      pipeline = pipeline.resize(1920, null, { withoutEnlargement: true })
+    }
+
+    // Convert to WebP for better compression (skip for tiny images)
+    if (!metadata.width || metadata.width > 100) {
+      pipeline = pipeline.webp({ quality: 85 })
+    } else {
+      pipeline = pipeline.jpeg({ quality: 90 })
+    }
+
+    return await pipeline.toBuffer()
+  } catch (err) {
+    console.warn('optimizeImage failed:', err?.message)
+    return buffer
+  }
+}
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage()
@@ -126,19 +155,29 @@ router.post('/', requireAuth, requirePermission('infographics'), upload.single('
       return res.status(400).json({ error: 'Invalid image file' })
     }
     
-    const imageData = req.file.buffer
     const fileName = decodeUploadFilename(req.file.originalname)
-    const mimeType = kind.mime || req.file.mimetype
-    const fileSize = req.file.size
-    
+
+    // Optimize / convert image (to WebP when suitable)
+    let optimizedBuffer = req.file.buffer
+    try {
+      optimizedBuffer = await optimizeImage(req.file.buffer, kind.mime || req.file.mimetype)
+    } catch (optErr) {
+      console.warn('Infographics image optimization failed, using original:', optErr?.message)
+    }
+
+    // Detect new mime type after optimization
+    const newKind = await fileTypeFromBuffer(optimizedBuffer)
+    const finalMime = newKind?.mime || 'image/webp'
+    const finalSize = optimizedBuffer.length
+
     const result = await query(
       `INSERT INTO infographics (title, image_data, image_size, mime_type, display_order, is_published, created_by, updated_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         payload.title || fileName,
-        imageData,
-        fileSize,
-        mimeType,
+        optimizedBuffer,
+        finalSize,
+        finalMime,
         displayOrder,
         payload.isPublished,
         req.user?.username || null,
@@ -199,9 +238,20 @@ router.put('/:id', requireAuth, requirePermission('infographics'), upload.single
       if (!kind || !kind.mime.startsWith('image/')) {
         return res.status(400).json({ error: 'Invalid image file' })
       }
-      
+
+      // Optimize image and convert to WebP where appropriate
+      let optimizedBuffer = req.file.buffer
+      try {
+        optimizedBuffer = await optimizeImage(req.file.buffer, kind.mime || req.file.mimetype)
+      } catch (optErr) {
+        console.warn('Infographics image optimization failed, using original:', optErr?.message)
+      }
+
+      const newKind = await fileTypeFromBuffer(optimizedBuffer)
+      const finalMime = newKind?.mime || 'image/webp'
+
       updates.push('image_data = ?', 'image_size = ?', 'mime_type = ?')
-      values.push(req.file.buffer, req.file.size, kind.mime || req.file.mimetype)
+      values.push(optimizedBuffer, optimizedBuffer.length, finalMime)
     }
     
     if (updates.length === 0) {
