@@ -102,79 +102,73 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     e.preventDefault()
     setLoading(true)
     try {
-      // Prepare payload fields (exclude staged files from attachments)
-      const payloadBase: Partial<Announcement> = { ...form }
-      payloadBase.title = sanitizeText(String(payloadBase.title || ''))
-      payloadBase.content = sanitizeHtml(payloadBase.content || '')
-      payloadBase.category = sanitizeText(String(payloadBase.category || form.category)) as Announcement['category']
-      if (!form.publishedAt) delete payloadBase.publishedAt
+      // Create announcement WITHOUT files first (avoid large payload)
+      const payload: Announcement = {
+        title: sanitizeText(String(form.title || '')),
+        category: sanitizeText(String(form.category)) as Announcement['category'],
+        content: sanitizeHtml(form.content || ''),
+        isPublished: typeof form.isPublished === 'boolean' ? form.isPublished : true,
+        publishedAt: form.publishedAt ?? null,
+        attachments: [] // will attach files separately
+      }
 
-      // Determine staged object URLs (blob:) to send as files in multipart
-      const stagedCount = stagedFiles.length
-      if (stagedCount > 0) {
-        // Remove staged entries from attachments in payload; server will append uploaded files
-        const attachmentsToKeep = (form.attachments || []).filter(att => att.url && !att.url.startsWith('blob:'))
-        payloadBase.attachments = attachmentsToKeep
-
-        const fd = new FormData()
-        fd.append('payload', JSON.stringify(payloadBase))
-        for (const f of stagedFiles) fd.append('file', f)
-
-        const r = await fetch('/api/announcements', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-        if (!r.ok) {
-          let msg = 'บันทึกประกาศไม่สำเร็จ'
-          if (r.status === 413) {
-            msg = '⚠️ ไฟล์มีขนาดใหญ่เกินไป!\n\nกรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่ม client_max_body_size ใน nginx config บน server\n(localhost ใช้ได้ แต่ server จริงตัดคำขอก่อนถึง Node.js)'
+      const r = await fetch('/api/announcements', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, 
+        body: JSON.stringify(payload) 
+      })
+      
+      if (!r.ok) {
+        let msg = 'บันทึกประกาศไม่สำเร็จ'
+        try {
+          const text = await r.text()
+          if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+            msg += ' (Web server ส่งกลับ HTML แทน JSON)'
           } else {
-            try {
-              const text = await r.text()
-              if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
-                msg += ' (Web server ส่งกลับ HTML แทน JSON - ตรวจสอบ nginx/proxy config)'
-              } else {
-                const j = JSON.parse(text)
-                if (j?.details) msg += `: ${j.details}`
-              }
-            } catch (parseErr) {
-              console.warn('อ่านรายละเอียดข้อผิดพลาดไม่สำเร็จ', parseErr)
-            }
+            const j = JSON.parse(text)
+            if (j?.details) msg += `: ${j.details}`
           }
-          alert(msg)
-          return
+        } catch (parseErr) {
+          console.warn('อ่านรายละเอียดข้อผิดพลาดไม่สำเร็จ', parseErr)
         }
-      } else {
-        const payload: Announcement = {
-          title: payloadBase.title as string,
-          category: payloadBase.category as Announcement['category'],
-          content: payloadBase.content || '',
-          isPublished: typeof payloadBase.isPublished === 'boolean' ? payloadBase.isPublished : true,
-          publishedAt: payloadBase.publishedAt ?? null,
-          attachments: payloadBase.attachments ?? []
-        }
-        const r = await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, body: JSON.stringify(payload) })
-        if (!r.ok) {
-          let msg = 'บันทึกประกาศไม่สำเร็จ'
-          if (r.status === 413) {
-            msg = '⚠️ ไฟล์มีขนาดใหญ่เกินไป!\n\nกรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่ม client_max_body_size ใน nginx config บน server'
-          } else {
-            try {
-              const text = await r.text()
-              if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
-                msg += ' (Web server ส่งกลับ HTML แทน JSON - ตรวจสอบ nginx/proxy config)'
-              } else {
-                const j = JSON.parse(text)
-                if (j?.details) msg += `: ${j.details}`
-              }
-            } catch (parseErr) {
-              console.warn('อ่านรายละเอียดข้อผิดพลาดไม่สำเร็จ', parseErr)
-            }
+        alert(msg)
+        return
+      }
+
+      const created = await r.json()
+      const announcementId = created.id || created._id
+
+      // Upload each staged file individually to avoid large payload
+      if (stagedFiles.length > 0 && announcementId) {
+        for (let i = 0; i < stagedFiles.length; i++) {
+          const file = stagedFiles[i]
+          const fd = new FormData()
+          fd.append('file', file)
+
+          const uploadR = await fetch(`/api/announcements/${announcementId}/attachment`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getToken()}` },
+            body: fd
+          })
+
+          if (!uploadR.ok) {
+            const errText = await uploadR.text().catch(() => 'Unknown error')
+            console.warn(`ไม่สามารถอัปโหลดไฟล์ ${file.name}:`, errText)
+            alert(`⚠️ ประกาศสร้างสำเร็จแล้ว แต่อัปโหลดไฟล์ "${file.name}" ไม่สำเร็จ\n\nกรุณาลองแก้ไขประกาศและเพิ่มไฟล์ใหม่`)
+            break
           }
-          alert(msg)
-          return
         }
       }
+
       setForm({ title: '', category: form.category, content: '', isPublished: true, attachments: [], publishedAt: null })
+      setStagedFiles([])
       onCreated()
-    } finally { setLoading(false) }
+    } catch (err) {
+      console.error('Submit error:', err)
+      alert('เกิดข้อผิดพลาด: ' + (err instanceof Error ? err.message : String(err)))
+    } finally { 
+      setLoading(false) 
+    }
   }
 
   const handleCancel = () => {
