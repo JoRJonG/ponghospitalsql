@@ -1,0 +1,41 @@
+# HARDEN PUBLIC ROOT ------------------------------------------------------
+
+# 1. ปิดการดูรายการไฟล์ในโฟลเดอร์
+Options -Indexes
+
+# 2. คืนค่า 403 สำหรับไฟล์ตั้งค่าที่ละเอียดอ่อน
+<FilesMatch "\.(env|lock|sql|ya?ml|ini|config|bak|ps1|sh)$">
+    Require all denied
+</FilesMatch>
+
+# 3. บล็อกการเข้าถึงโฟลเดอร์โครงการสำคัญ (เช่น src, node_modules)
+RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.vscode)(?:/|$)
+
+# 4. การควบคุมการเข้าถึงทั้งหมด: บล็อก IP และ Geo-Blocking ในบล็อกเดียว
+<RequireAll>
+    # ก. อนุญาตให้ทุกคนเข้าถึง (ถ้าไม่ถูกปฏิเสธ)
+    Require all granted
+
+    # ข. บล็อก IP เฉพาะเจาะจง
+    Require not ip 54.155.140.84
+    Require not ip 2a06:98c0:3600::103
+    Require not ip 104.131.189.0
+    Require not ip 213.108.0.73
+    Require not ip 182.79.81.30
+    Require not ip 43.159.152.184
+    Require not ip 89.104.111.58
+
+    # ค. Geo-Blocking: บล็อกถ้าไม่ใช่ประเทศไทย (TH)
+    # เราต้องใช้ SetEnvIf ก่อน เพื่อสร้างตัวแปร BlockedCountry
+    <IfModule mod_geoip2.c>
+        SetEnvIf GEOIP2_COUNTRY_CODE !^TH$ BlockedCountry
+        Require not env BlockedCountry
+    </IfModule>
+    
+    # หากใช้ GeoIP Legacy และต้องการสำรอง:
+    <IfModule mod_geoip.c>
+        SetEnvIf GEOIP_COUNTRY_CODE !^TH$ BlockedCountryLegacy
+        Require not env BlockedCountryLegacy
+    </IfModule>
+
+</RequireAll>
