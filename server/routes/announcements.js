@@ -113,10 +113,10 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
         if (att.url && att.url.startsWith('data:')) {
           const base64Length = att.url.split(',')[1]?.length || 0
           const sizeInBytes = (base64Length * 3) / 4 // ประมาณการขนาดจริง
-          if (sizeInBytes > 10 * 1024 * 1024) { // 10MB
+          if (sizeInBytes > 50 * 1024 * 1024) { // 50MB
             return res.status(400).json({ 
               error: 'Attachment too large',
-              details: `File "${att.name}" exceeds 10MB limit. Please compress the image.`
+              details: `File "${att.name}" exceeds 50MB limit. Please compress the file.`
             })
           }
         }
