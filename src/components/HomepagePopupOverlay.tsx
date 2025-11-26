@@ -126,9 +126,7 @@ export function HomepagePopupOverlay() {
     let failureCount = 0
     let failureCooldownUntil = 0
     let forceRefreshInProgress = false
-    // Poll less frequently to reduce request volume. Keep client TTL longer than poll.
-    const refreshInterval = 60_000 // 1 minute (was 5 mins)
-    let intervalId: ReturnType<typeof setInterval> | null = null
+
 
     const load = async (forceRefresh = false) => {
       setLoading(true)
@@ -153,7 +151,7 @@ export function HomepagePopupOverlay() {
         // If forceRefresh is true, bypass client TTL and append a cache-busting
         // query param so both client cache and server micro-cache are bypassed
         let url = buildApiUrl('/api/popups/active', { preferBackend: true })
-        const fetchOpts = { ttlMs: 60_000, retries: 1 } // 1 minute TTL (was 5 mins)
+        const fetchOpts = { ttlMs: 300_000, retries: 1 } // 5 minutes TTL
         if (forceRefresh) {
           const sep = url.includes('?') ? '&' : '?'
           url = `${url}${sep}_=${Date.now()}`
@@ -238,15 +236,14 @@ export function HomepagePopupOverlay() {
 
     // initial load
     load()
-    // periodic refresh to catch start/end transitions
-    intervalId = setInterval(load, refreshInterval)
+
 
     return () => {
       mounted = false
-      if (intervalId) clearInterval(intervalId)
+
       if (expiryTimer) clearTimeout(expiryTimer)
     }
-  }, [shouldSuppress, location.key])
+  }, [shouldSuppress])
 
   // Strict expiry check: ensure popup closes immediately when endAt is reached
   useEffect(() => {

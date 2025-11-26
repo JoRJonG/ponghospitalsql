@@ -32,6 +32,19 @@ export function requireRefreshToken(req, res, next) {
     }
     if (!refreshToken) return res.status(401).json({ error: 'No refresh token' })
 
+    // Check inactivity timeout during refresh
+    const lastActivity = req.cookies?.ph_last_activity
+    const now = Date.now()
+
+    // If last activity cookie is missing, it means it expired (user inactive > 30 mins)
+    // Or if it exists but is too old (double check)
+    if (!lastActivity || (Number.isFinite(Number(lastActivity)) && (now - Number(lastActivity)) > INACTIVITY_TIMEOUT_MS)) {
+      res.clearCookie('ph_token')
+      res.clearCookie('ph_refresh_token')
+      res.clearCookie('ph_last_activity')
+      return res.status(401).json({ error: 'Session expired due to inactivity', code: 'INACTIVITY_TIMEOUT' })
+    }
+
     const decoded = verifyRefreshToken(refreshToken)
     if (!decoded) return res.status(401).json({ error: 'Invalid refresh token' })
 
@@ -55,7 +68,7 @@ export function requireAuth(req, res, next) {
     }
     if (!jwtToken) return res.status(401).json({ error: 'Unauthorized' })
     const decoded = jwt.verify(jwtToken, JWT_SECRET)
-    
+
     // Check inactivity timeout
     const lastActivity = req.cookies?.ph_last_activity
     const now = Date.now()
@@ -69,7 +82,7 @@ export function requireAuth(req, res, next) {
         return res.status(401).json({ error: 'Session expired due to inactivity', code: 'INACTIVITY_TIMEOUT' })
       }
     }
-    
+
     // Update last activity time
     res.cookie('ph_last_activity', String(now), {
       httpOnly: true,
@@ -77,7 +90,7 @@ export function requireAuth(req, res, next) {
       sameSite: 'lax',
       maxAge: INACTIVITY_TIMEOUT_MS
     })
-    
+
     req.user = decoded
     next()
   } catch (e) {
@@ -98,12 +111,12 @@ export function optionalAuth(req, _res, next) {
     const m = cookie.match(/(?:^|;\s*)ph_token=([^;]+)/)
     if (m) jwtToken = decodeURIComponent(m[1])
   }
-  if (jwtToken) { try { req.user = jwt.verify(jwtToken, JWT_SECRET) } catch {} }
+  if (jwtToken) { try { req.user = jwt.verify(jwtToken, JWT_SECRET) } catch { } }
   next()
 }
 
 export function requireRole(role) {
-  return function(req, res, next) {
+  return function (req, res, next) {
     const u = req.user
     if (!u) return res.status(401).json({ error: 'Unauthorized' })
     if (userHasPermission(u, role)) return next()
@@ -121,7 +134,7 @@ export function userHasPermission(user, permission) {
 }
 
 export function requirePermission(permission) {
-  return function(req, res, next) {
+  return function (req, res, next) {
     const user = req.user
     if (!user) return res.status(401).json({ error: 'Unauthorized' })
     if (userHasPermission(user, permission)) {

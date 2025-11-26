@@ -23,7 +23,7 @@ const dbConfig = {
   // Increased timeout for BLOB operations
   connectTimeout: 120000, // 2 minutes
   acquireTimeout: 120000, // 2 minutes to acquire connection
-  timeout: 120000, // 2 minutes for query execution
+
   // Keep connection alive for long operations
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
@@ -47,11 +47,11 @@ export async function testConnection() {
   try {
     const connection = await pool.getConnection()
     // console.log('✅ Connected to MySQL database successfully')
-    
+
     // ทดสอบ query
     const [rows] = await connection.execute('SELECT 1 as test')
     // console.log('✅ Database query test passed')
-    
+
     connection.release()
     return true
   } catch (error) {
@@ -128,7 +128,7 @@ export async function transaction(callback, retries = 1) {
   } catch (error) {
     try {
       await connection.rollback()
-    } catch {}
+    } catch { }
 
     if (retries > 0 && isRecoverableDbError(error)) {
       destroyed = true

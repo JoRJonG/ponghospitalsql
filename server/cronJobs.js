@@ -5,11 +5,11 @@ import { Visitor } from './models/mysql/Visitor.js'
 import { toLocalSql } from './utils/date.js'
 import { purgeCachePrefix } from './middleware/cache.js'
 
-// ฟังก์ชันลบประกาศเก่ากว่า 1 ปี
+// ฟังก์ชันลบประกาศเก่ากว่า 2 ปี
 async function deleteOldAnnouncements() {
   try {
-    const oneYearAgo = new Date()
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+    const twoYearsAgo = new Date()
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
 
     // ลบประกาศและไฟล์แนบ
     const sql = `
@@ -18,7 +18,7 @@ async function deleteOldAnnouncements() {
       LEFT JOIN announcement_attachments att ON a.id = att.announcement_id
       WHERE a.created_at < ?
     `
-    const result = await exec(sql, [toLocalSql(oneYearAgo)])
+    const result = await exec(sql, [toLocalSql(twoYearsAgo)])
 
     console.log(`[Cron] ลบประกาศเก่าแล้ว ${result.affectedRows} รายการ (รวมไฟล์แนบ)`)
   } catch (error) {
