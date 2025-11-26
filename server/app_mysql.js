@@ -199,34 +199,35 @@ export async function createServer() {
 
   // Server-side rendering for Open Graph tags (Announcements)
   app.get(['/announcement/:id', '/announcements/:id'], async (req, res, next) => {
+    // 1. Skip if the path is an API call
     if (req.path.startsWith('/api')) return next()
+
     try {
       const announcement = await Announcement.findById(req.params.id)
       if (!announcement) return next()
 
-      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
+      // 2. Define image using the default URL ALWAYS (No file checking or attachment logic)
+      const image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+
+      // Sanitize and truncate description
+      const sanitizedDescription = announcement.content
+        ? announcement.content.replace(/<[^>]*>/g, '').substring(0, 200) + (announcement.content.length > 200 ? '...' : '')
+        : ''
+
       const title = announcement.title
-      const description = announcement.content ? announcement.content.replace(/<[^>]*>/g, '').substring(0, 200) : ''
-
-      // Find first valid image (not PDF)
-      let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
-      if (announcement.attachments && announcement.attachments.length > 0) {
-        const imageAttachment = announcement.attachments.find(att => {
-          if (att.mime_type) return att.mime_type.startsWith('image/')
-          if (att.url) return !att.url.toLowerCase().endsWith('.pdf')
-          return true // Fallback if no type info
-        })
-
-        if (imageAttachment && imageAttachment.url) {
-          image = `${req.protocol}://${req.get('host')}${imageAttachment.url}`
-        }
-      }
-
+      const description = sanitizedDescription
       const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
 
+      // *** บรรทัด 223-231 (ที่เคยมี logic เช็ค attachments) ถูกลบออกแล้ว ***
+
+      // 3. Read index.html and inject meta tags
+      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
       html = injectMetaTags(html, { title, description, image, url })
+
       res.send(html)
+
     } catch (e) {
+      logger.error(`[OG SSR Announcement] Error for ID ${req.params.id}:`, e.message)
       next()
     }
   })
