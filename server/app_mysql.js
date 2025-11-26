@@ -25,6 +25,9 @@ import { preventHpp, xssSanitizer } from './middleware/security.js'
 import { trackVisitors } from './middleware/visitorTracker.js'
 import { logger } from './utils/logger.js'
 import { testConnection } from './database.js'
+import fs from 'fs/promises'
+import Announcement from './models/mysql/Announcement.js'
+import Activity from './models/mysql/ActivityBlob.js'
 import './cronJobs.js' // นำเข้า cron jobs
 
 export async function createServer() {
@@ -157,6 +160,60 @@ export async function createServer() {
 
   // Visitor tracking middleware (must be after API routes)
   app.use(trackVisitors)
+
+  // Helper to inject meta tags
+  const injectMetaTags = (html, { title, description, image, url }) => {
+    let modified = html
+    if (title) modified = modified.replace(/<meta property="og:title" content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${title.replace(/"/g, '&quot;')}" />`)
+    if (description) modified = modified.replace(/<meta property="og:description" content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${description.replace(/"/g, '&quot;')}" />`)
+    if (image) modified = modified.replace(/<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${image}" />`)
+    if (url) modified = modified.replace(/<meta property="og:url" content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${url}" />`)
+    return modified
+  }
+
+  // Server-side rendering for Open Graph tags (Activities)
+  app.get('/activities/:id', async (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    try {
+      const activity = await Activity.findById(req.params.id)
+      if (!activity) return next()
+
+      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
+      const title = activity.title
+      const description = activity.description ? activity.description.replace(/<[^>]*>/g, '').substring(0, 200) : ''
+      const image = activity.images && activity.images.length > 0
+        ? `${req.protocol}://${req.get('host')}${activity.images[0].url}`
+        : 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+
+      html = injectMetaTags(html, { title, description, image, url })
+      res.send(html)
+    } catch (e) {
+      next()
+    }
+  })
+
+  // Server-side rendering for Open Graph tags (Announcements)
+  app.get(['/announcement/:id', '/announcements/:id'], async (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    try {
+      const announcement = await Announcement.findById(req.params.id)
+      if (!announcement) return next()
+
+      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
+      const title = announcement.title
+      const description = announcement.content ? announcement.content.replace(/<[^>]*>/g, '').substring(0, 200) : ''
+      const image = announcement.attachments && announcement.attachments.length > 0 && announcement.attachments[0].url
+        ? `${req.protocol}://${req.get('host')}${announcement.attachments[0].url}`
+        : 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+
+      html = injectMetaTags(html, { title, description, image, url })
+      res.send(html)
+    } catch (e) {
+      next()
+    }
+  })
 
   // Serve built frontend (Vite output) if present
   app.use(express.static(distPath))
