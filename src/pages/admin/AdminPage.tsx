@@ -122,13 +122,7 @@ const toDateTimeLocalValue = (iso?: string | null) => {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
-const fromDateTimeLocalValue = (v: string) => {
-  const s = (v || '').trim()
-  if (!s) return undefined
-  const d = new Date(s)
-  if (isNaN(d.getTime())) return undefined
-  return d.toISOString()
-}
+
 const fmtDateTime = (iso?: string) => {
   if (!iso) return ''
   const d = new Date(iso)
@@ -2343,7 +2337,7 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
             <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
             <div>
               <label className="block text-sm mb-1">ตั้งเวลาเผยแพร่</label>
-              <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e => setForm(f => ({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
+              <input type="date" value={toDateTimeLocalValue(form.publishedAt || undefined).split('T')[0]} onChange={e => setForm(f => ({ ...f, publishedAt: e.target.value ? new Date(e.target.value + 'T00:00').toISOString() : null }))} className="w-full rounded border px-3 py-2" />
               <p className="mt-1 text-xs text-gray-600">ถ้ากำหนดเป็นอนาคต ระบบจะเผยแพร่เมื่อถึงเวลานั้น</p>
             </div>
           </div>

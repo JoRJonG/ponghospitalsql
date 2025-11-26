@@ -53,9 +53,6 @@ export default function Navbar() {
     }
 
     checkNewAnnouncements()
-    // Check every 5 minutes
-    const interval = setInterval(checkNewAnnouncements, 5 * 60 * 1000)
-    return () => clearInterval(interval)
   }, [])
 
   // ITA dynamic menu

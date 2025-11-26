@@ -6,7 +6,6 @@ import compression from 'compression'
 import helmet from 'helmet'
 import path from 'path'
 import { fileURLToPath } from 'url'
-
 import activitiesRouter from './routes/activities.js'
 import announcementsRouter from './routes/announcements.js'
 import slidesRouter from './routes/slides.js'
@@ -22,9 +21,13 @@ import popupsRouter from './routes/popups.js'
 import systemRouter from './routes/system.js'
 import usersRouter from './routes/users.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
-import { optionalAuth } from './middleware/auth.js'
+import { preventHpp, xssSanitizer } from './middleware/security.js'
 import { trackVisitors } from './middleware/visitorTracker.js'
+import { logger } from './utils/logger.js'
 import { testConnection } from './database.js'
+import fs from 'fs/promises'
+import Announcement from './models/mysql/Announcement.js'
+import Activity from './models/mysql/ActivityBlob.js'
 import './cronJobs.js' // นำเข้า cron jobs
 
 export async function createServer() {
@@ -74,13 +77,13 @@ export async function createServer() {
     crossOriginEmbedderPolicy: false, // Allow embedding for PDF viewer
     originAgentCluster: httpsEnabled, // Only advertise OAC support when HTTPS is active
   }
-  
+
   // Only enable HSTS when HTTPS is actually in use
   if (!httpsEnabled) {
     helmetConfig.hsts = false
     helmetConfig.crossOriginOpenerPolicy = false
   }
-  
+
   app.use(helmet(helmetConfig))
   // Trust proxy for proper protocol detection behind reverse proxy
   app.set('trust proxy', 1)
@@ -93,32 +96,38 @@ export async function createServer() {
   // Cookie parser
   app.use(cookieParser())
 
+  // Security Middleware
+  // Prevent HTTP Parameter Pollution
+  app.use(preventHpp)
+  // Sanitize inputs against XSS
+  app.use(xssSanitizer)
+
   app.get('/api/health', async (_req, res) => {
     const dbConnected = Boolean(app.locals.dbConnected)
-    
+
     let canReadAnnouncements = null
     let canReadUsers = null
-    
-  if (dbConnected) {
+
+    if (dbConnected) {
       try {
         const { default: Announcement } = await import('./models/mysql/Announcement.js')
         await Announcement.countDocuments({})
         canReadAnnouncements = true
       } catch (e) {
         canReadAnnouncements = false
-        console.warn('Cannot read announcements:', e.message)
+        logger.warn('Cannot read announcements:', e.message)
       }
-      
+
       try {
         const { default: User } = await import('./models/mysql/User.js')
         await User.countDocuments({})
         canReadUsers = true
       } catch (e) {
         canReadUsers = false
-        console.warn('Cannot read users:', e.message)
+        logger.warn('Cannot read users:', e.message)
       }
     }
-    
+
     res.json({
       ok: true,
       service: 'ponghospital-api',
@@ -126,9 +135,9 @@ export async function createServer() {
       time: new Date().toISOString(),
       dbConnected,
       dbName: process.env.MYSQL_DATABASE || 'ponghospital',
-      permissions: { 
-        announcements: { read: canReadAnnouncements }, 
-        users: { read: canReadUsers } 
+      permissions: {
+        announcements: { read: canReadAnnouncements },
+        users: { read: canReadUsers }
       },
       ready: true
     })
@@ -152,6 +161,76 @@ export async function createServer() {
   // Visitor tracking middleware (must be after API routes)
   app.use(trackVisitors)
 
+  // Helper to inject meta tags
+  const injectMetaTags = (html, { title, description, image, url }) => {
+    let modified = html
+    if (title) modified = modified.replace(/<meta property="og:title" content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${title.replace(/"/g, '&quot;')}" />`)
+    if (description) modified = modified.replace(/<meta property="og:description" content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${description.replace(/"/g, '&quot;')}" />`)
+    if (image) modified = modified.replace(/<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${image}" />`)
+    if (url) modified = modified.replace(/<meta property="og:url" content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${url}" />`)
+    return modified
+  }
+
+  // Server-side rendering for Open Graph tags (Activities)
+  app.get('/activities/:id', async (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    try {
+      const activity = await Activity.findById(req.params.id)
+      if (!activity) return next()
+
+      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
+      const title = activity.title
+      const description = activity.description ? activity.description.replace(/<[^>]*>/g, '').substring(0, 200) : ''
+
+      // Find first valid image
+      let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      if (activity.images && activity.images.length > 0) {
+        image = `${req.protocol}://${req.get('host')}${activity.images[0].url}`
+      }
+
+      const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+
+      html = injectMetaTags(html, { title, description, image, url })
+      res.send(html)
+    } catch (e) {
+      next()
+    }
+  })
+
+  // Server-side rendering for Open Graph tags (Announcements)
+  app.get(['/announcement/:id', '/announcements/:id'], async (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    try {
+      const announcement = await Announcement.findById(req.params.id)
+      if (!announcement) return next()
+
+      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
+      const title = announcement.title
+      const description = announcement.content ? announcement.content.replace(/<[^>]*>/g, '').substring(0, 200) : ''
+
+      // Find first valid image (not PDF)
+      let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      if (announcement.attachments && announcement.attachments.length > 0) {
+        const imageAttachment = announcement.attachments.find(att => {
+          if (att.mime_type) return att.mime_type.startsWith('image/')
+          if (att.url) return !att.url.toLowerCase().endsWith('.pdf')
+          return true // Fallback if no type info
+        })
+
+        if (imageAttachment && imageAttachment.url) {
+          image = `${req.protocol}://${req.get('host')}${imageAttachment.url}`
+        }
+      }
+
+      const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+
+      html = injectMetaTags(html, { title, description, image, url })
+      res.send(html)
+    } catch (e) {
+      next()
+    }
+  })
+
   // Serve built frontend (Vite output) if present
   app.use(express.static(distPath))
 
@@ -165,22 +244,22 @@ export async function createServer() {
   // Global error handler for payload issues
   app.use((err, req, res, next) => {
     if (err.type === 'entity.too.large') {
-      return res.status(413).json({ 
-        error: 'Payload too large', 
-        details: 'Request body exceeds size limit. Please compress images before uploading.' 
+      return res.status(413).json({
+        error: 'Payload too large',
+        details: 'Request body exceeds size limit. Please compress images before uploading.'
       })
     }
     if (err.code === 'ECONNRESET') {
-      return res.status(400).json({ 
-        error: 'Connection reset', 
-        details: 'Request was too large or took too long. Please try with smaller files.' 
+      return res.status(400).json({
+        error: 'Connection reset',
+        details: 'Request was too large or took too long. Please try with smaller files.'
       })
     }
     const status = err.status || err.statusCode || 500
     if (status >= 500) {
-      console.error('[ERROR]', err.message)
+      logger.error('[ERROR]', err.message)
     }
-    res.status(status).json({ 
+    res.status(status).json({
       error: status >= 500 ? 'Internal server error' : (err.message || 'Request failed'),
       details: err.message,
     })
@@ -194,28 +273,28 @@ export async function createServer() {
       if (!url || typeof url !== 'string') {
         return res.status(400).json({ error: 'Missing url parameter' })
       }
-      
+
       let parsed
-      try { 
-        parsed = new URL(url) 
+      try {
+        parsed = new URL(url)
       } catch {
         return res.status(400).json({ error: 'Invalid URL' })
       }
-      
+
       if (!/^https?:$/.test(parsed.protocol)) {
         return res.status(400).json({ error: 'Only http/https protocols are allowed' })
       }
-      
+
       const host = parsed.hostname.toLowerCase()
       if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
         return res.status(403).json({ error: 'Cannot proxy localhost URLs' })
       }
-      
+
       const r = await fetch(url)
       if (!r.ok) {
         return res.status(r.status).json({ error: `Upstream error ${r.status}` })
       }
-      
+
       const ct = r.headers.get('content-type') || 'application/pdf'
       const len = r.headers.get('content-length')
       res.setHeader('Content-Type', ct)
@@ -224,7 +303,7 @@ export async function createServer() {
       const ab = await r.arrayBuffer()
       res.send(Buffer.from(ab))
     } catch (e) {
-      console.error('[PDF proxy] Error:', e?.message)
+      logger.error('[PDF proxy] Error:', e?.message)
       res.status(500).json({ error: 'Proxy failed', details: e?.message })
     }
   })
@@ -232,48 +311,50 @@ export async function createServer() {
   // Prepare DB connect function
   const connectDb = async () => {
     let connected = false
-    
+
     try {
       connected = await testConnection()
-      
+
       if (connected) {
         // Seed admin user (best-effort)
         try {
           const { default: User } = await import('./models/mysql/User.js')
           const adminUser = (process.env.ADMIN_USER || 'admin').toLowerCase()
           const adminPass = process.env.ADMIN_PASS || 'admin123'
-          
+
           if (adminUser && adminPass) {
             try {
-              const bcryptPkg = await import('bcryptjs')
-              const { hash } = bcryptPkg.default || bcryptPkg
-              const passwordHash = await hash(adminPass, 10)
-              
-              const result = await User.updateOne(
-                { username: adminUser },
-                { $set: { username: adminUser, passwordHash, roles: ['admin'] } },
-                { upsert: true }
-              )
-              
-              if (result.upsertedCount) {
+              // Check if admin exists first
+              const existingAdmin = await User.findOne({ username: adminUser })
+
+              if (!existingAdmin) {
+                const bcryptPkg = await import('bcryptjs')
+                const { hash } = bcryptPkg.default || bcryptPkg
+                const passwordHash = await hash(adminPass, 10)
+
+                await User.create({
+                  username: adminUser,
+                  passwordHash,
+                  roles: ['admin'],
+                  permissions: ['*'],
+                  isActive: true
+                })
                 // console.log(`[seed] Created admin user: ${adminUser}`)
-              } else if (result.modifiedCount) {
-                // console.log(`[seed] Updated admin user: ${adminUser}`)
               } else {
-                // console.log(`[seed] Admin user already up-to-date: ${adminUser}`)
+                // console.log(`[seed] Admin user already exists, skipping password reset: ${adminUser}`)
               }
-            } catch (e) { 
-              console.warn('[seed] Could not upsert admin user:', e?.message) 
+            } catch (e) {
+              logger.warn('[seed] Could not ensure admin user:', e?.message)
             }
           }
-        } catch (e) { 
-          console.warn('[seed] Skipped seeding admin user:', e?.message) 
+        } catch (e) {
+          logger.warn('[seed] Skipped seeding admin user:', e?.message)
         }
       }
     } catch (err) {
-      console.warn('[WARN] Could not connect to MySQL. Continuing without DB. Error:', err?.message)
+      logger.warn('[WARN] Could not connect to MySQL. Continuing without DB. Error:', err?.message)
     }
-    
+
     app.locals.dbConnected = connected
   }
 

@@ -3,7 +3,7 @@ import RichTextEditor from '../../components/RichTextEditor'
 import { useAuth } from '../../auth/AuthContext'
 import { compressImage } from '../../utils/imageCompressor'
 import { sanitizeText, sanitizeHtml } from '../../utils/sanitize'
-import { quillModules, quillFormats, toDateTimeLocalValue, fromDateTimeLocalValue } from './helpers'
+import { quillModules, quillFormats, toDateTimeLocalValue } from './helpers'
 
 type Announcement = {
   _id?: string
@@ -239,7 +239,7 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
         <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
         <div>
           <label className="block text-sm mb-1">ตั้งเวลาเผยแพร่</label>
-          <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e => setForm(f => ({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
+          <input type="date" value={toDateTimeLocalValue(form.publishedAt || undefined).split('T')[0]} onChange={e => setForm(f => ({ ...f, publishedAt: e.target.value ? new Date(e.target.value + 'T00:00').toISOString() : null }))} className="w-full rounded border px-3 py-2" />
           <p className="mt-1 text-xs text-gray-600">ถ้ากำหนดเป็นอนาคต ระบบจะเผยแพร่เมื่อถึงเวลานั้น</p>
         </div>
       </div>
