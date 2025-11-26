@@ -209,7 +209,7 @@ export async function createServer() {
       const description = announcement.content ? announcement.content.replace(/<[^>]*>/g, '').substring(0, 200) : ''
 
       // Find first valid image (not PDF)
-      let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      let image = `${req.protocol}://${req.get('host')}/og-default.png`
       if (announcement.attachments && announcement.attachments.length > 0) {
         const imageAttachment = announcement.attachments.find(att => {
           if (att.mime_type) return att.mime_type.startsWith('image/')
