@@ -58,7 +58,7 @@ router.get('/', optionalAuth, microCache(5_000), async (req, res) => {
     console.error('[announcements] GET / error:', e?.message)
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-  return res.status(403).json({ error: 'Permission denied to read announcements' })
+      return res.status(403).json({ error: 'Permission denied to read announcements' })
     }
     res.status(500).json({ error: 'Failed to fetch announcements', details: e?.message })
   }
@@ -75,7 +75,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
   } catch (e) {
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-  return res.status(403).json({ error: 'Permission denied to read announcements' })
+      return res.status(403).json({ error: 'Permission denied to read announcements' })
     }
     res.status(400).json({ error: 'Invalid ID' })
   }
@@ -121,25 +121,25 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
   try {
     const payload = { ...req.body }
     if (req.user?.username) payload.createdBy = req.user.username
-    
+
     // Sanitize user inputs
     if (payload.title) payload.title = sanitizeText(payload.title)
     if (payload.content) payload.content = sanitizeHtml(payload.content)
     if (payload.category) payload.category = sanitizeText(payload.category)
-    
+
     // จำกัด attachments ไม่เกิน 5 รายการ และแต่ละไฟล์ไม่เกิน 10MB (base64)
     if (payload.attachments && Array.isArray(payload.attachments)) {
       if (payload.attachments.length > 5) {
         return res.status(400).json({ error: 'Too many attachments (max 5)' })
       }
-      
+
       // เช็คขนาดแต่ละไฟล์
       for (const att of payload.attachments) {
         if (att.url && att.url.startsWith('data:')) {
           const base64Length = att.url.split(',')[1]?.length || 0
           const sizeInBytes = (base64Length * 3) / 4 // ประมาณการขนาดจริง
           if (sizeInBytes > 50 * 1024 * 1024) { // 50MB
-            return res.status(400).json({ 
+            return res.status(400).json({
               error: 'Attachment too large',
               details: `File "${att.name}" exceeds 50MB limit. Please compress the file.`
             })
@@ -147,7 +147,7 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
         }
       }
     }
-    
+
     // Validate required fields to avoid passing undefined bind params to SQL
     if (!payload.title || typeof payload.title !== 'string' || payload.title.trim() === '') {
       return res.status(400).json({ error: 'Title is required' })
@@ -206,18 +206,27 @@ router.post('/:id/attachment', requireAuth, requirePermission('announcements'), 
     const fileBuffer = req.file.buffer
 
     // determine next display_order
-    const rows = await query('SELECT COALESCE(MAX(display_order), -1) as max_order FROM announcement_attachments WHERE announcement_id = ?', [announcementId])
-    const nextOrder = (rows && rows[0] && typeof rows[0].max_order === 'number') ? rows[0].max_order + 1 : 0
+    // const rows = await query('SELECT COALESCE(MAX(display_order), -1) as max_order FROM announcement_attachments WHERE announcement_id = ?', [announcementId])
+    // const nextOrder = (rows && rows[0] && typeof rows[0].max_order === 'number') ? rows[0].max_order + 1 : 0
 
-    const result = await query(
-      `INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [announcementId, fileBuffer, mimeType, fileSize, isPdf ? 'pdf' : 'image', fileName, nextOrder]
-    )
+    // const result = await query(
+    //   `INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order)
+    //    VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    //   [announcementId, fileBuffer, mimeType, fileSize, isPdf ? 'pdf' : 'image', fileName, nextOrder]
+    // )
 
-    const attachmentId = result.insertId
-    const url = `/api/images/announcements/${announcementId}/${attachmentId}`
-    res.json({ id: attachmentId, url, name: fileName, bytes: fileSize, kind: isPdf ? 'pdf' : 'image' })
+    // const attachmentId = result.insertId
+    // const url = `/api/images/announcements/${announcementId}/${attachmentId}`
+    // res.json({ id: attachmentId, url, name: fileName, bytes: fileSize, kind: isPdf ? 'pdf' : 'image' })
+
+    const result = await Announcement.addAttachment(announcementId, {
+      buffer: fileBuffer,
+      filename: fileName,
+      mimetype: mimeType,
+      kind: isPdf ? 'pdf' : 'image'
+    })
+
+    res.json(result)
   } catch (e) {
     console.error('[announcements upload] error:', e?.message)
     res.status(400).json({ error: 'Upload failed', details: e?.message })
@@ -309,12 +318,12 @@ router.put('/:id', requireAuth, requirePermission('announcements'), async (req, 
     const before = await Announcement.findById(req.params.id)
     const payload = { ...req.body }
     if (req.user?.username) payload.updatedBy = req.user.username
-    
+
     // Sanitize user inputs
     if (payload.title) payload.title = sanitizeText(payload.title)
     if (payload.content) payload.content = sanitizeHtml(payload.content)
     if (payload.category) payload.category = sanitizeText(payload.category)
-    
+
     const doc = await Announcement.findByIdAndUpdate(req.params.id, payload, { new: true })
     if (!doc) return res.status(404).json({ error: 'Not found' })
     purgeCachePrefix('/api/announcements')

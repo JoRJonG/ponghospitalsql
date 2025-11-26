@@ -1,6 +1,41 @@
-// Updated: 2025-10-03T11:30:00
-import { pool, query, transaction } from '../../database.js'
+// Updated: 2025-11-26
+import { pool, query, transaction, exec } from '../../database.js'
 import { toLocalSql } from '../../utils/date.js'
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import crypto from 'crypto'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// Go up to server root (server/models/mysql -> server/models -> server) then up to project root
+const UPLOAD_DIR = path.resolve(__dirname, '../../../uploads/announcements')
+
+async function ensureUploadDir() {
+  try {
+    await fs.mkdir(UPLOAD_DIR, { recursive: true })
+  } catch (e) {
+    console.error('[Announcement] ensureUploadDir error:', e)
+  }
+}
+
+async function saveFileToDisk(buffer, filename) {
+  await ensureUploadDir()
+  const ext = path.extname(filename) || '.bin'
+  const uniqueName = `${crypto.randomUUID()}${ext}`
+  const filePath = path.join(UPLOAD_DIR, uniqueName)
+  await fs.writeFile(filePath, buffer)
+  return uniqueName // Store relative filename
+}
+
+async function deleteFileFromDisk(filename) {
+  if (!filename) return
+  try {
+    const filePath = path.join(UPLOAD_DIR, filename)
+    await fs.unlink(filePath)
+  } catch (e) {
+    console.warn(`[Announcement] Failed to delete file from disk: ${filename}`, e.message)
+  }
+}
 
 // Helper function to format date for MySQL DATETIME using local time
 function formatDateForMySQL(date) {
@@ -38,6 +73,20 @@ function parseLocalDateTime(input) {
   return isNaN(d.getTime()) ? null : d
 }
 
+// Ensure table schema has file_path column
+async function ensureSchema() {
+  try {
+    const rows = await query("SHOW COLUMNS FROM announcement_attachments LIKE 'file_path'")
+    if (rows.length === 0) {
+      await exec("ALTER TABLE announcement_attachments ADD COLUMN file_path VARCHAR(512) NULL")
+    }
+    // Make file_data nullable if strictly required, but usually BLOB can be NULL
+    await exec("ALTER TABLE announcement_attachments MODIFY COLUMN file_data LONGBLOB NULL")
+  } catch (e) {
+    console.warn('[Announcement] ensureSchema warning:', e.message)
+  }
+}
+
 export class Announcement {
   static async findById(id) {
     const rows = await query(`
@@ -49,26 +98,26 @@ export class Announcement {
       JOIN announcement_categories c ON a.category_id = c.id
       WHERE a.id = ?
     `, [id])
-    
+
     if (!rows[0]) return null
-    
+
     const announcement = rows[0]
-    
+
     // ดึง attachments
     const attachments = await query(`
-      SELECT id, kind, file_name as name, file_size as bytes, display_order
+      SELECT id, kind, file_name as name, file_size as bytes, display_order, file_path
       FROM announcement_attachments 
       WHERE announcement_id = ? 
       ORDER BY display_order ASC
     `, [id])
-    
+
     // สร้าง URL สำหรับ serve file
     const attachmentsWithUrl = attachments.map(att => ({
       ...att,
       url: `/api/images/announcements/${id}/${att.id}`,
       publicId: att.id
     }))
-    
+
     return {
       _id: announcement._id,
       title: announcement.title,
@@ -95,7 +144,7 @@ export class Announcement {
   static async find(filter = {}, options = {}) {
     // Return object with sort() method for MongoDB compatibility
     const self = this
-    const thenFn = async function(resolve, reject) {
+    const thenFn = async function (resolve, reject) {
       try {
         const result = await self._executeFind(this._filter, this._options, this._sortOptions)
         resolve(result)
@@ -103,13 +152,13 @@ export class Announcement {
         reject(error)
       }
     }
-    
+
     const findResult = {
       _filter: filter,
       _options: options,
       _sortOptions: null,
-      
-      sort: function(sortObj) {
+
+      sort: function (sortObj) {
         // Return new object with updated sort options
         const newObj = {
           _filter: this._filter,
@@ -120,17 +169,17 @@ export class Announcement {
         }
         return newObj
       },
-      
+
       then: thenFn
     }
-    
+
     return findResult
   }
-  
+
   static async _executeFind(filter = {}, options = {}, sortOptions = null) {
     let whereClause = 'WHERE 1=1'
     let params = []
-    
+
     if (filter.isPublished !== undefined) {
       whereClause += ' AND a.is_published = ?'
       params.push(filter.isPublished)
@@ -139,13 +188,13 @@ export class Announcement {
         whereClause += ' AND (a.published_at IS NULL OR a.published_at <= NOW())'
       }
     }
-    
+
     if (filter.category) {
       // รองรับทั้ง category_code และ category_name (display_name)
       whereClause += ' AND (c.name = ? OR c.display_name = ?)'
       params.push(filter.category, filter.category)
     }
-    
+
     // Handle $or conditions for publishedAt
     if (filter.$or) {
       whereClause += ' AND a.published_at <= NOW()'
@@ -203,14 +252,14 @@ export class Announcement {
         WHERE announcement_id = ? 
         ORDER BY display_order ASC
       `, [announcement._id])
-      
+
       // สร้าง URL สำหรับ serve file และแปลงเป็น camelCase
       announcement.attachments = attachments.map(att => ({
         ...att,
         url: `/api/images/announcements/${announcement._id}/${att.id}`,
         publicId: att.id
       }))
-      
+
       // แปลง snake_case เป็น camelCase และเปลี่ยน category เป็น display_name
       announcement.category = announcement.category_name
       announcement.categoryCode = announcement.category_code
@@ -234,6 +283,7 @@ export class Announcement {
   }
 
   static async create(data) {
+    await ensureSchema()
     return await transaction(async (connection) => {
       // Basic validation to avoid undefined SQL bind parameters
       if (!data || typeof data !== 'object') throw new Error('Invalid data for create')
@@ -244,11 +294,11 @@ export class Announcement {
         'SELECT id FROM announcement_categories WHERE name = ? OR display_name = ?',
         [data.category, data.category]
       )
-      
+
       if (!categories[0]) {
         throw new Error(`Category '${data.category}' not found`)
       }
-      
+
       const categoryId = categories[0].id
 
       // สร้างประกาศ
@@ -281,46 +331,42 @@ export class Announcement {
       if (data.attachments && data.attachments.length > 0) {
         for (let i = 0; i < data.attachments.length; i++) {
           const attachment = data.attachments[i]
-          
-          // console.log('[Announcement.create] Attachment:', {
-          //   kind: attachment.kind,
-          //   name: attachment.name,
-          //   urlStart: attachment.url?.substring(0, 50),
-          //   isDataUrl: attachment.url?.startsWith('data:'),
-          //   isApiUrl: attachment.url?.startsWith('/api/images/')
-          // })
-          
+
           // ข้าม attachment ที่เป็น URL /api/images/ แล้ว (คงอยู่แล้วใน DB)
           if (attachment.url && attachment.url.startsWith('/api/images/')) {
-            // console.log('[Announcement.create] Skipping existing attachment:', attachment.url)
             continue
           }
-          
-          // แปลง data URL เป็น Buffer
+
           let fileData = null
+          let filePath = null
           let mimeType = attachment.resourceType === 'pdf' ? 'application/pdf' : 'image/jpeg'
           let fileSize = attachment.bytes || 0
-          
+          let fileName = attachment.name || `file_${Date.now()}`
+
+          // แปลง data URL เป็น Buffer และบันทึกลง Disk
           if (attachment.url && attachment.url.startsWith('data:')) {
             const matches = attachment.url.match(/^data:([^;]+);base64,(.+)$/)
             if (matches) {
               mimeType = matches[1]
-              fileData = Buffer.from(matches[2], 'base64')
-              fileSize = fileData.length
+              const buffer = Buffer.from(matches[2], 'base64')
+              fileSize = buffer.length
+
+              // Save to disk
+              filePath = await saveFileToDisk(buffer, fileName)
             }
           }
-          
+
           await connection.execute(`
-            INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order, file_path)
+            VALUES (?, NULL, ?, ?, ?, ?, ?, ?)
           `, [
             announcementId,
-            fileData,
             mimeType,
             fileSize,
             attachment.kind || 'image',
-            attachment.name || null,
-            i
+            fileName,
+            i,
+            filePath
           ])
         }
       }
@@ -330,15 +376,16 @@ export class Announcement {
   }
 
   static async updateById(id, data) {
+    await ensureSchema()
     return await transaction(async (connection) => {
       let categoryId = null
-      
+
       if (data.category) {
         const [categories] = await connection.execute(
           'SELECT id FROM announcement_categories WHERE name = ? OR display_name = ?',
           [data.category, data.category]
         )
-        
+
         if (!categories[0]) {
           throw new Error(`Category '${data.category}' not found`)
         }
@@ -348,7 +395,7 @@ export class Announcement {
       // อัพเดทประกาศ
       const updateFields = []
       const updateParams = []
-      
+
       if (data.title) {
         updateFields.push('title = ?')
         updateParams.push(data.title)
@@ -385,7 +432,7 @@ export class Announcement {
       if (updateFields.length > 0) {
         updateFields.push('updated_at = CURRENT_TIMESTAMP')
         updateParams.push(id)
-        
+
         await connection.execute(`
           UPDATE announcements SET ${updateFields.join(', ')} WHERE id = ?
         `, updateParams)
@@ -395,58 +442,66 @@ export class Announcement {
       if (data.attachments !== undefined) {
         // ดึง attachment เดิมที่มีอยู่ใน DB
         const [existingAttachments] = await connection.execute(
-          'SELECT id, file_name FROM announcement_attachments WHERE announcement_id = ?',
+          'SELECT id, file_name, file_path FROM announcement_attachments WHERE announcement_id = ?',
           [id]
         )
         const existingIds = new Set()
-        
+
         // ลบ attachment เก่าที่ไม่ได้ส่งมาในครั้งนี้
         for (const existing of existingAttachments) {
-          const stillExists = data.attachments.some(att => 
+          const stillExists = data.attachments.some(att =>
             att.url === `/api/images/announcements/${id}/${existing.id}`
           )
           if (!stillExists) {
+            // Delete file from disk if exists
+            if (existing.file_path) {
+              await deleteFileFromDisk(existing.file_path)
+            }
             await connection.execute('DELETE FROM announcement_attachments WHERE id = ?', [existing.id])
           } else {
             existingIds.add(existing.id)
           }
         }
-        
+
         // เพิ่ม attachment ใหม่ (เฉพาะ data URL)
         if (data.attachments.length > 0) {
           for (let i = 0; i < data.attachments.length; i++) {
             const attachment = data.attachments[i]
-            
+
             // ข้าม attachment ที่เป็น URL /api/images/ แล้ว (อยู่ใน DB อยู่แล้ว)
             if (attachment.url && attachment.url.startsWith('/api/images/')) {
               continue
             }
-            
-            // แปลง data URL เป็น Buffer
+
             let fileData = null
+            let filePath = null
             let mimeType = attachment.resourceType === 'pdf' ? 'application/pdf' : 'image/jpeg'
             let fileSize = attachment.bytes || 0
-            
+            let fileName = attachment.name || `file_${Date.now()}`
+
             if (attachment.url && attachment.url.startsWith('data:')) {
               const matches = attachment.url.match(/^data:([^;]+);base64,(.+)$/)
               if (matches) {
                 mimeType = matches[1]
-                fileData = Buffer.from(matches[2], 'base64')
-                fileSize = fileData.length
+                const buffer = Buffer.from(matches[2], 'base64')
+                fileSize = buffer.length
+
+                // Save to disk
+                filePath = await saveFileToDisk(buffer, fileName)
               }
             }
-            
+
             await connection.execute(`
-              INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order)
-              VALUES (?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order, file_path)
+              VALUES (?, NULL, ?, ?, ?, ?, ?, ?)
             `, [
               id,
-              fileData,
               mimeType,
               fileSize,
               attachment.kind || 'image',
-              attachment.name || null,
-              i
+              fileName,
+              i,
+              filePath
             ])
           }
         }
@@ -457,14 +512,58 @@ export class Announcement {
   }
 
   static async deleteById(id) {
+    // Delete attachments files first
+    const rows = await query('SELECT file_path FROM announcement_attachments WHERE announcement_id = ?', [id])
+    for (const row of rows) {
+      if (row.file_path) {
+        await deleteFileFromDisk(row.file_path)
+      }
+    }
+
     const result = await query('DELETE FROM announcements WHERE id = ?', [id])
     return result.affectedRows > 0
+  }
+
+  static async addAttachment(announcementId, { buffer, filename, mimetype, kind }) {
+    await ensureSchema()
+    await ensureUploadDir()
+
+    const fileSize = buffer.length
+    const safeName = filename || `file_${Date.now()}`
+
+    // Save to disk
+    const filePath = await saveFileToDisk(buffer, safeName)
+
+    // Determine next order
+    const rows = await query('SELECT COALESCE(MAX(display_order), -1) as max_order FROM announcement_attachments WHERE announcement_id = ?', [announcementId])
+    const nextOrder = (rows && rows[0] && typeof rows[0].max_order === 'number') ? rows[0].max_order + 1 : 0
+
+    const result = await query(`
+      INSERT INTO announcement_attachments (announcement_id, file_data, mime_type, file_size, kind, file_name, display_order, file_path)
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?)
+    `, [
+      announcementId,
+      mimetype,
+      fileSize,
+      kind || 'image',
+      safeName,
+      nextOrder,
+      filePath
+    ])
+
+    return {
+      id: result.insertId,
+      url: `/api/images/announcements/${announcementId}/${result.insertId}`,
+      name: safeName,
+      bytes: fileSize,
+      kind: kind || 'image'
+    }
   }
 
   static async countDocuments(filter = {}) {
     let whereClause = 'WHERE 1=1'
     let params = []
-    
+
     if (filter.isPublished !== undefined) {
       whereClause += ' AND a.is_published = ?'
       params.push(filter.isPublished)
@@ -476,7 +575,7 @@ export class Announcement {
       JOIN announcement_categories c ON a.category_id = c.id
       ${whereClause}
     `, params)
-    
+
     return rows[0].count
   }
 

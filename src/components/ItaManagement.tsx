@@ -88,7 +88,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
       .then(d => setTree(d || []))
       .finally(() => setLoading(false))
   }, [authHeaders])
-  
+
   const refreshIta = async () => {
     setLoading(true)
     try {
@@ -99,11 +99,11 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
       setLoading(false)
     }
   }
-  
+
   useImperativeHandle(ref, () => ({
     refreshIta
   }))
-  
+
   useEffect(() => { load() }, [load])
 
   const toggle = (id: number) => {
@@ -178,7 +178,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
     if (!confirm('ยืนยันการลบ (จะลบเมนูย่อยทั้งหมดด้วย) ?')) return
     setBusy(true)
     try {
-      const r = await fetch(`/api/ita/${item._id}`, { method:'DELETE', headers: authHeaders() })
+      const r = await fetch(`/api/ita/${item._id}`, { method: 'DELETE', headers: authHeaders() })
       if (r.ok) {
         if (editing && editing._id === item._id) cancel()
         showToast('ลบเมนูสำเร็จ', undefined, 'success', 3000)
@@ -295,7 +295,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
     setPdfLoading(true)
     setPdfFilter('')
     setPdfPage(0)
-    fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) }).catch(()=>{}).finally(()=>setPdfLoading(false))
+    fetch(`/api/ita/${editing._id}/pdfs`).then(r => r.json()).then(d => { if (Array.isArray(d)) setPdfList(d) }).catch(() => { }).finally(() => setPdfLoading(false))
   }, [editing])
 
   const filteredPdfFiles = useMemo(() => {
@@ -317,18 +317,18 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
     const itemId = forcedItemId ?? editing?._id
     if (!itemId) return
     const fd = new FormData(); fd.append('file', file)
-    const t = getToken(); const headers: Record<string,string> = {}; if (t) headers['Authorization'] = `Bearer ${t}`
-    const r = await fetch(`/api/ita/${itemId}/pdf`, { method:'POST', headers, body: fd })
+    const t = getToken(); const headers: Record<string, string> = {}; if (t) headers['Authorization'] = `Bearer ${t}`
+    const r = await fetch(`/api/ita/${itemId}/pdf`, { method: 'POST', headers, body: fd })
     if (!r.ok) { console.warn('upload pdf failed'); return }
     await r.json();
     if (!forcedItemId && editing) {
-      fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) })
+      fetch(`/api/ita/${editing._id}/pdfs`).then(r => r.json()).then(d => { if (Array.isArray(d)) setPdfList(d) })
     }
   }
   const deletePdfFile = async (id: number) => {
     if (!confirm('ลบไฟล์ PDF นี้?')) return
-    const t = getToken(); const headers: Record<string,string> = {}; if (t) headers['Authorization'] = `Bearer ${t}`
-    const r = await fetch(`/api/ita/pdf/file/${id}`, { method:'DELETE', headers })
+    const t = getToken(); const headers: Record<string, string> = {}; if (t) headers['Authorization'] = `Bearer ${t}`
+    const r = await fetch(`/api/ita/pdf/file/${id}`, { method: 'DELETE', headers })
     if (r.ok) setPdfList(list => list.filter(f => f.id !== id))
   }
 
@@ -392,11 +392,11 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                     </div>
                   )}
                   <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <button onClick={()=>startNew(n)} className="admin-btn admin-btn--outline">➕ เพิ่มเมนูย่อย</button>
-                    <button onClick={()=>startEdit(n)} className="admin-btn admin-btn--outline">✏️ แก้ไข</button>
-                    <button onClick={()=>del(n)} className="admin-btn admin-btn--outline">🗑️ ลบ</button>
-                    <button onClick={()=>move(n,-1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายขึ้น">⬆️</button>
-                    <button onClick={()=>move(n,1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายลง">⬇️</button>
+                    <button onClick={() => startNew(n)} className="admin-btn admin-btn--outline">➕ เพิ่มเมนูย่อย</button>
+                    <button onClick={() => startEdit(n)} className="admin-btn admin-btn--outline">✏️ แก้ไข</button>
+                    <button onClick={() => del(n)} className="admin-btn admin-btn--outline">🗑️ ลบ</button>
+                    <button onClick={() => move(n, -1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายขึ้น">⬆️</button>
+                    <button onClick={() => move(n, 1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายลง">⬇️</button>
                   </div>
                   {pdfCount > 0 && isPdfOpen && (
                     <ul className="mt-3 space-y-1 rounded border border-emerald-200 bg-emerald-50/60 p-2 text-xs">
@@ -420,7 +420,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
               </div>
               {hasChildren && isOpen && (
                 <div className="mt-2">
-                  {renderNodes(n.children!, depth+1)}
+                  {renderNodes(n.children!, depth + 1)}
                 </div>
               )}
             </li>
@@ -434,7 +434,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">จัดการเมนู ITA</h2>
-        <button className="admin-btn" onClick={()=>startNew(null)}>
+        <button className="admin-btn" onClick={() => startNew(null)}>
           <span>➕</span>
           เพิ่มเมนูหลัก
         </button>
@@ -492,18 +492,18 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
             <form onSubmit={submit} className="space-y-3">
               <div>
                 <label className="block text-sm mb-1">ชื่อเมนู</label>
-                <input value={form.title || ''} onChange={e=>setForm(f=>({ ...f, title: e.target.value }))} required className="w-full rounded border px-3 py-2" />
+                <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required className="w-full rounded border px-3 py-2" />
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm mb-1">Slug (ไม่บังคับ)</label>
-                  <input value={form.slug || ''} onChange={e=>setForm(f=>({ ...f, slug: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="เช่น policy-1" />
+                  <input value={form.slug || ''} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="เช่น policy-1" />
                 </div>
                 <div>
                   <label className="block text-sm mb-1">อยู่ภายใต้เมนู</label>
-                  <select value={parentSelect===null? '' : String(parentSelect)} onChange={e=>setParentSelect(e.target.value===''? null : Number(e.target.value))} className="w-full rounded border px-3 py-2">
+                  <select value={parentSelect === null ? '' : String(parentSelect)} onChange={e => setParentSelect(e.target.value === '' ? null : Number(e.target.value))} className="w-full rounded border px-3 py-2">
                     <option value="">(เมนูหลัก)</option>
-                    {allItems.filter(it => !editing || !descendantsOfEditing.has(it._id) || it._id===editing._id).filter(it => !editing || it._id !== editing._id).map(it => (
+                    {allItems.filter(it => !editing || !descendantsOfEditing.has(it._id) || it._id === editing._id).filter(it => !editing || it._id !== editing._id).map(it => (
                       <option key={it._id} value={it._id}>{it.title}</option>
                     ))}
                   </select>
@@ -535,7 +535,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                           for (const file of valid) {
                             await uploadPdfToItem(file)
                           }
-                          fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) })
+                          fetch(`/api/ita/${editing._id}/pdfs`).then(r => r.json()).then(d => { if (Array.isArray(d)) setPdfList(d) })
                         } else {
                           setPendingNewPdfs(prev => [...prev, ...valid])
                         }
@@ -544,15 +544,15 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                   </label>
                 </div>
                 {!editing && pendingNewPdfs.length > 0 && (
-                        <ul className="mt-2 text-xs space-y-1">
-                          {pendingNewPdfs.map((f,i)=>(
-                            <li key={i} className="flex items-center gap-2">
-                              <span className="truncate flex-1">{f.name}</span>
-                              <span className="text-gray-400">{formatFileSize(f.size)}</span>
-                              <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>setPendingNewPdfs(list=>list.filter((_,x)=>x!==i))}>ลบ</button>
-                            </li>
-                          ))}
-                        </ul>
+                  <ul className="mt-2 text-xs space-y-1">
+                    {pendingNewPdfs.map((f, i) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <span className="truncate flex-1">{f.name}</span>
+                        <span className="text-gray-400">{formatFileSize(f.size)}</span>
+                        <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={() => setPendingNewPdfs(list => list.filter((_, x) => x !== i))}>ลบ</button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
                 {editing && (
                   <div className="mt-4 border-t pt-3 space-y-3">
@@ -580,7 +580,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                             for (const file of valid) {
                               await uploadPdfToItem(file)
                             }
-                            fetch(`/api/ita/${editing._id}/pdfs`).then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setPdfList(d) })
+                            fetch(`/api/ita/${editing._id}/pdfs`).then(r => r.json()).then(d => { if (Array.isArray(d)) setPdfList(d) })
                           }}
                         />
                       </label>
@@ -616,7 +616,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap">{formatFileSize(p.size)}</td>
                                     <td className="px-3 py-2">
-                                      <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>deletePdfFile(p.id)}>🗑️ ลบ</button>
+                                      <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={() => deletePdfFile(p.id)}>🗑️ ลบ</button>
                                     </td>
                                   </tr>
                                 ))}
@@ -649,10 +649,14 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
               <div>
                 <label className="block text-sm mb-1">รายละเอียด (ถ้ามี)</label>
                 <div className="rounded border">
-                  <RichTextEditor value={form.content || ''} onChange={html=>setForm(f=>({ ...f, content: html }))} />
+                  <RichTextEditor
+                    className="rich-text-editor-constrained"
+                    value={form.content || ''}
+                    onChange={html => setForm(f => ({ ...f, content: html }))}
+                  />
                 </div>
               </div>
-              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm(f=>({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
+              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
               <div>
                 <button className="admin-btn" type="submit" disabled={busy}>
                   {busy ? (

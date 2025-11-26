@@ -2,6 +2,7 @@ import { query, exec, transaction } from '../../database.js'
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import crypto from 'crypto'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // Go up to server root (server/models/mysql -> server/models -> server) then up to project root
@@ -78,7 +79,7 @@ async function ensureTable() {
 async function ensurePdfTable() {
   await ensureTable()
   await ensureUploadDir()
-  
+
   // Note: bytes column is now nullable for new files stored on disk
   await exec(`CREATE TABLE IF NOT EXISTS ita_files (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -97,11 +98,11 @@ async function ensurePdfTable() {
   if (!(await columnExists('ita_files', 'description'))) {
     await exec('ALTER TABLE ita_files ADD COLUMN description TEXT NULL', [])
   }
-  
+
   if (!(await columnExists('ita_files', 'file_path'))) {
     await exec('ALTER TABLE ita_files ADD COLUMN file_path VARCHAR(512) NULL', [])
   }
-  
+
   // Make bytes nullable if it's not already (hard to do safely in raw SQL without check, but MySQL allows modifying column to same type)
   // We'll just assume it's okay or that new inserts can pass NULL if we remove NOT NULL constraint. 
   // For safety in this environment, we won't run ALTER MODIFY blindly to avoid locking large tables if not needed.
@@ -224,8 +225,8 @@ export class ItaItem {
 }
 
 async function saveFileToDisk(buffer, filename) {
-  const safeName = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_')
-  const uniqueName = `${Date.now()}_${safeName}`
+  const ext = path.extname(filename) || '.bin'
+  const uniqueName = `${crypto.randomUUID()}${ext}`
   const filePath = path.join(UPLOAD_DIR, uniqueName)
   await fs.writeFile(filePath, buffer)
   return uniqueName // Store relative filename
@@ -244,7 +245,7 @@ export async function getItaPdf(id) {
   const rows = await query('SELECT id, filename, mimetype, bytes, file_path, description FROM ita_files WHERE id = ?', [id])
   if (!rows[0]) return null
   const r = rows[0]
-  
+
   let fileData = r.bytes
   if (r.file_path) {
     try {
@@ -257,7 +258,7 @@ export async function getItaPdf(id) {
       if (!fileData) return null
     }
   }
-  
+
   return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: fileData, description: r.description }
 }
 
@@ -266,7 +267,7 @@ export async function getItaPdfByFilename(filename) {
   const rows = await query('SELECT id, filename, mimetype, bytes, file_path, description FROM ita_files WHERE filename = ? ORDER BY id DESC LIMIT 1', [filename])
   if (!rows[0]) return null
   const r = rows[0]
-  
+
   let fileData = r.bytes
   if (r.file_path) {
     try {
@@ -277,7 +278,7 @@ export async function getItaPdfByFilename(filename) {
       if (!fileData) return null
     }
   }
-  
+
   return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: fileData, description: r.description }
 }
 
@@ -295,7 +296,7 @@ export async function listItemPdfs(itemId) {
   // Actually, let's just return 0 for size if on disk for listing performance, or maybe we should have added a size column.
   // For now, let's keep it simple.
   const rows = await query('SELECT id, filename, mimetype, OCTET_LENGTH(bytes) AS size, file_path, created_at, description FROM ita_files WHERE ita_item_id = ? ORDER BY id ASC', [itemId])
-  
+
   return rows.map(r => ({
     id: r.id,
     filename: r.filename,

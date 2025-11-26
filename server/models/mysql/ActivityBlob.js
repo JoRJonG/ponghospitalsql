@@ -1,14 +1,66 @@
-// Activity model with BLOB storage for images
+// Activity model with File System storage for images (formerly BLOB)
 import { pool, query, exec, transaction } from '../../database.js'
 import { toLocalSql } from '../../utils/date.js'
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import crypto from 'crypto'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const UPLOAD_DIR = path.resolve(__dirname, '../../../uploads/activities')
+
+async function ensureUploadDir() {
+  try {
+    await fs.mkdir(UPLOAD_DIR, { recursive: true })
+  } catch (e) {
+    console.error('[Activity] ensureUploadDir error:', e)
+  }
+}
+
+async function saveFileToDisk(buffer, filename) {
+  await ensureUploadDir()
+  const ext = path.extname(filename) || '.bin'
+  const uniqueName = `${crypto.randomUUID()}${ext}`
+  const filePath = path.join(UPLOAD_DIR, uniqueName)
+  await fs.writeFile(filePath, buffer)
+  return uniqueName // Store relative filename
+}
+
+async function deleteFileFromDisk(filename) {
+  if (!filename) return
+  try {
+    const filePath = path.join(UPLOAD_DIR, filename)
+    await fs.unlink(filePath)
+  } catch (e) {
+    console.warn(`[Activity] Failed to delete file from disk: ${filename}`, e.message)
+  }
+}
 
 // Helper function to format date for MySQL DATETIME using local time
 function formatDateForMySQL(date) {
   return toLocalSql(date)
 }
 
+// Ensure table schema has file_path column
+let schemaEnsured = false
+async function ensureSchema() {
+  if (schemaEnsured) return
+  try {
+    const rows = await query("SHOW COLUMNS FROM activity_images LIKE 'file_path'")
+    if (rows.length === 0) {
+      await exec("ALTER TABLE activity_images ADD COLUMN file_path VARCHAR(512) NULL")
+    }
+    // Make image_data nullable
+    await exec("ALTER TABLE activity_images MODIFY COLUMN image_data LONGBLOB NULL")
+    schemaEnsured = true
+  } catch (e) {
+    console.warn('[Activity] ensureSchema warning:', e.message)
+  }
+}
+
 export class Activity {
   static async findById(id) {
+    await ensureSchema()
     const rows = await query(`
       SELECT id as _id, title, description, date, published_at, is_published, 
              created_by, updated_by, created_at, updated_at, view_count
@@ -19,9 +71,9 @@ export class Activity {
 
     const activity = rows[0]
 
-    // ดึงข้อมูลรูปภาพ (ไม่ดึง blob ตรงนี้)
+    // ดึงข้อมูลรูปภาพ
     const images = await query(`
-      SELECT id, activity_id, file_name, mime_type, file_size, display_order
+      SELECT id, activity_id, file_name, mime_type, file_size, display_order, file_path
       FROM activity_images 
       WHERE activity_id = ? 
       ORDER BY display_order ASC
@@ -89,6 +141,7 @@ export class Activity {
   }
 
   static async _executeFind(filter = {}, options = {}, sortOptions = null) {
+    await ensureSchema()
     let whereClause = 'WHERE 1=1'
     let params = []
 
@@ -151,7 +204,7 @@ export class Activity {
     // ดึงรูปภาพสำหรับแต่ละกิจกรรม
     for (const activity of rows) {
       const images = await query(`
-        SELECT id, activity_id, file_name, mime_type, file_size, display_order
+        SELECT id, activity_id, file_name, mime_type, file_size, display_order, file_path
         FROM activity_images 
         WHERE activity_id = ? 
         ORDER BY display_order ASC
@@ -183,15 +236,41 @@ export class Activity {
   }
 
   static async getImageData(activityId, imageId) {
+    await ensureSchema()
     const rows = await query(`
-      SELECT image_data, mime_type, file_name
+      SELECT image_data, mime_type, file_name, file_path
       FROM activity_images 
       WHERE id = ? AND activity_id = ?
     `, [imageId, activityId])
-    return rows[0] || null
+
+    if (!rows[0]) return null
+
+    const row = rows[0]
+    let imageData = row.image_data
+
+    // If file_path exists, try reading from disk
+    if (row.file_path) {
+      try {
+        const fullPath = path.join(UPLOAD_DIR, row.file_path)
+        imageData = await fs.readFile(fullPath)
+      } catch (e) {
+        console.error(`[Activity] Failed to read file from disk: ${row.file_path}`, e)
+        // If file missing on disk and no blob data, we can't serve it
+        if (!imageData) return null
+      }
+    }
+
+    if (!imageData) return null
+
+    return {
+      image_data: imageData,
+      mime_type: row.mime_type,
+      file_name: row.file_name
+    }
   }
 
   static async create(data) {
+    await ensureSchema()
     return await transaction(async (connection) => {
       const [result] = await connection.execute(`
         INSERT INTO activities (title, description, date, published_at, is_published, created_by, updated_by)
@@ -208,22 +287,25 @@ export class Activity {
 
       const activityId = result.insertId
 
-      // เพิ่มรูปภาพแบบ BLOB
+      // เพิ่มรูปภาพ
       if (data.images && data.images.length > 0) {
         for (let i = 0; i < data.images.length; i++) {
           const image = data.images[i]
           if (image.imageData) {
-            // บันทึกเป็น BLOB
+            // Save to disk
+            const filePath = await saveFileToDisk(image.imageData, image.fileName || `image_${i}.jpg`)
+            const fileSize = image.imageData.length
+
             await connection.execute(`
-              INSERT INTO activity_images (activity_id, image_data, file_name, mime_type, file_size, display_order)
-              VALUES (?, ?, ?, ?, ?, ?)
+              INSERT INTO activity_images (activity_id, image_data, file_name, mime_type, file_size, display_order, file_path)
+              VALUES (?, NULL, ?, ?, ?, ?, ?)
             `, [
               activityId,
-              image.imageData,
               image.fileName || 'image.jpg',
               image.mimeType || 'image/jpeg',
-              image.fileSize || 0,
-              i
+              fileSize,
+              i,
+              filePath
             ])
           }
         }
@@ -234,6 +316,7 @@ export class Activity {
   }
 
   static async updateById(id, data) {
+    await ensureSchema()
     return await transaction(async (connection) => {
       const updateFields = []
       const updateParams = []
@@ -293,26 +376,40 @@ export class Activity {
 
         // ลบรูปที่ไม่อยู่ในรายการ keepIds
         if (keepIds.length > 0) {
-          // Create placeholders for IN clause
+          // Get file paths of images to be deleted
           const placeholders = keepIds.map(() => '?').join(',')
+          const [toDelete] = await connection.query(`SELECT file_path FROM activity_images WHERE activity_id = ? AND id NOT IN (${placeholders})`, [id, ...keepIds])
+          for (const row of toDelete) {
+            if (row.file_path) await deleteFileFromDisk(row.file_path)
+          }
+
           await connection.execute(`DELETE FROM activity_images WHERE activity_id = ? AND id NOT IN (${placeholders})`, [id, ...keepIds])
         } else {
           // ถ้าไม่มี keepIds เลย แสดงว่าลบหมด (หรือไม่มีรูปเก่าเลย)
+          const [toDelete] = await connection.query('SELECT file_path FROM activity_images WHERE activity_id = ?', [id])
+          for (const row of toDelete) {
+            if (row.file_path) await deleteFileFromDisk(row.file_path)
+          }
+
           await connection.execute('DELETE FROM activity_images WHERE activity_id = ?', [id])
         }
 
         // เพิ่มรูปใหม่
         for (const image of newImages) {
+          // Save to disk
+          const filePath = await saveFileToDisk(image.imageData, image.fileName || `image_${image.displayOrder}.jpg`)
+          const fileSize = image.imageData.length
+
           await connection.execute(`
-            INSERT INTO activity_images (activity_id, image_data, file_name, mime_type, file_size, display_order)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO activity_images (activity_id, image_data, file_name, mime_type, file_size, display_order, file_path)
+            VALUES (?, NULL, ?, ?, ?, ?, ?)
           `, [
             id,
-            image.imageData,
             image.fileName || 'image.jpg',
             image.mimeType || 'image/jpeg',
-            image.fileSize || 0,
-            image.displayOrder
+            fileSize,
+            image.displayOrder,
+            filePath
           ])
         }
       }
@@ -322,8 +419,16 @@ export class Activity {
   }
 
   static async deleteById(id) {
+    await ensureSchema()
     return await transaction(async (connection) => {
-      // ลบรูปภาพก่อน
+      // ลบรูปภาพก่อน (และลบไฟล์)
+      const [rows] = await connection.query('SELECT file_path FROM activity_images WHERE activity_id = ?', [id])
+      for (const row of rows) {
+        if (row.file_path) {
+          await deleteFileFromDisk(row.file_path)
+        }
+      }
+
       await connection.execute('DELETE FROM activity_images WHERE activity_id = ?', [id])
 
       // ลบกิจกรรม

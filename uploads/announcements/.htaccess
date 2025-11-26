@@ -1,0 +1,13 @@
+# Prevent directory listing
+Options -Indexes
+
+# Disable PHP execution
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Deny access to sensitive extensions
+<FilesMatch "(?i)\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|html|shtml|sh|cgi)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
