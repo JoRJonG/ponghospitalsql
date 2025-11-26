@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { shareItem } from '../utils/share'
 import { fastFetch } from '../utils/fastFetch'
 
-type Attachment = { url: string; publicId?: string; kind?: 'image'|'pdf'|'file'; name?: string; bytes?: number }
+type Attachment = { url: string; publicId?: string; kind?: 'image' | 'pdf' | 'file'; name?: string; bytes?: number }
 type Announcement = {
   _id: string
   title: string
@@ -130,7 +130,7 @@ export default function AnnouncementDetailPage() {
                 return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(att.url) || att.kind === 'image'
               })?.url
               const idVal = id || item?._id
-              const previewUrl = `${window.location.origin}/o/announcement/${idVal}`
+              const previewUrl = `${window.location.origin}/announcement/${idVal}`
               shareItem({ title: item?.title, url: previewUrl, image: img })
             }}
           >
@@ -212,7 +212,7 @@ export default function AnnouncementDetailPage() {
                         <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                           {(att.name || att.bytes) && (
                             <div className="text-xs text-gray-500 truncate" title={att.name || ''}>
-                              {att.name || 'ไฟล์'}{att.bytes ? ` · ${(att.bytes/1024/1024).toFixed(att.bytes > 5*1024*1024 ? 1 : 2)} MB` : ''}
+                              {att.name || 'ไฟล์'}{att.bytes ? ` · ${(att.bytes / 1024 / 1024).toFixed(att.bytes > 5 * 1024 * 1024 ? 1 : 2)} MB` : ''}
                             </div>
                           )}
                           <button

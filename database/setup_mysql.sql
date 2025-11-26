@@ -65,11 +65,12 @@ JOIN announcement_categories c ON a.category_id = c.id;
 CREATE TABLE announcement_attachments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     announcement_id INT NOT NULL,
-    url VARCHAR(1000) NOT NULL,
-    public_id VARCHAR(255),
+    file_data LONGBLOB,
+    mime_type VARCHAR(100),
+    file_size INT,
+    file_name VARCHAR(255),
+    file_path VARCHAR(512),
     kind ENUM('image', 'pdf', 'file') DEFAULT 'image',
-    name VARCHAR(255),
-    bytes INT,
     display_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (announcement_id) REFERENCES announcements(id) ON DELETE CASCADE

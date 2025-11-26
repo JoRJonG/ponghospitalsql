@@ -36,6 +36,7 @@ DROP COLUMN public_id,
 ADD COLUMN file_data LONGBLOB AFTER announcement_id,
 ADD COLUMN mime_type VARCHAR(100) AFTER file_data,
 ADD COLUMN file_size INT AFTER mime_type,
-ADD COLUMN file_name VARCHAR(255) AFTER file_size;
+ADD COLUMN file_name VARCHAR(255) AFTER file_size,
+ADD COLUMN file_path VARCHAR(512) AFTER file_name;
 
 -- เสร็จสิ้น!
