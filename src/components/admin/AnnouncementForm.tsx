@@ -12,7 +12,7 @@ type Announcement = {
   content?: string
   isPublished?: boolean
   publishedAt?: string | null
-  attachments?: Array<{ url: string; publicId?: string; kind?: 'image'|'pdf'|'file'; name?: string; bytes?: number }>
+  attachments?: Array<{ url: string; publicId?: string; kind?: 'image' | 'pdf' | 'file'; name?: string; bytes?: number }>
 }
 
 type AnnouncementAttachment = NonNullable<Announcement['attachments']>[number]
@@ -112,12 +112,12 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
         attachments: [] // will attach files separately
       }
 
-      const r = await fetch('/api/announcements', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, 
-        body: JSON.stringify(payload) 
+      const r = await fetch('/api/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify(payload)
       })
-      
+
       if (!r.ok) {
         let msg = 'บันทึกประกาศไม่สำเร็จ'
         try {
@@ -166,8 +166,8 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     } catch (err) {
       console.error('Submit error:', err)
       alert('เกิดข้อผิดพลาด: ' + (err instanceof Error ? err.message : String(err)))
-    } finally { 
-      setLoading(false) 
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -180,11 +180,11 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     <form onSubmit={submit} className="space-y-3">
       <div>
         <label className="block text-sm mb-1">หัวข้อ</label>
-  <input value={form.title} onChange={e => setForm((prev: Announcement) => ({ ...prev, title: e.target.value }))} className="w-full rounded border px-3 py-2" required />
+        <input value={form.title} onChange={e => setForm((prev: Announcement) => ({ ...prev, title: e.target.value }))} className="w-full rounded border px-3 py-2" required />
       </div>
       <div>
         <label className="block text-sm mb-1">หมวดหมู่</label>
-  <select value={form.category} onChange={e => setForm((prev: Announcement) => ({ ...prev, category: e.target.value as Announcement['category'] }))} className="w-full rounded border px-3 py-2">
+        <select value={form.category} onChange={e => setForm((prev: Announcement) => ({ ...prev, category: e.target.value as Announcement['category'] }))} className="w-full rounded border px-3 py-2">
           <option>สมัครงาน</option>
           <option>ประชาสัมพันธ์</option>
           <option>ประกาศ</option>
@@ -195,6 +195,7 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
         <label className="block text-sm mb-1">เนื้อหา</label>
         <div className="rounded border">
           <RichTextEditor
+            className="[&_.ql-container]:!h-auto [&_.ql-editor]:!min-h-[120px] [&_.ql-editor]:!max-h-[250px] [&_.ql-editor]:!overflow-y-auto"
             value={form.content || ''}
             onChange={html => setForm((prev: Announcement) => ({ ...prev, content: html }))}
             modules={quillModules}
@@ -207,11 +208,11 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
         <div className="flex flex-wrap gap-2">
           <label className="admin-btn admin-btn--outline cursor-pointer">
             อัปโหลดรูป
-            <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUploadImage(f) }} />
+            <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUploadImage(f) }} />
           </label>
           <label className="admin-btn admin-btn--outline cursor-pointer">
             อัปโหลดไฟล์ (PDF/อื่นๆ)
-            <input type="file" className="hidden" accept="application/pdf,application/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUploadFile(f) }} />
+            <input type="file" className="hidden" accept="application/pdf,application/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUploadFile(f) }} />
           </label>
           {uploading && <span className="self-center text-sm text-gray-600">กำลังอัปโหลด...</span>}
         </div>
@@ -228,17 +229,17 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
                   <div className="truncate text-sm">{att.name || att.url}</div>
                   <a href={att.url} target="_blank" className="text-blue-700 text-xs hover:underline">เปิดดู</a>
                 </div>
-                <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={()=>removeAttachmentAt(i)}>ลบ</button>
+                <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={() => removeAttachmentAt(i)}>ลบ</button>
               </div>
             ))}
           </div>
         )}
       </div>
       <div className="grid md:grid-cols-2 gap-3">
-        <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm(f=>({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
+        <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
         <div>
           <label className="block text-sm mb-1">ตั้งเวลาเผยแพร่</label>
-          <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e=>setForm(f=>({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
+          <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e => setForm(f => ({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
           <p className="mt-1 text-xs text-gray-600">ถ้ากำหนดเป็นอนาคต ระบบจะเผยแพร่เมื่อถึงเวลานั้น</p>
         </div>
       </div>

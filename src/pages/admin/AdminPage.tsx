@@ -91,9 +91,9 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro'|'popups'|'overview'|'announce'|'activity'|'slide'|'unit'|'executive'|'infographic'|'ita'|'users'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'ita' | 'users'
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro','popups','overview','announce','activity','slide','unit','executive','users','ita'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'users', 'ita'] as const
 
 const isAdminTab = (value: string): value is AdminTab => (ADMIN_TABS as readonly string[]).includes(value)
 
@@ -120,7 +120,7 @@ const toDateTimeLocalValue = (iso?: string | null) => {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return ''
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 const fromDateTimeLocalValue = (v: string) => {
   const s = (v || '').trim()
@@ -208,7 +208,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (allowedTabs[tab]) return
-  const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita']
+    const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita']
     const nextTab = preferredOrder.find(key => allowedTabs[key]) || 'intro'
     if (nextTab !== tab) {
       setTab(nextTab)
@@ -225,11 +225,11 @@ export default function AdminPage() {
   const [query, setQuery] = useState<{ announce: string; activity: string; slide: string; unit: string }>({ announce: '', activity: '', slide: '', unit: '' })
 
   // Status filters
-  const [status] = useState<{ announce: 'all'|'published'|'hidden'|'scheduled'; activity: 'all'|'published'|'hidden'|'scheduled'; slide: 'all'|'published'|'hidden' }>({ announce: 'all', activity: 'all', slide: 'all' })
-  
+  const [status] = useState<{ announce: 'all' | 'published' | 'hidden' | 'scheduled'; activity: 'all' | 'published' | 'hidden' | 'scheduled'; slide: 'all' | 'published' | 'hidden' }>({ announce: 'all', activity: 'all', slide: 'all' })
+
   const { showToast } = useToast()
   const { triggerRefresh } = useHomepageRefresh()
-  
+
   // Refs for component methods
   const introRef = useRef<AdminIntroDashboardHandle>(null)
   const popupsRef = useRef<PopupsManagerHandle>(null)
@@ -406,9 +406,9 @@ export default function AdminPage() {
     return arr
   }, [slideList, query.slide, status.slide])
   return (
-  <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-indigo-50">
       {/* Dashboard Layout */}
-  <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-indigo-50 lg:flex">
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-indigo-50 lg:flex">
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <div
@@ -418,9 +418,8 @@ export default function AdminPage() {
         )}
 
         {/* Sidebar Navigation */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-md shadow-lg border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}>
+        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-md shadow-lg border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}>
           {/* Sidebar Header */}
           <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-gray-600 to-gray-700">
             <div className="flex items-center justify-between">
@@ -447,11 +446,10 @@ export default function AdminPage() {
                 setTab('intro')
                 if (window.innerWidth < 1024) setSidebarOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                tab === 'intro'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-              }`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'intro'
+                ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
             >
               <span className="text-xl">✨</span>
               <span>Intro Page</span>
@@ -463,11 +461,10 @@ export default function AdminPage() {
                   setTab('overview')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'overview'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'overview'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">📊</span>
                 <span>ภาพรวม</span>
@@ -480,11 +477,10 @@ export default function AdminPage() {
                   setTab('popups')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'popups'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'popups'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">🪟</span>
                 <span>ป๊อปอัปหน้าแรก</span>
@@ -497,11 +493,10 @@ export default function AdminPage() {
                   setTab('announce')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'announce'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'announce'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">📢</span>
                 <span>ประกาศ</span>
@@ -514,11 +509,10 @@ export default function AdminPage() {
                   setTab('activity')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'activity'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'activity'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">📸</span>
                 <span>กิจกรรม</span>
@@ -531,11 +525,10 @@ export default function AdminPage() {
                   setTab('slide')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'slide'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'slide'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">🖼️</span>
                 <span>สไลด์</span>
@@ -548,11 +541,10 @@ export default function AdminPage() {
                   setTab('unit')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'unit'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'unit'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">🏢</span>
                 <span>หน่วยงาน</span>
@@ -565,11 +557,10 @@ export default function AdminPage() {
                   setTab('executive')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'executive'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'executive'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">👔</span>
                 <span>ผู้บริหาร</span>
@@ -582,11 +573,10 @@ export default function AdminPage() {
                   setTab('infographic')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'infographic'
-                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'infographic'
+                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">📊</span>
                 <span>Infographic</span>
@@ -599,11 +589,10 @@ export default function AdminPage() {
                   setTab('users')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'users'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'users'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">👥</span>
                 <span>ผู้ใช้</span>
@@ -616,11 +605,10 @@ export default function AdminPage() {
                   setTab('ita')
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${
-                  tab === 'ita'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'ita'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
               >
                 <span className="text-xl">⚖️</span>
                 <span>ITA</span>
@@ -1005,19 +993,32 @@ export default function AdminPage() {
                     {showAnnouncementForm ? 'ปิดฟอร์มเพิ่มประกาศ' : 'เพิ่มประกาศใหม่'}
                   </button>
                 </div>
-                {showAnnouncementForm ? (
-                  <AnnouncementForm
-                    onCreated={() => {
-                      refreshAnn()
-                      triggerRefresh()
-                      showToast('บันทึกประกาศสำเร็จ', undefined, 'success', 3000)
-                      setShowAnnouncementForm(false)
-                    }}
-                    onCancel={() => setShowAnnouncementForm(false)}
-                  />
-                ) : (
-                  <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50/60 px-4 py-6 text-center text-sm text-blue-700">
-                    กดปุ่ม "เพิ่มประกาศใหม่" เพื่อเปิดฟอร์มเพิ่มประกาศ
+                {showAnnouncementForm && (
+                  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                      <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
+                        <h3 className="text-lg font-bold text-gray-900">เพิ่มประกาศใหม่</h3>
+                        <button
+                          onClick={() => setShowAnnouncementForm(false)}
+                          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="p-4">
+                        <AnnouncementForm
+                          onCreated={() => {
+                            refreshAnn()
+                            triggerRefresh()
+                            showToast('บันทึกประกาศสำเร็จ', undefined, 'success', 3000)
+                            setShowAnnouncementForm(false)
+                          }}
+                          onCancel={() => setShowAnnouncementForm(false)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -1042,7 +1043,7 @@ export default function AdminPage() {
                       className="w-full rounded-xl border-2 border-blue-100 bg-blue-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-300 transition-all duration-200"
                       placeholder="ค้นหาประกาศ..."
                       value={query.announce}
-                      onChange={(e)=> setQuery(q => ({ ...q, announce: e.target.value }))}
+                      onChange={(e) => setQuery(q => ({ ...q, announce: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -1059,19 +1060,32 @@ export default function AdminPage() {
                     {showActivityForm ? 'ปิดฟอร์มเพิ่มกิจกรรม' : 'เพิ่มกิจกรรมใหม่'}
                   </button>
                 </div>
-                {showActivityForm ? (
-                  <ActivityForm
-                    onCreated={() => {
-                      refreshAct()
-                      triggerRefresh()
-                      showToast('บันทึกกิจกรรมสำเร็จ', undefined, 'success', 3000)
-                      setShowActivityForm(false)
-                    }}
-                    onCancel={() => setShowActivityForm(false)}
-                  />
-                ) : (
-                  <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-6 text-center text-sm text-emerald-700">
-                    กดปุ่ม "เพิ่มกิจกรรมใหม่" เพื่อเปิดฟอร์มเพิ่มกิจกรรม
+                {showActivityForm && (
+                  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                      <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
+                        <h3 className="text-lg font-bold text-gray-900">เพิ่มกิจกรรมใหม่</h3>
+                        <button
+                          onClick={() => setShowActivityForm(false)}
+                          className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="p-4">
+                        <ActivityForm
+                          onCreated={() => {
+                            refreshAct()
+                            triggerRefresh()
+                            showToast('บันทึกกิจกรรมสำเร็จ', undefined, 'success', 3000)
+                            setShowActivityForm(false)
+                          }}
+                          onCancel={() => setShowActivityForm(false)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -1096,101 +1110,101 @@ export default function AdminPage() {
                       className="w-full rounded-xl border-2 border-emerald-100 bg-emerald-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-emerald-200 focus:border-emerald-300 transition-all duration-200"
                       placeholder="ค้นหากิจกรรม..."
                       value={query.activity}
-                      onChange={(e)=> setQuery(q => ({ ...q, activity: e.target.value }))}
+                      onChange={(e) => setQuery(q => ({ ...q, activity: e.target.value }))}
                     />
                   </div>
                 </div>
                 <ActivitiesList list={actFiltered} onEditSaved={async () => { await refreshAct(); triggerRefresh(); showToast('แก้ไขกิจกรรมสำเร็จ', undefined, 'success', 3000) }} onDeleted={async () => { await refreshAct(); triggerRefresh(); showToast('ลบกิจกรรมสำเร็จ', undefined, 'success', 3000) }} />
               </div>
-          ) : tab==='slide' ? (
-            <div className="space-y-4 lg:space-y-6">
-              {creatingSlide && <SlidesForm onCreated={() => { setCreatingSlide(false); refreshSlides(); triggerRefresh(); showToast('บันทึกสไลด์สำเร็จ', undefined, 'success', 3000) }} onCancel={() => setCreatingSlide(false)} />}
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <select
-                    value={status.slide}
-                    onChange={() => setQuery(q => ({ ...q, slide: '' }))}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+            ) : tab === 'slide' ? (
+              <div className="space-y-4 lg:space-y-6">
+                {creatingSlide && <SlidesForm onCreated={() => { setCreatingSlide(false); refreshSlides(); triggerRefresh(); showToast('บันทึกสไลด์สำเร็จ', undefined, 'success', 3000) }} onCancel={() => setCreatingSlide(false)} />}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <select
+                      value={status.slide}
+                      onChange={() => setQuery(q => ({ ...q, slide: '' }))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                    >
+                      <option value="all">ทั้งหมด</option>
+                      <option value="published">เผยแพร่แล้ว</option>
+                      <option value="hidden">ซ่อนอยู่</option>
+                    </select>
+                    <span className="text-sm text-gray-600">พบ {slideFiltered.length} รายการ</span>
+                  </div>
+                  <div className="relative w-full sm:w-96">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-purple-400">🔍</span>
+                    </div>
+                    <input
+                      className="w-full rounded-xl border-2 border-purple-100 bg-purple-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-200 focus:border-purple-300 transition-all duration-200"
+                      placeholder="ค้นหาสไลด์..."
+                      value={query.slide}
+                      onChange={(e) => setQuery(q => ({ ...q, slide: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <SlidesList list={slideFiltered} onEditSaved={() => { refreshSlides(); triggerRefresh(); showToast('แก้ไขสไลด์สำเร็จ', undefined, 'success', 3000) }} onDeleted={() => { refreshSlides(); triggerRefresh(); showToast('ลบสไลด์สำเร็จ', undefined, 'success', 3000) }} onCreate={() => setCreatingSlide(true)} />
+              </div>
+            ) : tab === 'unit' ? (
+              <div className="space-y-4 lg:space-y-6">
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setShowUnitForm(prev => !prev)}
+                    className="admin-btn"
                   >
-                    <option value="all">ทั้งหมด</option>
-                    <option value="published">เผยแพร่แล้ว</option>
-                    <option value="hidden">ซ่อนอยู่</option>
-                  </select>
-                  <span className="text-sm text-gray-600">พบ {slideFiltered.length} รายการ</span>
+                    <span>{showUnitForm ? '✕' : '+'}</span>
+                    {showUnitForm ? 'ปิดฟอร์มเพิ่มหน่วยงาน' : 'เพิ่มหน่วยงานใหม่'}
+                  </button>
                 </div>
-                <div className="relative w-full sm:w-96">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span className="text-purple-400">🔍</span>
-                  </div>
-                  <input
-                    className="w-full rounded-xl border-2 border-purple-100 bg-purple-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-200 focus:border-purple-300 transition-all duration-200"
-                    placeholder="ค้นหาสไลด์..."
-                    value={query.slide}
-                    onChange={(e)=> setQuery(q => ({ ...q, slide: e.target.value }))}
+                {showUnitForm ? (
+                  <UnitsForm
+                    onCreated={async () => {
+                      await refreshUnits()
+                      triggerRefresh()
+                      showToast('บันทึกลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000)
+                      setShowUnitForm(false)
+                    }}
+                    onCancel={() => setShowUnitForm(false)}
                   />
-                </div>
-              </div>
-              <SlidesList list={slideFiltered} onEditSaved={() => { refreshSlides(); triggerRefresh(); showToast('แก้ไขสไลด์สำเร็จ', undefined, 'success', 3000) }} onDeleted={() => { refreshSlides(); triggerRefresh(); showToast('ลบสไลด์สำเร็จ', undefined, 'success', 3000) }} onCreate={() => setCreatingSlide(true)} />
-            </div>
-          ) : tab==='unit' ? (
-            <div className="space-y-4 lg:space-y-6">
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowUnitForm(prev => !prev)}
-                  className="admin-btn"
-                >
-                  <span>{showUnitForm ? '✕' : '+'}</span>
-                  {showUnitForm ? 'ปิดฟอร์มเพิ่มหน่วยงาน' : 'เพิ่มหน่วยงานใหม่'}
-                </button>
-              </div>
-              {showUnitForm ? (
-                <UnitsForm
-                  onCreated={async () => {
-                    await refreshUnits()
-                    triggerRefresh()
-                    showToast('บันทึกลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000)
-                    setShowUnitForm(false)
-                  }}
-                  onCancel={() => setShowUnitForm(false)}
-                />
-              ) : (
-                <div className="rounded-xl border border-dashed border-orange-200 bg-orange-50/60 px-4 py-6 text-center text-sm text-orange-700">
-                  กดปุ่ม "เพิ่มหน่วยงานใหม่" เพื่อเปิดฟอร์มเพิ่มลิงก์หน่วยงาน
-                </div>
-              )}
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600">พบ {unitList.length} รายการ</span>
-                </div>
-                <div className="relative w-full sm:w-96">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span className="text-orange-400">🔍</span>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-orange-200 bg-orange-50/60 px-4 py-6 text-center text-sm text-orange-700">
+                    กดปุ่ม "เพิ่มหน่วยงานใหม่" เพื่อเปิดฟอร์มเพิ่มลิงก์หน่วยงาน
                   </div>
-                  <input
-                    className="w-full rounded-xl border-2 border-orange-100 bg-orange-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-300 transition-all duration-200"
-                    placeholder="ค้นหาหน่วยงาน..."
-                    value={query.unit}
-                    onChange={(e)=> setQuery(q => ({ ...q, unit: e.target.value }))}
-                  />
+                )}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">พบ {unitList.length} รายการ</span>
+                  </div>
+                  <div className="relative w-full sm:w-96">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-orange-400">🔍</span>
+                    </div>
+                    <input
+                      className="w-full rounded-xl border-2 border-orange-100 bg-orange-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-300 transition-all duration-200"
+                      placeholder="ค้นหาหน่วยงาน..."
+                      value={query.unit}
+                      onChange={(e) => setQuery(q => ({ ...q, unit: e.target.value }))}
+                    />
+                  </div>
                 </div>
+                <UnitsList list={unitList.filter(u => { const q = (query.unit || '').toLowerCase(); if (!q) return true; return (u.name || '').toLowerCase().includes(q) || (u.href || '').toLowerCase().includes(q) })} onEditSaved={async () => { await refreshUnits(); triggerRefresh(); showToast('แก้ไขลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000) }} onDeleted={async () => { await refreshUnits(); triggerRefresh(); showToast('ลบลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000) }} />
               </div>
-              <UnitsList list={unitList.filter(u => { const q = (query.unit||'').toLowerCase(); if (!q) return true; return (u.name||'').toLowerCase().includes(q) || (u.href||'').toLowerCase().includes(q) })} onEditSaved={async () => { await refreshUnits(); triggerRefresh(); showToast('แก้ไขลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000) }} onDeleted={async () => { await refreshUnits(); triggerRefresh(); showToast('ลบลิงก์หน่วยงานสำเร็จ', undefined, 'success', 3000) }} />
-            </div>
-          ) : tab==='executive' ? (
-            <div className="space-y-4 lg:space-y-6">
-              <ExecutivesManagement ref={executivesRef} />
-            </div>
-          ) : tab==='infographic' ? (
-            <div className="space-y-4 lg:space-y-6">
-              <InfographicsManagement ref={infographicsRef} />
-            </div>
-          ) : tab==='ita' ? (
-            <div className="space-y-4 lg:space-y-6">
-              <ItaManagement ref={itaRef} />
-            </div>
-          ) : null}
+            ) : tab === 'executive' ? (
+              <div className="space-y-4 lg:space-y-6">
+                <ExecutivesManagement ref={executivesRef} />
+              </div>
+            ) : tab === 'infographic' ? (
+              <div className="space-y-4 lg:space-y-6">
+                <InfographicsManagement ref={infographicsRef} />
+              </div>
+            ) : tab === 'ita' ? (
+              <div className="space-y-4 lg:space-y-6">
+                <ItaManagement ref={itaRef} />
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
       </div>
     </div>
   )
@@ -1212,7 +1226,7 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
     try {
       const fd = new FormData(); fd.append('file', file)
       let r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      
+
       // If unauthorized, try to refresh token and retry
       if (r.status === 401) {
         const refreshSuccess = await refreshToken()
@@ -1220,7 +1234,7 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
           r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         }
       }
-      
+
       if (!r.ok) throw new Error('upload failed')
       const data = await r.json()
       setImage({ url: data.url, publicId: data.publicId })
@@ -1239,19 +1253,19 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
     setSaving(true)
     try {
       const cleanHref = (href || '').trim()
-      
+
       const fd = new FormData()
       fd.append('name', name)
       if (cleanHref) fd.append('href', cleanHref)
       fd.append('order', String(order))
       fd.append('isPublished', String(isPublished))
-      
+
       // ถ้ามีรูปภาพ
       if (image?.url) {
         // ถ้ารูปเป็น URL ภายนอก ส่ง URL ไปให้ backend ดาวน์โหลด
         if (image.url.startsWith('http://') || image.url.startsWith('https://')) {
           fd.append('imageUrl', image.url)
-        } 
+        }
         // ถ้าเป็น data URL (จาก file input) แปลงเป็น blob
         else if (image.url.startsWith('data:')) {
           const dataUrlToBlob = (dataUrl: string): Blob => {
@@ -1278,7 +1292,7 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
           }
         }
       }
-      
+
       const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
       const r = await fetch('/api/units', { method: 'POST', headers, body: fd })
       if (!r.ok) {
@@ -1311,25 +1325,25 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
     <form onSubmit={submit} className="space-y-3">
       <div>
         <label className="block text-sm mb-1">ชื่อหน่วยงาน</label>
-        <input value={name} onChange={e=>setName(e.target.value)} className="w-full rounded border px-3 py-2" required />
+        <input value={name} onChange={e => setName(e.target.value)} className="w-full rounded border px-3 py-2" required />
       </div>
       <div>
         <label className="block text-sm mb-1">ลิงก์หน่วยงาน</label>
-        <input value={href} onChange={e=>setHref(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="เช่น https:// หรือ /path ภายในเว็บ" />
+        <input value={href} onChange={e => setHref(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="เช่น https:// หรือ /path ภายในเว็บ" />
       </div>
       <div>
         <label className="block text-sm mb-1">โลโก้ (อัปโหลด หรือปล่อยว่าง)</label>
         <div className="flex items-center gap-2">
           <label className="admin-btn admin-btn--outline cursor-pointer">
             อัปโหลดรูปโลโก้
-            <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
+            <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f) }} />
           </label>
           {uploading && <span className="text-sm text-gray-600">กำลังอัปโหลด...</span>}
         </div>
         <div className="mt-2 grid md:grid-cols-[1fr_auto] gap-2">
           <input
             value={imageUrl}
-            onChange={e=>setImageUrl(e.target.value)}
+            onChange={e => setImageUrl(e.target.value)}
             placeholder="หรือวาง URL รูปภาพภายนอก เช่น https://example.com/logo.png"
             className="w-full rounded border px-3 py-2"
             inputMode="url"
@@ -1345,10 +1359,10 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm mb-1">ลำดับ</label>
-          <input type="number" value={order} onChange={e=>setOrder(Number(e.target.value))} className="w-full rounded border px-3 py-2" />
+          <input type="number" value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full rounded border px-3 py-2" />
         </div>
         <div className="flex items-end">
-          <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={isPublished} onChange={e=>setIsPublished(e.target.checked)} /> เผยแพร่</label>
+          <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} /> เผยแพร่</label>
         </div>
       </div>
       <div className="flex gap-2">
@@ -1372,7 +1386,7 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
   )
 }
 
-function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved: ()=>Promise<void>; onDeleted: ()=>Promise<void> }) {
+function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved: () => Promise<void>; onDeleted: () => Promise<void> }) {
   const { getToken } = useAuth()
   const [editing, setEditing] = useState<Unit | null>(null)
   const [page, setPage] = useState(1)
@@ -1407,7 +1421,7 @@ function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate flex items-center gap-2">
                   <span className="truncate">{u.name}</span>
-                  <span className={`badge ${u.isPublished? 'green':'gray'}`}>{u.isPublished? 'เผยแพร่':'ซ่อน'}</span>
+                  <span className={`badge ${u.isPublished ? 'green' : 'gray'}`}>{u.isPublished ? 'เผยแพร่' : 'ซ่อน'}</span>
                 </div>
                 {u.href && (
                   <div className="text-xs mt-1 truncate">
@@ -1417,10 +1431,10 @@ function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved
                 )}
                 <div className="text-xs text-gray-500">ลำดับ: {u.order ?? 0}</div>
                 <div className="mt-2 flex gap-2">
-                  <button className="admin-btn admin-btn--outline" aria-label="แก้ไขหน่วยงาน" onClick={()=>setEditing(u)}>
+                  <button className="admin-btn admin-btn--outline" aria-label="แก้ไขหน่วยงาน" onClick={() => setEditing(u)}>
                     ✏️ <span>แก้ไข</span>
                   </button>
-                  <button className="admin-btn admin-btn--outline" aria-label="ลบหน่วยงาน" onClick={()=>remove(u._id)}>
+                  <button className="admin-btn admin-btn--outline" aria-label="ลบหน่วยงาน" onClick={() => remove(u._id)}>
                     🗑️ <span>ลบ</span>
                   </button>
                 </div>
@@ -1432,19 +1446,19 @@ function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="admin-btn admin-btn--outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="admin-btn admin-btn--outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
-        <EditUnitModal initial={editing} onClose={()=>setEditing(null)} onSaved={()=>{ setEditing(null); onEditSaved() }} />
+        <EditUnitModal initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onEditSaved() }} />
       )}
     </div>
   )
 }
 
-function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: ()=>void; onSaved: ()=>void }) {
+function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: () => void; onSaved: () => void }) {
   const { getToken, refreshToken } = useAuth()
   const [form, setForm] = useState<Unit>({ ...initial })
   const [uploading, setUploading] = useState(false)
@@ -1456,7 +1470,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
     try {
       const fd = new FormData(); fd.append('file', file)
       let r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      
+
       // If unauthorized, try to refresh token and retry
       if (r.status === 401) {
         const refreshSuccess = await refreshToken()
@@ -1464,7 +1478,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
           r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         }
       }
-      
+
       if (!r.ok) throw new Error('upload failed')
       const data = await r.json()
       setForm(f => ({ ...f, image: { url: data.url, publicId: data.publicId } }))
@@ -1475,17 +1489,17 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
     setSaving(true)
     try {
       const cleanHref = (form.href || '').trim()
-      
+
       // ตรวจสอบว่ามีรูปใหม่หรือไม่ (รูปที่ไม่ได้เป็น URL จาก /api/images/units/)
       const hasNewImage = form.image?.url && !form.image.url.startsWith('/api/images/units/')
-      
+
       let body: FormData | string
-  const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
-      
+      const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
+
       if (hasNewImage && form.image) {
         // ส่ง FormData พร้อมไฟล์ใหม่
         const fd = new FormData()
-        
+
         // ถ้ารูปเป็น HTTP/HTTPS URL ส่ง URL ไปให้ backend ดาวน์โหลด
         if (form.image.url.startsWith('http://') || form.image.url.startsWith('https://')) {
           fd.append('imageUrl', form.image.url)
@@ -1503,7 +1517,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
             return
           }
         }
-        
+
         fd.append('name', form.name || '')
         if (cleanHref) fd.append('href', cleanHref)
         fd.append('order', String(form.order ?? 0))
@@ -1514,7 +1528,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
         headers['Content-Type'] = 'application/json'
         body = JSON.stringify({ name: form.name, href: cleanHref || undefined, order: form.order, isPublished: form.isPublished })
       }
-      
+
       const r = await fetch(`/api/units/${form._id}`, { method: 'PUT', headers, body })
       if (!r.ok) { alert('บันทึกไม่สำเร็จ'); return }
       onSaved()
@@ -1539,11 +1553,11 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
         <div className="p-4 space-y-3">
           <div>
             <label className="block text-sm mb-1">ชื่อหน่วยงาน</label>
-            <input value={form.name || ''} onChange={e=>setForm(f=>({ ...f, name: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.name || ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm mb-1">ลิงก์หน่วยงาน</label>
-            <input value={form.href || ''} onChange={e=>setForm(f=>({ ...f, href: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.href || ''} onChange={e => setForm(f => ({ ...f, href: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text_sm mb-1">โลโก้</label>
@@ -1555,14 +1569,14 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
             ) : (
               <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดรูปโลโก้
-                <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
+                <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f) }} />
               </label>
             )}
             {uploading && <div className="text-sm text-gray-600 mt-1">กำลังอัปโหลด...</div>}
             <div className="mt-3 grid md:grid-cols-[1fr_auto] gap-2">
               <input
                 value={imageUrl}
-                onChange={e=>setImageUrl(e.target.value)}
+                onChange={e => setImageUrl(e.target.value)}
                 placeholder="หรือวาง URL รูปภาพภายนอก เช่น https://example.com/logo.png"
                 className="w-full rounded border px-3 py-2"
                 inputMode="url"
@@ -1570,11 +1584,11 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
               <button
                 type="button"
                 className="admin-btn admin-btn--outline"
-                onClick={()=>{
+                onClick={() => {
                   const u = imageUrl.trim()
-                  if (!u) { setForm(f=>({ ...f, image: null })); return }
+                  if (!u) { setForm(f => ({ ...f, image: null })); return }
                   try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { alert('URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)'); return }
-                  setForm(f=>({ ...f, image: { url: u } }))
+                  setForm(f => ({ ...f, image: { url: u } }))
                 }}
               >ใช้ URL</button>
             </div>
@@ -1582,10 +1596,10 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm mb-1">ลำดับ</label>
-              <input type="number" value={form.order ?? 0} onChange={e=>setForm(f=>({ ...f, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
+              <input type="number" value={form.order ?? 0} onChange={e => setForm(f => ({ ...f, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
             </div>
             <div className="flex items-end">
-              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.isPublished} onChange={e=>setForm(f=>({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
+              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.isPublished} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
             </div>
           </div>
         </div>
@@ -1626,7 +1640,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
     try {
       const fd = new FormData(); fd.append('file', file)
       let r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      
+
       // If unauthorized, try to refresh token and retry
       if (r.status === 401) {
         const refreshSuccess = await refreshToken()
@@ -1634,7 +1648,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
           r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         }
       }
-      
+
       if (!r.ok) throw new Error('upload failed')
       const data = await r.json()
       setImage({ url: data.url, publicId: data.publicId })
@@ -1645,8 +1659,8 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
     const u = imageUrl.trim()
     if (!u) { setImage(null); return }
     try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { alert('URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)'); return }
-  // Allow any valid URL
-  try { new URL(u) } catch { alert('URL ไม่ถูกต้อง'); return }
+    // Allow any valid URL
+    try { new URL(u) } catch { alert('URL ไม่ถูกต้อง'); return }
     setImage({ url: u })
   }
 
@@ -1657,7 +1671,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
     setSaving(true)
     try {
       const cleanHref = (href || '').trim()
-      
+
       // แปลง data URL เป็น Blob
       const dataUrlToBlob = (dataUrl: string): Blob => {
         // Convert base64 data URLs without network fetch to satisfy strict CSP rules
@@ -1672,7 +1686,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
         }
         return new Blob([bytes], { type: mime })
       }
-      
+
       // สร้าง FormData พร้อมไฟล์
       const fd = new FormData()
       const blob = image.url.startsWith('data:')
@@ -1687,7 +1701,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
       fd.append('order', String(order))
       fd.append('isPublished', String(isPublished))
       fd.append('duration', String(duration))
-      
+
       const r = await fetch('/api/slides', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
       if (!r.ok) {
         let msg = 'บันทึกสไลด์ไม่สำเร็จ'
@@ -1719,19 +1733,19 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
     <form onSubmit={submit} className="space-y-3">
       <div>
         <label className="block text-sm mb-1">หัวข้อ</label>
-        <input value={title} onChange={e=>setTitle(e.target.value)} className="w-full rounded border px-3 py-2" required />
+        <input value={title} onChange={e => setTitle(e.target.value)} className="w-full rounded border px-3 py-2" required />
       </div>
       <div>
         <label className="block text-sm mb-1">คำบรรยาย</label>
-        <input value={caption} onChange={e=>setCaption(e.target.value)} className="w-full rounded border px-3 py-2" />
+        <input value={caption} onChange={e => setCaption(e.target.value)} className="w-full rounded border px-3 py-2" />
       </div>
       <div>
         <label className="block text-sm mb-1">ข้อความคำอธิบายรูป (alt)</label>
-        <input value={alt} onChange={e=>setAlt(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="ช่วยการเข้าถึงและ SEO" required={isPublished} />
+        <input value={alt} onChange={e => setAlt(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="ช่วยการเข้าถึงและ SEO" required={isPublished} />
       </div>
       <div>
         <label className="block text-sm mb-1">ลิงก์เมื่อคลิก (ใส่ URL เช่น https:// หรือ /path)</label>
-        <input value={href} onChange={e=>setHref(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="เช่น https://ponghospital.go.th/ หรือ /announcements/123" />
+        <input value={href} onChange={e => setHref(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="เช่น https://ponghospital.go.th/ หรือ /announcements/123" />
         <p className="mt-1 text-xs text-gray-600">เวลากดสไลด์จะพาไปยังลิงก์นี้ (ไม่บังคับ)</p>
       </div>
       <div>
@@ -1741,14 +1755,14 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
             <div className="flex items-center gap-2">
               <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดรูป
-                <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
+                <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f) }} />
               </label>
               {uploading && <span className="text-sm text-gray-600">กำลังอัปโหลด...</span>}
             </div>
             <div className="mt-2 grid md:grid-cols-[1fr_auto] gap-2">
               <input
                 value={imageUrl}
-                onChange={e=>setImageUrl(e.target.value)}
+                onChange={e => setImageUrl(e.target.value)}
                 placeholder="หรือวาง URL รูปภาพ"
                 className="w-full rounded border px-3 py-2"
                 inputMode="url"
@@ -1759,7 +1773,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
         ) : (
           <div className="mt-2 flex items-center gap-3">
             <img src={image.url} loading="lazy" decoding="async" width={200} height={120} className="h-24 rounded" />
-            <button type="button" className="admin-btn admin-btn--outline" onClick={()=>setImage(null)}>ลบรูป</button>
+            <button type="button" className="admin-btn admin-btn--outline" onClick={() => setImage(null)}>ลบรูป</button>
           </div>
         )}
         <p className="mt-2 text-xs text-gray-600">
@@ -1770,15 +1784,15 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="block text-sm mb-1">ลำดับ</label>
-          <input type="number" value={order} onChange={e=>setOrder(Number(e.target.value))} className="w-full rounded border px-3 py-2" />
+          <input type="number" value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full rounded border px-3 py-2" />
         </div>
         <div>
           <label className="block text-sm mb-1">ระยะเวลาแสดง (วินาที)</label>
-          <input type="number" value={duration} onChange={e=>setDuration(Number(e.target.value))} min="1" max="60" className="w-full rounded border px-3 py-2" />
+          <input type="number" value={duration} onChange={e => setDuration(Number(e.target.value))} min="1" max="60" className="w-full rounded border px-3 py-2" />
           <p className="mt-1 text-xs text-gray-600">1-60 วินาที</p>
         </div>
         <div className="flex items-end">
-          <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={isPublished} onChange={e=>setIsPublished(e.target.checked)} /> เผยแพร่</label>
+          <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} /> เผยแพร่</label>
         </div>
       </div>
       <div className="flex gap-2">
@@ -1798,12 +1812,12 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
   )
 }
 
-function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: SlideItem[]; onEditSaved: ()=>void; onDeleted: ()=>void; onCreate: ()=>void }) {
+function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: SlideItem[]; onEditSaved: () => void; onDeleted: () => void; onCreate: () => void }) {
   const { getToken } = useAuth()
   const [editing, setEditing] = useState<SlideItem | null>(null)
   const [draggingId, setDraggingId] = useState<string | number | null>(null)
   const [local, setLocal] = useState<SlideItem[]>(list)
-  useEffect(()=>{ setLocal(list) }, [list])
+  useEffect(() => { setLocal(list) }, [list])
   const [page, setPage] = useState(1)
   const perPage = 10
   const pageCount = Math.max(1, Math.ceil((list?.length || 0) / perPage))
@@ -1850,76 +1864,76 @@ function SlidesList({ list, onEditSaved, onDeleted, onCreate }: { list: SlideIte
   }
   return (
     <div className="mt-8">
-  <div className="flex items-center justify-between mb-3">
-    <div className="font-semibold">รายการสไลด์</div>
-    <div className="flex gap-2">
-  <button className="admin-btn admin-btn--outline" onClick={saveOrder} disabled={!local.length}>บันทึกลำดับ</button>
-      <button className="admin-btn" onClick={onCreate}>สร้างสไลด์ใหม่</button>
+      <div className="flex items-center justify-between mb-3">
+        <div className="font-semibold">รายการสไลด์</div>
+        <div className="flex gap-2">
+          <button className="admin-btn admin-btn--outline" onClick={saveOrder} disabled={!local.length}>บันทึกลำดับ</button>
+          <button className="admin-btn" onClick={onCreate}>สร้างสไลด์ใหม่</button>
         </div>
       </div>
       <div className="grid md:grid-cols-2 gap-3">
         {paged.map((s, index) => {
           const identifier = String(s._id ?? s.id ?? `temp-${index}`)
           return (
-          <div key={identifier} className="card" draggable onDragStart={()=>onDragStart(identifier)} onDragOver={(e)=>onDragOver(e, identifier)} onDragEnd={onDragEnd}>
-            <div className="card-body flex gap-3">
-              <img src={`${s?.image?.url}?t=${Date.now()}`} loading="lazy" decoding="async" width={96} height={64} className="h-16 w-24 object-cover rounded" alt={s?.title ? `ภาพสไลด์: ${s.title}` : 'ภาพสไลด์'} />
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate flex items-center gap-2">
-                  <span className="truncate">{s.title}</span>
-                  <span className={`badge ${s.isPublished? 'green':'gray'}`}>{s.isPublished? 'เผยแพร่':'ซ่อน'}</span>
-                </div>
-                <div className="text-sm text-gray-600 truncate">{s.caption}</div>
-                <div className="text-xs text-gray-500">ลำดับ: {s.order ?? 0}</div>
-                {(s.href || s.url || s.link) && (
-                  <div className="text-xs mt-1 truncate">
-                    <span className="text-gray-500">ลิงก์:</span>{' '}
-                    <a
-                      href={(s.href || s.url || s.link)}
-                      target={/^https?:\/\//i.test(String(s.href || s.url || s.link)) ? '_blank' : undefined}
-                      rel={/^https?:\/\//i.test(String(s.href || s.url || s.link)) ? 'noopener noreferrer' : undefined}
-                      className="text-blue-700 hover:underline"
-                    >
-                      {s.href || s.url || s.link}
-                    </a>
+            <div key={identifier} className="card" draggable onDragStart={() => onDragStart(identifier)} onDragOver={(e) => onDragOver(e, identifier)} onDragEnd={onDragEnd}>
+              <div className="card-body flex gap-3">
+                <img src={`${s?.image?.url}?t=${Date.now()}`} loading="lazy" decoding="async" width={96} height={64} className="h-16 w-24 object-cover rounded" alt={s?.title ? `ภาพสไลด์: ${s.title}` : 'ภาพสไลด์'} />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate flex items-center gap-2">
+                    <span className="truncate">{s.title}</span>
+                    <span className={`badge ${s.isPublished ? 'green' : 'gray'}`}>{s.isPublished ? 'เผยแพร่' : 'ซ่อน'}</span>
                   </div>
-                )}
-                <div className="mt-2 flex gap-2">
-                  <button className="admin-btn admin-btn--outline" aria-label="แก้ไขสไลด์" onClick={()=>setEditing(s)}>
-                    ✏️ <span>แก้ไข</span>
-                  </button>
-                  <button className="admin-btn admin-btn--outline" aria-label="ลบสไลด์" onClick={()=>remove(identifier)}>
-                    🗑️ <span>ลบ</span>
-                  </button>
+                  <div className="text-sm text-gray-600 truncate">{s.caption}</div>
+                  <div className="text-xs text-gray-500">ลำดับ: {s.order ?? 0}</div>
+                  {(s.href || s.url || s.link) && (
+                    <div className="text-xs mt-1 truncate">
+                      <span className="text-gray-500">ลิงก์:</span>{' '}
+                      <a
+                        href={(s.href || s.url || s.link)}
+                        target={/^https?:\/\//i.test(String(s.href || s.url || s.link)) ? '_blank' : undefined}
+                        rel={/^https?:\/\//i.test(String(s.href || s.url || s.link)) ? 'noopener noreferrer' : undefined}
+                        className="text-blue-700 hover:underline"
+                      >
+                        {s.href || s.url || s.link}
+                      </a>
+                    </div>
+                  )}
+                  <div className="mt-2 flex gap-2">
+                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขสไลด์" onClick={() => setEditing(s)}>
+                      ✏️ <span>แก้ไข</span>
+                    </button>
+                    <button className="admin-btn admin-btn--outline" aria-label="ลบสไลด์" onClick={() => remove(identifier)}>
+                      🗑️ <span>ลบ</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           )
         })}
         {list.length === 0 && <div className="text-gray-500">ยังไม่มีสไลด์</div>}
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="admin-btn admin-btn--outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="admin-btn admin-btn--outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
-        <EditSlideModal initial={editing} onClose={()=>setEditing(null)} onSaved={()=>{ setEditing(null); onEditSaved() }} />
+        <EditSlideModal initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onEditSaved() }} />
       )}
     </div>
   )
 }
 
-function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onClose: ()=>void; onSaved: ()=>void }) {
+function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onClose: () => void; onSaved: () => void }) {
   const { getToken, refreshToken } = useAuth()
   const [form, setForm] = useState<SlideItem>({ ...initial, href: initial?.href || initial?.url || initial?.link || '' })
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [imageUrl, setImageUrl] = useState<string>(initial?.image?.url || '')
-  
+
   const removeImage = async () => {
     const publicId = form.image?.publicId
     if (publicId && String(publicId).startsWith('ponghospital/')) {
@@ -1927,13 +1941,13 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
     }
     setForm(prev => ({ ...prev, image: null }))
   }
-  
+
   const onUpload = async (file: File) => {
     setUploading(true)
     try {
       const fd = new FormData(); fd.append('file', file)
       let r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-      
+
       // If unauthorized, try to refresh token and retry
       if (r.status === 401) {
         const refreshSuccess = await refreshToken()
@@ -1941,45 +1955,45 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
           r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         }
       }
-      
+
       if (!r.ok) throw new Error('upload failed')
-  const data = await r.json() as { url: string; publicId?: string }
-  setForm(prev => ({ ...prev, image: { url: data.url, publicId: data.publicId } }))
+      const data = await r.json() as { url: string; publicId?: string }
+      setForm(prev => ({ ...prev, image: { url: data.url, publicId: data.publicId } }))
     } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
   }
-  
+
   const save = async () => {
     if ((form.isPublished ?? true) && !String(form.alt || '').trim()) { alert('กรุณากรอกข้อความคำอธิบายรูป (alt) เมื่อเผยแพร่สไลด์'); return }
     setSaving(true)
     try {
       const cleanHref = (form.href || '').trim()
-      
+
       // ตรวจสอบว่ารูปเป็น data URL ใหม่หรือไม่
       const hasNewImage = form.image?.url?.startsWith('data:')
-      
+
       let body: FormData | string
-  const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
+      const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
       let method = 'PUT'
       let url = `/api/slides/${initial._id}`
-      
+
       if (!initial._id) {
         // สร้างใหม่
         method = 'POST'
         url = '/api/slides'
       }
-      
+
       if (hasNewImage) {
         // ถ้ามีรูปใหม่ ส่งเป็น FormData
         const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
           const res = await fetch(dataUrl)
           return res.blob()
         }
-        
+
         const fd = new FormData()
         const imageUrl = form.image?.url
         if (!imageUrl) { alert('ไม่พบข้อมูลรูปภาพใหม่ กรุณาลองอีกครั้ง'); return }
         const blob = await dataUrlToBlob(imageUrl)
-  const fileName = form.image?.publicId ? `slide-${form.image?.publicId}.gif` : 'slide.gif'
+        const fileName = form.image?.publicId ? `slide-${form.image?.publicId}.gif` : 'slide.gif'
         fd.append('image', blob, fileName)
         fd.append('title', form.title || '')
         fd.append('caption', form.caption || '')
@@ -2003,7 +2017,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
         }
         body = JSON.stringify(payload)
       }
-      
+
       const r = await fetch(url, { method, headers, body })
       if (r.ok) onSaved()
       else {
@@ -2018,41 +2032,41 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
       }
     } finally { setSaving(false) }
   }
-  
+
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
       <div className="card max-w-3xl w-full">
         <div className="card-header">{initial._id ? 'แก้ไขสไลด์' : 'สร้างสไลด์ใหม่'}</div>
         <div className="card-body space-y-3">
           <div>
             <label className="block text-sm mb-1">หัวข้อ</label>
-            <input value={form.title || ''} onChange={e=>setForm(prev => ({ ...prev, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.title || ''} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm mb-1">คำบรรยาย</label>
-            <input value={form.caption || ''} onChange={e=>setForm(prev => ({ ...prev, caption: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.caption || ''} onChange={e => setForm(prev => ({ ...prev, caption: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm mb-1">ข้อความคำอธิบายรูป (alt)</label>
-            <input value={form.alt || ''} onChange={e=>setForm(prev => ({ ...prev, alt: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="ช่วยการเข้าถึงและ SEO" required={form.isPublished ?? true} />
+            <input value={form.alt || ''} onChange={e => setForm(prev => ({ ...prev, alt: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="ช่วยการเข้าถึงและ SEO" required={form.isPublished ?? true} />
           </div>
           <div>
             <label className="block text-sm mb-1">ลิงก์เมื่อคลิก (URL)</label>
-            <input value={form.href || ''} onChange={e=>setForm(prev => ({ ...prev, href: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="เช่น https://ponghospital.go.th/ หรือ /announcements/123" />
+            <input value={form.href || ''} onChange={e => setForm(prev => ({ ...prev, href: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="เช่น https://ponghospital.go.th/ หรือ /announcements/123" />
             <p className="mt-1 text-xs text-gray-600">ปล่อยว่างเพื่อลบลิงก์เดิม หรือกรอก URL/พาธ ภายในเว็บเพื่อตั้งลิงก์ใหม่</p>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-sm mb-1">ลำดับ</label>
-              <input type="number" value={form.order ?? 0} onChange={e=>setForm(prev => ({ ...prev, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
+              <input type="number" value={form.order ?? 0} onChange={e => setForm(prev => ({ ...prev, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
             </div>
             <div>
               <label className="block text-sm mb-1">ระยะเวลาแสดง (วินาที)</label>
-              <input type="number" value={form.duration ?? 5} onChange={e=>setForm(prev => ({ ...prev, duration: Number(e.target.value) }))} min="1" max="60" className="w-full rounded border px-3 py-2" />
+              <input type="number" value={form.duration ?? 5} onChange={e => setForm(prev => ({ ...prev, duration: Number(e.target.value) }))} min="1" max="60" className="w-full rounded border px-3 py-2" />
               <p className="mt-1 text-xs text-gray-600">1-60 วินาที</p>
             </div>
             <div className="flex items-end">
-              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm(prev => ({ ...prev, isPublished: e.target.checked }))} /> เผยแพร่</label>
+              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(prev => ({ ...prev, isPublished: e.target.checked }))} /> เผยแพร่</label>
             </div>
           </div>
           <div>
@@ -2067,14 +2081,14 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
                 <div className="flex items-center gap-2">
                   <label className="admin-btn admin-btn--outline cursor-pointer">
                     อัปโหลดรูปใหม่
-                    <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUpload(f) }} />
+                    <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f) }} />
                   </label>
                   {uploading && <span className="text-sm text-gray-600">กำลังอัปโหลด...</span>}
                 </div>
                 <div className="mt-2 grid md:grid-cols-[1fr_auto] gap-2">
                   <input
                     value={imageUrl}
-                    onChange={e=>setImageUrl(e.target.value)}
+                    onChange={e => setImageUrl(e.target.value)}
                     placeholder="หรือวาง URL รูปภาพ"
                     className="w-full rounded border px-3 py-2"
                     inputMode="url"
@@ -2082,7 +2096,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
                   <button
                     type="button"
                     className="admin-btn admin-btn--outline"
-                    onClick={()=>{
+                    onClick={() => {
                       const u = imageUrl.trim()
                       if (!u) { setForm(prev => ({ ...prev, image: null })); return }
                       try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { alert('URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)'); return }
@@ -2095,7 +2109,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
             )}
             <p className="mt-2 text-xs text-gray-600">
               แนะนำ: ขนาดประมาณ 1920x700px (อัตราส่วน ~2.75:1) ภาพแนวนอน จัดองค์ประกอบสำคัญไว้กลางภาพ เพื่อลดการครอปบนอุปกรณ์ต่างๆ
-              ควรเป็น JPG/PNG/GIF และขนาดไฟล์ &lt; 1MB 
+              ควรเป็น JPG/PNG/GIF และขนาดไฟล์ &lt; 1MB
             </p>
           </div>
         </div>
@@ -2117,7 +2131,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
   )
 }
 
-function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcement[]; onEditSaved: ()=>void; onDeleted: ()=>void }) {
+function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcement[]; onEditSaved: () => void; onDeleted: () => void }) {
   const { getToken } = useAuth()
   const [editing, setEditing] = useState<Announcement | null>(null)
   const sorted = useMemo(() => [...list], [list])
@@ -2135,7 +2149,7 @@ function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcemen
   const remove = async (id?: string) => {
     if (!id) return
     if (!confirm('ยืนยันการลบประกาศนี้?')) return
-  const r = await fetch(`/api/announcements/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
+    const r = await fetch(`/api/announcements/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
     if (r.ok) onDeleted()
   }
   return (
@@ -2161,17 +2175,17 @@ function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcemen
                 </td>
                 <td className="py-2 pr-3"><span className="badge blue">{a.category}</span></td>
                 <td className="py-2 pr-3">
-                  {(()=>{ const s = statusInfo(a); return <span className={`badge ${s.color}`}>{s.label}</span> })()}
+                  {(() => { const s = statusInfo(a); return <span className={`badge ${s.color}`}>{s.label}</span> })()}
                 </td>
                 <td className="py-2 pr-3 text-xs text-gray-600">
                   {a.updatedAt ? fmtDateTime(a.updatedAt) : '-'}
                 </td>
                 <td className="py-2">
                   <div className="flex gap-2">
-                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขประกาศ" onClick={()=>setEditing(a)}>
+                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขประกาศ" onClick={() => setEditing(a)}>
                       ✏️ <span>แก้ไข</span>
                     </button>
-                    <button className="admin-btn admin-btn--outline" aria-label="ลบประกาศ" onClick={()=>remove(a._id)}>
+                    <button className="admin-btn admin-btn--outline" aria-label="ลบประกาศ" onClick={() => remove(a._id)}>
                       🗑️ <span>ลบ</span>
                     </button>
                   </div>
@@ -2186,19 +2200,19 @@ function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcemen
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="admin-btn admin-btn--outline" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="admin-btn admin-btn--outline" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
-        <EditAnnouncementModal initial={editing} onClose={()=>setEditing(null)} onSaved={()=>{ setEditing(null); onEditSaved() }} />
+        <EditAnnouncementModal initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onEditSaved() }} />
       )}
     </div>
   )
 }
 
-function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announcement; onClose: ()=>void; onSaved: ()=>void }) {
+function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announcement; onClose: () => void; onSaved: () => void }) {
   const { getToken } = useAuth()
   const [form, setForm] = useState<Announcement>({ ...initial, attachments: initial.attachments || [] })
   const [loading, setLoading] = useState(false)
@@ -2214,12 +2228,12 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
         const r = await fetch(`/api/announcements/${initial._id}/attachment`, { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         if (!r.ok) throw new Error('upload failed')
         const data = await r.json() as { id: number; url: string; name?: string; bytes?: number; kind?: string }
-        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: String(data.id), kind: 'image', name: data.name, bytes: data.bytes }] }))
+        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: String(data.id), kind: 'image', name: data.name, bytes: data.bytes }] }))
       } else {
         const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         if (!r.ok) throw new Error('upload failed')
         const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
-        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: data.publicId, kind: 'image', name: data.name, bytes: data.bytes }] }))
+        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: data.publicId, kind: 'image', name: data.name, bytes: data.bytes }] }))
       }
     } catch (err) {
       console.error('Upload image error:', err)
@@ -2234,13 +2248,13 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
         if (!r.ok) throw new Error('upload failed')
         const data = await r.json() as { id: number; url: string; name?: string; bytes?: number; kind?: string }
         const kind = data.kind === 'pdf' || (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
-        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: String(data.id), kind, name: data.name, bytes: data.bytes }] }))
+        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: String(data.id), kind, name: data.name, bytes: data.bytes }] }))
       } else {
         const r = await fetch('/api/uploads/file', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         if (!r.ok) throw new Error('upload failed')
         const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
         const kind = (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
-        setForm(f => ({ ...f, attachments: [...(f.attachments||[]), { url: data.url, publicId: data.publicId, kind, name: data.name, bytes: data.bytes }] }))
+        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: data.publicId, kind, name: data.name, bytes: data.bytes }] }))
       }
     } catch { alert('อัปโหลดไฟล์ไม่สำเร็จ') } finally { setUploading(false) }
   }
@@ -2264,17 +2278,17 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
     } finally { setLoading(false) }
   }
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
       <div className="card max-w-3xl w-full">
         <div className="card-header">แก้ไขประกาศ</div>
         <div className="card-body space-y-3">
           <div>
             <label className="block text-sm mb-1">หัวข้อ</label>
-            <input value={form.title} onChange={e=>setForm(f=>({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm mb-1">หมวดหมู่</label>
-            <select value={form.category} onChange={e=>setForm(f=>({ ...f, category: e.target.value as Announcement['category'] }))} className="w-full rounded border px-3 py-2">
+            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as Announcement['category'] }))} className="w-full rounded border px-3 py-2">
               <option>สมัครงาน</option>
               <option>ประชาสัมพันธ์</option>
               <option>ประกาศ</option>
@@ -2285,8 +2299,9 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
             <label className="block text-sm mb-1">เนื้อหา</label>
             <div className="rounded border">
               <RichTextEditor
+                className="[&_.ql-container]:!h-auto [&_.ql-editor]:!min-h-[120px] [&_.ql-editor]:!max-h-[250px] [&_.ql-editor]:!overflow-y-auto"
                 value={form.content || ''}
-                onChange={(html)=>setForm(f=>({ ...f, content: html }))}
+                onChange={(html) => setForm(f => ({ ...f, content: html }))}
                 modules={quillModules}
                 formats={quillFormats}
               />
@@ -2297,11 +2312,11 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
             <div className="flex flex-wrap gap-2">
               <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดรูป
-                <input type="file" className="hidden" accept="image/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUploadImage(f) }} />
+                <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUploadImage(f) }} />
               </label>
               <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดไฟล์ (PDF/อื่นๆ)
-                <input type="file" className="hidden" accept="application/pdf,application/*" onChange={e=>{ const f=e.target.files?.[0]; if (f) onUploadFile(f) }} />
+                <input type="file" className="hidden" accept="application/pdf,application/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUploadFile(f) }} />
               </label>
               {uploading && <span className="self-center text-sm text-gray-600">กำลังอัปโหลด...</span>}
             </div>
@@ -2318,17 +2333,17 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
                       <div className="truncate text-sm">{att.name || att.url}</div>
                       <a href={att.url} target="_blank" className="text-green-700 text-xs hover:underline">เปิดดู</a>
                     </div>
-                    <button type="button" className="admin-btn admin-btn--outline" onClick={()=>removeAttachmentAt(i)}>ลบ</button>
+                    <button type="button" className="admin-btn admin-btn--outline" onClick={() => removeAttachmentAt(i)}>ลบ</button>
                   </div>
                 ))}
               </div>
             )}
           </div>
           <div className="grid md:grid-cols-2 gap-3">
-            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm(f=>({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
+            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
             <div>
               <label className="block text-sm mb-1">ตั้งเวลาเผยแพร่</label>
-              <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e=>setForm(f=>({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
+              <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e => setForm(f => ({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
               <p className="mt-1 text-xs text-gray-600">ถ้ากำหนดเป็นอนาคต ระบบจะเผยแพร่เมื่อถึงเวลานั้น</p>
             </div>
           </div>
@@ -2351,7 +2366,7 @@ function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announc
   )
 }
 
-function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; onEditSaved: ()=>void; onDeleted: ()=>void }) {
+function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; onEditSaved: () => void; onDeleted: () => void }) {
   const { getToken } = useAuth()
   const [editing, setEditing] = useState<Activity | null>(null)
   const sorted = useMemo(() => [...list], [list])
@@ -2369,7 +2384,7 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
   const remove = async (id?: string) => {
     if (!id) return
     if (!confirm('ยืนยันการลบกิจกรรมนี้?')) return
-  const r = await fetch(`/api/activities/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
+    const r = await fetch(`/api/activities/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
     if (r.ok) onDeleted()
   }
   return (
@@ -2394,15 +2409,15 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
                 <div className="flex-1">
                   <div className="font-semibold flex flex-wrap items-center gap-2">
                     <span className="truncate max-w-full sm:max-w-[240px]">{a.title}</span>
-                    {(()=>{ const s = statusInfo(a); return <span className={`badge ${s.color}`}>{s.label}</span> })()}
+                    {(() => { const s = statusInfo(a); return <span className={`badge ${s.color}`}>{s.label}</span> })()}
                   </div>
                   <div className="mt-1 text-sm text-gray-600 line-clamp-3 sm:line-clamp-2">{stripHtml(a.description)}</div>
                   {a.publishedAt && <div className="text-xs text-gray-500 mt-2">เริ่มเผยแพร่: {fmtDateTime(a.publishedAt)}</div>}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขกิจกรรม" onClick={()=>setEditing(a)}>
+                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขกิจกรรม" onClick={() => setEditing(a)}>
                       ✏️ <span>แก้ไข</span>
                     </button>
-                    <button className="admin-btn admin-btn--outline" aria-label="ลบกิจกรรม" onClick={()=>remove(a._id)}>
+                    <button className="admin-btn admin-btn--outline" aria-label="ลบกิจกรรม" onClick={() => remove(a._id)}>
                       🗑️ <span>ลบ</span>
                     </button>
                   </div>
@@ -2415,19 +2430,19 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
       </div>
       {pageCount > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="admin-btn admin-btn--outline" disabled={page <= 1} onClick={()=>setPage(p=>Math.max(1, p-1))}>ก่อนหน้า</button>
+          <button className="admin-btn admin-btn--outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>ก่อนหน้า</button>
           <div>หน้า {page} / {pageCount}</div>
-          <button className="admin-btn admin-btn--outline" disabled={page >= pageCount} onClick={()=>setPage(p=>Math.min(pageCount, p+1))}>ถัดไป</button>
+          <button className="admin-btn admin-btn--outline" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}>ถัดไป</button>
         </div>
       )}
       {editing && (
-        <EditActivityModal initial={editing} onClose={()=>setEditing(null)} onSaved={()=>{ setEditing(null); onEditSaved() }} />
+        <EditActivityModal initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onEditSaved() }} />
       )}
     </div>
   )
 }
 
-function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; onClose: ()=>void; onSaved: ()=>void }) {
+function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; onClose: () => void; onSaved: () => void }) {
   const { getToken, refreshToken } = useAuth()
   const [form, setForm] = useState<Activity>({ ...initial })
   const [saving, setSaving] = useState(false)
@@ -2442,7 +2457,7 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
         const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         if (!r.ok) throw new Error('upload failed')
         const data = await r.json() as { url: string; publicId?: string }
-        setForm(f => ({ ...f, images: [...(f.images||[]), { url: data.url, publicId: data.publicId }] }))
+        setForm(f => ({ ...f, images: [...(f.images || []), { url: data.url, publicId: data.publicId }] }))
       }
     } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
   }
@@ -2459,46 +2474,47 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
     if (!initial._id) return
     setSaving(true)
     try {
-      // ส่งเฉพาะข้อมูลที่ต้องการแก้ไข ไม่ส่ง images เพื่อเก็บรูปเดิมไว้
+      // ส่งข้อมูลทั้งหมดรวมถึง images ที่แก้ไขแล้ว
       const dataToUpdate: Partial<Activity> = { ...form }
-      delete dataToUpdate.images
-      let r = await fetch(`/api/activities/${initial._id}`, { 
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, 
-        body: JSON.stringify(dataToUpdate) 
+      // delete dataToUpdate.images
+      let r = await fetch(`/api/activities/${initial._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify(dataToUpdate)
       })
-      
+
       // If unauthorized, try to refresh token and retry
       if (r.status === 401) {
         const refreshSuccess = await refreshToken()
         if (refreshSuccess) {
-          r = await fetch(`/api/activities/${initial._id}`, { 
-            method: 'PUT', 
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, 
-            body: JSON.stringify(dataToUpdate) 
+          r = await fetch(`/api/activities/${initial._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+            body: JSON.stringify(dataToUpdate)
           })
         }
       }
-      
+
       if (r.ok) onSaved()
       else alert('บันทึกไม่สำเร็จ')
     } finally { setSaving(false) }
   }
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
       <div className="card max-w-4xl w-full">
         <div className="card-header">แก้ไขกิจกรรม</div>
         <div className="card-body space-y-3">
           <div>
             <label className="block text-sm mb-1">ชื่อกิจกรรม</label>
-            <input value={form.title || ''} onChange={e=>setForm(f=>({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm mb-1">รายละเอียด</label>
             <div className="rounded border">
               <RichTextEditor
+                className="[&_.ql-container]:!h-auto [&_.ql-editor]:!min-h-[120px] [&_.ql-editor]:!max-h-[250px] [&_.ql-editor]:!overflow-y-auto"
                 value={form.description || ''}
-                onChange={(html)=>setForm(f=>({ ...f, description: html }))}
+                onChange={(html) => setForm(f => ({ ...f, description: html }))}
                 modules={quillModules}
                 formats={quillFormats}
               />
@@ -2506,10 +2522,10 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
           </div>
           <div>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input 
-                type="checkbox" 
-                checked={form.isPublished ?? true} 
-                onChange={e=>setForm(f=>({ ...f, isPublished: e.target.checked }))} 
+              <input
+                type="checkbox"
+                checked={form.isPublished ?? true}
+                onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))}
                 className="w-4 h-4"
               />
               <span className="text-sm">เผยแพร่กิจกรรมนี้ (แสดงในหน้าหลัก)</span>
@@ -2523,7 +2539,7 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
             <div className="flex flex-wrap gap-2">
               <label className="admin-btn admin-btn--outline cursor-pointer">
                 อัปโหลดไฟล์
-                <input type="file" className="hidden" accept="image/*" multiple onChange={e=>{ const fs=e.target.files; if (fs && fs.length) onUploadFiles(fs) }} />
+                <input type="file" className="hidden" accept="image/*" multiple onChange={e => { const fs = e.target.files; if (fs && fs.length) onUploadFiles(fs) }} />
               </label>
               {uploading && <span className="text-sm text-gray-600 self-center">กำลังอัปโหลด...</span>}
             </div>

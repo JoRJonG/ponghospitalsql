@@ -62,20 +62,20 @@ const defaultForm: PopupFormState = {
   imageUrl: '',
 }
 
-function toDateTimeLocalValue(iso?: string | null) {
+function toDateValue(iso?: string | null) {
   if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   const pad = (value: number) => String(value).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-function fromDateTimeLocalValue(value: string) {
+function fromDateValue(value: string, isEnd = false) {
   const v = (value || '').trim()
   if (!v) return null
-  const parsed = new Date(v)
-  if (Number.isNaN(parsed.getTime())) return null
-  return parsed.toISOString()
+  // Return a local datetime string (SQL DATETIME style)
+  // If isEnd is true, set time to 23:59:59, else 00:00:00
+  return `${v} ${isEnd ? '23:59:59' : '00:00:00'}`
 }
 
 const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
@@ -150,8 +150,8 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
     setForm({
       title: popup.title || '',
       body: popup.body || '',
-      startAt: toDateTimeLocalValue(popup.startAt),
-      endAt: toDateTimeLocalValue(popup.endAt),
+      startAt: toDateValue(popup.startAt),
+      endAt: toDateValue(popup.endAt),
       dismissForDays: Number.isFinite(popup.dismissForDays) ? popup.dismissForDays : 1,
       isActive: Boolean(popup.isActive),
       ctaLabel: popup.ctaLabel || '',
@@ -168,9 +168,9 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       if (prev) URL.revokeObjectURL(prev)
       return null
     })
-  setRemoveImage(false)
-  setShowForm(true)
-  window.scrollTo({ top: 130, behavior: 'smooth' })
+    setRemoveImage(false)
+    setShowForm(true)
+    window.scrollTo({ top: 130, behavior: 'smooth' })
   }
 
   const handleDelete = async (id: number) => {
@@ -290,8 +290,8 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       const payload = {
         title: form.title.trim(),
         body: form.body.trim(),
-        startAt: fromDateTimeLocalValue(form.startAt),
-        endAt: fromDateTimeLocalValue(form.endAt),
+        startAt: fromDateValue(form.startAt),
+        endAt: fromDateValue(form.endAt, true),
         dismissForDays: Number.isFinite(form.dismissForDays) ? Math.max(0, Math.floor(form.dismissForDays)) : 1,
         isActive: form.isActive,
         ctaLabel: form.ctaLabel.trim() || null,
@@ -341,7 +341,7 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       invalidateCache('/api/popups/active')
       await load()
       resetForm()
-  setShowForm(false)
+      setShowForm(false)
       showToast('บันทึกป๊อปอัปสำเร็จ', undefined, 'success', 2500)
     } catch (thrown: unknown) {
       console.error('Failed to save popup', thrown)
@@ -403,158 +403,158 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
         </div>
 
         {showForm ? (
-        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
+          <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-slate-700">
+                หัวข้อป๊อปอัป
+                <input
+                  required
+                  value={form.title}
+                  onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                  placeholder="เช่น วันเฉลิมพระชนมพรรษา"
+                />
+              </label>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-slate-700">
+                รายละเอียด
+                <textarea
+                  required
+                  rows={4}
+                  value={form.body}
+                  onChange={e => setForm(prev => ({ ...prev, body: e.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                  placeholder="ข้อความที่ต้องการให้ผู้ใช้อ่านก่อนเข้าหน้าเว็บ"
+                />
+              </label>
+            </div>
+
             <label className="text-sm font-medium text-slate-700">
-              หัวข้อป๊อปอัป
+              เริ่มแสดงตั้งแต่
               <input
-                required
-                value={form.title}
-                onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
+                type="date"
+                value={form.startAt}
+                onChange={e => setForm(prev => ({ ...prev, startAt: e.target.value }))}
                 className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                placeholder="เช่น วันเฉลิมพระชนมพรรษา"
               />
             </label>
-          </div>
 
-          <div className="md:col-span-2">
             <label className="text-sm font-medium text-slate-700">
-              รายละเอียด
-              <textarea
-                required
-                rows={4}
-                value={form.body}
-                onChange={e => setForm(prev => ({ ...prev, body: e.target.value }))}
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                placeholder="ข้อความที่ต้องการให้ผู้ใช้อ่านก่อนเข้าหน้าเว็บ"
-              />
-            </label>
-          </div>
-
-          <label className="text-sm font-medium text-slate-700">
-            เริ่มแสดงตั้งแต่
-            <input
-              type="datetime-local"
-              value={form.startAt}
-              onChange={e => setForm(prev => ({ ...prev, startAt: e.target.value }))}
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-
-          <label className="text-sm font-medium text-slate-700">
-            แสดงถึงวันที่
-            <input
-              type="datetime-local"
-              value={form.endAt}
-              onChange={e => setForm(prev => ({ ...prev, endAt: e.target.value }))}
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-
-          <label className="text-sm font-medium text-slate-700">
-            ซ่อนหลังจากปิด (วัน)
-            <input
-              type="number"
-              min={0}
-              value={form.dismissForDays}
-              onChange={e => setForm(prev => ({ ...prev, dismissForDays: Number(e.target.value) }))}
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-            />
-          </label>
-
-          <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
-            <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={e => setForm(prev => ({ ...prev, isActive: e.target.checked }))}
-              className="h-4 w-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-400"
-            />
-            เปิดใช้งานป๊อปอัปนี้ทันที
-          </label>
-
-          <label className="text-sm font-medium text-slate-700">
-            ปุ่มลิงก์ (ข้อความ)
-            <input
-              value={form.ctaLabel}
-              onChange={e => setForm(prev => ({ ...prev, ctaLabel: e.target.value }))}
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-              placeholder="เช่น ดูรายละเอียด"
-            />
-          </label>
-
-          <label className="text-sm font-medium text-slate-700">
-            ปุ่มลิงก์ (URL)
-            <input
-              value={form.ctaUrl}
-              onChange={e => setForm(prev => ({ ...prev, ctaUrl: e.target.value }))}
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-              placeholder="https://"
-            />
-          </label>
-
-          <div className="md:col-span-2 space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              รูปภาพประกอบ (URL)
+              แสดงถึงวันที่
               <input
-                value={form.imageUrl}
-                onChange={e => setForm(prev => ({ ...prev, imageUrl: e.target.value }))}
+                type="date"
+                value={form.endAt}
+                onChange={e => setForm(prev => ({ ...prev, endAt: e.target.value }))}
                 className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                placeholder="ลิงก์รูปภาพที่จะนำมาแสดง"
               />
             </label>
-            <p className="text-xs text-slate-500">หรืออัปโหลดไฟล์ด้านล่าง ระบบจะเก็บรูปไว้ในฐานข้อมูลและแสดงอัตโนมัติ</p>
-            <label className="block text-sm font-medium text-slate-700">
-              อัปโหลดรูปภาพ (สูงสุด 5MB)
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageFileChange}
-                className="mt-2 w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-              />
-            </label>
-            {(imagePreview || existingImage) && (
-              <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <div className="h-16 w-16 overflow-hidden rounded-lg bg-white shadow-inner">
-                  <img
-                    src={imagePreview || existingImage?.url || ''}
-                    alt="ตัวอย่างรูปป๊อปอัป"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 text-xs text-slate-600">
-                  <div className="font-medium text-slate-700">จะแสดงรูปภาพนี้</div>
-                  {previewName && <div>ไฟล์: {previewName}</div>}
-                  {previewSizeKb && <div>ขนาด: {previewSizeKb} KB</div>}
-                  {!imageFile && existingImage?.url && <div className="truncate text-slate-500">URL: {existingImage.url}</div>}
-                  {imageFile && <div className="text-emerald-600">ไฟล์ใหม่จะถูกบันทึกเมื่อกดบันทึก</div>}
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="mt-2 inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1 text-xs text-red-600 hover:border-red-300 hover:bg-red-50"
-                  >
-                    ลบรูปภาพนี้
-                  </button>
-                </div>
-              </div>
-            )}
-            {removeImage && !imagePreview && !existingImage && (
-              <div className="rounded-lg border border-dashed border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
-                จะลบรูปภาพเดิมออกเมื่อบันทึก
-              </div>
-            )}
-          </div>
 
-          <div className="md:col-span-2 flex items-center justify-end gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="admin-btn"
-            >
-              {saving ? 'กำลังบันทึก...' : editingId ? 'บันทึกการแก้ไข' : 'สร้างป๊อปอัป' }
-            </button>
-          </div>
-        </form>
+            <label className="text-sm font-medium text-slate-700">
+              ซ่อนหลังจากปิด (วัน)
+              <input
+                type="number"
+                min={0}
+                value={form.dismissForDays}
+                onChange={e => setForm(prev => ({ ...prev, dismissForDays: Number(e.target.value) }))}
+                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              />
+            </label>
+
+            <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={e => setForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                className="h-4 w-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-400"
+              />
+              เปิดใช้งานป๊อปอัปนี้ทันที
+            </label>
+
+            <label className="text-sm font-medium text-slate-700">
+              ปุ่มลิงก์ (ข้อความ)
+              <input
+                value={form.ctaLabel}
+                onChange={e => setForm(prev => ({ ...prev, ctaLabel: e.target.value }))}
+                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                placeholder="เช่น ดูรายละเอียด"
+              />
+            </label>
+
+            <label className="text-sm font-medium text-slate-700">
+              ปุ่มลิงก์ (URL)
+              <input
+                value={form.ctaUrl}
+                onChange={e => setForm(prev => ({ ...prev, ctaUrl: e.target.value }))}
+                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                placeholder="https://"
+              />
+            </label>
+
+            <div className="md:col-span-2 space-y-3">
+              <label className="block text-sm font-medium text-slate-700">
+                รูปภาพประกอบ (URL)
+                <input
+                  value={form.imageUrl}
+                  onChange={e => setForm(prev => ({ ...prev, imageUrl: e.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                  placeholder="ลิงก์รูปภาพที่จะนำมาแสดง"
+                />
+              </label>
+              <p className="text-xs text-slate-500">หรืออัปโหลดไฟล์ด้านล่าง ระบบจะเก็บรูปไว้ในฐานข้อมูลและแสดงอัตโนมัติ</p>
+              <label className="block text-sm font-medium text-slate-700">
+                อัปโหลดรูปภาพ (สูงสุด 5MB)
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="mt-2 w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+              {(imagePreview || existingImage) && (
+                <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="h-16 w-16 overflow-hidden rounded-lg bg-white shadow-inner">
+                    <img
+                      src={imagePreview || existingImage?.url || ''}
+                      alt="ตัวอย่างรูปป๊อปอัป"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 text-xs text-slate-600">
+                    <div className="font-medium text-slate-700">จะแสดงรูปภาพนี้</div>
+                    {previewName && <div>ไฟล์: {previewName}</div>}
+                    {previewSizeKb && <div>ขนาด: {previewSizeKb} KB</div>}
+                    {!imageFile && existingImage?.url && <div className="truncate text-slate-500">URL: {existingImage.url}</div>}
+                    {imageFile && <div className="text-emerald-600">ไฟล์ใหม่จะถูกบันทึกเมื่อกดบันทึก</div>}
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="mt-2 inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1 text-xs text-red-600 hover:border-red-300 hover:bg-red-50"
+                    >
+                      ลบรูปภาพนี้
+                    </button>
+                  </div>
+                </div>
+              )}
+              {removeImage && !imagePreview && !existingImage && (
+                <div className="rounded-lg border border-dashed border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+                  จะลบรูปภาพเดิมออกเมื่อบันทึก
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-2 flex items-center justify-end gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="admin-btn"
+              >
+                {saving ? 'กำลังบันทึก...' : editingId ? 'บันทึกการแก้ไข' : 'สร้างป๊อปอัป'}
+              </button>
+            </div>
+          </form>
         ) : (
           <div className="mt-6 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-6 text-center text-sm text-emerald-700">
             กดปุ่ม "เพิ่มป๊อปอัปใหม่" เพื่อเปิดฟอร์มเพิ่มรายละเอียดป๊อปอัปหน้าแรก

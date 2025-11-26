@@ -1,12 +1,10 @@
 // Activity model with BLOB storage for images
 import { pool, query, exec, transaction } from '../../database.js'
+import { toLocalSql } from '../../utils/date.js'
 
-// Helper function to format date for MySQL DATETIME
+// Helper function to format date for MySQL DATETIME using local time
 function formatDateForMySQL(date) {
-  if (!date) return null
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return null
-  return d.toISOString().slice(0, 19).replace('T', ' ')
+  return toLocalSql(date)
 }
 
 export class Activity {
@@ -16,11 +14,11 @@ export class Activity {
              created_by, updated_by, created_at, updated_at, view_count
       FROM activities WHERE id = ?
     `, [id])
-    
+
     if (!rows[0]) return null
-    
+
     const activity = rows[0]
-    
+
     // ดึงข้อมูลรูปภาพ (ไม่ดึง blob ตรงนี้)
     const images = await query(`
       SELECT id, activity_id, file_name, mime_type, file_size, display_order
@@ -28,7 +26,7 @@ export class Activity {
       WHERE activity_id = ? 
       ORDER BY display_order ASC
     `, [id])
-    
+
     return {
       _id: activity._id,
       title: activity.title,
@@ -59,7 +57,7 @@ export class Activity {
 
   static async find(filter = {}, options = {}) {
     const self = this
-    const thenFn = async function(resolve, reject) {
+    const thenFn = async function (resolve, reject) {
       try {
         const result = await self._executeFind(this._filter, this._options, this._sortOptions)
         resolve(result)
@@ -67,13 +65,13 @@ export class Activity {
         reject(error)
       }
     }
-    
+
     const findResult = {
       _filter: filter,
       _options: options,
       _sortOptions: null,
-      
-      sort: function(sortObj) {
+
+      sort: function (sortObj) {
         const newObj = {
           _filter: this._filter,
           _options: this._options,
@@ -83,22 +81,22 @@ export class Activity {
         }
         return newObj
       },
-      
+
       then: thenFn
     }
-    
+
     return findResult
   }
-  
+
   static async _executeFind(filter = {}, options = {}, sortOptions = null) {
     let whereClause = 'WHERE 1=1'
     let params = []
-    
+
     if (filter.isPublished !== undefined) {
       whereClause += ' AND is_published = ?'
       params.push(filter.isPublished)
     }
-    
+
     if (filter.$or) {
       whereClause += ' AND (published_at IS NULL OR published_at <= NOW())'
     }
@@ -158,7 +156,7 @@ export class Activity {
         WHERE activity_id = ? 
         ORDER BY display_order ASC
       `, [activity._id])
-      
+
       activity.images = images.map(img => ({
         _id: img.id,
         url: `/api/images/activities/${activity._id}/${img.id}`,
@@ -166,7 +164,7 @@ export class Activity {
         mimeType: img.mime_type,
         size: img.file_size
       }))
-      
+
       activity.publishedAt = activity.published_at
       activity.isPublished = activity.is_published
       activity.createdAt = activity.created_at
@@ -239,7 +237,7 @@ export class Activity {
     return await transaction(async (connection) => {
       const updateFields = []
       const updateParams = []
-      
+
       if (data.title) {
         updateFields.push('title = ?')
         updateParams.push(data.title)
@@ -268,7 +266,7 @@ export class Activity {
       if (updateFields.length > 0) {
         updateFields.push('updated_at = CURRENT_TIMESTAMP')
         updateParams.push(id)
-        
+
         await connection.execute(`
           UPDATE activities SET ${updateFields.join(', ')} WHERE id = ?
         `, updateParams)
@@ -276,27 +274,46 @@ export class Activity {
 
       // อัพเดทรูปภาพถ้ามี
       if (data.images !== undefined) {
-        // ลบรูปเก่าทั้งหมด
-        await connection.execute('DELETE FROM activity_images WHERE activity_id = ?', [id])
-        
-        // เพิ่มรูปใหม่
-        if (Array.isArray(data.images) && data.images.length > 0) {
+        const keepIds = []
+        const newImages = []
+
+        if (Array.isArray(data.images)) {
           for (let i = 0; i < data.images.length; i++) {
-            const image = data.images[i]
-            if (image.imageData) {
-              await connection.execute(`
-                INSERT INTO activity_images (activity_id, image_data, file_name, mime_type, file_size, display_order)
-                VALUES (?, ?, ?, ?, ?, ?)
-              `, [
-                id,
-                image.imageData,
-                image.fileName || 'image.jpg',
-                image.mimeType || 'image/jpeg',
-                image.fileSize || 0,
-                i
-              ])
+            const img = data.images[i]
+            if (img._id) {
+              keepIds.push(img._id)
+              // Update display_order for existing images
+              await connection.execute('UPDATE activity_images SET display_order = ? WHERE id = ?', [i, img._id])
+            } else if (img.imageData) {
+              // New image to insert
+              newImages.push({ ...img, displayOrder: i })
             }
           }
+        }
+
+        // ลบรูปที่ไม่อยู่ในรายการ keepIds
+        if (keepIds.length > 0) {
+          // Create placeholders for IN clause
+          const placeholders = keepIds.map(() => '?').join(',')
+          await connection.execute(`DELETE FROM activity_images WHERE activity_id = ? AND id NOT IN (${placeholders})`, [id, ...keepIds])
+        } else {
+          // ถ้าไม่มี keepIds เลย แสดงว่าลบหมด (หรือไม่มีรูปเก่าเลย)
+          await connection.execute('DELETE FROM activity_images WHERE activity_id = ?', [id])
+        }
+
+        // เพิ่มรูปใหม่
+        for (const image of newImages) {
+          await connection.execute(`
+            INSERT INTO activity_images (activity_id, image_data, file_name, mime_type, file_size, display_order)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `, [
+            id,
+            image.imageData,
+            image.fileName || 'image.jpg',
+            image.mimeType || 'image/jpeg',
+            image.fileSize || 0,
+            image.displayOrder
+          ])
         }
       }
 
@@ -308,7 +325,7 @@ export class Activity {
     return await transaction(async (connection) => {
       // ลบรูปภาพก่อน
       await connection.execute('DELETE FROM activity_images WHERE activity_id = ?', [id])
-      
+
       // ลบกิจกรรม
       const [result] = await connection.execute('DELETE FROM activities WHERE id = ?', [id])
       return result.affectedRows > 0
@@ -334,7 +351,7 @@ export class Activity {
   static async countDocuments(filter = {}) {
     let whereClause = 'WHERE 1=1'
     let params = []
-    
+
     if (filter.isPublished !== undefined) {
       whereClause += ' AND is_published = ?'
       params.push(filter.isPublished)

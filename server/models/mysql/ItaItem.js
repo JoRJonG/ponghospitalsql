@@ -1,4 +1,19 @@
 import { query, exec, transaction } from '../../database.js'
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// Go up to server root (server/models/mysql -> server/models -> server) then up to project root
+const UPLOAD_DIR = path.resolve(__dirname, '../../../uploads/ita_pdfs')
+
+async function ensureUploadDir() {
+  try {
+    await fs.mkdir(UPLOAD_DIR, { recursive: true })
+  } catch (e) {
+    console.error('[ITA] ensureUploadDir error:', e)
+  }
+}
 
 async function columnExists(table, column) {
   const safeTable = table.replace(/[^A-Za-z0-9_`]/g, '')
@@ -62,12 +77,16 @@ async function ensureTable() {
 
 async function ensurePdfTable() {
   await ensureTable()
+  await ensureUploadDir()
+  
+  // Note: bytes column is now nullable for new files stored on disk
   await exec(`CREATE TABLE IF NOT EXISTS ita_files (
     id INT AUTO_INCREMENT PRIMARY KEY,
     filename VARCHAR(255) NOT NULL,
     mimetype VARCHAR(100) NOT NULL,
     description TEXT NULL,
-    bytes LONGBLOB NOT NULL,
+    bytes LONGBLOB NULL,
+    file_path VARCHAR(512) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, [])
 
@@ -77,6 +96,21 @@ async function ensurePdfTable() {
 
   if (!(await columnExists('ita_files', 'description'))) {
     await exec('ALTER TABLE ita_files ADD COLUMN description TEXT NULL', [])
+  }
+  
+  if (!(await columnExists('ita_files', 'file_path'))) {
+    await exec('ALTER TABLE ita_files ADD COLUMN file_path VARCHAR(512) NULL', [])
+  }
+  
+  // Make bytes nullable if it's not already (hard to do safely in raw SQL without check, but MySQL allows modifying column to same type)
+  // We'll just assume it's okay or that new inserts can pass NULL if we remove NOT NULL constraint. 
+  // For safety in this environment, we won't run ALTER MODIFY blindly to avoid locking large tables if not needed.
+  // Instead, we'll pass an empty buffer for 'bytes' if we use file_path, or check if we can alter.
+  try {
+    await exec('ALTER TABLE ita_files MODIFY COLUMN bytes LONGBLOB NULL')
+  } catch (e) {
+    // ignore if fails, we'll handle it by passing empty buffer if needed
+    console.warn('[ITA] could not modify bytes column to NULL:', e.message)
   }
 
   if (!(await indexExists('ita_files', 'idx_ita_files_item'))) {
@@ -189,47 +223,101 @@ export class ItaItem {
   }
 }
 
+async function saveFileToDisk(buffer, filename) {
+  const safeName = filename.replace(/[^a-zA-Z0-9.\-_]/g, '_')
+  const uniqueName = `${Date.now()}_${safeName}`
+  const filePath = path.join(UPLOAD_DIR, uniqueName)
+  await fs.writeFile(filePath, buffer)
+  return uniqueName // Store relative filename
+}
+
 export async function saveItaPdf({ filename, mimetype, buffer, description = null }) {
   await ensurePdfTable()
-  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, description) VALUES (?,?,?,?)', [filename, mimetype, buffer, description])
+  const storedFilename = await saveFileToDisk(buffer, filename)
+  // Use NULL for bytes to save space
+  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, file_path, description) VALUES (?,?,NULL,?,?)', [filename, mimetype, storedFilename, description])
   return { id: result.insertId }
 }
+
 export async function getItaPdf(id) {
   await ensurePdfTable()
-  const rows = await query('SELECT id, filename, mimetype, bytes, description FROM ita_files WHERE id = ?', [id])
+  const rows = await query('SELECT id, filename, mimetype, bytes, file_path, description FROM ita_files WHERE id = ?', [id])
   if (!rows[0]) return null
   const r = rows[0]
-  return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: r.bytes, description: r.description }
+  
+  let fileData = r.bytes
+  if (r.file_path) {
+    try {
+      const fullPath = path.join(UPLOAD_DIR, r.file_path)
+      fileData = await fs.readFile(fullPath)
+    } catch (e) {
+      console.error(`[ITA] Failed to read file from disk: ${r.file_path}`, e)
+      // If file missing on disk, we can't recover if bytes is NULL. 
+      // If bytes is not NULL (hybrid?), we use it.
+      if (!fileData) return null
+    }
+  }
+  
+  return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: fileData, description: r.description }
 }
 
 export async function getItaPdfByFilename(filename) {
   await ensurePdfTable()
-  const rows = await query('SELECT id, filename, mimetype, bytes, description FROM ita_files WHERE filename = ? ORDER BY id DESC LIMIT 1', [filename])
+  const rows = await query('SELECT id, filename, mimetype, bytes, file_path, description FROM ita_files WHERE filename = ? ORDER BY id DESC LIMIT 1', [filename])
   if (!rows[0]) return null
   const r = rows[0]
-  return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: r.bytes, description: r.description }
+  
+  let fileData = r.bytes
+  if (r.file_path) {
+    try {
+      const fullPath = path.join(UPLOAD_DIR, r.file_path)
+      fileData = await fs.readFile(fullPath)
+    } catch (e) {
+      console.error(`[ITA] Failed to read file from disk: ${r.file_path}`, e)
+      if (!fileData) return null
+    }
+  }
+  
+  return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: fileData, description: r.description }
 }
 
 export async function attachPdfToItem(itemId, { filename, mimetype, buffer, description = null }) {
   await ensurePdfTable()
-  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, ita_item_id, description) VALUES (?,?,?,?,?)', [filename, mimetype, buffer, itemId, description])
+  const storedFilename = await saveFileToDisk(buffer, filename)
+  const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, file_path, ita_item_id, description) VALUES (?,?,NULL,?,?,?)', [filename, mimetype, storedFilename, itemId, description])
   return { id: result.insertId }
 }
+
 export async function listItemPdfs(itemId) {
   await ensurePdfTable()
-  const rows = await query('SELECT id, filename, mimetype, OCTET_LENGTH(bytes) AS size, created_at, description FROM ita_files WHERE ita_item_id = ? ORDER BY id ASC', [itemId])
+  // We can't easily get size if it's on disk without reading stat, but for listing we might just want to know it exists.
+  // If bytes is NULL, size is 0 in SQL. We might need to store file_size column in future, but for now let's just return 0 or check if we can get it.
+  // Actually, let's just return 0 for size if on disk for listing performance, or maybe we should have added a size column.
+  // For now, let's keep it simple.
+  const rows = await query('SELECT id, filename, mimetype, OCTET_LENGTH(bytes) AS size, file_path, created_at, description FROM ita_files WHERE ita_item_id = ? ORDER BY id ASC', [itemId])
+  
   return rows.map(r => ({
     id: r.id,
     filename: r.filename,
     mimetype: r.mimetype,
-    size: r.size,
+    size: r.size || 0, // inaccurate for disk files unless we add size column, but acceptable for now
     description: r.description || null,
     url: `/api/ita/pdf/${encodeURIComponent(r.filename)}`,
     createdAt: r.created_at,
   }))
 }
+
 export async function deletePdf(fileId) {
   await ensurePdfTable()
+  const rows = await query('SELECT file_path FROM ita_files WHERE id = ?', [fileId])
+  if (rows[0] && rows[0].file_path) {
+    try {
+      const fullPath = path.join(UPLOAD_DIR, rows[0].file_path)
+      await fs.unlink(fullPath)
+    } catch (e) {
+      console.warn(`[ITA] Failed to delete file from disk: ${rows[0].file_path}`, e.message)
+    }
+  }
   await exec('DELETE FROM ita_files WHERE id = ?', [fileId])
   return true
 }

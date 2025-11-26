@@ -14,10 +14,10 @@ export default function Navbar() {
   const settingsLabel = canAccessSettings ? 'ตั้งค่า' : 'บัญชี'
   const navigate = useNavigate()
   const doLogout = () => { logout(); setOpen(false); navigate('/') }
-  
+
   // Check for new announcements (within 3 days)
   const [hasNewAnnouncements, setHasNewAnnouncements] = useState(false)
-  
+
   useEffect(() => {
     const checkNewAnnouncements = async () => {
       try {
@@ -29,12 +29,20 @@ export default function Navbar() {
             // Check for new announcements in any category
             const hasNew = data.some(announcement => {
               if (!announcement.publishedAt) return false
-              
+              // Strict check: must be published and not in the future
+              if (announcement.isPublished === false) return false
+
               const publishedDate = new Date(announcement.publishedAt)
+              if (Number.isNaN(publishedDate.getTime())) return false
+
               const now = new Date()
+              // If published date is in the future, it's not "new" yet (it's scheduled)
+              if (publishedDate.getTime() > now.getTime()) return false
+
               const diffTime = now.getTime() - publishedDate.getTime()
-              const diffDays = diffTime / (1000 * 3600 * 24)
-              return diffDays <= 3
+              // Only consider announcements within the last 3 days
+              const threeDaysMs = 3 * 24 * 60 * 60 * 1000
+              return diffTime >= 0 && diffTime < threeDaysMs
             })
             setHasNewAnnouncements(hasNew)
           }
@@ -43,13 +51,13 @@ export default function Navbar() {
         console.warn('Failed to check for new announcements:', error)
       }
     }
-    
+
     checkNewAnnouncements()
     // Check every 5 minutes
     const interval = setInterval(checkNewAnnouncements, 5 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
-  
+
   // ITA dynamic menu
   type ItaItem = { _id: number; title: string; slug?: string | null; children?: ItaItem[] }
   const [itaRoots, setItaRoots] = useState<ItaItem[]>([])
@@ -104,7 +112,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-      
+
       {/* Main Navbar */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-40 shadow-sm">
         <div className="container-narrow flex items-center justify-between h-20">
@@ -132,28 +140,28 @@ export default function Navbar() {
             </NavLink>
             <NavLink to="/executives" className={navItemClass}>ผู้บริหาร</NavLink>
             <div className="relative" onMouseEnter={openIta} onMouseLeave={closeItaLater}>
-              <NavLink to="/ita" className={navItemClass} onClick={()=>setItaOpen(o=>!o)}>ITA ▾</NavLink>
+              <NavLink to="/ita" className={navItemClass} onClick={() => setItaOpen(o => !o)}>ITA ▾</NavLink>
               {itaOpen && itaRoots.length > 0 && (
                 <div className="absolute left-0 mt-1 w-72 max-h-[70vh] overflow-auto rounded-lg border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-sm p-2 z-50 animate-fade-in">
                   <ul className="space-y-1">
                     {itaRoots.map(r => (
                       <li key={r._id} className="group">
-                        <button onClick={()=>goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center justify-between">
+                        <button onClick={() => goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center justify-between">
                           <span className="truncate pr-2">{r.title}</span>
                           {r.children && r.children.length > 0 && <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-teal-600 transition-colors" />}
                         </button>
                         {r.children && r.children.length > 0 && (
                           <ul className="ml-2 mt-1 border-l border-dashed border-gray-200 pl-2 space-y-1">
-                            {r.children.slice(0,6).map(c => (
+                            {r.children.slice(0, 6).map(c => (
                               <li key={c._id}>
-                                <button onClick={()=>goItaAnchor(c._id)} className="w-full text-left px-2 py-0.5 rounded hover:bg-teal-50 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
+                                <button onClick={() => goItaAnchor(c._id)} className="w-full text-left px-2 py-0.5 rounded hover:bg-teal-50 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
                                   <i className="fa-regular fa-circle text-[6px] text-gray-400" />
                                   <span className="truncate">{c.title}</span>
                                 </button>
                               </li>
                             ))}
                             {r.children.length > 6 && (
-                              <li><span className="text-[11px] text-gray-400 px-2 italic">+ {r.children.length-6} รายการ</span></li>
+                              <li><span className="text-[11px] text-gray-400 px-2 italic">+ {r.children.length - 6} รายการ</span></li>
                             )}
                           </ul>
                         )}
@@ -178,19 +186,19 @@ export default function Navbar() {
               </>
             )}
           </nav>
-          <button className="md:hidden p-2 text-gray-700" aria-label={open? 'ปิดเมนู':'เปิดเมนู'} onClick={() => setOpen(o=>!o)}>
+          <button className="md:hidden p-2 text-gray-700" aria-label={open ? 'ปิดเมนู' : 'เปิดเมนู'} onClick={() => setOpen(o => !o)}>
             <i className={`fa-solid ${open ? 'fa-xmark' : 'fa-bars'} text-xl`} />
           </button>
         </div>
       </header>
       {open && (
         <div>
-          <div className="fixed inset-0 bg-black/30 z-40" onClick={()=>setOpen(false)} />
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setOpen(false)} />
           <div className="md:hidden fixed inset-x-0 top-20 bottom-0 z-50 overflow-y-auto">
             <div className="bg-white border-t border-gray-200 shadow-md">
               <div className="container-narrow py-4 flex flex-col">
-                <NavLink to="/" className={navItemClass} end onClick={()=>setOpen(false)}>หน้าหลัก</NavLink>
-                <NavLink to="/announcements" className={({ isActive }) => navItemClass({ isActive })} onClick={()=>setOpen(false)}>
+                <NavLink to="/" className={navItemClass} end onClick={() => setOpen(false)}>หน้าหลัก</NavLink>
+                <NavLink to="/announcements" className={({ isActive }) => navItemClass({ isActive })} onClick={() => setOpen(false)}>
                   <div className="flex items-center gap-2">
                     <span>ประกาศ</span>
                     {hasNewAnnouncements && (
@@ -201,19 +209,19 @@ export default function Navbar() {
                 <div>
                   <button
                     type="button"
-                    onClick={()=>setMobileItaOpen(o=>!o)}
+                    onClick={() => setMobileItaOpen(o => !o)}
                     className={navItemClass({ isActive: window.location.pathname.startsWith('/ita') }) + ' w-full flex items-center justify-between'}
                     aria-expanded={mobileItaOpen}
                   >
                     <span>ITA</span>
-                    <i className={`fa-solid fa-chevron-${mobileItaOpen? 'up':'down'} text-xs ml-2`} />
+                    <i className={`fa-solid fa-chevron-${mobileItaOpen ? 'up' : 'down'} text-xs ml-2`} />
                   </button>
                   {mobileItaOpen && itaRoots.length > 0 && (
                     <ul className="mt-1 mb-2 ml-3 border-l border-gray-200 pl-3 space-y-1">
                       {itaRoots.map(r => (
                         <li key={r._id}>
                           <button
-                            onClick={()=>{ navigate(`/ita/item/${r._id}`); setOpen(false); setMobileItaOpen(false) }}
+                            onClick={() => { navigate(`/ita/item/${r._id}`); setOpen(false); setMobileItaOpen(false) }}
                             className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 truncate"
                           >{r.title}</button>
                         </li>
@@ -221,14 +229,14 @@ export default function Navbar() {
                     </ul>
                   )}
                 </div>
-                <NavLink to="/executives" className={navItemClass} onClick={()=>setOpen(false)}>ผู้บริหาร</NavLink>
-                <NavLink to="/about" className={navItemClass} onClick={()=>setOpen(false)}>เกี่ยวกับเรา</NavLink>
-                <NavLink to="/contact" className={navItemClass} onClick={()=>setOpen(false)}>ติดต่อเรา</NavLink>
+                <NavLink to="/executives" className={navItemClass} onClick={() => setOpen(false)}>ผู้บริหาร</NavLink>
+                <NavLink to="/about" className={navItemClass} onClick={() => setOpen(false)}>เกี่ยวกับเรา</NavLink>
+                <NavLink to="/contact" className={navItemClass} onClick={() => setOpen(false)}>ติดต่อเรา</NavLink>
                 {isAuthenticated && (
                   <>
                     <div className="border-t border-gray-200 my-2"></div>
-                    <NavLink to="/admin" className={navItemClass} end onClick={()=>setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
-                    <NavLink to="/admin/settings" className={navItemClass} onClick={()=>setOpen(false)}>
+                    <NavLink to="/admin" className={navItemClass} end onClick={() => setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
+                    <NavLink to="/admin/settings" className={navItemClass} onClick={() => setOpen(false)}>
                       <i className={`fa-solid ${canAccessSettings ? 'fa-gear' : 'fa-user-gear'} mr-1`} /> {settingsLabel}
                     </NavLink>
                     <button className="text-left px-4 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm" onClick={doLogout}>
@@ -241,6 +249,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-  </div>
-)
+    </div>
+  )
 }

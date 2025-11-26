@@ -6,6 +6,7 @@ import { requireAuth, requirePermission, optionalAuth } from '../middleware/auth
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import Popup from '../models/mysql/Popup.js'
+import { parseToLocalSql } from '../utils/date.js'
 import { decodeUploadFilename } from '../utils/filename.js'
 
 const router = Router()
@@ -75,16 +76,7 @@ function parseNumber(value, fallback = 0) {
 }
 
 function parseDate(value) {
-  if (!value) return null
-  if (value instanceof Date) {
-    if (Number.isNaN(value.getTime())) return null
-    return value.toISOString()
-  }
-  const str = String(value).trim()
-  if (!str) return null
-  const date = new Date(str)
-  if (Number.isNaN(date.getTime())) return null
-  return date.toISOString()
+  return parseToLocalSql(value)
 }
 
 function pickPayload(body = {}) {
@@ -151,7 +143,9 @@ async function buildPayload(req) {
   return payload
 }
 
-router.get('/active', optionalAuth, microCache(15_000), async (req, res) => {
+// Public endpoint used by many clients — increase server-side microCache
+// to reduce backend load. We still respect DB state when cache expires.
+router.get('/active', optionalAuth, microCache(120_000), async (req, res) => {
   if (!req.app.locals.dbConnected) {
     return res.json({ success: true, data: [] })
   }

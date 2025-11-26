@@ -1,4 +1,5 @@
 import { query, exec } from '../../database.js'
+import { toLocalSql, toDateTimeLocal } from '../../utils/date.js'
 
 const BASE_COLUMNS = `
   id, title, body, start_at, end_at, dismiss_for_days, is_active,
@@ -9,6 +10,7 @@ const BASE_COLUMNS = `
 function normalizeRow(row) {
   if (!row) return null
   const toIso = (value) => (value ? new Date(value).toISOString() : null)
+  const toLocalDateTimeLocal = (value) => toDateTimeLocal(value)
   const updatedTs = row.updated_at ? new Date(row.updated_at).getTime() : null
   const hasImage = Boolean(row.has_image)
   const inlineImageUrl = hasImage ? `/api/images/popups/${row.id}${updatedTs ? `?v=${updatedTs}` : ''}` : null
@@ -18,8 +20,9 @@ function normalizeRow(row) {
     id: row.id,
     title: row.title,
     body: row.body,
-    startAt: toIso(row.start_at),
-    endAt: toIso(row.end_at),
+    // Provide datetime-local friendly local strings so edit form shows the stored wall-clock time
+    startAt: toLocalDateTimeLocal(row.start_at),
+    endAt: toLocalDateTimeLocal(row.end_at),
     dismissForDays: Number.isFinite(dismissDays) ? dismissDays : 1,
     isActive: Boolean(row.is_active),
     ctaLabel: row.cta_label || '',
@@ -38,9 +41,38 @@ function normalizeRow(row) {
 
 function formatDateForMySQL(value) {
   if (!value) return null
-  const d = value instanceof Date ? value : new Date(value)
+  // If given a Date, use its local components. If given a string in
+  // common datetime formats (YYYY-MM-DDTHH:mm or YYYY-MM-DD HH:mm[:ss])
+  // parse components and treat them as local time to avoid UTC shifts.
+  const pad = (n) => String(n).padStart(2, '0')
+
+  if (value instanceof Date) {
+    const d = value
+    if (Number.isNaN(d.getTime())) return null
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  }
+
+  const s = String(value).trim()
+  if (!s) return null
+
+  // Match YYYY-MM-DDTHH:mm(:ss)? or YYYY-MM-DD HH:mm(:ss)? — treat as local
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/) 
+  if (m) {
+    const year = Number(m[1])
+    const month = Number(m[2]) - 1
+    const day = Number(m[3])
+    const hour = Number(m[4])
+    const minute = Number(m[5])
+    const second = Number(m[6] || 0)
+    const d = new Date(year, month, day, hour, minute, second, 0)
+    if (Number.isNaN(d.getTime())) return null
+    return `${year}-${pad(month + 1)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}`
+  }
+
+  // Fallback: let Date parse and use local components
+  const d = new Date(s)
   if (Number.isNaN(d.getTime())) return null
-  return d.toISOString().slice(0, 19).replace('T', ' ')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
 export class Popup {

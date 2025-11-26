@@ -1,12 +1,41 @@
 // Updated: 2025-10-03T11:30:00
 import { pool, query, transaction } from '../../database.js'
+import { toLocalSql } from '../../utils/date.js'
 
-// Helper function to format date for MySQL DATETIME
+// Helper function to format date for MySQL DATETIME using local time
 function formatDateForMySQL(date) {
-  if (!date) return null
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return null
-  return d.toISOString().slice(0, 19).replace('T', ' ')
+  return toLocalSql(date)
+}
+
+function parseLocalDateTime(input) {
+  if (!input) return null
+  if (input instanceof Date) {
+    return isNaN(input.getTime()) ? null : input
+  }
+  const s = String(input).trim()
+  if (!s) return null
+  // Match YYYY-MM-DDTHH:mm(:ss)? with optional timezone Z or ±HH:MM
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d+))?(Z|[+\-]\d{2}:\d{2})?$/)
+  if (m) {
+    const tz = m[8]
+    if (tz) {
+      // Contains timezone info — let Date parse it (UTC or with offset)
+      const d = new Date(s)
+      return isNaN(d.getTime()) ? null : d
+    }
+    // No timezone — treat as local date/time
+    const year = Number(m[1])
+    const month = Number(m[2]) - 1
+    const day = Number(m[3])
+    const hour = Number(m[4])
+    const minute = Number(m[5])
+    const second = Number(m[6] || 0)
+    const d = new Date(year, month, day, hour, minute, second, 0)
+    return isNaN(d.getTime()) ? null : d
+  }
+  // Fallback to Date parsing
+  const d = new Date(s)
+  return isNaN(d.getTime()) ? null : d
 }
 
 export class Announcement {
@@ -105,6 +134,10 @@ export class Announcement {
     if (filter.isPublished !== undefined) {
       whereClause += ' AND a.is_published = ?'
       params.push(filter.isPublished)
+      // If caller wants only published items, also ensure published_at is not in the future
+      if (filter.isPublished) {
+        whereClause += ' AND (a.published_at IS NULL OR a.published_at <= NOW())'
+      }
     }
     
     if (filter.category) {
@@ -222,8 +255,8 @@ export class Announcement {
       // Normalize publishedAt to JS Date (MySQL driver handles Date objects)
       let publishedAtVal = new Date()
       if (data.publishedAt) {
-        const d = new Date(data.publishedAt)
-        if (isNaN(d.getTime())) {
+        const d = parseLocalDateTime(data.publishedAt)
+        if (!d) {
           throw new Error(`Invalid publishedAt: ${data.publishedAt}`)
         }
         publishedAtVal = d
@@ -329,17 +362,16 @@ export class Announcement {
         updateParams.push(data.content)
       }
       if (data.publishedAt !== undefined) {
-        // If provided, convert to Date (reject invalid format)
+        // If provided, parse as local datetime when no timezone is present
         let d = null
         if (data.publishedAt) {
-          const t = new Date(data.publishedAt)
-          if (isNaN(t.getTime())) {
+          d = parseLocalDateTime(data.publishedAt)
+          if (!d) {
             throw new Error(`Invalid publishedAt: ${data.publishedAt}`)
           }
-          d = t
         }
         updateFields.push('published_at = ?')
-        updateParams.push(formatDateForMySQL(d) || new Date())
+        updateParams.push(formatDateForMySQL(d) || formatDateForMySQL(new Date()))
       }
       if (data.isPublished !== undefined) {
         updateFields.push('is_published = ?')

@@ -1,12 +1,10 @@
 // Updated: 2025-10-03T11:30:00
 import { pool, query, transaction } from '../../database.js'
+import { toLocalSql } from '../../utils/date.js'
 
-// Helper function to format date for MySQL DATETIME
+// Helper function to format date for MySQL DATETIME using local time
 function formatDateForMySQL(date) {
-  if (!date) return null
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return null
-  return d.toISOString().slice(0, 19).replace('T', ' ')
+  return toLocalSql(date)
 }
 
 export class Activity {

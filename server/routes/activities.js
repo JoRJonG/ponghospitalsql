@@ -15,7 +15,7 @@ const router = Router()
 const storage = multer.memoryStorage()
 const upload = multer({
   storage,
-  limits: { 
+  limits: {
     fileSize: 20 * 1024 * 1024, // 20MB max per file (supports high-res images)
     files: 100 // allow up to 100 files for galleries with many photos
   },
@@ -45,20 +45,20 @@ router.get('/', optionalAuth, microCache(5_000), async (req, res) => {
     const query = allowAll
       ? {}
       : {
-          isPublished: true,
-          $or: [
-            { publishedAt: { $lte: now } },
-            { publishedAt: { $exists: false } },
-            { publishedAt: null },
-          ],
-        }
+        isPublished: true,
+        $or: [
+          { publishedAt: { $lte: now } },
+          { publishedAt: { $exists: false } },
+          { publishedAt: null },
+        ],
+      }
     const list = await Activity.find(query, { sort: { publishedAt: -1, updatedAt: -1, createdAt: -1, date: -1 } })
     res.json(list)
   } catch (e) {
     console.error('[activities] GET / error:', e?.message)
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-  return res.status(403).json({ error: 'Permission denied to read activities' })
+      return res.status(403).json({ error: 'Permission denied to read activities' })
     }
     res.status(500).json({ error: 'Failed to fetch activities', details: e?.message })
   }
@@ -76,7 +76,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
   } catch (e) {
     const msg = String(e?.message || '')
     if (/not allowed to do action \[find\]/i.test(msg)) {
-  return res.status(403).json({ error: 'Permission denied to read activities' })
+      return res.status(403).json({ error: 'Permission denied to read activities' })
     }
     res.status(400).json({ error: 'Invalid ID' })
   }
@@ -124,19 +124,19 @@ router.post('/', requireAuth, requirePermission('activities'), upload.array('ima
   try {
     const payload = { ...req.body }
     if (req.user?.username) payload.createdBy = req.user.username
-    
+
     // Sanitize user inputs
     if (payload.title) payload.title = sanitizeText(payload.title)
     if (payload.description) payload.description = sanitizeHtml(payload.description)
-    
+
     // แปลง isPublished จาก string เป็น boolean
     if (payload.isPublished !== undefined) {
       payload.isPublished = payload.isPublished === 'true' || payload.isPublished === true
     }
-    
+
     // จัดการรูปภาพ
     const images = []
-    
+
     // รูปจากไฟล์อัปโหลด
     if (req.files && req.files.length > 0) {
       // console.log(`[activities] POST: Received ${req.files.length} file(s)`)
@@ -158,7 +158,7 @@ router.post('/', requireAuth, requirePermission('activities'), upload.array('ima
     } else {
       // console.log('[activities] POST: No files received')
     }
-    
+
     // รูปจาก URLs (ถ้ามี)
     if (payload.imageUrls) {
       const urls = Array.isArray(payload.imageUrls) ? payload.imageUrls : [payload.imageUrls]
@@ -167,19 +167,19 @@ router.post('/', requireAuth, requirePermission('activities'), upload.array('ima
           try {
             const response = await fetch(url.trim())
             if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`)
-            
+
             const arrayBuffer = await response.arrayBuffer()
             const buffer = Buffer.from(arrayBuffer)
             // Sniff actual type
             const contentType = response.headers.get('content-type') || 'application/octet-stream'
-            
+
             let fileName = 'image.jpg'
             try {
               const urlObj = new URL(url)
               const pathParts = urlObj.pathname.split('/')
               fileName = pathParts[pathParts.length - 1] || 'image.jpg'
-            } catch {}
-            
+            } catch { }
+
             const kind = await fileTypeFromBuffer(buffer)
             const finalMime = kind?.mime || contentType
             if (!finalMime.startsWith('image/')) continue
@@ -190,7 +190,7 @@ router.post('/', requireAuth, requirePermission('activities'), upload.array('ima
         }
       }
     }
-    
+
     payload.images = images
     const doc = await Activity.create(payload)
     purgeCachePrefix('/api/activities')
@@ -215,19 +215,19 @@ router.put('/:id', requireAuth, requirePermission('activities'), (req, res, next
   try {
     const before = await Activity.findById(req.params.id)
     if (!before) return res.status(404).json({ error: 'Not found' })
-    
+
     const payload = { ...req.body }
     if (req.user?.username) payload.updatedBy = req.user.username
-    
+
     // Sanitize user inputs
     if (payload.title) payload.title = sanitizeText(payload.title)
     if (payload.description) payload.description = sanitizeHtml(payload.description)
-    
+
     // แปลง isPublished จาก string เป็น boolean (สำหรับ FormData)
     if (payload.isPublished !== undefined && typeof payload.isPublished === 'string') {
       payload.isPublished = payload.isPublished === 'true'
     }
-    
+
     // จัดการรูปภาพ (เฉพาะเมื่อมีการอัปโหลดไฟล์ใหม่หรือ URL ใหม่)
     // ถ้าไม่มี req.files และไม่มี imageUrls = เก็บรูปเดิมไว้ (ไม่แก้ไข payload.images)
     if (req.files && req.files.length > 0) {
@@ -251,18 +251,18 @@ router.put('/:id', requireAuth, requirePermission('activities'), (req, res, next
           try {
             const response = await fetch(url.trim())
             if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`)
-            
+
             const arrayBuffer = await response.arrayBuffer()
             const buffer = Buffer.from(arrayBuffer)
             const contentType = response.headers.get('content-type') || 'image/jpeg'
-            
+
             let fileName = 'image.jpg'
             try {
               const urlObj = new URL(url)
               const pathParts = urlObj.pathname.split('/')
               fileName = pathParts[pathParts.length - 1] || 'image.jpg'
-            } catch {}
-            
+            } catch { }
+
             images.push({
               imageData: buffer,
               fileName: fileName,
@@ -275,8 +275,25 @@ router.put('/:id', requireAuth, requirePermission('activities'), (req, res, next
         }
       }
       payload.images = images
+    } else if (payload.images && Array.isArray(payload.images)) {
+      // Handle mixed content (existing images + new Data URLs)
+      for (const img of payload.images) {
+        if (img.url && typeof img.url === 'string' && img.url.startsWith('data:')) {
+          try {
+            const matches = img.url.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+            if (matches && matches.length === 3) {
+              img.mimeType = matches[1]
+              img.imageData = Buffer.from(matches[2], 'base64')
+              img.fileName = img.name || 'image.webp'
+              img.fileSize = img.bytes || img.imageData.length
+            }
+          } catch (err) {
+            console.error('Failed to parse Data URL image:', err)
+          }
+        }
+      }
     }
-    
+
     const doc = await Activity.findByIdAndUpdate(req.params.id, payload, { new: true })
     purgeCachePrefix('/api/activities')
     res.json(doc)

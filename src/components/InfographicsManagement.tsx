@@ -1,7 +1,8 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useAuth } from '../auth/AuthContext'
 
 type Infographic = {
-  _id: string | number
+  _id: string
   title: string
   imageUrl: string
   displayOrder: number
@@ -13,10 +14,12 @@ export type InfographicsManagementHandle = {
 }
 
 const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref) => {
+  const { getToken } = useAuth()
   const [infographics, setInfographics] = useState<Infographic[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
 
   const fetchInfographics = async () => {
     try {
@@ -63,6 +66,7 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
     try {
       const res = await fetch('/api/infographics', {
         method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` },
         body: formData
       })
 
@@ -86,7 +90,8 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
 
     try {
       const res = await fetch(`/api/infographics/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
       })
 
       if (!res.ok) {
@@ -108,6 +113,7 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
 
       const res = await fetch(`/api/infographics/${id}`, {
         method: 'PUT',
+        headers: { 'Authorization': `Bearer ${getToken()}` },
         body: formData
       })
 
@@ -120,6 +126,72 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
     } catch (err: unknown) {
       alert(`เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
+  }
+
+  const handleReorder = async (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return
+
+    // Optimistic update
+    const newList = [...infographics]
+    const [moved] = newList.splice(fromIndex, 1)
+    newList.splice(toIndex, 0, moved)
+
+    // Update displayOrder property for local state
+    const updatedList = newList.map((item, index) => ({
+      ...item,
+      displayOrder: index
+    }))
+
+    setInfographics(updatedList)
+
+    // Prepare payload for backend: { order: [id1, id2, ...] }
+    const orderIds = updatedList.map(item => item._id)
+
+    try {
+      const res = await fetch('/api/infographics/reorder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ order: orderIds })
+      })
+
+      if (!res.ok) throw new Error('Reorder failed')
+
+      // No need to refresh immediately if optimistic update was correct, 
+      // but refreshing ensures consistency
+      // await fetchInfographics() 
+    } catch (err: unknown) {
+      console.error('Failed to reorder:', err)
+      alert('ไม่สามารถเรียงลำดับใหม่ได้')
+      await fetchInfographics() // Revert on error
+    }
+  }
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggingId(id)
+    e.dataTransfer.effectAllowed = 'move'
+    // Optional: Set drag image or data
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e: React.DragEvent, dropId: string) => {
+    e.preventDefault()
+    if (!draggingId || draggingId === dropId) return
+
+    const fromIndex = infographics.findIndex(item => item._id === draggingId)
+    const toIndex = infographics.findIndex(item => item._id === dropId)
+
+    if (fromIndex >= 0 && toIndex >= 0) {
+      handleReorder(fromIndex, toIndex)
+    }
+
+    setDraggingId(null)
   }
 
   if (loading) {
@@ -144,10 +216,13 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
       {/* Upload Section */}
       <div className="card">
         <div className="card-body">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <i className="fa-solid fa-upload text-green-600" />
-            อัพโหลด Infographic
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <i className="fa-solid fa-upload text-green-600" />
+              อัพโหลด Infographic
+            </h3>
+            <span className="text-sm text-gray-500">ลากเพื่อเรียงลำดับการแสดงผล</span>
+          </div>
           <div className="flex items-center gap-4">
             <label className="btn btn-primary cursor-pointer">
               <i className="fa-solid fa-image mr-2" />
@@ -179,19 +254,27 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
               <p>ยังไม่มีข้อมูล</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {infographics.map((item, index) => (
                 <div
                   key={item._id}
-                  className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, item._id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, item._id)}
+                  className={`flex items-start gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-move hover:shadow-md transition-shadow ${draggingId === item._id ? 'opacity-50 border-dashed border-blue-400' : ''
+                    }`}
                 >
                   {/* Thumbnail */}
-                  <div className="w-32 h-32 flex-shrink-0">
+                  <div className="w-32 h-32 flex-shrink-0 relative group">
                     <img
                       src={item.imageUrl}
                       alt={item.title}
                       className="w-full h-full object-cover rounded border border-gray-300"
                     />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded flex items-center justify-center">
+                      <i className="fa-solid fa-grip-vertical text-white/0 group-hover:text-white/80 text-2xl drop-shadow-md" />
+                    </div>
                   </div>
 
                   {/* Info */}
@@ -204,13 +287,12 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
                         <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <i className="fa-solid fa-sort-numeric-down" />
-                            ลำดับที่ {item.displayOrder}
+                            ลำดับที่ {index + 1}
                           </span>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            item.isPublished
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${item.isPublished
                               ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-600'
-                          }`}>
+                            }`}>
                             {item.isPublished ? 'เผยแพร่' : 'ซ่อน'}
                           </span>
                         </div>

@@ -49,7 +49,7 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
     const availableSlots = MAX_UPLOAD_IMAGES - currentCount
     const filesToProcess = arr.slice(0, availableSlots)
     if (filesToProcess.length < arr.length) {
-      alert(`เพิ่มรูปได้อีก ${availableSlots} รูปเท่านั้น (สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม)`) 
+      alert(`เพิ่มรูปได้อีก ${availableSlots} รูปเท่านั้น (สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม)`)
     }
     setUploading(true)
     try {
@@ -110,11 +110,11 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
         fd.append('isPublished', String(form.isPublished ?? true))
         if (form.publishedAt) fd.append('publishedAt', form.publishedAt)
         for (const f of pendingFiles) fd.append('images', f)
-        
-        return await fetch(endpoint, { 
-          method: 'POST', 
-          headers: { 'Authorization': `Bearer ${token}` }, 
-          body: fd 
+
+        return await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: fd
         })
       }
 
@@ -126,7 +126,7 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
       }
 
       let r = await makeRequest(token)
-      
+
       // If token expired, try to refresh and retry once
       if (r.status === 401) {
         try {
@@ -152,15 +152,15 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
           console.error('Failed to parse activity creation error response', error)
         }
       }
-      
-      if (!r.ok) { 
+
+      if (!r.ok) {
         const errorText = await r.text().catch(() => 'บันทึกกิจกรรมไม่สำเร็จ')
         alert(errorText || 'บันทึกกิจกรรมไม่สำเร็จ')
-        return 
+        return
       }
-      
-    invalidateCache('/api/activities')
-  setForm({ title: '', description: '', images: [], isPublished: true, publishedAt: null })
+
+      invalidateCache('/api/activities')
+      setForm({ title: '', description: '', images: [], isPublished: true, publishedAt: null })
       setPendingFiles([])
       onCreated()
     } catch (err) {
@@ -171,7 +171,7 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
 
   const handleCancel = () => {
     setForm(prev => {
-      ;(prev.images || []).forEach(img => {
+      ; (prev.images || []).forEach(img => {
         if (typeof img === 'string' && img.startsWith('blob:')) {
           URL.revokeObjectURL(img)
         }
@@ -187,20 +187,26 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
     <form onSubmit={submit} className="space-y-3">
       <div>
         <label className="block text-sm mb-1">ชื่อกิจกรรม</label>
-        <input value={form.title || ''} onChange={e=>setForm(f=>({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
+        <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
       </div>
       <div>
         <label className="block text-sm mb-1">รายละเอียด</label>
         <div className="rounded border">
-          <RichTextEditor value={form.description || ''} onChange={(html)=>setForm(f=>({ ...f, description: html }))} modules={quillModules} formats={quillFormats} />
+          <RichTextEditor
+            className="[&_.ql-container]:!h-auto [&_.ql-editor]:!min-h-[120px] [&_.ql-editor]:!max-h-[250px] [&_.ql-editor]:!overflow-y-auto"
+            value={form.description || ''}
+            onChange={(html) => setForm(f => ({ ...f, description: html }))}
+            modules={quillModules}
+            formats={quillFormats}
+          />
         </div>
       </div>
       <div>
         <label className="block text-sm mb-1">รูปภาพ</label>
         <div className="flex flex-wrap gap-2">
-          <input value={imageUrl} onChange={e=>setImageUrl(e.target.value)} className="flex-1 rounded border px-3 py-2" placeholder="วางลิงก์รูป..." />
+          <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="flex-1 rounded border px-3 py-2" placeholder="วางลิงก์รูป..." />
           <button type="button" onClick={addImage} className="admin-btn admin-btn--outline">เพิ่มจากลิงก์</button>
-          <label className="admin-btn admin-btn--outline cursor-pointer">อัปโหลดไฟล์<input type="file" className="hidden" accept="image/*" multiple onChange={e=>{ const fs=e.target.files; if (fs && fs.length) onUploadFiles(fs) }} /></label>
+          <label className="admin-btn admin-btn--outline cursor-pointer">อัปโหลดไฟล์<input type="file" className="hidden" accept="image/*" multiple onChange={e => { const fs = e.target.files; if (fs && fs.length) onUploadFiles(fs) }} /></label>
           {uploading && <span className="text-sm text-gray-600 self-center">กำลังอัปโหลด...</span>}
         </div>
         {form.images && form.images.length > 0 && (
@@ -218,10 +224,10 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
         )}
       </div>
       <div className="grid md:grid-cols-2 gap-3">
-        <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e=>setForm(f=>({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
+        <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
         <div>
           <label className="block text-sm mb-1">ตั้งเวลาเผยแพร่</label>
-          <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e=>setForm(f=>({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
+          <input type="datetime-local" value={toDateTimeLocalValue(form.publishedAt || undefined)} onChange={e => setForm(f => ({ ...f, publishedAt: fromDateTimeLocalValue(e.target.value) || null }))} className="w-full rounded border px-3 py-2" />
           <p className="mt-1 text-xs text-gray-600">ถ้ากำหนดเป็นอนาคต ระบบจะเผยแพร่เมื่อถึงเวลานั้น</p>
         </div>
       </div>
