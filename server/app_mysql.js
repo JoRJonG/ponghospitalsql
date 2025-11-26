@@ -181,9 +181,13 @@ export async function createServer() {
       let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
       const title = activity.title
       const description = activity.description ? activity.description.replace(/<[^>]*>/g, '').substring(0, 200) : ''
-      const image = activity.images && activity.images.length > 0
-        ? `${req.protocol}://${req.get('host')}${activity.images[0].url}`
-        : 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+
+      // Find first valid image
+      let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      if (activity.images && activity.images.length > 0) {
+        image = `${req.protocol}://${req.get('host')}${activity.images[0].url}`
+      }
+
       const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
 
       html = injectMetaTags(html, { title, description, image, url })
@@ -203,9 +207,21 @@ export async function createServer() {
       let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
       const title = announcement.title
       const description = announcement.content ? announcement.content.replace(/<[^>]*>/g, '').substring(0, 200) : ''
-      const image = announcement.attachments && announcement.attachments.length > 0 && announcement.attachments[0].url
-        ? `${req.protocol}://${req.get('host')}${announcement.attachments[0].url}`
-        : 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+
+      // Find first valid image (not PDF)
+      let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      if (announcement.attachments && announcement.attachments.length > 0) {
+        const imageAttachment = announcement.attachments.find(att => {
+          if (att.mime_type) return att.mime_type.startsWith('image/')
+          if (att.url) return !att.url.toLowerCase().endsWith('.pdf')
+          return true // Fallback if no type info
+        })
+
+        if (imageAttachment && imageAttachment.url) {
+          image = `${req.protocol}://${req.get('host')}${imageAttachment.url}`
+        }
+      }
+
       const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
 
       html = injectMetaTags(html, { title, description, image, url })
