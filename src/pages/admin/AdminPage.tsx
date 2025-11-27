@@ -2080,22 +2080,48 @@ function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved
   return (
     <div className="mt-8">
       <div className="font-semibold mb-3">รายการหน่วยงาน</div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {paged.map(u => (
-          <div key={u._id} className="card flex flex-col">
-            <div className="aspect-video bg-gray-100 relative">
-              {u.image?.url ? (
-                <img src={u.image.url} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">ไม่มีรูป</div>
-              )}
+          <div key={u._id} className="card flex flex-col h-full overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-lg">
+            <div className="w-full bg-gray-100 flex items-center justify-center h-20 md:h-24 p-2">
+              <div className="w-full h-full flex items-center justify-center rounded-md overflow-hidden">
+                {u.image?.url ? (
+                  <img
+                    src={(() => {
+                      const url = u.image?.url ?? ''
+                      // Prefer a changing cache key: publicId (if cloud), then updatedAt (DB timestamp), then fallback to id
+                      const key = u.image?.publicId ?? u.updatedAt ?? u._id
+                      return url + (url.includes('?') ? '&' : '?') + `_=${encodeURIComponent(String(key))}`
+                    })()}
+                    className="max-h-[72px] md:max-h-[92px] max-w-full object-contain object-center"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">ไม่มีรูป</div>
+                )}
+              </div>
             </div>
-            <div className="p-3 flex-1 flex flex-col">
-              <div className="font-semibold truncate">{u.name}</div>
-              <div className="text-xs text-gray-500 mt-1">ลำดับ: {u.order}</div>
-              <div className="mt-auto pt-3 flex gap-2">
-                <button className="admin-btn admin-btn--outline text-xs flex-1" onClick={() => setEditing(u)}>แก้ไข</button>
-                <button className="admin-btn admin-btn--outline text-xs flex-1" onClick={() => remove(u._id)}>ลบ</button>
+            <div className="p-2 md:p-3 flex-1 flex flex-col gap-1 items-center">
+              <div className="w-full flex items-center justify-center gap-2">
+                <div className="font-semibold text-sm truncate text-center leading-tight">{u.name}</div>
+              </div>
+              <div className="text-[11px] text-gray-500 mt-1">ลำดับ {u.order}</div>
+              <div className="mt-2 flex gap-2 justify-center w-full">
+                <button
+                  className="admin-btn admin-btn--outline rounded-full inline-flex items-center gap-2 px-3 py-1 text-sm"
+                  onClick={() => setEditing(u)}
+                  aria-label={`แก้ไข ${u.name}`}
+                >
+                  <span className="text-base">✏️</span>
+                  <span className="hidden sm:inline">แก้ไข</span>
+                </button>
+                <button
+                  className="admin-btn admin-btn--outline rounded-full inline-flex items-center gap-2 px-3 py-1 text-sm"
+                  onClick={() => remove(u._id)}
+                  aria-label={`ลบ ${u.name}`}
+                >
+                  <span className="text-base">🗑️</span>
+                  <span className="hidden sm:inline">ลบ</span>
+                </button>
               </div>
             </div>
           </div>
@@ -2165,6 +2191,9 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
           const res = await fetch(form.image.url)
           const blob = await res.blob()
           fd.append('image', blob, 'unit.jpg')
+        } else {
+          // If the image was already uploaded (we have a hosted URL), send it as imageUrl
+          fd.append('imageUrl', form.image.url)
         }
         fd.append('name', form.name)
         if (cleanHref) fd.append('href', cleanHref)
