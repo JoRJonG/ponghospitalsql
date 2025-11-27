@@ -73,164 +73,45 @@ function toDateValue(iso?: string | null) {
 function fromDateValue(value: string, isEnd = false) {
   const v = (value || '').trim()
   if (!v) return null
-  // Return a local datetime string (SQL DATETIME style)
-  // If isEnd is true, set time to 23:59:59, else 00:00:00
   return `${v} ${isEnd ? '23:59:59' : '00:00:00'}`
 }
 
-const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
-  const [popups, setPopups] = useState<PopupRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [editingId, setEditingId] = useState<number | null>(null)
+function PopupModal({ initialData, onClose, onSaved }: { initialData?: PopupRecord, onClose: () => void, onSaved: () => void }) {
+  const { showToast } = useToast()
   const [form, setForm] = useState<PopupFormState>(defaultForm)
+  const [saving, setSaving] = useState(false)
   const [existingImage, setExistingImage] = useState<ImageSource | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [removeImage, setRemoveImage] = useState(false)
-  const [showForm, setShowForm] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const { showToast } = useToast()
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        title: initialData.title || '',
+        body: initialData.body || '',
+        startAt: toDateValue(initialData.startAt),
+        endAt: toDateValue(initialData.endAt),
+        dismissForDays: Number.isFinite(initialData.dismissForDays) ? initialData.dismissForDays : 1,
+        isActive: Boolean(initialData.isActive),
+        ctaLabel: initialData.ctaLabel || '',
+        ctaUrl: initialData.ctaUrl || '',
+        imageUrl: initialData.imageUrl || '',
+      })
+      const preview = initialData.image?.url || initialData.imageUrl || ''
+      setExistingImage(preview ? { url: preview, fileName: initialData.image?.fileName, mimeType: initialData.image?.mimeType, size: initialData.image?.size } : null)
+    } else {
+      setForm(defaultForm)
+      setExistingImage(null)
+    }
+  }, [initialData])
 
   useEffect(() => {
     return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview)
-      }
+      if (imagePreview) URL.revokeObjectURL(imagePreview)
     }
   }, [imagePreview])
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await apiRequest('/api/popups')
-      const json = await response.json().catch(() => ({}))
-      if (!response.ok || json?.success === false) {
-        throw new Error(json?.error || 'ไม่สามารถโหลดข้อมูลป๊อปอัปได้')
-      }
-      const list: PopupRecord[] = Array.isArray(json?.data) ? json.data : []
-      setPopups(list)
-    } catch (thrown: unknown) {
-      console.error('Failed to load popups', thrown)
-      if (thrown instanceof Error) {
-        setError(thrown.message || 'เกิดข้อผิดพลาด')
-      } else {
-        setError('เกิดข้อผิดพลาด')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useImperativeHandle(ref, () => ({ refresh: load }), [load])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  const resetForm = () => {
-    setForm(defaultForm)
-    setEditingId(null)
-    setExistingImage(null)
-    setRemoveImage(false)
-    setImageFile(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-    setImagePreview(prev => {
-      if (prev) URL.revokeObjectURL(prev)
-      return null
-    })
-  }
-
-  const handleEdit = (popup: PopupRecord) => {
-    setEditingId(popup.id)
-    setForm({
-      title: popup.title || '',
-      body: popup.body || '',
-      startAt: toDateValue(popup.startAt),
-      endAt: toDateValue(popup.endAt),
-      dismissForDays: Number.isFinite(popup.dismissForDays) ? popup.dismissForDays : 1,
-      isActive: Boolean(popup.isActive),
-      ctaLabel: popup.ctaLabel || '',
-      ctaUrl: popup.ctaUrl || '',
-      imageUrl: popup.imageUrl || '',
-    })
-    const preview = popup.image?.url || popup.imageUrl || ''
-    setExistingImage(preview ? { url: preview, fileName: popup.image?.fileName, mimeType: popup.image?.mimeType, size: popup.image?.size } : null)
-    setImageFile(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-    setImagePreview(prev => {
-      if (prev) URL.revokeObjectURL(prev)
-      return null
-    })
-    setRemoveImage(false)
-    setShowForm(true)
-    window.scrollTo({ top: 130, behavior: 'smooth' })
-  }
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('ยืนยันการลบป๊อปอัปนี้หรือไม่?')) return
-    try {
-      const response = await apiRequest(`/api/popups/${id}`, { method: 'DELETE' })
-      const json = await response.json().catch(() => ({}))
-      if (!response.ok || json?.success === false) {
-        throw new Error(json?.error || 'ไม่สามารถลบป๊อปอัปได้')
-      }
-      invalidateCache('/api/popups/active')
-      await load()
-      showToast('ลบป๊อปอัปสำเร็จ', undefined, 'success', 2500)
-      if (editingId === id) {
-        resetForm()
-        setShowForm(false)
-      }
-    } catch (thrown: unknown) {
-      console.error('Failed to delete popup', thrown)
-      const message = thrown instanceof Error ? thrown.message : 'ลบป๊อปอัปไม่สำเร็จ'
-      showToast(message, undefined, 'error', 3000)
-    }
-  }
-
-  const handleToggleActive = async (popup: PopupRecord) => {
-    try {
-      const title = (popup.title || '').trim()
-      const bodyText = (popup.body || '').trim()
-      if (!title || !bodyText) {
-        throw new Error('กรุณาระบุหัวข้อและรายละเอียดของป๊อปอัป')
-      }
-
-      const formData = new FormData()
-      formData.append('title', title)
-      formData.append('body', bodyText)
-      formData.append('dismissForDays', String(Number.isFinite(popup.dismissForDays) ? Math.max(0, popup.dismissForDays) : 1))
-      formData.append('isActive', (!popup.isActive).toString())
-      if (popup.startAt) formData.append('startAt', popup.startAt)
-      if (popup.endAt) formData.append('endAt', popup.endAt)
-      if (popup.ctaLabel) formData.append('ctaLabel', popup.ctaLabel)
-      if (popup.ctaUrl) formData.append('ctaUrl', popup.ctaUrl)
-      if (popup.imageUrl) formData.append('imageUrl', popup.imageUrl)
-
-      const response = await apiRequest(`/api/popups/${popup.id}`, {
-        method: 'PUT',
-        body: formData,
-      })
-      const json = await response.json().catch(() => ({}))
-      if (!response.ok || json?.success === false) {
-        throw new Error(json?.error || 'ไม่สามารถอัปเดตสถานะได้')
-      }
-      invalidateCache('/api/popups/active')
-      await load()
-      showToast('อัปเดตสถานะป๊อปอัปเรียบร้อย', undefined, 'success', 2500)
-    } catch (thrown: unknown) {
-      console.error('Failed to toggle popup', thrown)
-      const message = thrown instanceof Error ? thrown.message : 'อัปเดตสถานะไม่สำเร็จ'
-      showToast(message, undefined, 'error', 3000)
-    }
-  }
 
   const handleImageFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -240,17 +121,13 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
         if (prev) URL.revokeObjectURL(prev)
         return null
       })
-      if (!existingImage) {
-        setRemoveImage(false)
-      }
+      if (!existingImage) setRemoveImage(false)
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
       showToast('ขนาดรูปภาพต้องไม่เกิน 5MB', undefined, 'error', 3000)
-      if (event.target) {
-        event.target.value = ''
-      }
+      if (event.target) event.target.value = ''
       return
     }
 
@@ -267,13 +144,9 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
   const handleRemoveImage = () => {
     const prevImage = existingImage
     const hadStoredImage = Boolean(prevImage) && !imageFile
-    if (hadStoredImage) {
-      setExistingImage(null)
-    }
+    if (hadStoredImage) setExistingImage(null)
     setImageFile(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
+    if (fileInputRef.current) fileInputRef.current.value = ''
     setImagePreview(prev => {
       if (prev) URL.revokeObjectURL(prev)
       return null
@@ -298,15 +171,11 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
         ctaUrl: form.ctaUrl.trim() || null,
       }
 
-      const method = editingId ? 'PUT' : 'POST'
-      const path = editingId ? `/api/popups/${editingId}` : '/api/popups'
+      const method = initialData ? 'PUT' : 'POST'
+      const path = initialData ? `/api/popups/${initialData.id}` : '/api/popups'
 
-      if (!payload.title) {
-        throw new Error('กรุณาระบุหัวข้อป๊อปอัป')
-      }
-      if (!payload.body) {
-        throw new Error('กรุณาระบุรายละเอียด')
-      }
+      if (!payload.title) throw new Error('กรุณาระบุหัวข้อป๊อปอัป')
+      if (!payload.body) throw new Error('กรุณาระบุรายละเอียด')
 
       const formData = new FormData()
       formData.append('title', payload.title)
@@ -319,30 +188,17 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       if (payload.ctaUrl) formData.append('ctaUrl', payload.ctaUrl)
 
       const trimmedImageUrl = form.imageUrl.trim()
-      if (trimmedImageUrl) {
-        formData.append('imageUrl', trimmedImageUrl)
-      }
-      if (imageFile) {
-        formData.append('image', imageFile, imageFile.name)
-      }
-      if (removeImage && !imageFile) {
-        formData.append('removeImage', '1')
-      }
+      if (trimmedImageUrl) formData.append('imageUrl', trimmedImageUrl)
+      if (imageFile) formData.append('image', imageFile, imageFile.name)
+      if (removeImage && !imageFile) formData.append('removeImage', '1')
 
-      const response = await apiRequest(path, {
-        method,
-        body: formData,
-      })
+      const response = await apiRequest(path, { method, body: formData })
       const json = await response.json().catch(() => ({}))
-      if (!response.ok || json?.success === false) {
-        throw new Error(json?.error || 'ไม่สามารถบันทึกป๊อปอัปได้')
-      }
+      if (!response.ok || json?.success === false) throw new Error(json?.error || 'ไม่สามารถบันทึกป๊อปอัปได้')
 
       invalidateCache('/api/popups/active')
-      await load()
-      resetForm()
-      setShowForm(false)
       showToast('บันทึกป๊อปอัปสำเร็จ', undefined, 'success', 2500)
+      onSaved()
     } catch (thrown: unknown) {
       console.error('Failed to save popup', thrown)
       const message = thrown instanceof Error ? thrown.message : 'บันทึกป๊อปอัปไม่สำเร็จ'
@@ -352,58 +208,22 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
     }
   }
 
-  const upcomingPopups = useMemo(() => {
-    const now = Date.now()
-    return popups.filter(popup => {
-      if (!popup.startAt) return true
-      const start = new Date(popup.startAt).getTime()
-      return Number.isFinite(start) && start >= now - DAY_MS
-    })
-  }, [popups])
-
   const previewName = imageFile?.name || existingImage?.fileName || ''
   const previewSizeKb = imageFile ? (imageFile.size / 1024).toFixed(1) : existingImage?.size ? (existingImage.size / 1024).toFixed(1) : null
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">ป๊อปอัปหน้าแรก</h2>
-            <p className="text-sm text-slate-500">จัดการข้อความสำคัญที่ต้องการแสดงก่อนเข้าสู่เว็บไซต์</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {showForm && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="admin-btn admin-btn--outline"
-              >
-                {editingId ? 'เริ่มสร้างใหม่' : 'ล้างฟอร์ม'}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                if (showForm) {
-                  resetForm()
-                  setShowForm(false)
-                } else {
-                  resetForm()
-                  setShowForm(true)
-                  window.scrollTo({ top: 130, behavior: 'smooth' })
-                }
-              }}
-              className="admin-btn"
-            >
-              <span>{showForm ? '✕' : '+'}</span>
-              {showForm ? 'ปิดฟอร์มเพิ่มป๊อปอัป' : 'เพิ่มป๊อปอัปใหม่'}
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="p-4 border-b flex items-center justify-between shrink-0">
+          <h3 className="text-lg font-bold text-gray-900">{initialData ? 'แก้ไขป๊อปอัป' : 'สร้างป๊อปอัปใหม่'}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-
-        {showForm ? (
-          <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="p-4 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <label className="text-sm font-medium text-slate-700">
                 หัวข้อป๊อปอัป
@@ -545,22 +365,127 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
               )}
             </div>
 
-            <div className="md:col-span-2 flex items-center justify-end gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={saving}
-                className="admin-btn"
-              >
-                {saving ? 'กำลังบันทึก...' : editingId ? 'บันทึกการแก้ไข' : 'สร้างป๊อปอัป'}
+            <div className="md:col-span-2 flex items-center justify-end gap-3 pt-2 border-t mt-2">
+              <button type="button" onClick={onClose} className="admin-btn admin-btn--outline">ยกเลิก</button>
+              <button type="submit" disabled={saving} className="admin-btn">
+                {saving ? 'กำลังบันทึก...' : 'บันทึก'}
               </button>
             </div>
           </form>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-6 text-center text-sm text-emerald-700">
-            กดปุ่ม "เพิ่มป๊อปอัปใหม่" เพื่อเปิดฟอร์มเพิ่มรายละเอียดป๊อปอัปหน้าแรก
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
+  const [popups, setPopups] = useState<PopupRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [editingPopup, setEditingPopup] = useState<PopupRecord | undefined>(undefined)
+  const { showToast } = useToast()
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await apiRequest('/api/popups')
+      const json = await response.json().catch(() => ({}))
+      if (!response.ok || json?.success === false) throw new Error(json?.error || 'ไม่สามารถโหลดข้อมูลป๊อปอัปได้')
+      const list: PopupRecord[] = Array.isArray(json?.data) ? json.data : []
+      setPopups(list)
+    } catch (thrown: unknown) {
+      console.error('Failed to load popups', thrown)
+      setError(thrown instanceof Error ? thrown.message : 'เกิดข้อผิดพลาด')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useImperativeHandle(ref, () => ({ refresh: load }), [load])
+
+  useEffect(() => { load() }, [load])
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('ยืนยันการลบป๊อปอัปนี้หรือไม่?')) return
+    try {
+      const response = await apiRequest(`/api/popups/${id}`, { method: 'DELETE' })
+      const json = await response.json().catch(() => ({}))
+      if (!response.ok || json?.success === false) throw new Error(json?.error || 'ไม่สามารถลบป๊อปอัปได้')
+      invalidateCache('/api/popups/active')
+      await load()
+      showToast('ลบป๊อปอัปสำเร็จ', undefined, 'success', 2500)
+    } catch (thrown: unknown) {
+      console.error('Failed to delete popup', thrown)
+      showToast(thrown instanceof Error ? thrown.message : 'ลบป๊อปอัปไม่สำเร็จ', undefined, 'error', 3000)
+    }
+  }
+
+  const handleToggleActive = async (popup: PopupRecord) => {
+    try {
+      const title = (popup.title || '').trim()
+      const bodyText = (popup.body || '').trim()
+      if (!title || !bodyText) throw new Error('กรุณาระบุหัวข้อและรายละเอียดของป๊อปอัป')
+
+      const formData = new FormData()
+      formData.append('title', title)
+      formData.append('body', bodyText)
+      formData.append('dismissForDays', String(Number.isFinite(popup.dismissForDays) ? Math.max(0, popup.dismissForDays) : 1))
+      formData.append('isActive', (!popup.isActive).toString())
+      if (popup.startAt) formData.append('startAt', popup.startAt)
+      if (popup.endAt) formData.append('endAt', popup.endAt)
+      if (popup.ctaLabel) formData.append('ctaLabel', popup.ctaLabel)
+      if (popup.ctaUrl) formData.append('ctaUrl', popup.ctaUrl)
+      if (popup.imageUrl) formData.append('imageUrl', popup.imageUrl)
+
+      const response = await apiRequest(`/api/popups/${popup.id}`, { method: 'PUT', body: formData })
+      const json = await response.json().catch(() => ({}))
+      if (!response.ok || json?.success === false) throw new Error(json?.error || 'ไม่สามารถอัปเดตสถานะได้')
+      invalidateCache('/api/popups/active')
+      await load()
+      showToast('อัปเดตสถานะป๊อปอัปเรียบร้อย', undefined, 'success', 2500)
+    } catch (thrown: unknown) {
+      console.error('Failed to toggle popup', thrown)
+      showToast(thrown instanceof Error ? thrown.message : 'อัปเดตสถานะไม่สำเร็จ', undefined, 'error', 3000)
+    }
+  }
+
+  const upcomingPopups = useMemo(() => {
+    const now = Date.now()
+    return popups.filter(popup => {
+      if (!popup.startAt) return true
+      const start = new Date(popup.startAt).getTime()
+      return Number.isFinite(start) && start >= now - DAY_MS
+    })
+  }, [popups])
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">ป๊อปอัปหน้าแรก</h2>
+            <p className="text-sm text-slate-500">จัดการข้อความสำคัญที่ต้องการแสดงก่อนเข้าสู่เว็บไซต์</p>
           </div>
-        )}
+          <button
+            type="button"
+            onClick={() => { setEditingPopup(undefined); setShowModal(true) }}
+            className="admin-btn"
+          >
+            <span>+</span>
+            เพิ่มป๊อปอัปใหม่
+          </button>
+        </div>
       </section>
+
+      {showModal && (
+        <PopupModal
+          initialData={editingPopup}
+          onClose={() => { setShowModal(false); setEditingPopup(undefined) }}
+          onSaved={() => { setShowModal(false); setEditingPopup(undefined); load() }}
+        />
+      )}
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-900">รายการป๊อปอัปที่ตั้งไว้</h3>
@@ -576,30 +501,9 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loading && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
-                    กำลังโหลดข้อมูล...
-                  </td>
-                </tr>
-              )}
-
-              {!loading && error && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-red-500">
-                    {error}
-                  </td>
-                </tr>
-              )}
-
-              {!loading && !error && popups.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
-                    ยังไม่มีป๊อปอัป
-                  </td>
-                </tr>
-              )}
-
+              {loading && <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-500">กำลังโหลดข้อมูล...</td></tr>}
+              {!loading && error && <tr><td colSpan={4} className="px-4 py-6 text-center text-red-500">{error}</td></tr>}
+              {!loading && !error && popups.length === 0 && <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-500">ยังไม่มีป๊อปอัป</td></tr>}
               {!loading && !error && popups.map(popup => {
                 const start = popup.startAt ? new Date(popup.startAt) : null
                 const end = popup.endAt ? new Date(popup.endAt) : null
@@ -610,29 +514,14 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
                   <tr key={popup.id} className="text-slate-700">
                     <td className="max-w-sm px-4 py-3 align-top">
                       {thumbSrc && (
-                        <a
-                          href={thumbSrc}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group mb-3 block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-emerald-200 hover:shadow-md"
-                        >
+                        <a href={thumbSrc} target="_blank" rel="noopener noreferrer" className="group mb-3 block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-emerald-200 hover:shadow-md">
                           <div className="relative flex h-40 w-full items-center justify-center bg-slate-50">
-                            <img
-                              src={thumbSrc}
-                              alt="รูปป๊อปอัป"
-                              className="max-h-full max-w-full object-contain transition duration-200 group-hover:scale-105"
-                            />
-                            <div className="absolute bottom-2 right-2 hidden rounded-full bg-emerald-500/90 px-3 py-1 text-[11px] font-semibold text-white shadow-sm group-hover:flex">
-                              เปิดภาพเต็ม
-                            </div>
+                            <img src={thumbSrc} alt="รูปป๊อปอัป" className="max-h-full max-w-full object-contain transition duration-200 group-hover:scale-105" />
                           </div>
                         </a>
                       )}
                       <div className="font-semibold text-slate-900 line-clamp-2">{popup.title}</div>
                       <div className="text-xs text-slate-500 line-clamp-2">{popup.body}</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        {popup.image ? 'ใช้รูปภาพที่อัปโหลดแล้ว' : popup.imageUrl ? 'ใช้ลิงก์รูปภาพภายนอก' : 'ไม่มีรูปภาพ'}
-                      </div>
                     </td>
                     <td className="px-4 py-3 align-top text-xs text-slate-500">
                       <div>เริ่ม {startText}</div>
@@ -646,35 +535,14 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
                     </td>
                     <td className="px-4 py-3 align-top text-right">
                       <div className="inline-flex items-center gap-2">
-                        <button
-                          onClick={() => handleToggleActive(popup)}
-                          className="admin-btn admin-btn--outline admin-btn--sm"
-                        >
-                          {popup.isActive ? (
-                            <>
-                              <span>🚫</span>
-                              <span>ปิดการแสดง</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>✅</span>
-                              <span>เปิดใช้งาน</span>
-                            </>
-                          )}
+                        <button onClick={() => handleToggleActive(popup)} className="admin-btn admin-btn--outline admin-btn--sm">
+                          {popup.isActive ? <><span>🚫</span><span>ปิด</span></> : <><span>✅</span><span>เปิด</span></>}
                         </button>
-                        <button
-                          onClick={() => handleEdit(popup)}
-                          className="admin-btn admin-btn--outline admin-btn--sm"
-                        >
-                          <span>✏️</span>
-                          <span>แก้ไข</span>
+                        <button onClick={() => { setEditingPopup(popup); setShowModal(true) }} className="admin-btn admin-btn--outline admin-btn--sm">
+                          <span>✏️</span><span>แก้ไข</span>
                         </button>
-                        <button
-                          onClick={() => handleDelete(popup.id)}
-                          className="admin-btn admin-btn--outline admin-btn--sm"
-                        >
-                          <span>🗑️</span>
-                          <span>ลบ</span>
+                        <button onClick={() => handleDelete(popup.id)} className="admin-btn admin-btn--outline admin-btn--sm">
+                          <span>🗑️</span><span>ลบ</span>
                         </button>
                       </div>
                     </td>

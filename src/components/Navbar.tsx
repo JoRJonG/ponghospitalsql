@@ -117,7 +117,7 @@ export default function Navbar() {
             <img
               src={logo}
               alt="Pong Hospital logo"
-              className="h-14 w-14 rounded"
+              className="h-12 w-12 md:h-14 md:w-14 rounded navbar-logo"
               loading="eager"
             />
             <div className="flex flex-col">
@@ -191,8 +191,8 @@ export default function Navbar() {
       {open && (
         <div>
           <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setOpen(false)} />
-          <div className="md:hidden fixed inset-x-0 top-20 bottom-0 z-50 overflow-y-auto">
-            <div className="bg-white border-t border-gray-200 shadow-md">
+          <div className="md:hidden fixed inset-x-0 top-20 bottom-0 z-50 overflow-y-auto" onClick={() => setOpen(false)}>
+            <div className="bg-white border-t border-gray-200 shadow-md" onClick={(e) => e.stopPropagation()}>
               <div className="container-narrow py-4 flex flex-col">
                 <NavLink to="/" className={navItemClass} end onClick={() => setOpen(false)}>หน้าหลัก</NavLink>
                 <NavLink to="/announcements" className={({ isActive }) => navItemClass({ isActive })} onClick={() => setOpen(false)}>

@@ -21,7 +21,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
   const [form, setForm] = useState({ name: '', position: '', isPublished: true })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
-  
+
   useEffect(() => {
     if (!initialId) return
 
@@ -46,17 +46,17 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
 
     return () => controller.abort()
   }, [initialId, getToken])
-  
+
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    
+
     setUploading(true)
     try {
       // Compress image
       const compressed = await compressImage(file, 400, 0.85)
       setImageFile(compressed)
-      
+
       // Create preview
       const url = URL.createObjectURL(compressed)
       setImagePreview(url)
@@ -67,35 +67,35 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
       setUploading(false)
     }
   }
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!form.name.trim() || !form.position.trim()) {
       alert('กรุณากรอกชื่อและตำแหน่ง')
       return
     }
-    
+
     setLoading(true)
     try {
       const fd = new FormData()
       fd.append('name', form.name)
       fd.append('position', form.position)
       fd.append('isPublished', String(form.isPublished))
-      
+
       if (imageFile) {
         fd.append('image', imageFile)
       }
-      
+
       const url = initialId ? `/api/executives/${initialId}` : '/api/executives'
       const method = initialId ? 'PUT' : 'POST'
-      
+
       const res = await fetch(url, {
         method,
         headers: { 'Authorization': `Bearer ${getToken()}` },
         body: fd
       })
-      
+
       if (res.ok) {
         onSaved()
       } else {
@@ -108,7 +108,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
       setLoading(false)
     }
   }
-  
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
       <div className="card max-w-2xl w-full">
@@ -127,7 +127,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm mb-1">ตำแหน่ง *</label>
               <input
@@ -139,7 +139,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm mb-1">รูปภาพ</label>
               <div className="flex gap-2">
@@ -157,14 +157,14 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
               <p className="text-xs text-gray-600 mt-1">
                 ขนาดแนะนำ: 400x400px รูปสี่เหลี่ยมจัตุรัส สำหรับแสดงเป็นวงกลม
               </p>
-              
+
               {imagePreview && (
                 <div className="mt-3">
                   <img src={imagePreview} alt="Preview" className="w-24 h-24 rounded-full object-cover border-2" />
                 </div>
               )}
             </div>
-            
+
             <div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -177,7 +177,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
               </label>
             </div>
           </div>
-          
+
           <div className="card-footer flex gap-2 justify-end">
             <button type="button" onClick={onClose} className="admin-btn admin-btn--outline">
               ยกเลิก
@@ -209,9 +209,9 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
-  
+
   const { showToast } = useToast()
-  
+
   const refreshExecutives = useCallback(async () => {
     try {
       const token = getToken()
@@ -227,24 +227,24 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
       console.error('Failed to fetch executives:', error)
     }
   }, [getToken])
-  
+
   useImperativeHandle(ref, () => ({
     refreshExecutives
   }))
-  
+
   useEffect(() => {
     refreshExecutives()
   }, [refreshExecutives])
-  
+
   const handleReorder = async (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return
-    
+
     // Optimistic update
     const newList = [...executives]
     const [moved] = newList.splice(fromIndex, 1)
     newList.splice(toIndex, 0, moved)
     setExecutives(newList)
-    
+
     // Create orderMap: { id: newDisplayOrder }
     const orderMap: Record<string, number> = {}
     newList.forEach((exec, index) => {
@@ -252,7 +252,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
         orderMap[exec._id] = index
       }
     })
-    
+
     // Send to backend
     try {
       const token = getToken()
@@ -264,7 +264,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
         },
         body: JSON.stringify({ orderMap })
       })
-      
+
       if (!res.ok) throw new Error('Reorder failed')
       await refreshExecutives() // Refresh to get accurate data
     } catch (error: unknown) {
@@ -273,42 +273,42 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
       await refreshExecutives() // Revert
     }
   }
-  
+
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggingId(id)
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/html', e.currentTarget.innerHTML)
   }
-  
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
   }
-  
+
   const handleDrop = (e: React.DragEvent, dropId: string) => {
     e.preventDefault()
     if (!draggingId || draggingId === dropId) return
-    
+
     const fromIndex = executives.findIndex(ex => ex._id === draggingId)
     const toIndex = executives.findIndex(ex => ex._id === dropId)
-    
+
     if (fromIndex >= 0 && toIndex >= 0) {
       handleReorder(fromIndex, toIndex)
     }
-    
+
     setDraggingId(null)
   }
-  
+
   const handleDelete = async (id: string) => {
     if (!confirm('ต้องการลบผู้บริหารท่านนี้หรือไม่?')) return
-    
+
     try {
       const token = getToken()
       const res = await fetch(`/api/executives/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      
+
       if (res.ok) {
         await refreshExecutives()
         showToast('ลบผู้บริหารสำเร็จ', undefined, 'success', 3000)
@@ -320,7 +320,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
       alert('เกิดข้อผิดพลาด')
     }
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -328,7 +328,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
           <h2 className="text-2xl font-bold">จัดการผู้บริหาร</h2>
           <p className="text-sm text-gray-600">ลากเพื่อเรียงลำดับการแสดงผล</p>
         </div>
-        <button 
+        <button
           onClick={() => { setShowForm(true); setEditingId(null) }}
           className="admin-btn"
         >
@@ -336,7 +336,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
           เพิ่มผู้บริหาร
         </button>
       </div>
-      
+
       {showForm && (
         <ExecutiveForm
           initialId={editingId}
@@ -349,7 +349,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
           }}
         />
       )}
-      
+
       {executives.length === 0 && (
         <div className="card">
           <div className="card-body text-center text-gray-500">
@@ -357,7 +357,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
           </div>
         </div>
       )}
-      
+
       <div className="grid gap-3">
         {executives.map((exec, index) => (
           <div
@@ -366,52 +366,51 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
             onDragStart={(e) => handleDragStart(e, exec._id!)}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, exec._id!)}
-            className={`card cursor-move hover:shadow-md transition-shadow ${
-              draggingId === exec._id ? 'opacity-50' : ''
-            }`}
+            className={`card overflow-hidden cursor-move hover:shadow-md transition-shadow ${draggingId === exec._id ? 'opacity-50' : ''
+              }`}
           >
-            <div className="card-body">
-              <div className="flex items-center gap-4">
+            <div className="card-body p-3 sm:p-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold">
                     {index + 1}
                   </div>
                 </div>
-                
+
                 {exec.imageUrl && (
                   <img
                     src={exec.imageUrl}
                     alt={exec.name}
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
                   />
                 )}
-                
-                <div className="flex-1">
-                  <h3 className="font-bold">{exec.name}</h3>
-                  <p className="text-sm text-gray-600">{exec.position}</p>
+
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold truncate">{exec.name}</h3>
+                  <p className="text-sm text-gray-600 truncate">{exec.position}</p>
                   <div className="flex items-center gap-2 mt-1">
                     {exec.isPublished ? (
-                      <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">เผยแพร่</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800 shrink-0">เผยแพร่</span>
                     ) : (
-                      <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-800">ซ่อน</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-800 shrink-0">ซ่อน</span>
                     )}
                   </div>
                 </div>
-                
-                <div className="flex gap-2">
+
+                <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => { setEditingId(exec._id!); setShowForm(true) }}
-                    className="admin-btn admin-btn--outline"
+                    className="admin-btn admin-btn--outline px-2 sm:px-3"
                   >
                     <span>✏️</span>
-                    <span>แก้ไข</span>
+                    <span className="hidden sm:inline">แก้ไข</span>
                   </button>
                   <button
                     onClick={() => handleDelete(exec._id!)}
-                    className="admin-btn admin-btn--outline"
+                    className="admin-btn admin-btn--outline px-2 sm:px-3"
                   >
                     <span>🗑️</span>
-                    <span>ลบ</span>
+                    <span className="hidden sm:inline">ลบ</span>
                   </button>
                 </div>
               </div>

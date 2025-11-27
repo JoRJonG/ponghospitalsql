@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
-import RichTextEditor from '../../components/RichTextEditor'
+
 import { useAuth } from '../../auth/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { useHomepageRefresh } from '../../contexts/useHomepageRefresh'
-import { compressImage } from '../../utils/imageCompressor'
+
 import ExecutivesManagement, { type ExecutivesManagementHandle } from '../../components/ExecutivesManagement'
 import InfographicsManagement, { type InfographicsManagementHandle } from '../../components/InfographicsManagement'
 import ItaManagement, { type ItaManagementHandle } from '../../components/ItaManagement'
@@ -93,35 +93,11 @@ type Unit = {
 
 type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'ita' | 'users'
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'users', 'ita'] as const
 
-const isAdminTab = (value: string): value is AdminTab => (ADMIN_TABS as readonly string[]).includes(value)
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita'] as const
+const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
-
-// Shared editor toolbar configuration
-// ----------------------------------------------------------------------------
-const quillModules = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['link'],
-    ['clean'],
-  ],
-}
-const quillFormats = ['header', 'bold', 'italic', 'underline', 'list', 'link']
-
-// Helpers
-// ----------------------------------------------------------------------------
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
-
-const toDateTimeLocalValue = (iso?: string | null) => {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
 
 const fmtDateTime = (iso?: string) => {
   if (!iso) return ''
@@ -625,7 +601,7 @@ export default function AdminPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 overflow-x-hidden">
           {/* Top Bar */}
           <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-4 lg:px-6 lg:py-4">
             <div className="flex items-center justify-between">
@@ -1380,241 +1356,6 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
   )
 }
 
-function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved: () => Promise<void>; onDeleted: () => Promise<void> }) {
-  const { getToken } = useAuth()
-  const [editing, setEditing] = useState<Unit | null>(null)
-  const [page, setPage] = useState(1)
-  const perPage = 12
-  const pageCount = Math.max(1, Math.ceil((list?.length || 0) / perPage))
-  const paged = useMemo(() => {
-    const start = (page - 1) * perPage
-    return list.slice(start, start + perPage)
-  }, [list, page])
-  useEffect(() => {
-    const pc = Math.max(1, Math.ceil((list?.length || 0) / perPage))
-    setPage(p => Math.min(Math.max(1, p), pc))
-  }, [list?.length])
-  const remove = async (id?: string) => {
-    if (!id) return
-    if (!confirm('ยืนยันการลบลิงก์หน่วยงานนี้?')) return
-    const r = await fetch(`/api/units/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
-    if (r.ok) onDeleted()
-  }
-  return (
-    <div className="mt-8">
-      <div className="font-semibold mb-3">รายการลิงก์หน่วยงาน</div>
-      <div className="grid md:grid-cols-3 gap-3">
-        {paged.map(u => (
-          <div key={u._id} className="card">
-            <div className="card-body flex gap-3 items-center">
-              {u.image?.url ? (
-                <img src={u.image.url} loading="lazy" decoding="async" width={48} height={48} className="h-12 w-12 object-contain rounded" alt={u.name} />
-              ) : (
-                <div className="h-12 w-12 rounded bg-gray-200 flex items-center justify-center text-gray-500"><i className="fa-solid fa-building" /></div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate flex items-center gap-2">
-                  <span className="truncate">{u.name}</span>
-                  <span className={`badge ${u.isPublished ? 'green' : 'gray'}`}>{u.isPublished ? 'เผยแพร่' : 'ซ่อน'}</span>
-                </div>
-                {u.href && (
-                  <div className="text-xs mt-1 truncate">
-                    <span className="text-gray-500">ลิงก์:</span>{' '}
-                    <a href={u.href} target={/^https?:\/\//i.test(String(u.href)) ? '_blank' : undefined} rel={/^https?:\/\//i.test(String(u.href)) ? 'noopener noreferrer' : undefined} className="text-blue-700 hover:underline">{u.href}</a>
-                  </div>
-                )}
-                <div className="text-xs text-gray-500">ลำดับ: {u.order ?? 0}</div>
-                <div className="mt-2 flex gap-2">
-                  <button className="admin-btn admin-btn--outline" aria-label="แก้ไขหน่วยงาน" onClick={() => setEditing(u)}>
-                    ✏️ <span>แก้ไข</span>
-                  </button>
-                  <button className="admin-btn admin-btn--outline" aria-label="ลบหน่วยงาน" onClick={() => remove(u._id)}>
-                    🗑️ <span>ลบ</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-        {list.length === 0 && <div className="text-gray-500">ยังไม่มีลิงก์หน่วยงาน</div>}
-      </div>
-      {pageCount > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <button className="admin-btn admin-btn--outline" aria-label="หน้าก่อนหน้า" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>ก่อนหน้า</button>
-          <div>หน้า {page} / {pageCount}</div>
-          <button className="admin-btn admin-btn--outline" aria-label="หน้าถัดไป" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}>ถัดไป</button>
-        </div>
-      )}
-      {editing && (
-        <EditUnitModal initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onEditSaved() }} />
-      )}
-    </div>
-  )
-}
-
-function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: () => void; onSaved: () => void }) {
-  const { getToken, refreshToken } = useAuth()
-  const [form, setForm] = useState<Unit>({ ...initial })
-  const [uploading, setUploading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [imageUrl, setImageUrl] = useState<string>(initial?.image?.url || '')
-
-  const onUpload = async (file: File) => {
-    setUploading(true)
-    try {
-      const fd = new FormData(); fd.append('file', file)
-      let r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-
-      // If unauthorized, try to refresh token and retry
-      if (r.status === 401) {
-        const refreshSuccess = await refreshToken()
-        if (refreshSuccess) {
-          r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-        }
-      }
-
-      if (!r.ok) throw new Error('upload failed')
-      const data = await r.json()
-      setForm(f => ({ ...f, image: { url: data.url, publicId: data.publicId } }))
-    } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
-  }
-
-  const save = async () => {
-    setSaving(true)
-    try {
-      const cleanHref = (form.href || '').trim()
-
-      // ตรวจสอบว่ามีรูปใหม่หรือไม่ (รูปที่ไม่ได้เป็น URL จาก /api/images/units/)
-      const hasNewImage = form.image?.url && !form.image.url.startsWith('/api/images/units/')
-
-      let body: FormData | string
-      const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
-
-      if (hasNewImage && form.image) {
-        // ส่ง FormData พร้อมไฟล์ใหม่
-        const fd = new FormData()
-
-        // ถ้ารูปเป็น HTTP/HTTPS URL ส่ง URL ไปให้ backend ดาวน์โหลด
-        if (form.image.url.startsWith('http://') || form.image.url.startsWith('https://')) {
-          fd.append('imageUrl', form.image.url)
-        }
-        // ถ้าเป็น data URL แปลงเป็น blob
-        else if (form.image.url.startsWith('data:')) {
-          try {
-            const imgResponse = await fetch(form.image.url)
-            const blob = await imgResponse.blob()
-            const fileName = form.image.publicId ? `unit-${form.image.publicId}.jpg` : 'unit.jpg'
-            fd.append('image', blob, fileName)
-          } catch (err) {
-            console.error('Failed to convert image:', err)
-            alert('ไม่สามารถประมวลผลรูปภาพได้')
-            return
-          }
-        }
-
-        fd.append('name', form.name || '')
-        if (cleanHref) fd.append('href', cleanHref)
-        fd.append('order', String(form.order ?? 0))
-        fd.append('isPublished', String(form.isPublished ?? true))
-        body = fd
-      } else {
-        // ส่ง JSON (ไม่มีรูปใหม่)
-        headers['Content-Type'] = 'application/json'
-        body = JSON.stringify({ name: form.name, href: cleanHref || undefined, order: form.order, isPublished: form.isPublished })
-      }
-
-      const r = await fetch(`/api/units/${form._id}`, { method: 'PUT', headers, body })
-      if (!r.ok) { alert('บันทึกไม่สำเร็จ'); return }
-      onSaved()
-    } finally { setSaving(false) }
-  }
-
-  const removeImage = async () => {
-    const publicId = form.image?.publicId
-    if (publicId) {
-      fetch(`/api/uploads/image/${encodeURIComponent(publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete unit image', err))
-    }
-    setForm(f => ({ ...f, image: null }))
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg">
-        <div className="p-4 border-b flex items-center justify-between">
-          <div className="font-semibold">แก้ไขลิงก์หน่วยงาน</div>
-          <button className="admin-btn admin-btn--outline" onClick={onClose}>ปิด</button>
-        </div>
-        <div className="p-4 space-y-3">
-          <div>
-            <label className="block text-sm mb-1">ชื่อหน่วยงาน</label>
-            <input value={form.name || ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full rounded border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">ลิงก์หน่วยงาน</label>
-            <input value={form.href || ''} onChange={e => setForm(f => ({ ...f, href: e.target.value }))} className="w-full rounded border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text_sm mb-1">โลโก้</label>
-            {form.image?.url ? (
-              <div className="flex items-center gap-3">
-                <img src={form.image.url} loading="lazy" decoding="async" width={160} height={64} className="h-16 object-contain" />
-                <button className="admin-btn admin-btn--outline" onClick={removeImage}>ลบรูป</button>
-              </div>
-            ) : (
-              <label className="admin-btn admin-btn--outline cursor-pointer">
-                อัปโหลดรูปโลโก้
-                <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f) }} />
-              </label>
-            )}
-            {uploading && <div className="text-sm text-gray-600 mt-1">กำลังอัปโหลด...</div>}
-            <div className="mt-3 grid md:grid-cols-[1fr_auto] gap-2">
-              <input
-                value={imageUrl}
-                onChange={e => setImageUrl(e.target.value)}
-                placeholder="หรือวาง URL รูปภาพภายนอก เช่น https://example.com/logo.png"
-                className="w-full rounded border px-3 py-2"
-                inputMode="url"
-              />
-              <button
-                type="button"
-                className="admin-btn admin-btn--outline"
-                onClick={() => {
-                  const u = imageUrl.trim()
-                  if (!u) { setForm(f => ({ ...f, image: null })); return }
-                  try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { alert('URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)'); return }
-                  setForm(f => ({ ...f, image: { url: u } }))
-                }}
-              >ใช้ URL</button>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm mb-1">ลำดับ</label>
-              <input type="number" value={form.order ?? 0} onChange={e => setForm(f => ({ ...f, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
-            </div>
-            <div className="flex items-end">
-              <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.isPublished} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
-            </div>
-          </div>
-        </div>
-        <div className="p-4 border-t flex items-center justify-end gap-2">
-          <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
-          <button className="admin-btn" onClick={save} disabled={saving}>
-            {saving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                กำลังบันทึก...
-              </>
-            ) : (
-              'บันทึก'
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: () => void }) {
   const { getToken, refreshToken } = useAuth()
   const [title, setTitle] = useState('')
@@ -2029,9 +1770,9 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <div className="card max-w-3xl w-full">
-        <div className="card-header">{initial._id ? 'แก้ไขสไลด์' : 'สร้างสไลด์ใหม่'}</div>
-        <div className="card-body space-y-3">
+      <div className="card max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <div className="card-header shrink-0">{initial._id ? 'แก้ไขสไลด์' : 'สร้างสไลด์ใหม่'}</div>
+        <div className="card-body space-y-3 overflow-y-auto overflow-x-hidden max-w-full p-4">
           <div>
             <label className="block text-sm mb-1">หัวข้อ</label>
             <input value={form.title || ''} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
@@ -2107,7 +1848,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
             </p>
           </div>
         </div>
-        <div className="card-footer flex gap-2 justify-end">
+        <div className="card-footer flex gap-2 justify-end shrink-0 p-4 border-t">
           <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
           <button disabled={saving} className="admin-btn" onClick={save}>
             {saving ? (
@@ -2207,153 +1948,15 @@ function AnnouncementsList({ list, onEditSaved, onDeleted }: { list: Announcemen
 }
 
 function EditAnnouncementModal({ initial, onClose, onSaved }: { initial: Announcement; onClose: () => void; onSaved: () => void }) {
-  const { getToken } = useAuth()
-  const [form, setForm] = useState<Announcement>({ ...initial, attachments: initial.attachments || [] })
-  const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const onUploadImage = async (file: File) => {
-    setUploading(true)
-    try {
-      // Compress รูปภาพก่อนอัปโหลด (max 1200px, quality 0.7)
-      const compressed = await compressImage(file, 1200, 0.7)
-      const fd = new FormData(); fd.append('file', compressed)
-      // If editing an existing announcement, upload directly to attachment endpoint
-      if (initial && initial._id) {
-        const r = await fetch(`/api/announcements/${initial._id}/attachment`, { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-        if (!r.ok) throw new Error('upload failed')
-        const data = await r.json() as { id: number; url: string; name?: string; bytes?: number; kind?: string }
-        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: String(data.id), kind: 'image', name: data.name, bytes: data.bytes }] }))
-      } else {
-        const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-        if (!r.ok) throw new Error('upload failed')
-        const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
-        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: data.publicId, kind: 'image', name: data.name, bytes: data.bytes }] }))
-      }
-    } catch (err) {
-      console.error('Upload image error:', err)
-      alert('อัปโหลดรูปไม่สำเร็จ')
-    } finally { setUploading(false) }
-  }
-  const onUploadFile = async (file: File) => {
-    const fd = new FormData(); fd.append('file', file); setUploading(true)
-    try {
-      if (initial && initial._id) {
-        const r = await fetch(`/api/announcements/${initial._id}/attachment`, { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-        if (!r.ok) throw new Error('upload failed')
-        const data = await r.json() as { id: number; url: string; name?: string; bytes?: number; kind?: string }
-        const kind = data.kind === 'pdf' || (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
-        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: String(data.id), kind, name: data.name, bytes: data.bytes }] }))
-      } else {
-        const r = await fetch('/api/uploads/file', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-        if (!r.ok) throw new Error('upload failed')
-        const data = await r.json() as { url: string; publicId?: string; name?: string; bytes?: number }
-        const kind = (data.name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'file'
-        setForm(f => ({ ...f, attachments: [...(f.attachments || []), { url: data.url, publicId: data.publicId, kind, name: data.name, bytes: data.bytes }] }))
-      }
-    } catch { alert('อัปโหลดไฟล์ไม่สำเร็จ') } finally { setUploading(false) }
-  }
-  const removeAttachmentAt = async (idx: number) => {
-    const attachments = form.attachments ?? []
-    const target = attachments[idx]
-    const next = attachments.filter((_, index) => index !== idx)
-    setForm(f => ({ ...f, attachments: next }))
-    if (target?.publicId) {
-      fetch(`/api/uploads/image/${encodeURIComponent(target.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete attachment', err))
-    }
-  }
-  const save = async () => {
-    if (!initial._id) return
-    setLoading(true)
-    try {
-      const payload: Partial<Announcement> = { ...form }
-      if (!form.publishedAt) delete payload.publishedAt
-      const r = await fetch(`/api/announcements/${initial._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }, body: JSON.stringify(payload) })
-      if (r.ok) onSaved()
-    } finally { setLoading(false) }
-  }
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <div className="card max-w-3xl w-full">
-        <div className="card-header">แก้ไขประกาศ</div>
-        <div className="card-body space-y-3">
-          <div>
-            <label className="block text-sm mb-1">หัวข้อ</label>
-            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">หมวดหมู่</label>
-            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as Announcement['category'] }))} className="w-full rounded border px-3 py-2">
-              <option>สมัครงาน</option>
-              <option>ประชาสัมพันธ์</option>
-              <option>ประกาศ</option>
-              <option>ประกาศจัดซื้อจัดจ้าง</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm mb-1">เนื้อหา</label>
-            <div className="rounded border">
-              <RichTextEditor
-                className="[&_.ql-container]:!h-auto [&_.ql-editor]:!min-h-[120px] [&_.ql-editor]:!max-h-[250px] [&_.ql-editor]:!overflow-y-auto"
-                value={form.content || ''}
-                onChange={(html) => setForm(f => ({ ...f, content: html }))}
-                modules={quillModules}
-                formats={quillFormats}
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm mb-1">ไฟล์แนบ (รูป/เอกสาร)</label>
-            <div className="flex flex-wrap gap-2">
-              <label className="admin-btn admin-btn--outline cursor-pointer">
-                อัปโหลดรูป
-                <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUploadImage(f) }} />
-              </label>
-              <label className="admin-btn admin-btn--outline cursor-pointer">
-                อัปโหลดไฟล์ (PDF/อื่นๆ)
-                <input type="file" className="hidden" accept="application/pdf,application/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUploadFile(f) }} />
-              </label>
-              {uploading && <span className="self-center text-sm text-gray-600">กำลังอัปโหลด...</span>}
-            </div>
-            {form.attachments && form.attachments.length > 0 && (
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-                {form.attachments.map((att, i) => (
-                  <div key={i} className="border rounded p-2 flex items-center gap-3">
-                    {att.kind === 'image' ? (
-                      <img src={att.url} loading="lazy" decoding="async" width={96} height={64} className="h-16 w-24 object-cover rounded" />
-                    ) : (
-                      <i className="fa-regular fa-file-pdf text-red-600 text-2xl" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate text-sm">{att.name || att.url}</div>
-                      <a href={att.url} target="_blank" className="text-green-700 text-xs hover:underline">เปิดดู</a>
-                    </div>
-                    <button type="button" className="admin-btn admin-btn--outline" onClick={() => removeAttachmentAt(i)}>ลบ</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="grid md:grid-cols-2 gap-3">
-            <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
-            <div>
-              <label className="block text-sm mb-1">ตั้งเวลาเผยแพร่</label>
-              <input type="date" value={toDateTimeLocalValue(form.publishedAt || undefined).split('T')[0]} onChange={e => setForm(f => ({ ...f, publishedAt: e.target.value ? new Date(e.target.value + 'T00:00').toISOString() : null }))} className="w-full rounded border px-3 py-2" />
-              <p className="mt-1 text-xs text-gray-600">ถ้ากำหนดเป็นอนาคต ระบบจะเผยแพร่เมื่อถึงเวลานั้น</p>
-            </div>
-          </div>
+      <div className="card max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <div className="card-header flex justify-between items-center shrink-0">
+          <span>แก้ไขประกาศ</span>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
         </div>
-        <div className="card-footer flex gap-2 justify-end">
-          <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
-          <button disabled={loading} className="admin-btn" onClick={save}>
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                กำลังบันทึก...
-              </>
-            ) : (
-              'บันทึก'
-            )}
-          </button>
+        <div className="p-4 overflow-y-auto">
+          <AnnouncementForm initialData={initial} onCreated={() => { onSaved(); onClose() }} onCancel={onClose} />
         </div>
       </div>
     </div>
@@ -2389,7 +1992,7 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
           const first = a.images && a.images[0]
           const src = typeof first === 'string' ? first : first?.url
           return (
-            <div key={a._id} className="card">
+            <div key={a._id} className="card overflow-hidden">
               <div className="card-body flex flex-col gap-3 sm:flex-row">
                 <img
                   src={src || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=400&auto=format&fit=crop'}
@@ -2400,10 +2003,10 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
                   className="h-48 w-full rounded-lg object-cover sm:h-24 sm:w-40"
                   alt={a.title ? `ภาพกิจกรรม: ${a.title}` : 'ภาพกิจกรรม'}
                 />
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="font-semibold flex flex-wrap items-center gap-2">
-                    <span className="truncate max-w-full sm:max-w-[240px]">{a.title}</span>
-                    {(() => { const s = statusInfo(a); return <span className={`badge ${s.color}`}>{s.label}</span> })()}
+                    <div className="truncate max-w-[60vw] sm:max-w-[240px]">{a.title}</div>
+                    {(() => { const s = statusInfo(a); return <span className={`badge ${s.color} shrink-0`}>{s.label}</span> })()}
                   </div>
                   <div className="mt-1 text-sm text-gray-600 line-clamp-3 sm:line-clamp-2">{stripHtml(a.description)}</div>
                   {a.publishedAt && <div className="text-xs text-gray-500 mt-2">เริ่มเผยแพร่: {fmtDateTime(a.publishedAt)}</div>}
@@ -2437,136 +2040,190 @@ function ActivitiesList({ list, onEditSaved, onDeleted }: { list: Activity[]; on
 }
 
 function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; onClose: () => void; onSaved: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+      <div className="card max-w-4xl w-full max-h-[90vh] flex flex-col">
+        <div className="card-header flex justify-between items-center shrink-0">
+          <span>แก้ไขกิจกรรม</span>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+        <div className="p-4 overflow-y-auto">
+          <ActivityForm initialData={initial} onCreated={() => { onSaved(); onClose() }} onCancel={onClose} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function UnitsList({ list, onEditSaved, onDeleted }: { list: Unit[]; onEditSaved: () => Promise<void>; onDeleted: () => Promise<void> }) {
+  const { getToken } = useAuth()
+  const [editing, setEditing] = useState<Unit | null>(null)
+  const [page, setPage] = useState(1)
+  const perPage = 12
+  const pageCount = Math.max(1, Math.ceil((list?.length || 0) / perPage))
+  const paged = useMemo(() => {
+    const start = (page - 1) * perPage
+    return list.slice(start, start + perPage)
+  }, [list, page])
+  useEffect(() => {
+    const pc = Math.max(1, Math.ceil((list?.length || 0) / perPage))
+    setPage(p => Math.min(Math.max(1, p), pc))
+  }, [list?.length])
+
+  const remove = async (id?: string) => {
+    if (!id) return
+    if (!confirm('ยืนยันการลบหน่วยงานนี้?')) return
+    const r = await fetch(`/api/units/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
+    if (r.ok) onDeleted()
+  }
+
+  return (
+    <div className="mt-8">
+      <div className="font-semibold mb-3">รายการหน่วยงาน</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {paged.map(u => (
+          <div key={u._id} className="card flex flex-col">
+            <div className="aspect-video bg-gray-100 relative">
+              {u.image?.url ? (
+                <img src={u.image.url} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">ไม่มีรูป</div>
+              )}
+            </div>
+            <div className="p-3 flex-1 flex flex-col">
+              <div className="font-semibold truncate">{u.name}</div>
+              <div className="text-xs text-gray-500 mt-1">ลำดับ: {u.order}</div>
+              <div className="mt-auto pt-3 flex gap-2">
+                <button className="admin-btn admin-btn--outline text-xs flex-1" onClick={() => setEditing(u)}>แก้ไข</button>
+                <button className="admin-btn admin-btn--outline text-xs flex-1" onClick={() => remove(u._id)}>ลบ</button>
+              </div>
+            </div>
+          </div>
+        ))}
+        {list.length === 0 && <div className="col-span-full text-gray-500 text-center py-8">ยังไม่มีหน่วยงาน</div>}
+      </div>
+      {pageCount > 1 && (
+        <div className="mt-4 flex items-center justify-between text-sm">
+          <button className="admin-btn admin-btn--outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>ก่อนหน้า</button>
+          <div>หน้า {page} / {pageCount}</div>
+          <button className="admin-btn admin-btn--outline" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}>ถัดไป</button>
+        </div>
+      )}
+      {editing && (
+        <EditUnitModal initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onEditSaved() }} />
+      )}
+    </div>
+  )
+}
+
+function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: () => void; onSaved: () => void }) {
   const { getToken, refreshToken } = useAuth()
-  const [form, setForm] = useState<Activity>({ ...initial })
-  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState<Unit>({ ...initial })
   const [uploading, setUploading] = useState(false)
-  const onUploadFiles = async (files: FileList | File[]) => {
-    const arr = Array.from(files || [])
-    if (!arr.length) return
+  const [saving, setSaving] = useState(false)
+
+
+  const onUpload = async (file: File) => {
     setUploading(true)
     try {
-      for (const file of arr) {
-        const fd = new FormData(); fd.append('file', file)
-        const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
-        if (!r.ok) throw new Error('upload failed')
-        const data = await r.json() as { url: string; publicId?: string }
-        setForm(f => ({ ...f, images: [...(f.images || []), { url: data.url, publicId: data.publicId }] }))
-      }
-    } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
-  }
-  const removeImageAt = async (idx: number) => {
-    const images = form.images ?? []
-    const target = images[idx]
-    const next = images.filter((_, index) => index !== idx)
-    setForm(f => ({ ...f, images: next }))
-    if (typeof target !== 'string' && target?.publicId) {
-      fetch(`/api/uploads/image/${encodeURIComponent(target.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete activity image', err))
-    }
-  }
-  const save = async () => {
-    if (!initial._id) return
-    setSaving(true)
-    try {
-      // ส่งข้อมูลทั้งหมดรวมถึง images ที่แก้ไขแล้ว
-      const dataToUpdate: Partial<Activity> = { ...form }
-      // delete dataToUpdate.images
-      let r = await fetch(`/api/activities/${initial._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(dataToUpdate)
-      })
+      const fd = new FormData(); fd.append('file', file)
+      let r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
 
-      // If unauthorized, try to refresh token and retry
       if (r.status === 401) {
         const refreshSuccess = await refreshToken()
         if (refreshSuccess) {
-          r = await fetch(`/api/activities/${initial._id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-            body: JSON.stringify(dataToUpdate)
-          })
+          r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
         }
       }
 
-      if (r.ok) onSaved()
-      else alert('บันทึกไม่สำเร็จ')
+      if (!r.ok) throw new Error('upload failed')
+      const data = await r.json()
+      setForm(f => ({ ...f, image: { url: data.url, publicId: data.publicId } }))
+    } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
+  }
+
+  const removeImage = async () => {
+    const publicId = form.image?.publicId
+    if (publicId) {
+      fetch(`/api/uploads/image/${encodeURIComponent(publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete unit image', err))
+    }
+    setForm(f => ({ ...f, image: null }))
+  }
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      const cleanHref = (form.href || '').trim()
+      const hasNewImage = form.image?.url && !form.image.url.startsWith('/api/images/units/')
+
+      let body: FormData | string
+      const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
+
+      if (hasNewImage && form.image) {
+        const fd = new FormData()
+        if (form.image.url.startsWith('data:')) {
+          const res = await fetch(form.image.url)
+          const blob = await res.blob()
+          fd.append('image', blob, 'unit.jpg')
+        }
+        fd.append('name', form.name)
+        if (cleanHref) fd.append('href', cleanHref)
+        fd.append('order', String(form.order ?? 0))
+        fd.append('isPublished', String(form.isPublished ?? true))
+        body = fd
+      } else {
+        headers['Content-Type'] = 'application/json'
+        body = JSON.stringify({ name: form.name, href: cleanHref || undefined, order: form.order, isPublished: form.isPublished, image: form.image })
+      }
+
+      const r = await fetch(`/api/units/${form._id}`, { method: 'PUT', headers, body })
+      if (!r.ok) { alert('บันทึกไม่สำเร็จ'); return }
+      onSaved()
     } finally { setSaving(false) }
   }
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <div className="card max-w-4xl w-full">
-        <div className="card-header">แก้ไขกิจกรรม</div>
-        <div className="card-body space-y-3">
+      <div className="card max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <div className="card-header shrink-0">{initial._id ? 'แก้ไขหน่วยงาน' : 'สร้างหน่วยงานใหม่'}</div>
+        <div className="card-body space-y-3 overflow-y-auto overflow-x-hidden max-w-full p-4">
           <div>
-            <label className="block text-sm mb-1">ชื่อกิจกรรม</label>
-            <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />
+            <label className="block text-sm mb-1">ชื่อหน่วยงาน</label>
+            <input value={form.name || ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
-            <label className="block text-sm mb-1">รายละเอียด</label>
-            <div className="rounded border">
-              <RichTextEditor
-                className="[&_.ql-container]:!h-auto [&_.ql-editor]:!min-h-[120px] [&_.ql-editor]:!max-h-[250px] [&_.ql-editor]:!overflow-y-auto"
-                value={form.description || ''}
-                onChange={(html) => setForm(f => ({ ...f, description: html }))}
-                modules={quillModules}
-                formats={quillFormats}
-              />
-            </div>
+            <label className="block text-sm mb-1">ลิงก์หน่วยงาน</label>
+            <input value={form.href || ''} onChange={e => setForm(f => ({ ...f, href: e.target.value }))} className="w-full rounded border px-3 py-2" />
           </div>
           <div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.isPublished ?? true}
-                onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">เผยแพร่กิจกรรมนี้ (แสดงในหน้าหลัก)</span>
-            </label>
-            <p className="mt-1 text-xs text-gray-600 ml-6">
-              {form.isPublished ? '✅ กิจกรรมนี้จะแสดงในหน้าหลัก' : '🔒 กิจกรรมนี้ถูกซ่อน (เฉพาะแอดมินเห็น)'}
-            </p>
+            <label className="block text-sm mb-1">ลำดับ</label>
+            <input type="number" value={form.order ?? 0} onChange={e => setForm(f => ({ ...f, order: Number(e.target.value) }))} className="w-full rounded border px-3 py-2" />
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} />
+            <label>เผยแพร่</label>
           </div>
           <div>
             <label className="block text-sm mb-1">รูปภาพ</label>
-            <div className="flex flex-wrap gap-2">
-              <label className="admin-btn admin-btn--outline cursor-pointer">
-                อัปโหลดไฟล์
-                <input type="file" className="hidden" accept="image/*" multiple onChange={e => { const fs = e.target.files; if (fs && fs.length) onUploadFiles(fs) }} />
-              </label>
-              {uploading && <span className="text-sm text-gray-600 self-center">กำลังอัปโหลด...</span>}
-            </div>
-            <p className="mt-2 text-xs text-gray-600">
-              แนะนำ (หน้าหลัก): อัตราส่วน 4:3 เช่น 1200x900px เพื่อให้แสดงพอดีในการ์ดพรีวิว ควรเป็น JPG/PNG และขนาดไฟล์ &lt; 1MB ต่อรูป
-            </p>
-            {form.images && form.images.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {form.images.map((img, i) => {
-                  const src = typeof img === 'string' ? img : img.url
-                  return (
-                    <div key={i} className="relative">
-                      <img src={src} loading="lazy" decoding="async" width={320} height={160} className="h-24 w-full object-cover rounded" />
-                      <button type="button" onClick={() => removeImageAt(i)} className="absolute top-1 right-1 bg-black/60 text-white text-xs px-2 py-1 rounded">ลบ</button>
-                    </div>
-                  )
-                })}
+            {form.image?.url ? (
+              <div className="flex items-center gap-3">
+                <img src={form.image.url} className="h-20 rounded" />
+                <button className="admin-btn admin-btn--outline" onClick={removeImage}>ลบรูป</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <label className="admin-btn admin-btn--outline cursor-pointer">
+                  อัปโหลด
+                  <input type="file" className="hidden" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f) }} />
+                </label>
+                {uploading && <span>กำลังอัปโหลด...</span>}
               </div>
             )}
           </div>
         </div>
-        <div className="card-footer flex gap-2 justify-end">
+        <div className="card-footer flex gap-2 justify-end shrink-0 p-4 border-t">
           <button className="admin-btn admin-btn--outline" onClick={onClose}>ยกเลิก</button>
-          <button disabled={saving} className="admin-btn" onClick={save}>
-            {saving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                กำลังบันทึก...
-              </>
-            ) : (
-              'บันทึก'
-            )}
-          </button>
+          <button className="admin-btn" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก...' : 'บันทึก'}</button>
         </div>
       </div>
     </div>

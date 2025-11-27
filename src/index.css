@@ -799,6 +799,35 @@ html {
   }
 }
 
+/* Global Quill Toolbar Fixes for Mobile */
+.ql-toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.ql-container {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.ql-formats {
+  margin-right: 4px !important;
+  margin-bottom: 4px !important;
+  display: inline-flex !important;
+}
+
+/* Ensure all inputs and selects don't overflow */
+input,
+select,
+textarea {
+  max-width: 100% !important;
+}
+
 @keyframes slide-out {
   from {
     transform: translateX(0);

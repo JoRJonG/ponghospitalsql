@@ -126,7 +126,8 @@ export function HomepagePopupOverlay() {
     let failureCount = 0
     let failureCooldownUntil = 0
     let forceRefreshInProgress = false
-
+    // Poll less frequently to reduce request volume. Keep client TTL longer than poll.
+    const refreshInterval = 60_000 // 1 
 
     const load = async (forceRefresh = false) => {
       setLoading(true)
@@ -237,11 +238,16 @@ export function HomepagePopupOverlay() {
     // initial load
     load()
 
+    // set up periodic polling using the refreshInterval declared above
+    const pollTimer = setInterval(() => {
+      load().catch(() => { })
+    }, refreshInterval)
 
     return () => {
       mounted = false
 
       if (expiryTimer) clearTimeout(expiryTimer)
+      if (pollTimer) clearInterval(pollTimer)
     }
   }, [shouldSuppress])
 

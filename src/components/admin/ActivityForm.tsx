@@ -13,14 +13,14 @@ type Activity = {
   _id?: string
   title: string
   description?: string
-  images?: Array<string | { url: string }>
+  images?: Array<string | { url: string; publicId?: string | null }>
   isPublished?: boolean
   publishedAt?: string | null
 }
 
-export default function ActivityForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: () => void }) {
+export default function ActivityForm({ onCreated, onCancel, initialData }: { onCreated: () => void; onCancel?: () => void; initialData?: Activity }) {
   const { getToken, refreshToken, logout } = useAuth()
-  const [form, setForm] = useState<Activity>({ title: '', description: '', images: [], isPublished: true, publishedAt: null })
+  const [form, setForm] = useState<Activity>(initialData || { title: '', description: '', images: [], isPublished: true, publishedAt: null })
   const [imageUrl, setImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -46,6 +46,23 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
       alert(`สามารถอัปโหลดได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`)
       return
     }
+
+    // If editing, upload immediately
+    if (initialData?._id) {
+      setUploading(true)
+      try {
+        for (const file of arr) {
+          const fd = new FormData(); fd.append('file', file)
+          const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
+          if (!r.ok) throw new Error('upload failed')
+          const data = await r.json() as { url: string; publicId?: string }
+          setForm(f => ({ ...f, images: [...(f.images || []), { url: data.url, publicId: data.publicId }] }))
+        }
+      } catch { alert('อัปโหลดรูปไม่สำเร็จ') } finally { setUploading(false) }
+      return
+    }
+
+    // If creating, stage files
     const availableSlots = MAX_UPLOAD_IMAGES - currentCount
     const filesToProcess = arr.slice(0, availableSlots)
     if (filesToProcess.length < arr.length) {
@@ -78,8 +95,15 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
     const currentImages = form.images ?? []
     const target = currentImages[idx]
     if (!target) return
+
+    // If editing and target has publicId, delete from server
+    if (initialData?._id && typeof target !== 'string' && target.publicId) {
+      fetch(`/api/uploads/image/${encodeURIComponent(target.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => console.debug('Failed to delete activity image', err))
+    }
+
     const nextImages = currentImages.filter((_, i) => i !== idx)
     setForm(f => ({ ...f, images: nextImages }))
+
     if (typeof target === 'string' && target.startsWith('blob:')) {
       const blobIndex = currentImages
         .slice(0, idx)
@@ -102,8 +126,21 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
     if (totalImages > MAX_UPLOAD_IMAGES) { alert(`สามารถอัปโหลดได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`); return }
     setLoading(true)
     try {
-      const endpoint = buildApiUrl('/api/activities', { preferBackend: true })
-      const makeRequest = async (token: string) => {
+      let r: Response
+      const token = getToken()
+      if (!token) { alert('กรุณาเข้าสู่ระบบใหม่'); logout(); return }
+
+      if (initialData?._id) {
+        // Edit mode: PUT JSON
+        const dataToUpdate = { ...form }
+        r = await fetch(`/api/activities/${initialData._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(dataToUpdate)
+        })
+      } else {
+        // Create mode: POST FormData
+        const endpoint = buildApiUrl('/api/activities', { preferBackend: true })
         const fd = new FormData()
         fd.append('title', sanitizeText(form.title || ''))
         fd.append('description', sanitizeHtml(form.description || ''))
@@ -111,45 +148,43 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
         if (form.publishedAt) fd.append('publishedAt', form.publishedAt)
         for (const f of pendingFiles) fd.append('images', f)
 
-        return await fetch(endpoint, {
+        r = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: fd
         })
       }
 
-      let token = getToken()
-      if (!token) {
-        alert('กรุณาเข้าสู่ระบบใหม่')
-        logout()
-        return
-      }
-
-      let r = await makeRequest(token)
-
-      // If token expired, try to refresh and retry once
+      // If unauthorized, try to refresh token and retry
       if (r.status === 401) {
-        try {
-          const errorData = await r.clone().json()
-          if (errorData.code === 'TOKEN_EXPIRED') {
-            const refreshSuccess = await refreshToken()
-            if (refreshSuccess) {
-              token = getToken()
-              if (token) {
-                r = await makeRequest(token)
-              } else {
-                alert('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่')
-                logout()
-                return
-              }
-            } else {
-              alert('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่')
-              logout()
-              return
-            }
+        const refreshSuccess = await refreshToken()
+        if (refreshSuccess) {
+          const newToken = getToken()
+          if (initialData?._id) {
+            r = await fetch(`/api/activities/${initialData._id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${newToken}` },
+              body: JSON.stringify(form)
+            })
+          } else {
+            // Re-create FormData for retry
+            const endpoint = buildApiUrl('/api/activities', { preferBackend: true })
+            const fd = new FormData()
+            fd.append('title', sanitizeText(form.title || ''))
+            fd.append('description', sanitizeHtml(form.description || ''))
+            fd.append('isPublished', String(form.isPublished ?? true))
+            if (form.publishedAt) fd.append('publishedAt', form.publishedAt)
+            for (const f of pendingFiles) fd.append('images', f)
+            r = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${newToken}` },
+              body: fd
+            })
           }
-        } catch (error) {
-          console.error('Failed to parse activity creation error response', error)
+        } else {
+          alert('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่')
+          logout()
+          return
         }
       }
 
@@ -160,8 +195,10 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
       }
 
       invalidateCache('/api/activities')
-      setForm({ title: '', description: '', images: [], isPublished: true, publishedAt: null })
-      setPendingFiles([])
+      if (!initialData) {
+        setForm({ title: '', description: '', images: [], isPublished: true, publishedAt: null })
+        setPendingFiles([])
+      }
       onCreated()
     } catch (err) {
       console.error('Failed to submit activity', err)
@@ -170,21 +207,23 @@ export default function ActivityForm({ onCreated, onCancel }: { onCreated: () =>
   }
 
   const handleCancel = () => {
-    setForm(prev => {
-      ; (prev.images || []).forEach(img => {
-        if (typeof img === 'string' && img.startsWith('blob:')) {
-          URL.revokeObjectURL(img)
-        }
+    if (!initialData) {
+      setForm(prev => {
+        ; (prev.images || []).forEach(img => {
+          if (typeof img === 'string' && img.startsWith('blob:')) {
+            URL.revokeObjectURL(img)
+          }
+        })
+        return { title: '', description: '', images: [], isPublished: true, publishedAt: null }
       })
-      return { title: '', description: '', images: [], isPublished: true, publishedAt: null }
-    })
-    setPendingFiles([])
-    setImageUrl('')
+      setPendingFiles([])
+      setImageUrl('')
+    }
     onCancel?.()
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="space-y-3 max-w-full overflow-x-hidden">
       <div>
         <label className="block text-sm mb-1">ชื่อกิจกรรม</label>
         <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />

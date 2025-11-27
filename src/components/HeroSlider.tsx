@@ -55,8 +55,8 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
             const list = await r.json() as unknown
             const mapped: Slide[] = Array.isArray(list)
               ? list
-                  .map(item => toSlide(item as ApiSlide))
-                  .filter((slide): slide is Slide => Boolean(slide))
+                .map(item => toSlide(item as ApiSlide))
+                .filter((slide): slide is Slide => Boolean(slide))
               : []
             if (mapped.length) setSlides(mapped)
             else if (!provided) setSlides(fallbackSlides)
@@ -94,57 +94,57 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
   }, [slides])
 
   return (
-    <div className="w-full md:py-0 py-6">
-      <div className="md:mx-0 mx-4">
-        <div className="relative w-full h-[280px] md:h-[60vh] overflow-hidden bg-slate-50 md:rounded-none rounded-2xl md:shadow-none shadow-lg md:border-0 border border-slate-200">
-        {slides.map((s, i) => {
-          const props = responsiveImageProps(s.src, { widths: [480, 768, 1024, 1440], crop: 'fit', sizes: '100vw' })
-          const bg = bgUrls[i]
-          return (
-            <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === idx ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-              {/* Blurred LQIP background behind the main image */}
-              {bg && (
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 z-0 pointer-events-none"
-                  style={{ backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(12px)', transform: 'scale(1.05)' }}
+    <div className="w-full">
+      <div>
+        <div className="relative w-full h-[25vh] md:h-[60vh] overflow-hidden bg-slate-50">
+          {slides.map((s, i) => {
+            const props = responsiveImageProps(s.src, { widths: [480, 768, 1024, 1440], crop: 'fit', sizes: '100vw' })
+            const bg = bgUrls[i]
+            return (
+              <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === idx ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                {/* Blurred LQIP background behind the main image */}
+                {bg && (
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{ backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(12px)', transform: 'scale(1.05)' }}
+                  />
+                )}
+                {/* Single foreground image */}
+                <img
+                  src={props.src || s.src}
+                  srcSet={props.srcSet}
+                  sizes={props.sizes}
+                  alt={s.alt || 'slide'}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  className={`absolute inset-0 z-10 h-full w-full object-contain object-center ${s.href ? 'cursor-pointer' : ''}`}
                 />
-              )}
-              {/* Single foreground image */}
-              <img
-                src={props.src || s.src}
-                srcSet={props.srcSet}
-                sizes={props.sizes}
-                alt={s.alt || 'slide'}
-                loading={i === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-                className={`absolute inset-0 z-10 h-full w-full object-contain object-center ${s.href ? 'cursor-pointer' : ''}`}
+                {s.href && (
+                  <a
+                    href={s.href}
+                    target={/^https?:\/\//i.test(s.href) ? '_blank' : undefined}
+                    rel={/^https?:\/\//i.test(s.href) ? 'noopener noreferrer' : undefined}
+                    className="absolute inset-0 z-20"
+                    aria-label={s.alt || s.caption || 'slide link'}
+                  />
+                )}
+              </div>
+            )
+          })}
+          {/* Caption overlay removed per request */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`slide ${i + 1}`}
+                onClick={() => setIdx(i)}
+                className={`h-3 w-3 rounded-full transition-colors ${i === idx ? 'bg-white' : 'bg-white/60 hover:bg-white/80'}`}
+                style={{ outline: 'none' }}
+                onFocus={() => { /* keep to allow focus-visible CSS to show */ }}
               />
-              {s.href && (
-                <a
-                  href={s.href}
-                  target={/^https?:\/\//i.test(s.href) ? '_blank' : undefined}
-                  rel={/^https?:\/\//i.test(s.href) ? 'noopener noreferrer' : undefined}
-                  className="absolute inset-0 z-20"
-                  aria-label={s.alt || s.caption || 'slide link'}
-                />
-              )}
-            </div>
-          )
-        })}
-        {/* Caption overlay removed per request */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              aria-label={`slide ${i + 1}`}
-              onClick={() => setIdx(i)}
-              className={`h-3 w-3 rounded-full transition-colors ${i === idx ? 'bg-white' : 'bg-white/60 hover:bg-white/80'}`}
-              style={{ outline: 'none' }}
-              onFocus={()=>{ /* keep to allow focus-visible CSS to show */ }}
-            />
-          ))}
-        </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

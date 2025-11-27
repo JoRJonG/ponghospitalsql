@@ -28,9 +28,9 @@ const hasDuplicateAttachment = (attachments: AnnouncementAttachment[] | undefine
   })
 }
 
-export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: () => void }) {
+export default function AnnouncementForm({ onCreated, onCancel, initialData }: { onCreated: () => void; onCancel?: () => void; initialData?: Announcement }) {
   const { getToken } = useAuth()
-  const [form, setForm] = useState<Announcement>({ title: '', category: 'ประชาสัมพันธ์', content: '', isPublished: true, attachments: [], publishedAt: null })
+  const [form, setForm] = useState<Announcement>(initialData || { title: '', category: 'ประชาสัมพันธ์', content: '', isPublished: true, attachments: [], publishedAt: null })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [stagedFiles, setStagedFiles] = useState<File[]>([])
@@ -91,7 +91,8 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
         return prev.filter(f => f.name !== target.name || f.size !== target.bytes)
       })
     }
-    if (target?.publicId) {
+    // If editing and target has publicId, delete from server
+    if (initialData?._id && target?.publicId) {
       fetch(`/api/uploads/image/${encodeURIComponent(target.publicId)}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } }).catch(err => {
         console.warn('ไม่สามารถลบไฟล์จากเซิร์ฟเวอร์ได้', err)
       })
@@ -102,24 +103,47 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
     e.preventDefault()
     setLoading(true)
     try {
-      // Create announcement WITHOUT files first (avoid large payload)
-      const payload: Announcement = {
-        title: sanitizeText(String(form.title || '')),
-        category: sanitizeText(String(form.category)) as Announcement['category'],
-        content: sanitizeHtml(form.content || ''),
-        isPublished: typeof form.isPublished === 'boolean' ? form.isPublished : true,
-        publishedAt: form.publishedAt ?? null,
-        attachments: [] // will attach files separately
+      let announcementId = initialData?._id
+      let r: Response
+
+      if (announcementId) {
+        // Edit mode: PUT
+        // Filter out staged attachments (blob:) from the payload, as they will be uploaded separately
+        const cleanAttachments = (form.attachments || []).filter(a => !a.url.startsWith('blob:'))
+        const payload: Announcement = {
+          ...form,
+          title: sanitizeText(String(form.title || '')),
+          category: sanitizeText(String(form.category)) as Announcement['category'],
+          content: sanitizeHtml(form.content || ''),
+          attachments: cleanAttachments
+        }
+        if (!payload.publishedAt) delete payload.publishedAt
+
+        r = await fetch(`/api/announcements/${announcementId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify(payload)
+        })
+      } else {
+        // Create mode: POST
+        const payload: Announcement = {
+          title: sanitizeText(String(form.title || '')),
+          category: sanitizeText(String(form.category)) as Announcement['category'],
+          content: sanitizeHtml(form.content || ''),
+          isPublished: typeof form.isPublished === 'boolean' ? form.isPublished : true,
+          publishedAt: form.publishedAt ?? null,
+          attachments: [] // will attach files separately
+        }
+
+        r = await fetch('/api/announcements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify(payload)
+        })
       }
 
-      const r = await fetch('/api/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-        body: JSON.stringify(payload)
-      })
-
       if (!r.ok) {
-        let msg = 'บันทึกประกาศไม่สำเร็จ'
+        let msg = announcementId ? 'บันทึกการแก้ไขไม่สำเร็จ' : 'บันทึกประกาศไม่สำเร็จ'
         try {
           const text = await r.text()
           if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
@@ -135,10 +159,12 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
         return
       }
 
-      const created = await r.json()
-      const announcementId = created.id || created._id
+      if (!announcementId) {
+        const created = await r.json()
+        announcementId = created.id || created._id
+      }
 
-      // Upload each staged file individually to avoid large payload
+      // Upload each staged file individually
       if (stagedFiles.length > 0 && announcementId) {
         for (let i = 0; i < stagedFiles.length; i++) {
           const file = stagedFiles[i]
@@ -154,14 +180,16 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
           if (!uploadR.ok) {
             const errText = await uploadR.text().catch(() => 'Unknown error')
             console.warn(`ไม่สามารถอัปโหลดไฟล์ ${file.name}:`, errText)
-            alert(`⚠️ ประกาศสร้างสำเร็จแล้ว แต่อัปโหลดไฟล์ "${file.name}" ไม่สำเร็จ\n\nกรุณาลองแก้ไขประกาศและเพิ่มไฟล์ใหม่`)
+            alert(`⚠️ บันทึกข้อมูลแล้ว แต่อัปโหลดไฟล์ "${file.name}" ไม่สำเร็จ\n\nกรุณาลองแก้ไขประกาศและเพิ่มไฟล์ใหม่`)
             break
           }
         }
       }
 
-      setForm({ title: '', category: form.category, content: '', isPublished: true, attachments: [], publishedAt: null })
-      setStagedFiles([])
+      if (!initialData) {
+        setForm({ title: '', category: form.category, content: '', isPublished: true, attachments: [], publishedAt: null })
+        setStagedFiles([])
+      }
       onCreated()
     } catch (err) {
       console.error('Submit error:', err)
@@ -177,7 +205,7 @@ export default function AnnouncementForm({ onCreated, onCancel }: { onCreated: (
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="space-y-3 max-w-full overflow-x-hidden">
       <div>
         <label className="block text-sm mb-1">หัวข้อ</label>
         <input value={form.title} onChange={e => setForm((prev: Announcement) => ({ ...prev, title: e.target.value }))} className="w-full rounded border px-3 py-2" required />

@@ -99,6 +99,11 @@ export default function RichTextEditor({ value, onChange, placeholder, className
             max-height: 400px !important;
             overflow-y: auto !important;
           }
+          /* Force toolbar wrapping on mobile */
+          .ql-toolbar {
+            flex-wrap: wrap !important;
+            display: flex !important;
+          }
         `}</style>
       )}
     </div>
