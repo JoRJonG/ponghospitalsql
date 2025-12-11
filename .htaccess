@@ -1,5 +1,38 @@
 # HARDEN PUBLIC ROOT ------------------------------------------------------
 
+# 0. WAF & Bot Protection
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block Bad User-Agents (Scanners, Bots)
+    RewriteCond %{HTTP_USER_AGENT} ^(sqlmap|nikto|wpscan|python-requests|libwww-perl) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (havij|absinthe|netsparker|appscan|burp|acunetix|hydra) [NC]
+    RewriteRule .* - [F,L]
+
+    # Block Suspicious Query Strings (SQLi, XSS, RCE)
+    RewriteCond %{QUERY_STRING} (union.*select|insert.*into|update.*set|delete.*from) [NC,OR]
+    RewriteCond %{QUERY_STRING} (base64_decode|eval\(|passwd|boot\.ini|/etc/shadow) [NC,OR]
+    RewriteCond %{QUERY_STRING} (<script>|javascript:|vbscript:|onload=|onerror=) [NC]
+    RewriteRule .* - [F,L]
+
+    # Block Common Vulnerability Scanner Paths
+    RewriteRule ^(wp-login\.php|xmlrpc\.php|composer\.json|package\.json|yarn\.lock)$ - [F,L]
+
+    # Block all PHP files (Node.js app doesn't use them)
+    RewriteRule \.php$ - [F,L]
+
+    # Block WordPress specific directories
+    RewriteRule ^(wp-admin|wp-content|wp-includes) - [F,L]
+
+    # Block Common Scan Directories
+    RewriteRule ^(wordpress|blog|old|new|backup|demo|test|site|cms|beta|kcfinder|plugins|administrator|ckeditor) - [F,L]
+</IfModule>
+
+# Block Request Methods (Allow only standard methods)
+<LimitExcept GET POST HEAD OPTIONS PUT DELETE PATCH>
+    Require all denied
+</LimitExcept>
+
 # 1. ปิดการดูรายการไฟล์ในโฟลเดอร์
 Options -Indexes
 
@@ -11,7 +44,7 @@ Options -Indexes
 # 3. บล็อกการเข้าถึงโฟลเดอร์โครงการสำคัญ (เช่น src, node_modules)
 RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.vscode)(?:/|$)
 
-# 4. การควบคุมการเข้าถึงทั้งหมด: บล็อก IP และ Geo-Blocking ในบล็อกเดียว
+# 4. การควบคุมการเข้าถึงทั้งหมด: บล็อก IP
 <RequireAll>
     # ก. อนุญาตให้ทุกคนเข้าถึง (ถ้าไม่ถูกปฏิเสธ)
     Require all granted
@@ -24,18 +57,21 @@ RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.vscode)(
     Require not ip 182.79.81.30
     Require not ip 43.159.152.184
     Require not ip 89.104.111.58
-
-    # ค. Geo-Blocking: บล็อกถ้าไม่ใช่ประเทศไทย (TH)
-    # เราต้องใช้ SetEnvIf ก่อน เพื่อสร้างตัวแปร BlockedCountry
-    <IfModule mod_geoip2.c>
-        SetEnvIf GEOIP2_COUNTRY_CODE !^TH$ BlockedCountry
-        Require not env BlockedCountry
-    </IfModule>
+    Require not ip 119.59.120.14
+    Require not ip 80.78.27.113
+    Require not ip 34.68.34.83
     
-    # หากใช้ GeoIP Legacy และต้องการสำรอง:
-    <IfModule mod_geoip.c>
-        SetEnvIf GEOIP_COUNTRY_CODE !^TH$ BlockedCountryLegacy
-        Require not env BlockedCountryLegacy
-    </IfModule>
+    # บล็อก Botnet อินโดนีเซีย (Telkomsel) ยกแผง
+    Require not ip 39.194.1
 
+    # บล็อก Botnet Cloud (AWS/GCP) ยกแผง subnet นี้
+    Require not ip 34.19.127
+
+    # เพิ่มใหม่: Botnet Cloud จาก Log ล่าสุด
+    Require not ip 34.19.116.52
+    Require not ip 8.34.210.55
+    Require not ip 52.207.253.250
+
+    # หมายเหตุ: เนื่องจากไม่มี mod_geoip จึงตัดส่วน Geo-Blocking ออก
+    # แนะนำให้ใช้ Cloudflare WAF หรือ Node.js Middleware ในการบล็อกประเทศแทน
 </RequireAll>
