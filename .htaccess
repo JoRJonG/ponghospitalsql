@@ -1,4 +1,4 @@
-# HARDEN PUBLIC ROOT ------------------------------------------------------
+# HARDEN PUBLIC ROOT (Updated by Gemini) ----------------------------------
 
 # 0. WAF & Bot Protection
 <IfModule mod_rewrite.c>
@@ -37,12 +37,13 @@
 Options -Indexes
 
 # 2. คืนค่า 403 สำหรับไฟล์ตั้งค่าที่ละเอียดอ่อน
-<FilesMatch "\.(env|lock|sql|ya?ml|ini|config|bak|ps1|sh)$">
+<FilesMatch "\.(env|lock|sql|ya?ml|ini|config|bak|ps1|sh|json)$">
     Require all denied
 </FilesMatch>
 
-# 3. บล็อกการเข้าถึงโฟลเดอร์โครงการสำคัญ (เช่น src, node_modules)
-RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.vscode)(?:/|$)
+# 3. บล็อกการเข้าถึงโฟลเดอร์โครงการสำคัญ และ Version Control ทั้งหมด
+# (เพิ่ม .svn, .hg, .bzr ตามที่เจอใน Log)
+RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg|\.bzr|\.vscode)(?:/|$)
 
 # 4. การควบคุมการเข้าถึงทั้งหมด: บล็อก IP
 <RequireAll>
@@ -64,14 +65,14 @@ RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.vscode)(
     # บล็อก Botnet อินโดนีเซีย (Telkomsel) ยกแผง
     Require not ip 39.194.1
 
-    # บล็อก Botnet Cloud (AWS/GCP) ยกแผง subnet นี้
+    # บล็อก Botnet Cloud (AWS/GCP) ยกแผง subnet
     Require not ip 34.19.127
-
-    # เพิ่มใหม่: Botnet Cloud จาก Log ล่าสุด
-    Require not ip 34.19.116.52
+    
+    # [แก้ไข] บล็อก Botnet Cloud ชุดล่าสุด (ครอบคลุม .52, .60, .54)
+    Require not ip 34.19.116
+    
     Require not ip 8.34.210.55
     Require not ip 52.207.253.250
 
-    # หมายเหตุ: เนื่องจากไม่มี mod_geoip จึงตัดส่วน Geo-Blocking ออก
-    # แนะนำให้ใช้ Cloudflare WAF หรือ Node.js Middleware ในการบล็อกประเทศแทน
+    # Geo-Blocking: แนะนำใช้ Cloudflare ตามที่คอมเมนต์ไว้ ถูกต้องแล้วครับ
 </RequireAll>
