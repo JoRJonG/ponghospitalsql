@@ -15,21 +15,21 @@ interface SWROptions {
     refreshInterval?: number // milliseconds
     staleTime?: number // milliseconds - เวลาที่ข้อมูลถือว่า "สด"
     cacheTime?: number // milliseconds - เวลาที่เก็บ cache
-    onSuccess?: (data: any) => void
+    onSuccess?: (data: unknown) => void
     onError?: (error: Error) => void
 }
 
 // Global cache สำหรับเก็บข้อมูล
-const cache = new Map<string, CacheEntry<any>>()
+const cache = new Map<string, CacheEntry<unknown>>()
 
 // Global map สำหรับ track ongoing requests (deduplication)
-const ongoingRequests = new Map<string, Promise<any>>()
+const ongoingRequests = new Map<string, Promise<unknown>>()
 
 /**
  * Custom hook สำหรับ data fetching พร้อม caching และ revalidation
  * ใช้ stale-while-revalidate strategy เพื่อแสดงข้อมูลเก่าก่อน แล้วค่อย update
  */
-export function useSWR<T = any>(
+export function useSWR<T = unknown>(
     key: string | null,
     fetcher: () => Promise<T>,
     options: SWROptions = {}
@@ -50,7 +50,7 @@ export function useSWR<T = any>(
         if (key) {
             const cached = cache.get(key)
             if (cached && Date.now() - cached.timestamp < cacheTime) {
-                return cached.data
+                return cached.data as T
             }
         }
         return undefined
@@ -78,7 +78,7 @@ export function useSWR<T = any>(
                 try {
                     const result = await ongoingRequests.get(key)
                     if (mountedRef.current) {
-                        setData(result)
+                        setData(result as T)
                         setError(undefined)
                     }
                     return

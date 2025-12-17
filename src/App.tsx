@@ -30,6 +30,7 @@ const ItaItemPage = lazy(() => import('./pages/ItaItemPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage'))
 const BlockedPage = lazy(() => import('./pages/BlockedPage'))
+const RateLimitError = lazy(() => import('./pages/RateLimitError'))
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth()
@@ -111,6 +112,7 @@ function App() {
                         <Route path="/admin/*" element={<RequireAuth><AdminPage /></RequireAuth>} />
                         <Route path="/403" element={<ForbiddenPage />} />
                         <Route path="/blocked" element={<BlockedPage />} />
+                        <Route path="/rate-limit" element={<RateLimitError />} />
                         <Route path="*" element={<NotFoundPage />} />
                       </Routes>
                     </Suspense>
