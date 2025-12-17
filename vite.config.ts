@@ -61,8 +61,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       // เพิ่ม chunk size warning limit
       chunkSizeWarningLimit: 800,
-      // ใช้ esbuild สำหรับ minification (เร็วกว่า terser)
-      minify: 'esbuild',
+      // ใช้ default minifier ของ rolldown (เร็วกว่า esbuild)
       target: 'es2015',
     },
   }
