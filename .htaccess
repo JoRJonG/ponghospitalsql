@@ -1,0 +1,152 @@
+# ==============================================================================
+# ponghospital - Ultimate Security Configuration (Merged)
+# ==============================================================================
+
+# ----------------------------------------------------------------------
+# | 1. BLOCKING & WAF (หยุดผู้รุกรานก่อนเป็นอันดับแรก)
+# ----------------------------------------------------------------------
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1.1 Block Bad User-Agents (พวกโปรแกรมสแกน)
+    RewriteCond %{HTTP_USER_AGENT} ^(sqlmap|nikto|wpscan|python-requests|libwww-perl) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (havij|absinthe|netsparker|appscan|burp|acunetix|hydra) [NC]
+    RewriteRule .* - [F,L]
+
+    # 1.2 Block Suspicious Query Strings (ป้องกัน SQLi, XSS, RCE)
+    RewriteCond %{QUERY_STRING} (union.*select|insert.*into|update.*set|delete.*from) [NC,OR]
+    RewriteCond %{QUERY_STRING} (base64_decode|eval\(|passwd|boot\.ini|/etc/shadow) [NC,OR]
+    RewriteCond %{QUERY_STRING} (<script>|javascript:|vbscript:|onload=|onerror=) [NC]
+    RewriteRule .* - [F,L]
+    
+    # 1.3 Block Common Vulnerability Scanner Paths (ไฟล์ที่ Hacker ชอบหา)
+    RewriteRule ^(wp-login\.php|xmlrpc\.php|composer\.json|package\.json|yarn\.lock)$ - [F,L]
+    
+    # 1.4 Block WordPress specific directories (ถ้าไม่ใช่ WP บล็อกไปเลย)
+    RewriteRule ^(wp-admin|wp-content|wp-includes) - [F,L]
+    
+    # 1.5 Block Common Scan Directories
+    RewriteRule ^(wordpress|blog|old|new|backup|demo|test|site|cms|beta|kcfinder|plugins|administrator|ckeditor) - [F,L]
+
+    # 1.6 Block Directory Traversal
+    RewriteCond %{QUERY_STRING} \.\.\/ [NC,OR]
+    RewriteCond %{QUERY_STRING} \.\.\\ [NC]
+    RewriteRule .* - [F,L]
+
+    # !!! WARNING: ถ้าโปรเจกต์นี้ใช้ PHP ให้ลบ 2 บรรทัดล่างนี้ออก !!!
+    # Block all PHP files (สำหรับ Node.js app ที่ไม่ใช้ PHP เลย)
+    RewriteRule \.php$ - [F,L]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# | 2. IP BLOCKING & METHOD CONTROL
+# ----------------------------------------------------------------------
+
+# Block Request Methods (อนุญาตแค่มาตรฐาน)
+<LimitExcept GET POST HEAD OPTIONS PUT DELETE PATCH>
+    Require all denied
+</LimitExcept>
+
+# การควบคุม IP (รวมรายการ Blacklist ล่าสุดของคุณ)
+<RequireAll>
+    Require all granted
+    
+    # Block Specific IPs
+    Require not ip 54.155.140.84
+    Require not ip 2a06:98c0:3600::103
+    Require not ip 104.131.189.0
+    Require not ip 213.108.0.73
+    Require not ip 182.79.81.30
+    Require not ip 43.159.152.184
+    Require not ip 89.104.111.58
+    Require not ip 119.59.120.14
+    Require not ip 80.78.27.113
+    Require not ip 34.68.34.83
+    
+    # Block Botnets/Subnets
+    Require not ip 39.194.1
+    Require not ip 34.19.127
+    Require not ip 34.19.116
+    Require not ip 8.34.210.55
+    Require not ip 52.207.253.250
+</RequireAll>
+
+# ----------------------------------------------------------------------
+# | 3. FILE SYSTEM PROTECTION
+# ----------------------------------------------------------------------
+
+# ปิดการแสดงรายการไฟล์
+Options -Indexes
+
+# บล็อกไฟล์ Sensitive และ System Files (รวมจากทั้ง 2 แบบ)
+<FilesMatch "^\.(?!well-known)">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(package\.json|package-lock\.json|yarn\.lock|\.env|\.env\..*|\.git.*|\.htpasswd|web\.config|phpinfo\.php)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(bak|backup|log|sql|sqlite|old|orig|save|tmp|ps1|sh|yaml|yml|config|ini)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(map|ts|tsx)$">
+    Require all denied
+</FilesMatch>
+
+# ป้องกัน access โฟลเดอร์สำคัญ (Node modules, Source code)
+RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg|\.bzr|\.vscode)(?:/|$)
+
+# ----------------------------------------------------------------------
+# | 4. SECURITY HEADERS (เพิ่มเกราะป้องกัน Browser)
+# ----------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+    
+    # Remove server info
+    Header unset X-Powered-By
+    Header unset Server
+    
+    # Cookie Security
+    Header edit Set-Cookie ^(.*)$ "$1; HttpOnly; SameSite=Lax"
+</IfModule>
+
+# ----------------------------------------------------------------------
+# | 5. PERFORMANCE & CACHING (ทำให้เว็บเร็ว)
+# ----------------------------------------------------------------------
+
+<IfModule mod_mime.c>
+    AddType application/javascript js mjs
+    AddType application/json json
+    AddType image/svg+xml svg svgz
+    AddEncoding gzip svgz
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Cache static assets (1 Year)
+    <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    
+    # Don't cache HTML (Always fresh)
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+</IfModule>

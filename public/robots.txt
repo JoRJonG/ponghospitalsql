@@ -1,0 +1,21 @@
+# robots.txt for โรงพยาบาลปง (Pong Hospital)
+# https://ponghospital.moph.go.th
+
+# Allow all search engines to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /login
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Allow Google Image Bot to access images
+User-agent: Googlebot-Image
+Allow: /assets/
+Allow: /uploads/
+
+# Sitemap location
+Sitemap: https://ponghospital.moph.go.th/sitemap.xml
