@@ -1,0 +1,32 @@
+# .htaccess for Pong Hospital Website
+# กำหนด Content-Type ที่ถูกต้องสำหรับ sitemap และ robots.txt
+
+# ตั้งค่า MIME type สำหรับ sitemap.xml
+<Files "sitemap.xml">
+    Header set Content-Type "application/xml; charset=UTF-8"
+    Header set X-Robots-Tag "noindex, follow"
+</Files>
+
+# ตั้งค่า MIME type สำหรับ robots.txt
+<Files "robots.txt">
+    Header set Content-Type "text/plain; charset=UTF-8"
+</Files>
+
+# กำหนด MIME types สำหรับไฟล์ XML ทั้งหมด
+<IfModule mod_mime.c>
+    AddType application/xml .xml
+    AddType text/xml .xml
+</IfModule>
+
+# Enable CORS สำหรับ sitemap (ถ้าจำเป็น)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(xml)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+</IfModule>
+
+# Compression สำหรับ sitemap
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE text/xml
+</IfModule>

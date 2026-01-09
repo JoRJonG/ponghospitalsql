@@ -16,7 +16,14 @@ export default defineConfig(({ mode }) => {
           proxyTimeout: 0,
         },
       },
+      // ตั้งค่า middleware เพื่อส่ง Content-Type ที่ถูกต้องสำหรับ sitemap และ robots.txt
+      middlewareMode: false,
+      headers: {
+        'Cache-Control': 'no-cache',
+      },
     },
+    // กำหนด MIME types สำหรับไฟล์พิเศษ
+    assetsInclude: ['**/*.xml'],
     build: {
       rollupOptions: {
         output: {
