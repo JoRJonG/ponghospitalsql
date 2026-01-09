@@ -190,7 +190,7 @@ export default function ActivitiesListPage() {
             {items.map(a => {
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
-                || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=800&auto=format&fit=crop'
+                || '/favicon.png'
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill' })
               return (
                 <Link to={`/activities/${a._id}`} key={a._id} className="block bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden">
@@ -221,7 +221,7 @@ export default function ActivitiesListPage() {
             {items.map(a => {
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
-                || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=800&auto=format&fit=crop'
+                || '/favicon.png'
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
               return (
                 <Link to={`/activities/${a._id}`} key={a._id} className="group block">

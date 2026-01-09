@@ -2301,7 +2301,7 @@ function ActivitiesList({ list, page, totalPages, onPageChange, onEditSaved, onD
             <div key={a._id} className="card overflow-hidden">
               <div className="card-body flex flex-col gap-3 sm:flex-row">
                 <img
-                  src={src || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=400&auto=format&fit=crop'}
+                  src={src || '/favicon.png'}
                   loading="lazy"
                   decoding="async"
                   width={288}

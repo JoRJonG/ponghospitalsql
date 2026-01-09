@@ -80,7 +80,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
           {items.map(a => {
             const first = a.images && a.images.length ? a.images[0] : undefined
             const img = typeof first === 'string' ? first : first?.url
-              || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=800&auto=format&fit=crop'
+              || '/favicon.png'
             const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
 
             const categoryColors: Record<string, { bg: string; text: string }> = {
@@ -177,7 +177,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
             {items.map(a => {
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
-                || 'https://images.unsplash.com/photo-1584982751630-89b231fda6b1?q=80&w=800&auto=format&fit=crop'
+                || '/favicon.png'
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
               return (
                 <Link to={`/activities/${a._id}`} key={a._id} className="card overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-0 shadow-lg">
