@@ -35,8 +35,16 @@
     RewriteRule .* - [F,L]
 
     # อนุญาตให้ใช้ PHP สำหรับ sitemap.php และไฟล์ที่จำเป็น
+    
+    # ลบ X-Robots-Tag header สำหรับ sitemap.xml เพื่อให้ Google Search Console สามารถดึงข้อมูลได้
+    RewriteRule ^sitemap\.xml$ - [E=norobots:1]
 
 </IfModule>
+
+# ลบ X-Robots-Tag header สำหรับ sitemap.xml
+<FilesMatch "sitemap\.xml$">
+    Header unset X-Robots-Tag
+</FilesMatch>
 
 # ----------------------------------------------------------------------
 # | 2. IP BLOCKING & METHOD CONTROL
