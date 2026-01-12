@@ -240,7 +240,11 @@ export async function createServer() {
   // Serve built frontend (Vite output) if present
   app.use(express.static(distPath, {
     setHeaders: (res, filePath) => {
-      if (filePath.endsWith('index.html')) {
+      // ลบ X-Robots-Tag header สำหรับ sitemap.xml เพื่อให้ Google Search Console สามารถดึงข้อมูลได้
+      if (filePath.endsWith('sitemap.xml')) {
+        res.removeHeader('X-Robots-Tag')
+        res.setHeader('Cache-Control', 'public, max-age=3600') // Cache 1 hour
+      } else if (filePath.endsWith('index.html')) {
         res.setHeader('Cache-Control', 'no-cache')
       } else if (filePath.includes('assets')) {
         // Hashed assets -> 1 year
@@ -251,6 +255,7 @@ export async function createServer() {
       }
     }
   }))
+
 
   // SPA fallback: send index.html for non-API GET requests (Express v5-safe)
   app.use((req, res, next) => {
