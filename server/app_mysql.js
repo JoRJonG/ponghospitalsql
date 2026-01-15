@@ -20,6 +20,7 @@ import visitorsRouter from './routes/visitors.js'
 import popupsRouter from './routes/popups.js'
 import systemRouter from './routes/system.js'
 import usersRouter from './routes/users.js'
+import feedbackRouter from './routes/feedback.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
 import { preventHpp, xssSanitizer } from './middleware/security.js'
 import { trackVisitors } from './middleware/visitorTracker.js'
@@ -168,6 +169,7 @@ export async function createServer() {
   app.use('/api/popups', popupsRouter)
   app.use('/api/system', systemRouter)
   app.use('/api/users', usersRouter)
+  app.use('/api/feedback', feedbackRouter)
 
   // Visitor tracking middleware (must be after API routes)
   app.use(trackVisitors)

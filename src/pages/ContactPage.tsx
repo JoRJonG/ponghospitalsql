@@ -1,6 +1,107 @@
 import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { useToast } from '../contexts/ToastContext'
 
 export default function ContactPage() {
+  const { showToast } = useToast()
+
+  // State สำหรับฟอร์มความคิดเห็น
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // ฟังก์ชัน validation
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'กรุณากรอกชื่อ'
+    } else if (formData.name.length > 100) {
+      newErrors.name = 'ชื่อต้องไม่เกิน 100 ตัวอักษร'
+    }
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง'
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = 'กรุณากรอกหัวข้อ'
+    } else if (formData.subject.length > 200) {
+      newErrors.subject = 'หัวข้อต้องไม่เกิน 200 ตัวอักษร'
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = 'กรุณากรอกข้อความ'
+    } else if (formData.message.length < 10) {
+      newErrors.message = 'ข้อความต้องมีอย่างน้อย 10 ตัวอักษร'
+    } else if (formData.message.length > 5000) {
+      newErrors.message = 'ข้อความต้องไม่เกิน 5000 ตัวอักษร'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  // ฟังก์ชันส่งฟอร์ม
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) {
+      showToast('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        showToast('ส่งความคิดเห็นสำเร็จ ขอบคุณที่ให้ความสนใจ', 'success')
+        // รีเซ็ตฟอร์ม
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        })
+        setErrors({})
+      } else {
+        showToast(data.error || 'เกิดข้อผิดพลาดในการส่งข้อมูล', 'error')
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error)
+      showToast('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // ฟังก์ชันจัดการการเปลี่ยนแปลงข้อมูล
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // ลบ error เมื่อผู้ใช้เริ่มพิมพ์
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }))
+    }
+  }
+
   // Easily editable contact details
   const phoneMain = '054-497030'
   const phoneFax = '054-497289'
@@ -153,7 +254,170 @@ export default function ContactPage() {
         </motion.section>
       </div>
 
-      {/* Contact form removed per request */}
+      {/* Feedback Form Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+        className="mt-8 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm p-6"
+      >
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <span className="text-emerald-600" aria-hidden>💬</span>
+            ช่องรับฟังความคิดเห็น
+          </h2>
+          <p className="mt-2 text-gray-600">
+            เราให้ความสำคัญกับความคิดเห็นของคุณ กรุณาแบ่งปันประสบการณ์ ข้อเสนอแนะ หรือคำถามต่างๆ เพื่อให้เราสามารถพัฒนาการบริการได้ดีขึ้น
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid md:grid-cols-2 gap-5">
+            {/* ชื่อ */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
+                ชื่อ-นามสกุล <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className={`w-full px-4 py-2.5 rounded-lg border ${errors.name ? 'border-rose-300 bg-rose-50' : 'border-gray-200'
+                  } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
+                placeholder="กรอกชื่อ-นามสกุล"
+                maxLength={100}
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-rose-600 flex items-center gap-1">
+                  <i className="fa-solid fa-circle-exclamation" aria-hidden />
+                  {errors.name}
+                </p>
+              )}
+            </div>
+
+            {/* อีเมล */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                อีเมล
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full px-4 py-2.5 rounded-lg border ${errors.email ? 'border-rose-300 bg-rose-50' : 'border-gray-200'
+                  } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
+                placeholder="example@email.com"
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-rose-600 flex items-center gap-1">
+                  <i className="fa-solid fa-circle-exclamation" aria-hidden />
+                  {errors.email}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* เบอร์โทร */}
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">
+              เบอร์โทรศัพท์
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+              placeholder="0XX-XXX-XXXX"
+              maxLength={20}
+            />
+          </div>
+
+          {/* หัวข้อ */}
+          <div>
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1.5">
+              หัวข้อ <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="subject"
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              className={`w-full px-4 py-2.5 rounded-lg border ${errors.subject ? 'border-rose-300 bg-rose-50' : 'border-gray-200'
+                } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
+              placeholder="เช่น ข้อเสนอแนะการบริการ, คำถามเกี่ยวกับสิทธิการรักษา"
+              maxLength={200}
+            />
+            {errors.subject && (
+              <p className="mt-1 text-sm text-rose-600 flex items-center gap-1">
+                <i className="fa-solid fa-circle-exclamation" aria-hidden />
+                {errors.subject}
+              </p>
+            )}
+          </div>
+
+          {/* ข้อความ */}
+          <div>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
+              ข้อความ <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={6}
+              className={`w-full px-4 py-2.5 rounded-lg border ${errors.message ? 'border-rose-300 bg-rose-50' : 'border-gray-200'
+                } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none`}
+              placeholder="กรุณาแบ่งปันความคิดเห็น ข้อเสนอแนะ หรือคำถามของคุณ..."
+              maxLength={5000}
+            />
+            <div className="mt-1 flex items-center justify-between">
+              {errors.message ? (
+                <p className="text-sm text-rose-600 flex items-center gap-1">
+                  <i className="fa-solid fa-circle-exclamation" aria-hidden />
+                  {errors.message}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500">ข้อความต้องมีอย่างน้อย 10 ตัวอักษร</p>
+              )}
+              <p className="text-sm text-gray-400">
+                {formData.message.length}/5000
+              </p>
+            </div>
+          </div>
+
+          {/* ปุ่มส่ง */}
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-gray-500">
+              <span className="text-rose-500">*</span> จำเป็นต้องกรอก
+            </p>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn btn-primary min-w-[160px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <>
+                  <i className="fa-solid fa-spinner fa-spin" aria-hidden />
+                  กำลังส่ง...
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-paper-plane" aria-hidden />
+                  ส่งความคิดเห็น
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </motion.section>
     </div>
   )
 }

@@ -14,8 +14,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = Math.random().toString(36).substring(2, 9)
     const newToast: Toast = {
       id,
-      duration: 2000,
       ...toast,
+      duration: toast.duration ?? 2000, // ใช้ 2000ms ถ้าไม่ได้ระบุ duration
     }
     setToasts(prev => [...prev, newToast])
   }, [])

@@ -18,6 +18,7 @@ import UserManagement, { type UserManagementHandle } from '../../components/admi
 import DisplayModeSettings from '../../components/admin/DisplayModeSettings'
 import UserSettings from '../../components/admin/UserSettings'
 import Modal from '../../components/admin/Modal'
+import FeedbackManagement from '../../components/admin/FeedbackManagement'
 
 // Types
 // ----------------------------------------------------------------------------
@@ -97,10 +98,10 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'ita' | 'users' | 'settings-display' | 'settings-user'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'ita' | 'users' | 'feedback' | 'settings-display' | 'settings-user'
 
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita', 'settings-display', 'settings-user'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita', 'feedback', 'settings-display', 'settings-user'] as const
 const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -184,6 +185,7 @@ export default function AdminPage() {
     infographics: hasPermission('infographics'),
     ita: hasPermission('ita'),
     users: hasPermission('users'),
+    feedback: hasPermission('feedback') || hasPermission('admin'),
     admin: hasPermission('admin'),
     system: hasPermission('system'),
   }), [hasPermission])
@@ -211,6 +213,7 @@ export default function AdminPage() {
       infographic: permissions.infographics,
       ita: permissions.ita,
       users: permissions.users,
+      feedback: permissions.feedback,
       'settings-display': permissions.system,
       'settings-user': true,
     }
@@ -218,7 +221,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (allowedTabs[tab]) return
-    const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita', 'settings-display', 'settings-user']
+    const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita', 'feedback', 'settings-display', 'settings-user']
     const nextTab = preferredOrder.find(key => allowedTabs[key]) || 'intro'
     if (nextTab !== tab) {
       setTab(nextTab)
@@ -229,7 +232,6 @@ export default function AdminPage() {
   const canManageActivities = allowedTabs.activity
   const canManageSlides = allowedTabs.slide
   const canManageUnits = allowedTabs.unit
-  const canManageUsers = allowedTabs.users
 
   // Simple per-tab search query
   const [query, setQuery] = useState<{ announce: string; activity: string; slide: string; unit: string }>({ announce: '', activity: '', slide: '', unit: '' })
@@ -653,6 +655,22 @@ export default function AdminPage() {
               </button>
             )}
 
+            {allowedTabs.feedback && (
+              <button
+                onClick={() => {
+                  setTab('feedback')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'feedback'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
+              >
+                <span className="text-xl">💬</span>
+                <span>ความคิดเห็น</span>
+              </button>
+            )}
+
             {/* Settings Section */}
             <div className="pt-2 mt-2 border-t border-gray-200">
               <div className="text-xs font-semibold text-gray-500 px-4 py-2 uppercase tracking-wider">ตั้งค่า</div>
@@ -732,6 +750,7 @@ export default function AdminPage() {
                     {tab === 'infographic' && 'จัดการ Infographic'}
                     {tab === 'ita' && 'จัดการ ITA'}
                     {tab === 'users' && 'จัดการผู้ใช้'}
+                    {tab === 'feedback' && 'จัดการความคิดเห็น'}
                     {tab === 'settings-display' && 'ตั้งค่าการแสดงผลเว็บไซต์'}
                     {tab === 'settings-user' && 'ตั้งค่าผู้ใช้'}
                   </h1>
@@ -747,6 +766,7 @@ export default function AdminPage() {
                     {tab === 'infographic' && 'จัดการรูปภาพ Infographic แบบเรียงกัน'}
                     {tab === 'ita' && 'จัดการข้อมูล ITA'}
                     {tab === 'users' && 'เพิ่ม แก้ไข ลบผู้ใช้ และกำหนดสิทธิ์การเข้าถึง'}
+                    {tab === 'feedback' && 'ดู ตอบกลับ และจัดการความคิดเห็นจากผู้ใช้งาน'}
                     {tab === 'settings-display' && 'เลือกรูปแบบสีที่ต้องการแสดงให้ผู้เข้าชมเห็นบนทุกหน้า'}
                     {tab === 'settings-user' && 'เปลี่ยนรหัสผ่านและจัดการบัญชีผู้ดูแลระบบ'}
                   </p>
@@ -986,98 +1006,7 @@ export default function AdminPage() {
                     )}
                   </div>
 
-                  {/* Quick Actions */}
-                  <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="text-lg lg:text-xl">⚡</span>
-                      การดำเนินการด่วน
-                    </h3>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                      {canManageAnnouncements && (
-                        <button
-                          onClick={() => {
-                            setTab('announce')
-                            setSidebarOpen(false)
-                            setShowAnnouncementForm(true)
-                            setShowActivityForm(false)
-                            setShowUnitForm(false)
-                          }}
-                          className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors group"
-                        >
-                          <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
-                            <span className="text-sm lg:text-base">📝</span>
-                          </div>
-                          <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มประกาศ</span>
-                        </button>
-                      )}
 
-                      {canManageActivities && (
-                        <button
-                          onClick={() => {
-                            setTab('activity')
-                            setSidebarOpen(false)
-                            setShowActivityForm(true)
-                            setShowAnnouncementForm(false)
-                            setShowUnitForm(false)
-                          }}
-                          className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors group"
-                        >
-                          <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-emerald-100 group-hover:bg-emerald-200 transition-colors">
-                            <span className="text-sm lg:text-base">📸</span>
-                          </div>
-                          <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มกิจกรรม</span>
-                        </button>
-                      )}
-
-                      {canManageSlides && (
-                        <button
-                          onClick={() => { setTab('slide'); setSidebarOpen(false) }}
-                          className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group"
-                        >
-                          <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors">
-                            <span className="text-sm lg:text-base">🖼️</span>
-                          </div>
-                          <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มสไลด์</span>
-                        </button>
-                      )}
-
-                      {canManageUnits && (
-                        <button
-                          onClick={() => {
-                            setTab('unit')
-                            setSidebarOpen(false)
-                            setShowUnitForm(true)
-                            setShowAnnouncementForm(false)
-                            setShowActivityForm(false)
-                          }}
-                          className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors group"
-                        >
-                          <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-orange-100 group-hover:bg-orange-200 transition-colors">
-                            <span className="text-sm lg:text-base">🏢</span>
-                          </div>
-                          <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">เพิ่มหน่วยงาน</span>
-                        </button>
-                      )}
-
-                      {canManageUsers && (
-                        <button
-                          onClick={() => { setTab('users'); setSidebarOpen(false) }}
-                          className="flex flex-col items-center gap-2 p-3 lg:p-4 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-colors group"
-                        >
-                          <div className="inline-flex h-8 lg:h-10 w-8 lg:w-10 items-center justify-center rounded-lg bg-indigo-100 group-hover:bg-indigo-200 transition-colors">
-                            <span className="text-sm lg:text-base">👥</span>
-                          </div>
-                          <span className="text-xs lg:text-sm font-medium text-gray-700 text-center">จัดการผู้ใช้</span>
-                        </button>
-                      )}
-
-                      {!canManageAnnouncements && !canManageActivities && !canManageSlides && !canManageUnits && !canManageUsers && (
-                        <div className="col-span-full text-center text-gray-500 bg-white border border-dashed border-gray-200 rounded-xl py-6">
-                          ยังไม่มีสิทธิ์ดำเนินการด่วนในส่วนนี้
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </motion.div>
               ) : tab === 'users' ? (
                 <motion.div
@@ -1477,6 +1406,17 @@ export default function AdminPage() {
                   className="space-y-4 lg:space-y-6"
                 >
                   <ItaManagement ref={itaRef} />
+                </motion.div>
+              ) : tab === 'feedback' ? (
+                <motion.div
+                  key="feedback"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4 lg:space-y-6"
+                >
+                  <FeedbackManagement />
                 </motion.div>
               ) : null}
             </AnimatePresence>
