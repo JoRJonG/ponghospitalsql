@@ -44,6 +44,10 @@ export default function ContactPage() {
       newErrors.message = 'ข้อความต้องไม่เกิน 5000 ตัวอักษร'
     }
 
+    if (formData.phone && !/^[0-9\s\-\(\)\+]+$/.test(formData.phone)) {
+      newErrors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง (อนุญาตเฉพาะตัวเลขและเครื่องหมาย - ( ) +)'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -53,7 +57,11 @@ export default function ContactPage() {
     e.preventDefault()
 
     if (!validateForm()) {
-      showToast('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error')
+      showToast('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', undefined, 'error')
+      setErrors(prev => ({
+        ...prev,
+        // เพิ่ม error ถ้ายังไม่มี เพื่อให้แน่ใจว่าผู้ใช้เห็น
+      }))
       return
     }
 
@@ -71,7 +79,7 @@ export default function ContactPage() {
       const data = await response.json()
 
       if (response.ok) {
-        showToast('ส่งความคิดเห็นสำเร็จ ขอบคุณที่ให้ความสนใจ', 'success')
+        showToast('ส่งความคิดเห็นสำเร็จ ขอบคุณที่ให้ความสนใจ', undefined, 'success')
         // รีเซ็ตฟอร์ม
         setFormData({
           name: '',
@@ -82,11 +90,11 @@ export default function ContactPage() {
         })
         setErrors({})
       } else {
-        showToast(data.error || 'เกิดข้อผิดพลาดในการส่งข้อมูล', 'error')
+        showToast(data.error || 'เกิดข้อผิดพลาดในการส่งข้อมูล', undefined, 'error')
       }
     } catch (error) {
       console.error('Error submitting feedback:', error)
-      showToast('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error')
+      showToast('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', undefined, 'error')
     } finally {
       setIsSubmitting(false)
     }
