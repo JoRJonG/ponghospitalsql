@@ -40,6 +40,7 @@ export default function FeedbackManagement() {
     // Filters & Pagination
     const [statusFilter, setStatusFilter] = useState<string>('all')
     const [searchQuery, setSearchQuery] = useState('')
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
     const [page, setPage] = useState(1)
     const [limit, setLimit] = useState(20)
     const [totalItems, setTotalItems] = useState(0)
@@ -56,8 +57,8 @@ export default function FeedbackManagement() {
                 params.append('status', statusFilter)
             }
 
-            if (searchQuery) {
-                params.append('search', searchQuery)
+            if (debouncedSearchQuery) {
+                params.append('search', debouncedSearchQuery)
             }
 
             // คำนวณ offset
@@ -133,14 +134,28 @@ export default function FeedbackManagement() {
         }
     }
 
+    // Debounce search query
     useEffect(() => {
-        // รีเซ็ตหน้าเมื่อ filter เปลี่ยน
-        setPage(1)
-    }, [statusFilter, searchQuery, limit])
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery)
+            // รีเซ็ตหน้าเมื่อค้นหาเปลี่ยน
+            if (searchQuery !== debouncedSearchQuery) {
+                setPage(1)
+            }
+        }, 500) // รอ 500ms หลังจากพิมพ์เสร็จ
 
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
+    // รีเซ็ตหน้าเมื่อ filter เปลี่ยน
+    useEffect(() => {
+        setPage(1)
+    }, [statusFilter, limit])
+
+    // Fetch feedbacks เมื่อ dependencies เปลี่ยน
     useEffect(() => {
         fetchFeedbacks()
-    }, [page, statusFilter, searchQuery, limit])
+    }, [page, statusFilter, debouncedSearchQuery, limit])
 
     useEffect(() => {
         fetchStats()
@@ -420,8 +435,8 @@ export default function FeedbackManagement() {
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                             disabled={page === 1}
                             className={`px-3 py-1 rounded-md text-sm font-medium ${page === 1
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                                 }`}
                         >
                             ก่อนหน้า
@@ -435,8 +450,8 @@ export default function FeedbackManagement() {
                             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                             disabled={page === totalPages || totalPages === 0}
                             className={`px-3 py-1 rounded-md text-sm font-medium ${page === totalPages || totalPages === 0
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                                 }`}
                         >
                             ถัดไป
