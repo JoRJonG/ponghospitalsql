@@ -1,6 +1,8 @@
 
+
 import Unit from '../models/mysql/UnitBlob.js'
 import { userHasPermission } from '../middleware/auth.js'
+import { toPublicDTOList, toAdminDTOList } from '../dto/UnitDTO.js'
 
 export const UnitController = {
     async index(req, res) {
@@ -37,6 +39,9 @@ export const UnitController = {
 
             const list = await Unit.find(query, options)
 
+            // กรองข้อมูลด้วย DTO
+            const filteredList = canManage ? toAdminDTOList(list) : toPublicDTOList(list)
+
             if (limitVal > 0) {
                 // Assume countDocuments exists or we add it to Unit model (checking model next)
                 // If not exists, we might need to implement it in UnitBlob.js or use length if tiny
@@ -52,7 +57,7 @@ export const UnitController = {
                 }
             }
 
-            res.json(list)
+            res.json(filteredList)
         } catch (e) {
             const msg = String(e?.message || '')
             if (/not allowed to do action \[find\]/i.test(msg)) {

@@ -8,6 +8,7 @@ import { createRateLimiter } from '../middleware/ratelimit.js'
 import { decodeUploadFilename } from '../utils/filename.js'
 import { pool } from '../database.js'
 import { sanitizeText } from '../utils/sanitization.js'
+import { toPublicDTO, toAdminDTO } from '../dto/SlideDTO.js'
 
 import { SlideController } from '../controllers/SlideController.js'
 
@@ -74,6 +75,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
   try {
     const doc = await Slide.findById(req.params.id)
     if (!doc) return res.status(404).json({ error: 'Not found' })
+    // ส่งข้อมูลเต็มสำหรับ detail page (ไม่ใช้ DTO เพราะต้องการข้อมูลครบถ้วน)
     res.json(doc)
   } catch (e) {
     console.error('Error fetching slide:', e)
@@ -126,7 +128,9 @@ router.post('/', requireAuth, requirePermission('slides'), upload.single('image'
     }
 
     const doc = await Slide.create(slideData)
-    res.status(201).json(doc)
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(doc)
+    res.status(201).json(adminData)
   } catch (e) {
     console.error('Error creating slide:', e)
     res.status(400).json({ error: 'Failed to create slide', details: e?.message })
@@ -182,7 +186,9 @@ router.put('/:id', requireAuth, requirePermission('slides'), upload.single('imag
     }
 
     const doc = await Slide.updateById(req.params.id, updateData)
-    res.json(doc)
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(doc)
+    res.json(adminData)
   } catch (e) {
     console.error('Error updating slide:', e)
     res.status(400).json({ error: 'Failed to update slide', details: e?.message })

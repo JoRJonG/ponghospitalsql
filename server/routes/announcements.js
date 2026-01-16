@@ -10,6 +10,7 @@ import { createRateLimiter } from '../middleware/ratelimit.js'
 import { viewCache, VIEW_COOLDOWN_MS } from '../utils/viewCache.js'
 import { sanitizeHtml, sanitizeText } from '../utils/sanitization.js'
 import { handleViewIncrement } from '../utils/ViewCounter.js'
+import { toPublicDTO, toAdminDTO } from '../dto/AnnouncementDTO.js'
 
 import { AnnouncementController } from '../controllers/AnnouncementController.js'
 
@@ -49,6 +50,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
   try {
     const item = await Announcement.findById(req.params.id)
     if (!item) return res.status(404).json({ error: 'Not found' })
+    // ส่งข้อมูลเต็มสำหรับ detail page (ไม่ใช้ DTO เพราะต้องการข้อมูลครบถ้วน)
     res.json(item)
   } catch (e) {
     const msg = String(e?.message || '')
@@ -120,7 +122,9 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
     const doc = await Announcement.create(payload)
     // purge caches on write
     purgeCachePrefix('/api/announcements')
-    res.status(201).json(doc)
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(doc)
+    res.status(201).json(adminData)
   } catch (e) {
     console.error('[announcements] POST error:', e.message)
     res.status(400).json({ error: 'Failed to create announcement', details: e.message })
@@ -264,7 +268,9 @@ router.post('/', requireAuth, requirePermission('announcements'), optionalMultip
 
     const doc = await Announcement.create(payload)
     purgeCachePrefix('/api/announcements')
-    res.status(201).json(doc)
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(doc)
+    res.status(201).json(adminData)
   } catch (e) {
     console.error('[announcements] POST multipart error:', e?.message)
     res.status(400).json({ error: 'Failed to create announcement', details: e?.message })
@@ -288,7 +294,9 @@ router.put('/:id', requireAuth, requirePermission('announcements'), async (req, 
     const doc = await Announcement.findByIdAndUpdate(req.params.id, payload, { new: true })
     if (!doc) return res.status(404).json({ error: 'Not found' })
     purgeCachePrefix('/api/announcements')
-    res.json(doc)
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(doc)
+    res.json(adminData)
   } catch (e) {
     res.status(400).json({ error: 'Failed to update announcement' })
   }

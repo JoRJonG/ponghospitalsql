@@ -1,6 +1,8 @@
 
+
 import Executive from '../models/mysql/Executive.js'
 import { userHasPermission } from '../middleware/auth.js'
+import { toPublicDTOList, toAdminDTOList } from '../dto/ExecutiveDTO.js'
 
 export const ExecutiveController = {
     async index(req, res) {
@@ -22,15 +24,18 @@ export const ExecutiveController = {
             // Use existing findAll
             const all = await Executive.findAll(publishedOnly)
 
+            // กรองข้อมูลด้วย DTO
+            const filteredAll = allowAll ? toAdminDTOList(all) : toPublicDTOList(all)
+
             if (limitVal === 0) {
-                return res.json(all)
+                return res.json(filteredAll)
             }
 
             // In-memory pagination
-            const total = all.length
+            const total = filteredAll.length
             const start = (pageNum - 1) * limitVal
             const end = start + limitVal
-            const sliced = all.slice(start, end)
+            const sliced = filteredAll.slice(start, end)
 
             res.setHeader('X-Total-Count', total)
             res.setHeader('X-Page', pageNum)

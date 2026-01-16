@@ -1,6 +1,8 @@
 
+
 import Activity from '../models/mysql/ActivityBlob.js'
 import { userHasPermission } from '../middleware/auth.js'
+import { toPublicDTOList, toAdminDTOList } from '../dto/ActivityDTO.js'
 
 export const ActivityController = {
     async index(req, res) {
@@ -50,6 +52,9 @@ export const ActivityController = {
 
             const list = await Activity.find(query, options)
 
+            // กรองข้อมูลด้วย DTO ก่อนส่งให้ client
+            const filteredList = canManage ? toAdminDTOList(list) : toPublicDTOList(list)
+
             if (limitVal > 0) {
                 const total = await Activity.countDocuments(query)
                 res.setHeader('X-Total-Count', total)
@@ -58,7 +63,7 @@ export const ActivityController = {
                 res.setHeader('X-Total-Pages', Math.ceil(total / limitVal))
             }
 
-            res.json(list)
+            res.json(filteredList)
         } catch (e) {
             console.error('[ActivityController] index error:', e?.message)
             const msg = String(e?.message || '')

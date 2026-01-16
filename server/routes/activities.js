@@ -9,6 +9,7 @@ import { decodeUploadFilename } from '../utils/filename.js'
 import { viewCache, VIEW_COOLDOWN_MS } from '../utils/viewCache.js'
 import { sanitizeHtml, sanitizeText } from '../utils/sanitization.js'
 import { handleViewIncrement } from '../utils/ViewCounter.js'
+import { toPublicDTO, toAdminDTO } from '../dto/ActivityDTO.js'
 
 import { ActivityController } from '../controllers/ActivityController.js'
 
@@ -45,6 +46,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
   try {
     const item = await Activity.findById(req.params.id)
     if (!item) return res.status(404).json({ error: 'Not found' })
+    // ส่งข้อมูลเต็มสำหรับ detail page (ไม่ใช้ DTO เพราะต้องการข้อมูลครบถ้วน)
     res.json(item)
   } catch (e) {
     const msg = String(e?.message || '')
@@ -150,7 +152,9 @@ router.post('/', requireAuth, requirePermission('activities'), upload.array('ima
     payload.images = images
     const doc = await Activity.create(payload)
     purgeCachePrefix('/api/activities')
-    res.status(201).json(doc)
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(doc)
+    res.status(201).json(adminData)
   } catch (e) {
     res.status(400).json({ error: 'Failed to create activity', details: e.message })
   }
@@ -252,7 +256,9 @@ router.put('/:id', requireAuth, requirePermission('activities'), (req, res, next
 
     const doc = await Activity.findByIdAndUpdate(req.params.id, payload, { new: true })
     purgeCachePrefix('/api/activities')
-    res.json(doc)
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(doc)
+    res.json(adminData)
   } catch (e) {
     res.status(400).json({ error: 'Failed to update activity', details: e?.message })
   }

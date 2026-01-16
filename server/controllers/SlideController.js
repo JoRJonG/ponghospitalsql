@@ -1,6 +1,8 @@
 
+
 import Slide from '../models/mysql/SlideBlob.js'
 import { userHasPermission } from '../middleware/auth.js'
+import { toPublicDTOList, toAdminDTOList } from '../dto/SlideDTO.js'
 
 export const SlideController = {
     async index(req, res) {
@@ -39,6 +41,9 @@ export const SlideController = {
 
             const list = await Slide.find(query, options)
 
+            // กรองข้อมูลด้วย DTO ก่อนส่งให้ client
+            const filteredList = canManage ? toAdminDTOList(list) : toPublicDTOList(list)
+
             if (limitVal > 0) {
                 const total = await Slide.countDocuments(query)
                 res.setHeader('X-Total-Count', total)
@@ -47,7 +52,7 @@ export const SlideController = {
                 res.setHeader('X-Total-Pages', Math.ceil(total / limitVal))
             }
 
-            res.json(list)
+            res.json(filteredList)
         } catch (e) {
             console.error('[SlideController] index error:', e?.message)
             res.status(500).json({ error: 'Failed to fetch slides' })

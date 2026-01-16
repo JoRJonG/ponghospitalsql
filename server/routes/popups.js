@@ -8,6 +8,7 @@ import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import Popup from '../models/mysql/Popup.js'
 import { parseToLocalSql } from '../utils/date.js'
 import { decodeUploadFilename } from '../utils/filename.js'
+import { toPublicDTOList, toAdminDTOList, toAdminDTO } from '../dto/PopupDTO.js'
 
 const router = Router()
 
@@ -151,7 +152,9 @@ router.get('/active', optionalAuth, microCache(120_000), async (req, res) => {
   }
   try {
     const popups = await Popup.findActive()
-    res.json({ success: true, data: popups })
+    // กรองข้อมูลด้วย Public DTO ก่อนส่งให้ client
+    const publicData = toPublicDTOList(popups)
+    res.json({ success: true, data: publicData })
   } catch (error) {
     console.error('[popups] GET /active error:', error?.message)
     res.status(500).json({ success: false, error: 'ไม่สามารถโหลดป๊อปอัปได้' })
@@ -164,7 +167,9 @@ router.get('/', requireAuth, requirePermission('popups'), async (req, res) => {
   }
   try {
     const popups = await Popup.findAll()
-    res.json({ success: true, data: popups })
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่งให้ admin
+    const adminData = toAdminDTOList(popups)
+    res.json({ success: true, data: adminData })
   } catch (error) {
     console.error('[popups] GET / error:', error?.message)
     res.status(500).json({ success: false, error: 'ไม่สามารถโหลดข้อมูลป๊อปอัปได้' })
@@ -179,7 +184,9 @@ router.post('/', requireAuth, requirePermission('popups'), upload.single('image'
     const payload = await buildPayload(req)
     const created = await Popup.create(payload)
     purgeCachePrefix('/api/popups')
-    res.status(201).json({ success: true, data: created })
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(created)
+    res.status(201).json({ success: true, data: adminData })
   } catch (error) {
     console.error('[popups] POST error:', error?.message)
     res.status(400).json({ success: false, error: error?.message || 'ไม่สามารถสร้างป๊อปอัปได้' })
@@ -201,7 +208,9 @@ router.put('/:id', requireAuth, requirePermission('popups'), upload.single('imag
       return res.status(404).json({ success: false, error: 'ไม่พบป๊อปอัป' })
     }
     purgeCachePrefix('/api/popups')
-    res.json({ success: true, data: updated })
+    // กรองข้อมูลด้วย Admin DTO ก่อนส่ง response
+    const adminData = toAdminDTO(updated)
+    res.json({ success: true, data: adminData })
   } catch (error) {
     console.error('[popups] PUT error:', error?.message)
     res.status(400).json({ success: false, error: error?.message || 'ไม่สามารถปรับปรุงป๊อปอัปได้' })

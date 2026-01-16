@@ -1,6 +1,8 @@
 
+
 import Announcement from '../models/mysql/Announcement.js'
 import { userHasPermission } from '../middleware/auth.js'
+import { toPublicDTOList, toAdminDTOList } from '../dto/AnnouncementDTO.js'
 
 export const AnnouncementController = {
     async index(req, res) {
@@ -49,6 +51,9 @@ export const AnnouncementController = {
             // Execute query
             const list = await Announcement.find(query, options)
 
+            // กรองข้อมูลด้วย DTO ก่อนส่งให้ client
+            const filteredList = canManage ? toAdminDTOList(list) : toPublicDTOList(list)
+
             // If pagination is requested, we should provide total count in headers
             if (limitVal > 0) {
                 const total = await Announcement.countDocuments(query)
@@ -58,7 +63,7 @@ export const AnnouncementController = {
                 res.setHeader('X-Total-Pages', Math.ceil(total / limitVal))
             }
 
-            res.json(list)
+            res.json(filteredList)
         } catch (e) {
             console.error('[AnnouncementController] index error:', e?.message)
             const msg = String(e?.message || '')
