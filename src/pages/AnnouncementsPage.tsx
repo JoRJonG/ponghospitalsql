@@ -100,20 +100,53 @@ function List({ category }: { category?: Announcement['category'] }) {
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value
-    updateSearchParams(searchParams, 'q', newQuery || null, setSearchParams)
-    updateSearchParams(searchParams, 'page', null, setSearchParams) // Reset to page 1
+    const sp = new URLSearchParams(searchParams)
+
+    // อัปเดตค่าค้นหา
+    if (newQuery) {
+      sp.set('q', newQuery)
+    } else {
+      sp.delete('q')
+    }
+
+    // รีเซ็ตกลับไปหน้า 1
+    sp.delete('page')
+
+    setSearchParams(sp, { replace: true })
   }, [searchParams, setSearchParams])
 
   const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCategory = e.target.value
-    updateSearchParams(searchParams, 'cat', newCategory === 'all' ? null : newCategory, setSearchParams)
-    updateSearchParams(searchParams, 'page', null, setSearchParams)
+    const sp = new URLSearchParams(searchParams)
+
+    // อัปเดตหมวดหมู่
+    if (newCategory && newCategory !== 'all') {
+      sp.set('cat', newCategory)
+    } else {
+      sp.delete('cat')
+    }
+
+    // รีเซ็ตกลับไปหน้า 1
+    sp.delete('page')
+
+    setSearchParams(sp, { replace: true })
   }, [searchParams, setSearchParams])
 
   const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSort = e.target.value as 'newest' | 'oldest'
-    updateSearchParams(searchParams, 'sort', newSort === 'newest' ? null : newSort, setSearchParams)
-    updateSearchParams(searchParams, 'page', null, setSearchParams)
+    const sp = new URLSearchParams(searchParams)
+
+    // อัปเดตการเรียงลำดับ
+    if (newSort === 'newest') {
+      sp.delete('sort')
+    } else {
+      sp.set('sort', newSort)
+    }
+
+    // รีเซ็ตกลับไปหน้า 1
+    sp.delete('page')
+
+    setSearchParams(sp, { replace: true })
   }, [searchParams, setSearchParams])
 
   const gotoPage = useCallback((p: number) => {
