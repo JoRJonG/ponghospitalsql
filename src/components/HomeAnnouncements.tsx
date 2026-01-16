@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useSWR } from '../hooks/useSWR'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -30,52 +31,41 @@ const tabs = [
 type TabKey = (typeof tabs)[number]['key']
 
 export default function HomeAnnouncements({ limit = 10, embedded = false }: { limit?: number; embedded?: boolean }) {
-  const [items, setItems] = useState<Announcement[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabKey>('ทั้งหมด')
-  const abortRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    if (abortRef.current) abortRef.current.abort()
-    const ac = new AbortController()
-    abortRef.current = ac
+  // สร้าง cache key ที่ unique สำหรับแต่ละ tab
+  const categoryQuery = activeTab === 'ทั้งหมด' ? '' : `&category=${encodeURIComponent(activeTab)}`
+  const cacheKey = `/api/announcements?limit=${limit}${categoryQuery}`
 
-    // Server-side filtering
-    const categoryQuery = activeTab === 'ทั้งหมด' ? '' : `&category=${encodeURIComponent(activeTab)}`
-
-    setError(null)
-    setItems(null) // Reset on tab change to show loading state
-
-    fetch(`/api/announcements?limit=${limit}${categoryQuery}`, { signal: ac.signal })
-      .then(async response => {
-        if (!response.ok) {
-          let message = 'ไม่สามารถดึงประกาศล่าสุดได้'
-          try {
-            const data = await response.json() as { error?: string }
-            if (data?.error) message = data.error
-          } catch (parseError) {
-            console.warn('[HomeAnnouncements] parse error response failed', parseError)
-          }
-          const err = Object.assign(new Error(message), { status: response.status })
-          throw err
+  // ใช้ useSWR สำหรับ data fetching พร้อม caching
+  const { data: items, error: fetchError, isLoading } = useSWR<Announcement[]>(
+    cacheKey,
+    async () => {
+      const response = await fetch(cacheKey)
+      if (!response.ok) {
+        let message = 'ไม่สามารถดึงประกาศล่าสุดได้'
+        try {
+          const data = await response.json() as { error?: string }
+          if (data?.error) message = data.error
+        } catch (parseError) {
+          console.warn('[HomeAnnouncements] parse error response failed', parseError)
         }
-        return response.json() as Promise<Announcement[]>
-      })
-      .then(list => setItems(list))
-      .catch((thrown: unknown) => {
-        if (thrown instanceof DOMException && thrown.name === 'AbortError') {
-          return
-        }
-        if (thrown instanceof Error) {
-          setItems([])
-          setError(thrown.message || 'เกิดข้อผิดพลาด')
-          return
-        }
-        setItems([])
-        setError('เกิดข้อผิดพลาด')
-      })
-    return () => ac.abort()
-  }, [limit, activeTab])
+        throw new Error(message)
+      }
+      return response.json() as Promise<Announcement[]>
+    },
+    {
+      // ข้อมูลถือว่าสดภายใน 30 วินาที
+      staleTime: 30000,
+      // เก็บ cache ไว้ 5 นาที
+      cacheTime: 300000,
+      // ไม่ต้อง revalidate เมื่อ focus window
+      revalidateOnFocus: false,
+    }
+  )
+
+  const error = fetchError?.message || null
+
 
   const isNew = (a: Announcement) => {
     if (!a.publishedAt) return false
@@ -120,8 +110,8 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                 aria-selected={activeTab === t.key}
                 onClick={() => setActiveTab(t.key)}
                 className={`text-left px-4 py-3 border-l-4 transition rounded-r ${activeTab === t.key
-                    ? 'bg-white border-emerald-500 shadow-sm font-semibold text-emerald-800'
-                    : 'border-transparent hover:bg-white hover:border-slate-300 text-slate-500 hover:text-slate-700'
+                  ? 'bg-white border-emerald-500 shadow-sm font-semibold text-emerald-800'
+                  : 'border-transparent hover:bg-white hover:border-slate-300 text-slate-500 hover:text-slate-700'
                   }`}
               >
                 {t.key}
@@ -132,7 +122,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
 
         <div className="lg:col-span-8 space-y-4">
 
-          {items === null && (
+          {isLoading && (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
                 <div key={i} className="block bg-white p-4 rounded-lg shadow-sm border border-slate-100 animate-pulse">
@@ -246,8 +236,8 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                   aria-controls={`panel-${t.key}`}
                   onClick={() => setActiveTab(t.key)}
                   className={`inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === t.key
-                      ? 'bg-green-600 text-white shadow'
-                      : 'bg-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                    ? 'bg-green-600 text-white shadow'
+                    : 'bg-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                 >
                   <i className={`fa-solid ${t.icon}`} aria-hidden="true"></i>
@@ -258,7 +248,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
           </div>
         </div>
 
-        {items === null && (
+        {isLoading && (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
               <div key={i} className="card">

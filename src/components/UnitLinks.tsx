@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useSWR } from '../hooks/useSWR'
 import { responsiveImageProps } from '../utils/image'
 
 type Unit = {
@@ -9,39 +9,32 @@ type Unit = {
 }
 
 export default function UnitLinks({ embedded = false }: { embedded?: boolean }) {
-  const [items, setItems] = useState<Unit[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
-
-  useEffect(() => {
-    if (abortRef.current) abortRef.current.abort()
-    const ac = new AbortController(); abortRef.current = ac
-    setError(null)
-    fetch('/api/units', { signal: ac.signal })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error('ไม่สามารถดึงลิงก์หน่วยงานได้')
-        }
-        return response.json()
-      })
-      .then((list: unknown) => {
-        if (Array.isArray(list)) {
-          setItems(list as Unit[])
-          return
-        }
+  // ใช้ useSWR สำหรับ data fetching พร้อม caching
+  // ข้อมูล units ไม่ค่อยเปลี่ยน เหมาะกับการ cache นานๆ
+  const { data: items, error: fetchError } = useSWR<Unit[]>(
+    '/api/units',
+    async () => {
+      const response = await fetch('/api/units')
+      if (!response.ok) {
+        throw new Error('ไม่สามารถดึงลิงก์หน่วยงานได้')
+      }
+      const list = await response.json()
+      if (!Array.isArray(list)) {
         throw new Error('รูปแบบข้อมูลไม่ถูกต้อง')
-      })
-      .catch((thrown: unknown) => {
-        if (thrown instanceof DOMException && thrown.name === 'AbortError') return
-        setItems([])
-        if (thrown instanceof Error) {
-          setError(thrown.message || 'เกิดข้อผิดพลาด')
-          return
-        }
-        setError('เกิดข้อผิดพลาด')
-      })
-    return () => ac.abort()
-  }, [])
+      }
+      return list as Unit[]
+    },
+    {
+      // ข้อมูลถือว่าสดภายใน 5 นาที (ไม่ค่อยเปลี่ยน)
+      staleTime: 300000,
+      // เก็บ cache ไว้ 30 นาที
+      cacheTime: 1800000,
+      // ไม่ต้อง revalidate เมื่อ focus window
+      revalidateOnFocus: false,
+    }
+  )
+
+  const error = fetchError?.message || null
 
   return embedded ? (
     <>
@@ -52,7 +45,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
       )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {items.map(u => {
+        {Array.isArray(items) && items.map(u => {
           const src = u.image?.url
           const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
           const card = (
@@ -83,7 +76,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
             <div key={u._id}>{card}</div>
           )
         })}
-        {items.length === 0 && !error && (
+        {(!items || items.length === 0) && !error && (
           <div className="text-gray-500">ยังไม่มีลิงก์หน่วยงาน</div>
         )}
       </div>
@@ -101,7 +94,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
         )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {items.map(u => {
+          {Array.isArray(items) && items.map(u => {
             const src = u.image?.url
             const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
             const card = (
@@ -132,7 +125,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
               <div key={u._id}>{card}</div>
             )
           })}
-          {items.length === 0 && !error && (
+          {(!items || items.length === 0) && !error && (
             <div className="text-gray-500">ยังไม่มีลิงก์หน่วยงาน</div>
           )}
         </div>

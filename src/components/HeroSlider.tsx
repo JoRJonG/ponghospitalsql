@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { responsiveImageProps, cloudinaryTransform, isCloudinaryUrl } from '../utils/image'
+import { useSWR } from '../hooks/useSWR'
 
 type Slide = { src: string; alt?: string; caption?: string; href?: string; duration?: number }
 
@@ -43,36 +44,36 @@ const fallbackSlides: Slide[] = []
 
 export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
   const [idx, setIdx] = useState(0)
-  const [slides, setSlides] = useState<Slide[]>(provided || [])
 
-  useEffect(() => {
-    let stop = false
-    async function load() {
-      try {
-        const r = await fetch('/api/slides')
-        if (!stop) {
-          if (r.ok) {
-            const list = await r.json() as unknown
-            const mapped: Slide[] = Array.isArray(list)
-              ? list
-                .map(item => toSlide(item as ApiSlide))
-                .filter((slide): slide is Slide => Boolean(slide))
-              : []
-            if (mapped.length) setSlides(mapped)
-            else if (!provided) setSlides(fallbackSlides)
-          } else if (!provided) {
-            setSlides(fallbackSlides)
-          }
-        }
-      } catch (error) {
-        console.warn('[HeroSlider] failed to load slides', error)
-        if (!stop && !provided) setSlides(fallbackSlides)
+  // ใช้ useSWR สำหรับโหลด slides จาก API (ถ้าไม่มี provided slides)
+  const { data: apiSlides } = useSWR<ApiSlide[]>(
+    provided ? null : '/api/slides', // ถ้ามี provided slides ไม่ต้องเรียก API
+    async () => {
+      const response = await fetch('/api/slides')
+      if (!response.ok) {
+        throw new Error('Failed to load slides')
       }
+      return response.json()
+    },
+    {
+      // ข้อมูล slides ไม่ค่อยเปลี่ยน
+      staleTime: 300000, // 5 นาที
+      cacheTime: 1800000, // 30 นาที
+      revalidateOnFocus: false,
     }
-    if (!provided) load()
-    else setSlides(provided)
-    return () => { stop = true }
-  }, [provided])
+  )
+
+  // แปลง API slides เป็น Slide objects
+  const slides = useMemo(() => {
+    if (provided) return provided
+    if (!apiSlides || !Array.isArray(apiSlides)) return fallbackSlides
+
+    const mapped = apiSlides
+      .map(item => toSlide(item))
+      .filter((slide): slide is Slide => Boolean(slide))
+
+    return mapped.length > 0 ? mapped : fallbackSlides
+  }, [provided, apiSlides])
 
   useEffect(() => {
     if (!slides.length) return
