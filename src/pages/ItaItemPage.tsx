@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
@@ -11,6 +11,7 @@ export default function ItaItemPage() {
   const [error, setError] = useState<string | null>(null)
   const [item, setItem] = useState<ItaItem | null>(null)
   const [children, setChildren] = useState<ItaChild[]>([])
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!id) return
@@ -22,15 +23,30 @@ export default function ItaItemPage() {
       setItem(d.item)
       setChildren(d.children || [])
       setError(null)
-    }).catch(() => setError('ไม่พบข้อมูล')).finally(()=>setLoading(false))
+    }).catch(() => setError('ไม่พบข้อมูล')).finally(() => setLoading(false))
   }, [id])
+
+  // เพิ่ม target="_blank" ให้กับลิงก์ทั้งหมดใน content
+  useEffect(() => {
+    if (contentRef.current) {
+      const links = contentRef.current.querySelectorAll('a')
+      links.forEach(link => {
+        // ถ้าเป็นลิงก์ภายนอกหรือไฟล์ (PDF, DOC, etc.)
+        const href = link.getAttribute('href') || ''
+        if (href.startsWith('http') || href.includes('.pdf') || href.includes('.doc') || href.includes('.xls')) {
+          link.setAttribute('target', '_blank')
+          link.setAttribute('rel', 'noopener noreferrer')
+        }
+      })
+    }
+  }, [item?.content])
 
   return (
     <div className="container-narrow py-8">
       {loading && <div className="text-gray-600">กำลังโหลด...</div>}
       {!loading && error && <div className="text-red-600">{error}</div>}
       {!loading && !error && item && (
-        <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.4 }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="mb-4 text-sm text-gray-500 flex items-center gap-2 flex-wrap">
             <Link to="/ita" className="hover:underline">ITA</Link>
             <span>/</span>
@@ -38,7 +54,7 @@ export default function ItaItemPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{item.title}</h1>
           {item.content && (
-            <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.content }} />
+            <div ref={contentRef} className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.content }} />
           )}
           {children.length > 0 && (
             <div className="mt-8">
