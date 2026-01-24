@@ -1057,8 +1057,9 @@ textarea {
 .prose li[data-list="ordered"]::before {
   content: counter(prose-list-counter) ".";
   position: absolute;
-  left: -2em;
-  width: 1.5em;
+  left: -1.5em;
+  /* Moved closer to text (was -2em) */
+  width: 1.9em;
   text-align: right;
   font-weight: 400;
   /* Match normal text weight */
