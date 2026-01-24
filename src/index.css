@@ -979,15 +979,20 @@ textarea {
 
 /* Blob Animation for Error Pages */
 @keyframes blob {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translate(0, 0) scale(1);
   }
+
   25% {
     transform: translate(20px, -50px) scale(1.1);
   }
+
   50% {
     transform: translate(-20px, 20px) scale(0.9);
   }
+
   75% {
     transform: translate(50px, 50px) scale(1.05);
   }
@@ -1003,4 +1008,117 @@ textarea {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* 
+   Quill Editor Compatibility Fixes 
+   Handles data-list="ordered" and data-list="bullet" mixed within the same list
+*/
+
+/* Hide Quill's UI elements in read-only mode */
+.prose .ql-ui {
+  display: none !important;
+}
+
+/* Reset styles for Quill-generated lists to handle them manually */
+.prose ol:has(li[data-list]),
+.prose ul:has(li[data-list]) {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+}
+
+.prose ol:has(li[data-list]) li,
+.prose ul:has(li[data-list]) li {
+  list-style-type: none !important;
+  position: relative;
+  padding-left: 0.5em;
+}
+
+/* Indentation levels */
+.prose li[data-list="ordered"] {
+  margin-left: 1.5em;
+  /* Level 1 Indent */
+}
+
+.prose li[data-list="bullet"] {
+  margin-left: 2.5em;
+  /* Level 2 Indent (nested look) */
+}
+
+/* Counter for Ordered Lists - ensuring numbers skip bullets */
+.prose ol {
+  counter-reset: prose-list-counter;
+}
+
+.prose li[data-list="ordered"] {
+  counter-increment: prose-list-counter;
+}
+
+.prose li[data-list="ordered"]::before {
+  content: counter(prose-list-counter) ".";
+  position: absolute;
+  left: -2em;
+  width: 1.5em;
+  text-align: right;
+  font-weight: 400;
+  /* Match normal text weight */
+  color: inherit;
+  /* Inherit color from parent text */
+}
+
+.prose li[data-list="bullet"]::before {
+  content: "•";
+  position: absolute;
+  left: -0.4em;
+  /* Adjusted to be closer (was -1.2em) */
+  font-size: 1.25em;
+  line-height: 1.1;
+  /* Center bullet vertically */
+  color: var(--hospital-text-secondary);
+}
+
+/* Support for Quill Indentation (ql-indent-*) */
+.prose .ql-indent-1 {
+  margin-left: 3em !important;
+}
+
+.prose .ql-indent-2 {
+  margin-left: 4.5em !important;
+}
+
+.prose .ql-indent-3 {
+  margin-left: 6em !important;
+}
+
+.prose .ql-indent-4 {
+  margin-left: 7.5em !important;
+}
+
+.prose .ql-indent-5 {
+  margin-left: 9em !important;
+}
+
+.prose .ql-indent-6 {
+  margin-left: 10.5em !important;
+}
+
+.prose .ql-indent-7 {
+  margin-left: 12em !important;
+}
+
+.prose .ql-indent-8 {
+  margin-left: 13.5em !important;
+}
+
+/* Alignment classes */
+.prose .ql-align-center {
+  text-align: center;
+}
+
+.prose .ql-align-right {
+  text-align: right;
+}
+
+.prose .ql-align-justify {
+  text-align: justify;
 }
