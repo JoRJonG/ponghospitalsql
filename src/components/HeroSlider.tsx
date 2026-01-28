@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { responsiveImageProps, cloudinaryTransform, isCloudinaryUrl } from '../utils/image'
 import { useSWR } from '../hooks/useSWR'
 
@@ -45,21 +45,25 @@ const fallbackSlides: Slide[] = []
 export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
   const [idx, setIdx] = useState(0)
 
+  // สร้าง fetcher function ด้วย useCallback เพื่อป้องกันการสร้างใหม่ทุก render
+  const slidesFetcher = useCallback(async () => {
+    const response = await fetch('/api/slides')
+    if (!response.ok) {
+      throw new Error('Failed to load slides')
+    }
+    return response.json()
+  }, [])
+
   // ใช้ useSWR สำหรับโหลด slides จาก API (ถ้าไม่มี provided slides)
   const { data: apiSlides } = useSWR<ApiSlide[]>(
     provided ? null : '/api/slides', // ถ้ามี provided slides ไม่ต้องเรียก API
-    async () => {
-      const response = await fetch('/api/slides')
-      if (!response.ok) {
-        throw new Error('Failed to load slides')
-      }
-      return response.json()
-    },
+    slidesFetcher,
     {
       // ข้อมูล slides ไม่ค่อยเปลี่ยน
       staleTime: 300000, // 5 นาที
       cacheTime: 1800000, // 30 นาที
-      revalidateOnFocus: false,
+      revalidateOnFocus: false, // ไม่รีเฟรชเมื่อกลับมาที่หน้าต่าง
+      revalidateOnReconnect: false, // ไม่รีเฟรชเมื่ออินเทอร์เน็ตกลับมา
     }
   )
 
