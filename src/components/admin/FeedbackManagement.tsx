@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useToast } from '../../contexts/ToastContext'
 import { useAuth } from '../../auth/AuthContext'
 import Modal from './Modal'
@@ -47,7 +47,7 @@ export default function FeedbackManagement() {
 
     const totalPages = Math.ceil(totalItems / limit)
 
-    const fetchFeedbacks = async () => {
+    const fetchFeedbacks = useCallback(async () => {
         setLoading(true)
         try {
             let token = getToken()
@@ -101,9 +101,9 @@ export default function FeedbackManagement() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [getToken, refreshToken, statusFilter, debouncedSearchQuery, page, limit, showToast])
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         try {
             let token = getToken()
             let response = await fetch('/api/feedback/stats', {
@@ -132,7 +132,7 @@ export default function FeedbackManagement() {
         } catch (error) {
             console.error('Error fetching stats:', error)
         }
-    }
+    }, [getToken, refreshToken])
 
     // Debounce search query
     useEffect(() => {
@@ -145,7 +145,7 @@ export default function FeedbackManagement() {
         }, 500) // รอ 500ms หลังจากพิมพ์เสร็จ
 
         return () => clearTimeout(timer)
-    }, [searchQuery])
+    }, [searchQuery, debouncedSearchQuery])
 
     // รีเซ็ตหน้าเมื่อ filter เปลี่ยน
     useEffect(() => {
@@ -155,11 +155,11 @@ export default function FeedbackManagement() {
     // Fetch feedbacks เมื่อ dependencies เปลี่ยน
     useEffect(() => {
         fetchFeedbacks()
-    }, [page, statusFilter, debouncedSearchQuery, limit])
+    }, [fetchFeedbacks])
 
     useEffect(() => {
         fetchStats()
-    }, []) // stats ไม่ขึ้นกับ pagination แต่ขึ้นกับ action ต่างๆ
+    }, [fetchStats]) // stats ไม่ขึ้นกับ pagination แต่ขึ้นกับ action ต่างๆ
 
     // เปิด Modal และเปลี่ยนสถานะเป็น 'read'
     const handleViewFeedback = async (feedback: Feedback) => {

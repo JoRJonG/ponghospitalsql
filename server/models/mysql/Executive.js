@@ -5,17 +5,18 @@ export class Executive {
   static async findAll(publishedOnly = false) {
     const whereClause = publishedOnly ? 'WHERE is_published = 1' : ''
     const rows = await query(`
-      SELECT id as _id, name, position, file_name, mime_type, file_size, 
+      SELECT id as _id, name, position, phone, file_name, mime_type, file_size, 
              display_order, is_published, created_at, updated_at
       FROM executives 
       ${whereClause}
       ORDER BY display_order ASC, id ASC
     `)
-    
+
     return rows.map(row => ({
       _id: row._id,
       name: row.name,
       position: row.position,
+      phone: row.phone,
       imageUrl: row.file_name ? `/api/images/executives/${row._id}` : null,
       fileName: row.file_name,
       mimeType: row.mime_type,
@@ -29,18 +30,19 @@ export class Executive {
 
   static async findById(id) {
     const rows = await query(`
-      SELECT id as _id, name, position, file_name, mime_type, file_size, 
+      SELECT id as _id, name, position, phone, file_name, mime_type, file_size, 
              display_order, is_published, created_at, updated_at
       FROM executives WHERE id = ?
     `, [id])
-    
+
     if (!rows[0]) return null
-    
+
     const row = rows[0]
     return {
       _id: row._id,
       name: row.name,
       position: row.position,
+      phone: row.phone,
       imageUrl: row.file_name ? `/api/images/executives/${row._id}` : null,
       fileName: row.file_name,
       mimeType: row.mime_type,
@@ -67,11 +69,12 @@ export class Executive {
       const nextOrder = maxOrder[0].max_order + 1
 
       const [result] = await connection.execute(`
-        INSERT INTO executives (name, position, image_data, file_name, mime_type, file_size, display_order, is_published)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO executives (name, position, phone, image_data, file_name, mime_type, file_size, display_order, is_published)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         data.name,
         data.position,
+        data.phone || null,
         data.imageData || null,
         data.fileName || null,
         data.mimeType || null,
@@ -88,7 +91,7 @@ export class Executive {
     return await transaction(async (connection) => {
       const updateFields = []
       const updateParams = []
-      
+
       if (data.name !== undefined) {
         updateFields.push('name = ?')
         updateParams.push(data.name)
@@ -96,6 +99,10 @@ export class Executive {
       if (data.position !== undefined) {
         updateFields.push('position = ?')
         updateParams.push(data.position)
+      }
+      if (data.phone !== undefined) {
+        updateFields.push('phone = ?')
+        updateParams.push(data.phone)
       }
       if (data.displayOrder !== undefined) {
         updateFields.push('display_order = ?')
@@ -105,7 +112,7 @@ export class Executive {
         updateFields.push('is_published = ?')
         updateParams.push(data.isPublished ? 1 : 0)
       }
-      
+
       // อัพเดทรูปถ้ามี
       if (data.imageData !== undefined) {
         updateFields.push('image_data = ?', 'file_name = ?', 'mime_type = ?', 'file_size = ?')
@@ -120,7 +127,7 @@ export class Executive {
       if (updateFields.length > 0) {
         updateFields.push('updated_at = CURRENT_TIMESTAMP')
         updateParams.push(id)
-        
+
         await connection.execute(`
           UPDATE executives SET ${updateFields.join(', ')} WHERE id = ?
         `, updateParams)
@@ -133,7 +140,7 @@ export class Executive {
   static async deleteById(id) {
     const item = await this.findById(id)
     if (!item) return null
-    
+
     await exec('DELETE FROM executives WHERE id = ?', [id])
     return item
   }

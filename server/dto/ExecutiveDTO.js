@@ -13,6 +13,7 @@ export function toPublicDTO(executive) {
         _id: executive._id,
         name: executive.name,
         position: executive.position,
+        phone: executive.phone,
         imageUrl: executive.imageUrl,
         displayOrder: executive.displayOrder
     }
@@ -28,6 +29,7 @@ export function toAdminDTO(executive) {
         _id: executive._id,
         name: executive.name,
         position: executive.position,
+        phone: executive.phone,
         imageUrl: executive.imageUrl,
         displayOrder: executive.displayOrder,
         isPublished: executive.isPublished

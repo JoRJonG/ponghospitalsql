@@ -19,6 +19,7 @@ import DisplayModeSettings from '../../components/admin/DisplayModeSettings'
 import UserSettings from '../../components/admin/UserSettings'
 import Modal from '../../components/admin/Modal'
 import FeedbackManagement from '../../components/admin/FeedbackManagement'
+import DocumentsManagement, { type DocumentsManagementHandle } from '../../components/DocumentsManagement'
 
 // Types
 // ----------------------------------------------------------------------------
@@ -98,10 +99,10 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'ita' | 'users' | 'feedback' | 'settings-display' | 'settings-user'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user'
 
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita', 'feedback', 'settings-display', 'settings-user'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user'] as const
 const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -186,6 +187,7 @@ export default function AdminPage() {
     ita: hasPermission('ita'),
     users: hasPermission('users'),
     feedback: hasPermission('feedback') || hasPermission('admin'),
+    documents: hasPermission('documents') || hasPermission('admin'),
     admin: hasPermission('admin'),
     system: hasPermission('system'),
   }), [hasPermission])
@@ -214,6 +216,7 @@ export default function AdminPage() {
       ita: permissions.ita,
       users: permissions.users,
       feedback: permissions.feedback,
+      documents: permissions.documents,
       'settings-display': permissions.system,
       'settings-user': true,
     }
@@ -257,6 +260,7 @@ export default function AdminPage() {
   const infographicsRef = useRef<InfographicsManagementHandle | null>(null)
   const itaRef = useRef<ItaManagementHandle | null>(null)
   const usersRef = useRef<UserManagementHandle>(null)
+  const documentsRef = useRef<DocumentsManagementHandle>(null)
 
   const refreshAnn = useCallback(async () => {
     if (!permissions.announcements) {
@@ -671,6 +675,22 @@ export default function AdminPage() {
               </button>
             )}
 
+            {allowedTabs.documents && (
+              <button
+                onClick={() => {
+                  setTab('documents')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'documents'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
+              >
+                <span className="text-xl">📄</span>
+                <span>เอกสาร</span>
+              </button>
+            )}
+
             {/* Settings Section */}
             <div className="pt-2 mt-2 border-t border-gray-200">
               <div className="text-xs font-semibold text-gray-500 px-4 py-2 uppercase tracking-wider">ตั้งค่า</div>
@@ -751,6 +771,7 @@ export default function AdminPage() {
                     {tab === 'ita' && 'จัดการ ITA'}
                     {tab === 'users' && 'จัดการผู้ใช้'}
                     {tab === 'feedback' && 'จัดการความคิดเห็น'}
+                    {tab === 'documents' && 'จัดการเอกสาร'}
                     {tab === 'settings-display' && 'ตั้งค่าการแสดงผลเว็บไซต์'}
                     {tab === 'settings-user' && 'ตั้งค่าผู้ใช้'}
                   </h1>
@@ -767,6 +788,7 @@ export default function AdminPage() {
                     {tab === 'ita' && 'จัดการข้อมูล ITA'}
                     {tab === 'users' && 'เพิ่ม แก้ไข ลบผู้ใช้ และกำหนดสิทธิ์การเข้าถึง'}
                     {tab === 'feedback' && 'ดู ตอบกลับ และจัดการความคิดเห็นจากผู้ใช้งาน'}
+                    {tab === 'documents' && 'จัดการเอกสารและแบบฟอร์มต่างๆ ของโรงพยาบาล'}
                     {tab === 'settings-display' && 'เลือกรูปแบบสีที่ต้องการแสดงให้ผู้เข้าชมเห็นบนทุกหน้า'}
                     {tab === 'settings-user' && 'เปลี่ยนรหัสผ่านและจัดการบัญชีผู้ดูแลระบบ'}
                   </p>
@@ -807,6 +829,14 @@ export default function AdminPage() {
                         userTask.then(() => Toast.fire({ icon: 'success', title: 'โหลดข้อมูลผู้ใช้เสร็จสิ้น' }))
                       } else {
                         Toast.fire({ icon: 'success', title: 'โหลดข้อมูลผู้ใช้เสร็จสิ้น' })
+                      }
+                    }
+                    else if (tab === 'documents') {
+                      const documentsTask = documentsRef.current?.refresh()
+                      if (documentsTask) {
+                        documentsTask.then(() => Toast.fire({ icon: 'success', title: 'โหลดข้อมูลเอกสารเสร็จสิ้น' }))
+                      } else {
+                        Toast.fire({ icon: 'success', title: 'โหลดข้อมูลเอกสารเสร็จสิ้น' })
                       }
                     }
                     else refreshAnn().then(() => Toast.fire({ icon: 'success', title: 'โหลดข้อมูลเสร็จสิ้น' })); // Default
@@ -1417,6 +1447,17 @@ export default function AdminPage() {
                   className="space-y-4 lg:space-y-6"
                 >
                   <FeedbackManagement />
+                </motion.div>
+              ) : tab === 'documents' ? (
+                <motion.div
+                  key="documents"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4 lg:space-y-6"
+                >
+                  <DocumentsManagement ref={documentsRef} getToken={getToken} />
                 </motion.div>
               ) : null}
             </AnimatePresence>

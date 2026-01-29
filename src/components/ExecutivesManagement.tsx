@@ -9,6 +9,7 @@ type Executive = {
   _id?: string
   name: string
   position: string
+  phone?: string
   imageUrl?: string | null
   displayOrder?: number
   isPublished?: boolean
@@ -20,7 +21,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
   const { getToken } = useAuth()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [form, setForm] = useState({ name: '', position: '', isPublished: true })
+  const [form, setForm] = useState({ name: '', position: '', phone: '', isPublished: true })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
 
@@ -37,7 +38,8 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
         setForm({
           name: data.name || '',
           position: data.position || '',
-          isPublished: data.isPublished ?? true,
+          phone: data.phone || '',
+          isPublished: data.isPublished === true || data.isPublished === 1 || data.isPublished === 'true',
         })
         if (data.imageUrl) setImagePreview(data.imageUrl)
       })
@@ -83,6 +85,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
       const fd = new FormData()
       fd.append('name', form.name)
       fd.append('position', form.position)
+      fd.append('phone', form.phone)
       fd.append('isPublished', String(form.isPublished))
 
       if (imageFile) {
@@ -140,6 +143,17 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
             className="w-full rounded border px-3 py-2"
             placeholder="เช่น ผู้อำนวยการโรงพยาบาล"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-1">เบอร์โทรศัพท์</label>
+          <input
+            type="text"
+            value={form.phone}
+            onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+            className="w-full rounded border px-3 py-2"
+            placeholder="เช่น 054-123456"
           />
         </div>
 

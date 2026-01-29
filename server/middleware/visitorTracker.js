@@ -151,7 +151,7 @@ export function setVisitorCookie(res, req, session) {
   })
 }
 
-export async function trackVisitors(req, res, next) {
+export function trackVisitors(req, res, next) {
   try {
     if (!shouldTrackRequest(req)) {
       return next()
@@ -166,24 +166,49 @@ export async function trackVisitors(req, res, next) {
     const now = Date.now()
     const session = resolveVisitorSession(req, now)
 
-    const result = await Visitor.recordVisit({
+    // For new sessions, we need to await to ensure unique ID and correct "first seen" logic
+    if (session.isNew) {
+      Visitor.recordVisit({
+        sessionId: session.sessionId,
+        ip: clientIp,
+        userAgent,
+        path: req.path,
+        isNewSession: true,
+      }).then(result => {
+        if (result) {
+          const nextSessionId = result.sessionId || session.sessionId
+          const updatedLastSeen = result.merged ? now : session.lastSeen
+          setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: updatedLastSeen })
+        }
+        next()
+      }).catch(err => {
+        console.error('Error tracking new visitor:', err)
+        next()
+      })
+      return
+    }
+
+    // For existing sessions, optimistic update!
+    // 1. Update cookie immediately
+    setVisitorCookie(res, req, { sessionId: session.sessionId, lastSeen: now })
+
+    // 2. Proceed with request IMMEDIATELY (Non-blocking)
+    next()
+
+    // 3. Update DB in background
+    Visitor.recordVisit({
       sessionId: session.sessionId,
       ip: clientIp,
       userAgent,
       path: req.path,
-      isNewSession: session.isNew,
+      isNewSession: false,
+    }).catch(err => {
+      // Sliently fail or log low priority error
+      console.error('[Visitor] Background update failed:', err.message)
     })
 
-    if (!result) {
-      return next()
-    }
-
-    const nextSessionId = result.sessionId || session.sessionId
-    const updatedLastSeen = result.merged ? now : session.lastSeen
-    setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: updatedLastSeen })
   } catch (error) {
     console.error('Error tracking visitor:', error)
+    next()
   }
-
-  next()
 }

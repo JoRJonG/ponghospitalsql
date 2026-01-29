@@ -19,6 +19,8 @@ const PERMISSION_OPTIONS = new Set([
   'executives',
   'infographics',
   'ita',
+  'feedback',
+  'documents',
   'users',
   'system',
 ])

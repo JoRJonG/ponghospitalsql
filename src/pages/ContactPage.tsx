@@ -44,7 +44,7 @@ export default function ContactPage() {
       newErrors.message = 'ข้อความต้องไม่เกิน 5000 ตัวอักษร'
     }
 
-    if (formData.phone && !/^[0-9\s\-\(\)\+]+$/.test(formData.phone)) {
+    if (formData.phone && !/^[0-9\s\-()+]+$/.test(formData.phone)) {
       newErrors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง (อนุญาตเฉพาะตัวเลขและเครื่องหมาย - ( ) +)'
     }
 

@@ -3,6 +3,7 @@ import Slide from '../models/mysql/SlideBlob.js'
 import Popup from '../models/mysql/Popup.js'
 import { query } from '../database.js'
 import { contentDisposition } from '../utils/filename.js'
+import sharp from 'sharp'
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -12,10 +13,8 @@ const UPLOAD_DIR = path.resolve(__dirname, '../../uploads/announcements')
 
 const router = Router()
 
-function applyNoCache(res) {
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
-  res.setHeader('Pragma', 'no-cache')
-  res.setHeader('Expires', '0')
+function applyPublicCache(res) {
+  res.setHeader('Cache-Control', 'public, max-age=86400, immutable')
 }
 
 // ดึงรูปภาพจาก Slides
@@ -29,7 +28,7 @@ router.get('/slides/:id', async (req, res) => {
     res.setHeader('Content-Type', imageData.mime_type)
     res.setHeader('Content-Length', imageData.image_data.length)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
-    applyNoCache(res)
+    applyPublicCache(res)
     res.send(imageData.image_data)
   } catch (error) {
     console.error('Error fetching slide image:', error)
@@ -76,7 +75,7 @@ router.get('/activities/:activityId/:imageId', async (req, res) => {
 
     res.setHeader('Content-Type', row.mime_type)
     res.setHeader('Content-Disposition', contentDisposition('inline', row.file_name))
-    applyNoCache(res)
+    applyPublicCache(res)
     res.send(imageData)
   } catch (error) {
     console.error('Error fetching activity image:', error)
@@ -97,10 +96,35 @@ router.get('/executives/:id', async (req, res) => {
     }
 
     const imageData = rows[0]
-    res.setHeader('Content-Type', imageData.mime_type)
+    let imageBuffer = imageData.image_data
+    let mimeType = imageData.mime_type
+
+    // If image is large (> 200KB), resize properly
+    if (imageBuffer.length > 200 * 1024) {
+      try {
+        const pipeline = sharp(imageBuffer)
+        const metadata = await pipeline.metadata()
+        // If wider than 800px, resize
+        if (metadata.width && metadata.width > 800) {
+          imageBuffer = await pipeline
+            .resize(800, null, { withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toBuffer()
+          mimeType = 'image/webp'
+        } else if (imageBuffer.length > 500 * 1024) {
+          // Just compress if still huge but dimensions refer ok
+          imageBuffer = await pipeline.webp({ quality: 80 }).toBuffer()
+          mimeType = 'image/webp'
+        }
+      } catch (e) {
+        console.warn('On-the-fly image resize failed for executive:', req.params.id, e.message)
+      }
+    }
+
+    res.setHeader('Content-Type', mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
-    applyNoCache(res)
-    res.send(imageData.image_data)
+    applyPublicCache(res)
+    res.send(imageBuffer)
   } catch (error) {
     console.error('Error fetching executive image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
@@ -122,7 +146,7 @@ router.get('/infographics/:id', async (req, res) => {
     const imageData = rows[0]
     res.setHeader('Content-Type', imageData.mime_type)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.title || 'infographic'))
-    applyNoCache(res)
+    applyPublicCache(res)
     res.send(imageData.image_data)
   } catch (error) {
     console.error('Error fetching infographic image:', error)
@@ -143,7 +167,7 @@ router.get('/popups/:id', async (req, res) => {
       res.setHeader('Content-Length', data.image_size)
     }
     res.setHeader('Content-Disposition', contentDisposition('inline', data.image_name || 'popup-image'))
-    applyNoCache(res)
+    applyPublicCache(res)
     res.send(data.image_data)
   } catch (error) {
     console.error('Error fetching popup image:', error)
@@ -166,7 +190,7 @@ router.get('/units/:id', async (req, res) => {
     const imageData = rows[0]
     res.setHeader('Content-Type', imageData.mime_type)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
-    applyNoCache(res)
+    applyPublicCache(res)
     res.send(imageData.image_data)
   } catch (error) {
     console.error('Error fetching unit image:', error)
@@ -218,7 +242,7 @@ router.get('/announcements/:announcementId/:attachmentId', async (req, res) => {
       : (kind === 'image' || mime.startsWith('image/') ? 'inline' : 'attachment')
     res.setHeader('Content-Disposition', contentDisposition(dispositionType, row.file_name || 'file'))
 
-    applyNoCache(res)
+    applyPublicCache(res)
     res.send(fileData)
   } catch (error) {
     console.error('Error fetching announcement attachment:', error)
