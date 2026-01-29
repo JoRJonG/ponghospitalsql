@@ -77,18 +77,58 @@ function DirectorCard({ m }: { m: Manager }) {
   )
 }
 
-function ExecutiveCard({ m, index }: { m: Manager; index: number }) {
+function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: number }) {
   const [imgError, setImgError] = useState(false)
   const initials = getInitials(m.name)
+
+  // Logic for connector lines (Desktop only - lg grid: 5 cols)
+  const isFirst = index === 0
+  const isLast = index === total - 1
+  const colCount = 5
+  const isRowStart = index % colCount === 0
+  const isRowEnd = (index + 1) % colCount === 0
+
+  // Draw generic left arm if not first item and not start of row
+  const showLeftArm = !isFirst && !isRowStart
+  // Draw generic right arm if not last item and not end of row
+  const showRightArm = !isLast && !isRowEnd
+
+  // L-Shape Connector Logic (Wrap around right side to next row - Desktop/5cols)
+  // End of row (5th item)
+  const isRowEndItem = (index + 1) % colCount === 0
+  const hasMoreItems = total > index + 1
+  const showWrapConnector = isRowEndItem && hasMoreItems
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="h-full"
+      className="h-full relative"
     >
-      <div className="bg-white rounded-xl p-5 shadow hover:shadow-lg border border-gray-100 transition-all duration-300 h-full flex flex-col items-center text-center max-w-[240px] mx-auto">
+      {/* Connector Lines (Desktop Only) */}
+      <div className="hidden lg:block absolute -top-8 left-0 w-full h-8 pointer-events-none z-0">
+        {/* Vertical Line Up (Stem) */}
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-0.5 h-full bg-green-300"></div>
+
+        {/* Horizontal Arms (Rail) - Extends into the gap (approx 24px gap -> 12px overlap) */}
+        {showLeftArm && (
+          <div className="absolute top-0 right-1/2 h-0.5 bg-green-300 w-[calc(50%+16px)]"></div>
+        )}
+        {showRightArm && (
+          <div className="absolute top-0 left-1/2 h-0.5 bg-green-300 w-[calc(50%+16px)]"></div>
+        )}
+
+        {/* Dot at junction */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-green-500 -mt-[2px] z-10"></div>
+      </div>
+
+      {/* Right-Side L-Shape Wrap Connector (Bridge to next row) */}
+      {showWrapConnector && (
+        <div className="hidden lg:block absolute -top-8 right-[-1.5rem] w-[calc(50%+1.5rem)] h-[calc(100%+3.2rem)] border-r-2 border-t-2 border-b-2 border-green-300 rounded-r-lg pointer-events-none z-0"></div>
+      )}
+
+      <div className="bg-white rounded-xl p-5 shadow hover:shadow-lg border border-gray-100 transition-all duration-300 h-full flex flex-col items-center text-center max-w-[280px] mx-auto z-10 relative">
         {/* Image - Vertical Oval */}
         <div className="mb-3">
           <div className="w-36 h-48 rounded-[50%] p-1 bg-white border-[3px] border-green-600 shadow-sm mx-auto">
@@ -154,31 +194,29 @@ export default function ManagementPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-16"
+        className="text-center mb-6"
       >
-        <h1 className="text-4xl font-extrabold text-green-800 mb-4">
+        <h1 className="text-2xl font-extrabold text-green-800 mb-2">
           โครงสร้างผู้บริหารโรงพยาบาลปง
         </h1>
-
-        <div className="mt-6 flex justify-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-green-200"></span>
-          <span className="w-3 h-3 rounded-full bg-green-400"></span>
-          <span className="w-3 h-3 rounded-full bg-green-600"></span>
-        </div>
       </motion.div>
 
       {/* Director Section */}
       {director && (
-        <div className="mb-12">
+        <div className="mb-16 relative">
           <DirectorCard m={director} />
+          {/* Connector Line Down (Desktop Only) */}
+          {others.length > 0 && (
+            <div className="hidden lg:block absolute -bottom-8 left-1/2 -translate-x-1/2 w-0.5 h-10 bg-green-300"></div>
+          )}
         </div>
       )}
 
       {/* Other Executives Grid */}
       {others.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-y-12 relative">
           {others.map((m, i) => (
-            <ExecutiveCard key={m._id || i} m={m} index={i} />
+            <ExecutiveCard key={m._id || i} m={m} index={i} total={others.length} />
           ))}
         </div>
       )}

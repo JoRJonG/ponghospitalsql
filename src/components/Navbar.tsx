@@ -222,8 +222,8 @@ export default function Navbar() {
                     </ul>
                   )}
                 </div>
-                <NavLink to="/documents" className={navItemClass} onClick={() => setOpen(false)}><i className="fa-solid fa-download mr-1" />ดาวน์โหลด</NavLink>
-                <NavLink to="/executives" className={navItemClass} onClick={() => setOpen(false)}><i className="fa-solid fa-user-doctor mr-1" />ผู้บริหาร</NavLink>
+                <NavLink to="/documents" className={navItemClass} onClick={() => setOpen(false)}>ดาวน์โหลด</NavLink>
+                <NavLink to="/executives" className={navItemClass} onClick={() => setOpen(false)}>ผู้บริหาร</NavLink>
                 <NavLink to="/about" className={navItemClass} onClick={() => setOpen(false)}>เกี่ยวกับเรา</NavLink>
                 <NavLink to="/contact" className={navItemClass} onClick={() => setOpen(false)}>ติดต่อเรา</NavLink>
                 {isAuthenticated && (

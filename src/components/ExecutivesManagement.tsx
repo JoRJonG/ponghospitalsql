@@ -353,15 +353,18 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <div>
-          <h2 className="text-2xl font-bold">จัดการผู้บริหาร</h2>
-          <p className="text-sm text-gray-600">ลากเพื่อเรียงลำดับการแสดงผล</p>
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <span className="text-3xl">👔</span>
+            จัดการผู้บริหาร
+          </h2>
+          <p className="text-sm text-gray-500 mt-1 ml-11">ลากเพื่อเรียงลำดับการแสดงผล</p>
         </div>
         <button
           onClick={() => { setShowForm(true); setEditingId(null) }}
-          className="admin-btn"
+          className="admin-btn bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-md border-0"
         >
           <span>➕</span>
           เพิ่มผู้บริหาร
@@ -393,14 +396,14 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
       </Modal>
 
       {executives.length === 0 && (
-        <div className="card">
-          <div className="card-body text-center text-gray-500">
-            ยังไม่มีข้อมูลผู้บริหาร
-          </div>
+        <div className="card-glass border-dashed border-2 border-gray-300 p-12 text-center">
+          <div className="text-gray-300 text-6xl mb-4">📇</div>
+          <p className="text-lg text-gray-500 font-medium">ยังไม่มีข้อมูลผู้บริหาร</p>
+          <p className="text-sm text-gray-400 mt-2">คลิก "เพิ่มผู้บริหาร" เพื่อเริ่มต้น</p>
         </div>
       )}
 
-      <div className="grid gap-3">
+      <div className="space-y-3">
         {executives.map((exec, index) => (
           <div
             key={exec._id}
@@ -408,53 +411,78 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
             onDragStart={(e) => handleDragStart(e, exec._id!)}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, exec._id!)}
-            className={`card overflow-hidden cursor-move hover:shadow-md transition-shadow ${draggingId === exec._id ? 'opacity-50' : ''
-              }`}
+            className={`group bg-white rounded-lg border border-gray-200 overflow-hidden cursor-move transition-all duration-200 relative
+                ${draggingId === exec._id ? 'opacity-40 scale-95 ring-2 ring-green-400' : 'hover:shadow-md hover:border-green-300 hover:translate-x-1'}
+              `}
           >
-            <div className="card-body p-3 sm:p-4">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold">
-                    {index + 1}
-                  </div>
-                </div>
+            {/* Left Accent Border */}
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-green-500 to-green-600 transition-all group-hover:w-2"></div>
 
-                {exec.imageUrl && (
+            <div className="p-4 pl-6 flex items-center gap-4 sm:gap-6">
+
+              {/* Drag Handle & Index */}
+              <div className="flex flex-col items-center justify-center w-8 shrink-0 text-gray-400 group-hover:text-green-600">
+                <div className="text-xs font-bold bg-gray-100 w-6 h-6 rounded flex items-center justify-center mb-1">
+                  {index + 1}
+                </div>
+                <span className="text-lg opacity-0 group-hover:opacity-100 transition-opacity">⋮⋮</span>
+              </div>
+
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                {exec.imageUrl ? (
                   <img
                     src={exec.imageUrl}
                     alt={exec.name}
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 shadow-sm group-hover:border-green-200"
                   />
-                )}
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold truncate">{exec.name}</h3>
-                  <p className="text-sm text-gray-600 truncate">{exec.position}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {exec.isPublished ? (
-                      <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800 shrink-0">เผยแพร่</span>
-                    ) : (
-                      <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-800 shrink-0">ซ่อน</span>
-                    )}
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-xl border-2 border-gray-50 text-gray-400">
+                    👤
                   </div>
+                )}
+                {/* Status Indicator Dot */}
+                <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white ${exec.isPublished ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0 py-1">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                  <h3 className="font-bold text-lg text-gray-800 truncate group-hover:text-green-700 transition-colors">
+                    {exec.name}
+                  </h3>
+                </div>
+                <p className="text-gray-500 text-sm truncate font-medium">{exec.position}</p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                <div className="hidden sm:flex flex-col items-end mr-4">
+                  {exec.isPublished ? (
+                    <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                      เผยแพร่
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                      ซ่อน
+                    </span>
+                  )}
                 </div>
 
-                <div className="flex gap-2 shrink-0">
-                  <button
-                    onClick={() => { setEditingId(exec._id!); setShowForm(true) }}
-                    className="admin-btn admin-btn--outline px-2 sm:px-3"
-                  >
-                    <span>✏️</span>
-                    <span className="hidden sm:inline">แก้ไข</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(exec._id!)}
-                    className="admin-btn admin-btn--outline px-2 sm:px-3"
-                  >
-                    <span>🗑️</span>
-                    <span className="hidden sm:inline">ลบ</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setEditingId(exec._id!); setShowForm(true) }}
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  title="แก้ไข"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => handleDelete(exec._id!)}
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="ลบ"
+                >
+                  🗑️
+                </button>
               </div>
             </div>
           </div>
