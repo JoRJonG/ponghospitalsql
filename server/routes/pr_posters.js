@@ -328,4 +328,30 @@ router.delete('/:id', requireAuth, requirePermission('pr_poster'), async (req, r
     }
 })
 
+// Reorder pr_posters
+router.post('/reorder', requireAuth, requirePermission('pr_poster'), async (req, res) => {
+    if (!req.app.locals.dbConnected) {
+        return res.status(503).json({ error: 'Database unavailable' })
+    }
+
+    try {
+        const { order } = req.body
+        if (!Array.isArray(order)) {
+            return res.status(400).json({ error: 'Invalid payload' })
+        }
+
+        // Update display_order for each id
+        for (let i = 0; i < order.length; i++) {
+            const id = order[i]
+            await query('UPDATE pr_posters SET display_order = ? WHERE id = ?', [i, id])
+        }
+
+        purgeCachePrefix('/api/pr-posters')
+        res.json({ message: 'Reorder successfully' })
+    } catch (e) {
+        console.error('[pr_posters] REORDER error:', e)
+        res.status(500).json({ error: 'Failed to reorder' })
+    }
+})
+
 export default router
