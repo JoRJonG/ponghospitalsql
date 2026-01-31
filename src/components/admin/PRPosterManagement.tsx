@@ -70,7 +70,6 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
         formData.append('image', file)
         // Title will default to original filename in backend if not provided
         formData.append('isPublished', 'true')
-        formData.append('isPublished', 'true')
         formData.append('displayOrder', String(posters.length))
 
         try {

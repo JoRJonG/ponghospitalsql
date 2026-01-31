@@ -1,6 +1,7 @@
 
 import { query } from '../database.js'
 import { userHasPermission } from '../middleware/auth.js'
+import { toPRPosterDTO } from '../dtos/PRPosterDTO.js'
 
 export const PRPosterController = {
     async index(req, res) {
@@ -47,17 +48,7 @@ export const PRPosterController = {
                 params
             )
 
-            const list = rows.map(row => ({
-                _id: row.id,
-                title: row.title,
-                imageUrl: `/api/images/pr-posters/${row.id}?t=${new Date(row.updated_at).getTime()}`, // Custom image route needed
-                imageSize: row.image_size,
-                mimeType: row.mime_type,
-                displayOrder: row.display_order,
-                isPublished: Boolean(row.is_published),
-                createdAt: row.created_at,
-                updatedAt: row.updated_at
-            }))
+            const list = rows.map(toPRPosterDTO)
 
             res.json(list)
         } catch (e) {

@@ -313,7 +313,7 @@ router.get('/organization/:id', async (req, res) => {
     else if (ext === '.webp') mimeType = 'image/webp'
     else if (ext === '.gif') mimeType = 'image/gif'
 
-    const fullPath = path.join(path.resolve(__dirname, '../../server/uploads/organization'), row.image_path)
+    const fullPath = path.join(process.cwd(), 'uploads', 'organization', row.image_path)
 
     // Check if file exists
     try {
