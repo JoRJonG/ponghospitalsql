@@ -89,8 +89,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-6">
           <div>
-            <h3 className="text-xs font-bold text-emerald-600 tracking-widest uppercase mb-1">News Update</h3>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">ข่าวประชาสัมพันธ์ <br />และประกาศจัดซื้อ</h2>
+            <h2 className="text-2xl font-bold text-slate-800">ข่าวประชาสัมพันธ์ และประกาศจัดซื้อ</h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
               ติดตามข้อมูลข่าวสารการจัดซื้อจัดจ้าง การรับสมัครงาน และประกาศสำคัญต่างๆ จากโรงพยาบาลได้ที่นี่
             </p>
@@ -209,11 +208,11 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
   }
 
   return (
-    <section className="py-8 bg-gray-50">
-      <div className="container-narrow">
+    <section className={`py-8 ${embedded ? '' : 'bg-gray-50'}`}>
+      <div className={embedded ? "" : "container-narrow"}>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-2xl font-bold">ประกาศล่าสุด</h3>
+            <h2 className="text-2xl font-bold text-slate-800">ประกาศล่าสุด</h2>
             <p className="text-gray-600 text-sm">ติดตามข่าวสารและประกาศสำคัญจากโรงพยาบาล</p>
           </div>
           <Link

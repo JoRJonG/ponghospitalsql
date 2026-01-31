@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import HeroSlider from '../components/HeroSlider'
 import HomeAnnouncements from '../components/HomeAnnouncements'
 import LatestActivities from '../components/LatestActivities'
+import PRPoster from '../components/PRPoster'
 import UnitLinks from '../components/UnitLinks'
 import { useRef } from 'react'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
@@ -21,7 +22,7 @@ function useReveal<T extends HTMLElement>() {
     }, { threshold: 0.1 })
     el.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-700', 'ease-out')
     obs.observe(el)
-    
+
     // Fallback: show element after 1 second if not yet revealed
     const timer = setTimeout(() => {
       if (el && el.classList.contains('opacity-0')) {
@@ -29,7 +30,7 @@ function useReveal<T extends HTMLElement>() {
         el.classList.remove('opacity-0', 'translate-y-4')
       }
     }, 1000)
-    
+
     return () => {
       obs.disconnect()
       clearTimeout(timer)
@@ -49,19 +50,25 @@ export default function HomePage() {
         <HeroSlider />
       </div>
 
-      <section className="py-8 md:py-16 bg-white">
+      <section className="py-6 md:py-12 bg-white">
         <div className="container-narrow">
-          <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
+          <PRPoster embedded={true} />
         </div>
       </section>
 
-      <section ref={useReveal<HTMLDivElement>()} className="py-8 md:py-16 bg-slate-50 border-t border-slate-200">
+      <section ref={useReveal<HTMLDivElement>()} className="py-6 md:py-12 bg-slate-50 border-t border-slate-200">
         <div className="container-narrow">
           <HomeAnnouncements key={`announcements-${refreshKey}`} limit={6} embedded={true} />
         </div>
       </section>
 
-      <section className="py-6 md:py-12 bg-white">
+      <section className="py-6 md:py-12 bg-white border-t border-slate-200">
+        <div className="container-narrow">
+          <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
+        </div>
+      </section>
+
+      <section className="py-6 md:py-12 bg-slate-50 border-t border-slate-200">
         <div className="container-narrow">
           <UnitLinks embedded={true} />
         </div>

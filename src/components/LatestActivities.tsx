@@ -50,17 +50,17 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
 
   return embedded ? (
     <>
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 border-b border-slate-100 pb-3">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xs font-bold text-emerald-600 tracking-widest uppercase mb-1">Our Activities</h3>
-          <h2 className="text-xl md:text-2xl font-semibold text-slate-800">ภาพกิจกรรม</h2>
+          <h2 className="text-2xl font-bold text-slate-800">ภาพกิจกรรม</h2>
+          <p className="text-gray-600 text-sm">รวมภาพกิจกรรมและโครงการต่างๆ ของโรงพยาบาล</p>
         </div>
         <Link
           to="/activities"
-          className="text-slate-500 hover:text-emerald-600 transition text-sm font-medium mt-4 md:mt-0 group"
+          className="btn btn-outline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5"
           aria-label="ดูทั้งหมดกิจกรรม"
         >
-          ดูทั้งหมด <i className="fa-solid fa-arrow-right ml-1 group-hover:translate-x-1 transition"></i>
+          ดูทั้งหมด <span aria-hidden>→</span>
         </Link>
       </div>
       {isLoading && (

@@ -38,8 +38,11 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
 
   return embedded ? (
     <>
-      <div className="mb-10 text-center">
-        <h2 className="text-2xl font-semibold text-slate-800">ระบบสารสนเทศภายใน</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">ระบบสารสนเทศภายใน</h2>
+          <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงานและระบบสารสนเทศต่างๆ ภายในโรงพยาบาล</p>
+        </div>
       </div>
       {error && (
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>

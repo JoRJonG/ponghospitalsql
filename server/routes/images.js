@@ -154,6 +154,48 @@ router.get('/infographics/:id', async (req, res) => {
   }
 })
 
+// ดึงรูปภาพจาก PR Posters
+router.get('/pr-posters/:id', async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT image_data, mime_type, title, image_path
+      FROM pr_posters WHERE id = ?
+    `, [req.params.id])
+
+    if (!rows[0]) {
+      return res.status(404).json({ error: 'Image not found' })
+    }
+
+    const row = rows[0]
+    let imageData = row.image_data
+
+    // If file_path exists, try reading from disk
+    if (row.image_path) {
+      try {
+        const fullPath = path.join(path.resolve(__dirname, '../../uploads'), row.image_path)
+        imageData = await fs.readFile(fullPath)
+      } catch (e) {
+        console.error(`[Images] Failed to read PR Poster file from disk: ${row.image_path}`, e)
+        if (!imageData) {
+          return res.status(404).json({ error: 'Image content missing' })
+        }
+      }
+    }
+
+    if (!imageData) {
+      return res.status(404).json({ error: 'Image content missing' })
+    }
+
+    res.setHeader('Content-Type', row.mime_type)
+    res.setHeader('Content-Disposition', contentDisposition('inline', row.title || 'poster'))
+    applyPublicCache(res)
+    res.send(imageData)
+  } catch (error) {
+    console.error('Error fetching PR poster image:', error)
+    res.status(500).json({ error: 'Failed to fetch image' })
+  }
+})
+
 // ดึงรูปภาพจาก Homepage Popups
 router.get('/popups/:id', async (req, res) => {
   try {
