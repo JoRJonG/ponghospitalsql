@@ -107,7 +107,7 @@ router.get('/:id', microCache(60_000), async (req, res) => {
 })
 
 // Create pr_poster
-router.post('/', requireAuth, requirePermission('infographics'), upload.single('image'), async (req, res) => {
+router.post('/', requireAuth, requirePermission('pr_poster'), upload.single('image'), async (req, res) => {
     if (!req.app.locals.dbConnected) {
         return res.status(503).json({ error: 'Database unavailable' })
     }
@@ -177,7 +177,7 @@ router.post('/', requireAuth, requirePermission('infographics'), upload.single('
 })
 
 // Update pr_poster
-router.put('/:id', requireAuth, requirePermission('infographics'), upload.single('image'), async (req, res) => {
+router.put('/:id', requireAuth, requirePermission('pr_poster'), upload.single('image'), async (req, res) => {
     if (!req.app.locals.dbConnected) {
         return res.status(503).json({ error: 'Database unavailable' })
     }
@@ -284,7 +284,7 @@ router.put('/:id', requireAuth, requirePermission('infographics'), upload.single
 })
 
 // Delete
-router.delete('/:id', requireAuth, requirePermission('infographics'), async (req, res) => {
+router.delete('/:id', requireAuth, requirePermission('pr_poster'), async (req, res) => {
     try {
         const id = req.params.id
 

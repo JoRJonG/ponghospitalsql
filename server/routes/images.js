@@ -291,5 +291,47 @@ router.get('/announcements/:announcementId/:attachmentId', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch file' })
   }
 })
+// ดึงรูปภาพจาก Organization Charts
+router.get('/organization/:id', async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT image_path, title
+      FROM organization_charts WHERE id = ?
+    `, [req.params.id])
+
+    if (!rows[0]) {
+      return res.status(404).json({ error: 'Image not found' })
+    }
+
+    const row = rows[0]
+
+    // Determine mime type from extension
+    const ext = path.extname(row.image_path).toLowerCase()
+    let mimeType = 'application/octet-stream'
+    if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg'
+    else if (ext === '.png') mimeType = 'image/png'
+    else if (ext === '.webp') mimeType = 'image/webp'
+    else if (ext === '.gif') mimeType = 'image/gif'
+
+    const fullPath = path.join(path.resolve(__dirname, '../../server/uploads/organization'), row.image_path)
+
+    // Check if file exists
+    try {
+      await fs.access(fullPath)
+    } catch {
+      return res.status(404).json({ error: 'Image file missing' })
+    }
+
+    res.setHeader('Content-Type', mimeType)
+    res.setHeader('Content-Disposition', contentDisposition('inline', row.title || 'org-chart'))
+    applyPublicCache(res)
+
+    const fileStream = (await import('fs')).createReadStream(fullPath)
+    fileStream.pipe(res)
+  } catch (error) {
+    console.error('Error fetching organization chart image:', error)
+    res.status(500).json({ error: 'Failed to fetch image' })
+  }
+})
 
 export default router

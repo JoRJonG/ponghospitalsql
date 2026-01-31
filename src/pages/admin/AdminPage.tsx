@@ -21,6 +21,7 @@ import Modal from '../../components/admin/Modal'
 import FeedbackManagement from '../../components/admin/FeedbackManagement'
 import DocumentsManagement, { type DocumentsManagementHandle } from '../../components/DocumentsManagement'
 import PRPosterManagement, { type PRPosterManagementHandle } from '../../components/admin/PRPosterManagement'
+import OrganizationChartManagement from '../../components/admin/OrganizationChartManagement'
 
 // Types
 // ----------------------------------------------------------------------------
@@ -100,10 +101,10 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'pr_poster' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user'
 
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'pr_poster', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user'] as const
 const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -202,6 +203,7 @@ export default function AdminPage() {
       || permissions.units
       || permissions.executives
       || permissions.infographics
+      || permissions.infographics // organization uses same permission
       || permissions.ita
       || permissions.users
 
@@ -215,6 +217,7 @@ export default function AdminPage() {
       unit: permissions.units,
       executive: permissions.executives,
       infographic: permissions.infographics,
+      organization: permissions.infographics,
       pr_poster: permissions.pr_posters,
       ita: permissions.ita,
       users: permissions.users,
@@ -227,7 +230,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (allowedTabs[tab]) return
-    const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'users', 'ita', 'feedback', 'settings-display', 'settings-user']
+    const preferredOrder: AdminTab[] = ['intro', 'overview', 'popups', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'users', 'ita', 'feedback', 'settings-display', 'settings-user']
     const nextTab = preferredOrder.find(key => allowedTabs[key]) || 'intro'
     if (nextTab !== tab) {
       setTab(nextTab)
@@ -631,6 +634,22 @@ export default function AdminPage() {
               </button>
             )}
 
+            {allowedTabs.organization && (
+              <button
+                onClick={() => {
+                  setTab('organization')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'organization'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
+              >
+                <span className="text-xl">🧩</span>
+                <span>โครงสร้างองค์กร</span>
+              </button>
+            )}
+
             {allowedTabs.pr_poster && (
               <button
                 onClick={() => {
@@ -788,6 +807,7 @@ export default function AdminPage() {
                     {tab === 'unit' && 'จัดการหน่วยงาน'}
                     {tab === 'executive' && 'จัดการผู้บริหาร'}
                     {tab === 'infographic' && 'จัดการ Infographic'}
+                    {tab === 'organization' && 'จัดการโครงสร้างองค์กร'}
                     {tab === 'pr_poster' && 'จัดการ PR Poster'}
                     {tab === 'ita' && 'จัดการ ITA'}
                     {tab === 'users' && 'จัดการผู้ใช้'}
@@ -802,6 +822,7 @@ export default function AdminPage() {
                     {tab === 'overview' && 'ข้อมูลสรุปและสถิติของระบบ'}
                     {tab === 'announce' && 'จัดการประกาศและข่าวสาร'}
                     {tab === 'activity' && 'จัดการกิจกรรมและรูปภาพ'}
+                    {tab === 'organization' && 'จัดการรูปภาพโครงสร้างองค์กร'}
                     {tab === 'slide' && 'จัดการสไลด์แสดงผล'}
                     {tab === 'unit' && 'จัดการลิงก์หน่วยงาน'}
                     {tab === 'executive' && 'จัดการข้อมูลผู้บริหาร'}
@@ -1458,6 +1479,17 @@ export default function AdminPage() {
                   className="space-y-4 lg:space-y-6"
                 >
                   <PRPosterManagement ref={prPosterRef} />
+                </motion.div>
+              ) : tab === 'organization' ? (
+                <motion.div
+                  key="organization"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4 lg:space-y-6"
+                >
+                  <OrganizationChartManagement />
                 </motion.div>
               ) : tab === 'ita' ? (
                 <motion.div
