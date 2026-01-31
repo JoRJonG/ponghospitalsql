@@ -62,34 +62,14 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
             return
         }
 
-        // Prompt for title
-        const { value: title } = await Swal.fire({
-            title: 'กรอกชื่อ PR Poster',
-            input: 'text',
-            inputLabel: 'ชื่อ/หัวข้อ',
-            inputPlaceholder: 'เช่น ประชาสัมพันธ์กิจกรรม...',
-            showCancelButton: true,
-            confirmButtonText: 'อัพโหลด',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#10b981',
-            cancelButtonColor: '#6b7280',
-            inputValidator: (value) => {
-                if (!value || value.trim() === '') {
-                    return 'กรุณากรอกชื่อ PR Poster'
-                }
-                return null
-            }
-        })
-
-        if (!title) {
-            e.target.value = '' // Reset if cancelled
-            return
-        }
+        // Prompt for title removed as per requirement
+        // const { value: title } = await Swal.fire(...) 
 
         setUploading(true)
         const formData = new FormData()
         formData.append('image', file)
-        formData.append('title', title.trim())
+        // Title will default to original filename in backend if not provided
+        formData.append('isPublished', 'true')
         formData.append('isPublished', 'true')
         formData.append('displayOrder', String(posters.length))
 
