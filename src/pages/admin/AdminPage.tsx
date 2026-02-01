@@ -1522,7 +1522,7 @@ export default function AdminPage() {
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                   className="space-y-4 lg:space-y-6"
                 >
-                  <DocumentsManagement ref={documentsRef} getToken={getToken} />
+                  <DocumentsManagement ref={documentsRef} />
                 </motion.div>
               ) : null}
             </AnimatePresence>
@@ -1675,7 +1675,7 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
         </div>
         {image && (
           <div className="mt-2">
-            <img src={image.url} loading="lazy" decoding="async" width={160} height={64} className="h-16 object-contain" />
+            <img src={`${image.url}${image.url.includes('?') ? '&' : '?'}w=160`} loading="lazy" decoding="async" width={160} height={64} className="h-16 object-contain" />
           </div>
         )}
       </div>
@@ -1860,7 +1860,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
           </>
         ) : (
           <div className="mt-2 flex items-center gap-3">
-            <img src={image.url} loading="lazy" decoding="async" width={200} height={120} className="h-24 rounded" />
+            <img src={`${image.url}${image.url.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={200} height={120} className="h-24 rounded" />
             <button type="button" className="admin-btn admin-btn--outline" onClick={() => setImage(null)}>ลบรูป</button>
           </div>
         )}
@@ -1967,7 +1967,7 @@ function SlidesList({ list, page, totalPages, onPageChange, onEditSaved, onDelet
           return (
             <div key={identifier} className="card" draggable onDragStart={() => onDragStart(identifier)} onDragOver={(e) => onDragOver(e, identifier)} onDragEnd={onDragEnd}>
               <div className="card-body flex gap-3">
-                <img src={`${s?.image?.url}?t=${Date.now()}`} loading="lazy" decoding="async" width={96} height={64} className="h-16 w-24 object-cover rounded" alt={s?.title ? `ภาพสไลด์: ${s.title}` : 'ภาพสไลด์'} />
+                <img src={`${s?.image?.url}${s?.image?.url?.includes('?') ? '&' : '?'}w=200&t=${Date.now()}`} loading="lazy" decoding="async" width={96} height={64} className="h-16 w-24 object-cover rounded" alt={s?.title ? `ภาพสไลด์: ${s.title}` : 'ภาพสไลด์'} />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate flex items-center gap-2">
                     <span className="truncate">{s.title}</span>
@@ -2163,7 +2163,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
             <label className="block text-sm mb-1">รูปภาพ</label>
             {form?.image?.url ? (
               <div className="flex items-center gap-3">
-                <img src={form.image.url} loading="lazy" decoding="async" width={240} height={160} className="h-28 rounded" />
+                <img src={`${form.image.url}${form.image.url.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={240} height={160} className="h-28 rounded" />
                 <button type="button" className="admin-btn admin-btn--outline" onClick={removeImage}>ลบรูป</button>
               </div>
             ) : (
@@ -2347,7 +2347,7 @@ function ActivitiesList({ list, page, totalPages, onPageChange, onEditSaved, onD
             <div key={a._id} className="card overflow-hidden">
               <div className="card-body flex flex-col gap-3 sm:flex-row">
                 <img
-                  src={src || '/favicon.png'}
+                  src={src ? `${src}${src.includes('?') ? '&' : '?'}w=400` : '/favicon.png'}
                   loading="lazy"
                   decoding="async"
                   width={288}
@@ -2448,7 +2448,7 @@ function UnitsList({ list, page, totalPages, onPageChange, onEditSaved, onDelete
                     src={(() => {
                       const url = u.image?.url ?? ''
                       const key = u.image?.publicId ?? u.updatedAt ?? u._id
-                      return url + (url.includes('?') ? '&' : '?') + `_=${encodeURIComponent(String(key))}`
+                      return url + (url.includes('?') ? '&' : '?') + `w=128&_=${encodeURIComponent(String(key))}`
                     })()}
                     className="w-10 h-10 object-contain"
                     alt={u.name}
@@ -2601,7 +2601,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
             <label className="block text-sm mb-1">รูปภาพ</label>
             {form.image?.url ? (
               <div className="flex items-center gap-3">
-                <img src={form.image.url} className="h-20 rounded" />
+                <img src={`${form.image.url}${form.image.url.includes('?') ? '&' : '?'}w=160`} className="h-20 rounded" />
                 <button className="admin-btn admin-btn--outline" onClick={removeImage}>ลบรูป</button>
               </div>
             ) : (

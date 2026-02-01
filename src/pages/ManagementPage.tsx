@@ -40,7 +40,7 @@ function DirectorCard({ m }: { m: Manager }) {
               <div className="w-full h-full rounded-[50%] overflow-hidden">
                 {m.imageUrl && !imgError ? (
                   <img
-                    src={m.imageUrl}
+                    src={`${m.imageUrl}${m.imageUrl?.includes('?') ? '&' : '?'}w=400`}
                     alt={m.name}
                     loading="eager"
                     onError={() => setImgError(true)}
@@ -135,7 +135,7 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
             <div className="w-full h-full rounded-[50%] overflow-hidden">
               {m.imageUrl && !imgError ? (
                 <img
-                  src={m.imageUrl}
+                  src={`${m.imageUrl}${m.imageUrl?.includes('?') ? '&' : '?'}w=200`}
                   alt={m.name}
                   loading="lazy"
                   onError={() => setImgError(true)}

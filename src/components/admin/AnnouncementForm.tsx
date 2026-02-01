@@ -34,6 +34,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
   const [form, setForm] = useState<Announcement>(initialData || { title: '', category: 'ประชาสัมพันธ์', content: '', isPublished: true, attachments: [], publishedAt: null })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState('')
   const [stagedFiles, setStagedFiles] = useState<File[]>([])
 
   const onUploadImage = async (file: File) => {
@@ -103,6 +104,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setUploadStatus('กำลังบันทึกข้อมูล...')
     try {
       let announcementId = initialData?._id
       let r: Response
@@ -169,6 +171,8 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
       if (stagedFiles.length > 0 && announcementId) {
         for (let i = 0; i < stagedFiles.length; i++) {
           const file = stagedFiles[i]
+          setUploadStatus(`กำลังอัปโหลดไฟล์ (${i + 1}/${stagedFiles.length}): ${file.name}...`)
+
           const fd = new FormData()
           fd.append('file', file)
 
@@ -186,6 +190,8 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
           }
         }
       }
+
+      setUploadStatus('')
 
       if (!initialData) {
         setForm({ title: '', category: form.category, content: '', isPublished: true, attachments: [], publishedAt: null })
@@ -277,7 +283,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
           {loading ? (
             <>
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              กำลังบันทึก...
+              {uploadStatus || 'กำลังบันทึก...'}
             </>
           ) : (
             'บันทึก'

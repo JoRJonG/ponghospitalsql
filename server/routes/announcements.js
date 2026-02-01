@@ -191,6 +191,7 @@ router.post('/:id/attachment', requireAuth, requirePermission('announcements'), 
       kind: isPdf ? 'pdf' : 'image'
     })
 
+    purgeCachePrefix('/api/announcements')
     res.json(result)
   } catch (e) {
     console.error('[announcements upload] error:', e?.message)

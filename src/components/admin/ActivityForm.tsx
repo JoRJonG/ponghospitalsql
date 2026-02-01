@@ -255,7 +255,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
               const src = typeof img === 'string' ? img : img.url
               return (
                 <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
-                  <img src={src} loading="lazy" decoding="async" width={320} height={240} className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={`${src}${src.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={320} height={240} className="absolute inset-0 h-full w-full object-cover" />
                   <button type="button" onClick={() => removeImageAt(i)} className="absolute top-2 right-2 z-10 bg-black/70 text-white text-xs px-2 py-1 rounded">ลบ</button>
                 </div>
               )

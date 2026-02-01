@@ -22,7 +22,9 @@ export function toPublicDTO(announcement) {
             url: att.url,
             kind: att.kind
         })) || [],
-        viewCount: announcement.viewCount || 0
+        viewCount: announcement.viewCount || 0,
+        createdAt: announcement.createdAt,
+        updatedAt: announcement.updatedAt
     }
 }
 
@@ -47,7 +49,9 @@ export function toAdminDTO(announcement) {
             kind: att.kind,
             name: att.name
         })) || [],
-        viewCount: announcement.viewCount || 0
+        viewCount: announcement.viewCount || 0,
+        createdAt: announcement.createdAt,
+        updatedAt: announcement.updatedAt
     }
 }
 

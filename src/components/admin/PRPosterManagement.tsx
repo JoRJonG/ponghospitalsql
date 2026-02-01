@@ -292,7 +292,7 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                                     {/* Thumbnail */}
                                     <div className="w-32 h-auto flex-shrink-0 relative group">
                                         <img
-                                            src={buildApiUrl(item.imageUrl)}
+                                            src={`${buildApiUrl(item.imageUrl)}${item.imageUrl.includes('?') ? '&' : '?'}w=256`}
                                             alt={item.title}
                                             className="w-full h-auto object-cover rounded border border-gray-300"
                                         />

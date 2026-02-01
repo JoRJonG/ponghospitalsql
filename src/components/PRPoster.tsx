@@ -7,6 +7,7 @@ import { Autoplay, Navigation } from 'swiper/modules'
 import { buildApiUrl } from '../utils/api'
 import { useSWR } from '../hooks/useSWR'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
+import { responsiveImageProps } from '../utils/image'
 
 // Import Swiper styles
 import 'swiper/css'
@@ -126,7 +127,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                         </div>
 
                         {/* Swiper Carousel */}
-                        {items && items.length > 0 && (
+                        {items && items.length > 0 ? (
                             <Swiper
                                 modules={[Autoplay, Navigation]}
                                 spaceBetween={16}
@@ -157,25 +158,31 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                                             onClick={() => setSelectedPoster(poster)}
                                         >
                                             <div className="relative aspect-square overflow-hidden rounded-lg mb-3 bg-slate-100">
-                                                <img
-                                                    src={buildApiUrl(poster.imageUrl)}
-                                                    alt={poster.title}
-                                                    className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
-                                                    loading="lazy"
-                                                    draggable="false"
-                                                />
+                                                {(() => {
+                                                    const { src, srcSet } = responsiveImageProps(buildApiUrl(poster.imageUrl), { widths: [320, 480, 640], sizes: '(max-width: 768px) 100vw, 320px' })
+                                                    return (
+                                                        <img
+                                                            src={src}
+                                                            srcSet={srcSet}
+                                                            alt={poster.title}
+                                                            className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
+                                                            loading="lazy"
+                                                            draggable="false"
+                                                        />
+                                                    )
+                                                })()}
                                             </div>
                                         </div>
                                     </SwiperSlide>
                                 ))}
                             </Swiper>
-                        )}
+                        ) : null}
                     </div>
                 )}
             </div>
 
             {/* Lightbox / Modal - Portal */}
-            {selectedPoster && createPortal(
+            {selectedPoster ? createPortal(
                 <div
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-md animate-fade-in w-screen h-screen top-0 left-0"
                     onClick={() => setSelectedPoster(null)}
@@ -204,7 +211,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                     </div>
                 </div>,
                 document.body
-            )}
+            ) : null}
         </section>
     )
 }

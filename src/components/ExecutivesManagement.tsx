@@ -175,11 +175,15 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
             ขนาดแนะนำ: 400x400px รูปสี่เหลี่ยมจัตุรัส สำหรับแสดงเป็นวงกลม
           </p>
 
-          {imagePreview && (
+          {imagePreview ? (
             <div className="mt-3">
-              <img src={imagePreview} alt="Preview" className="w-24 h-24 rounded-full object-cover border-2" />
+              <img
+                src={!imagePreview.startsWith('blob:') ? `${imagePreview}${imagePreview.includes('?') ? '&' : '?'}w=200` : imagePreview}
+                alt="Preview"
+                className="w-24 h-24 rounded-full object-cover border-2"
+              />
             </div>
-          )}
+          ) : null}
         </div>
 
         <div>
@@ -395,13 +399,13 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
         />
       </Modal>
 
-      {executives.length === 0 && (
+      {executives.length === 0 ? (
         <div className="card-glass border-dashed border-2 border-gray-300 p-12 text-center">
           <div className="text-gray-300 text-6xl mb-4">📇</div>
           <p className="text-lg text-gray-500 font-medium">ยังไม่มีข้อมูลผู้บริหาร</p>
           <p className="text-sm text-gray-400 mt-2">คลิก "เพิ่มผู้บริหาร" เพื่อเริ่มต้น</p>
         </div>
-      )}
+      ) : null}
 
       <div className="space-y-3">
         {executives.map((exec, index) => (
@@ -432,7 +436,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
               <div className="relative shrink-0">
                 {exec.imageUrl ? (
                   <img
-                    src={exec.imageUrl}
+                    src={`${exec.imageUrl}${exec.imageUrl?.includes('?') ? '&' : '?'}w=128`}
                     alt={exec.name}
                     className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 shadow-sm group-hover:border-green-200"
                   />

@@ -3,6 +3,7 @@ import { responsiveImageProps } from '../utils/image'
 import { buildApiUrl } from '../utils/api'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 import { useSWR } from '../hooks/useSWR'
+import logo from '../assets/logo-150x150.png'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -63,7 +64,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
           ดูทั้งหมด <span aria-hidden>→</span>
         </Link>
       </div>
-      {isLoading && (
+      {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
             <article key={i} className="group animate-pulse">
@@ -74,13 +75,13 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
             </article>
           ))}
         </div>
-      )}
-      {Array.isArray(items) && items.length > 0 && (
+      ) : null}
+      {Array.isArray(items) && items.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {items.map(a => {
             const first = a.images && a.images.length ? a.images[0] : undefined
             const img = typeof first === 'string' ? first : first?.url
-              || '/favicon.png'
+              || logo
             const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
 
             const categoryColors: Record<string, { bg: string; text: string }> = {
@@ -104,44 +105,44 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
                       className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    {categoryColor && a.category && (
+                    {categoryColor && a.category ? (
                       <span className={`absolute top-3 left-3 ${categoryColor.bg} ${categoryColor.text} px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide shadow-lg`}>
                         {a.category}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
-                    {a.date && (
+                    {a.date ? (
                       <>
                         <span><i className="far fa-calendar mr-1"></i> {new Date(a.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
                         <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                       </>
-                    )}
-                    {a.viewCount !== undefined && a.viewCount > 0 && (
+                    ) : null}
+                    {a.viewCount !== undefined && a.viewCount > 0 ? (
                       <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
-                    )}
+                    ) : null}
                   </div>
                   <h3 className="text-base md:text-lg font-semibold text-slate-800 leading-snug group-hover:text-emerald-700 transition mb-2">
                     {a.title}
                   </h3>
-                  {a.description && (
+                  {a.description ? (
                     <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
                       {stripHtml(a.description)}
                     </p>
-                  )}
+                  ) : null}
 
                 </article>
               </Link>
             )
           })}
         </div>
-      )}
-      {error && (
+      ) : null}
+      {error ? (
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mt-3">{error}</div>
-      )}
-      {Array.isArray(items) && items.length === 0 && !error && (
+      ) : null}
+      {Array.isArray(items) && items.length === 0 && !error ? (
         <div className="text-gray-500">ยังไม่มีกิจกรรม</div>
-      )}
+      ) : null}
     </>
   ) : (
     <section className="py-8 bg-white">
@@ -159,7 +160,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
             ดูทั้งหมด <span aria-hidden>→</span>
           </Link>
         </div>
-        {isLoading && (
+        {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="card overflow-hidden animate-pulse">
@@ -171,13 +172,13 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
               </div>
             ))}
           </div>
-        )}
-        {Array.isArray(items) && items.length > 0 && (
+        ) : null}
+        {Array.isArray(items) && items.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {items.map(a => {
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
-                || '/favicon.png'
+                || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
               return (
                 <Link to={`/activities/${a._id}`} key={a._id} className="card overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-0 shadow-lg">
@@ -194,20 +195,20 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
                       <div className="font-semibold line-clamp-2 text-sm leading-tight mb-1">{a.title}</div>
-                      {a.date && <div className="text-xs opacity-90">{new Date(a.date).toLocaleDateString('th-TH')}</div>}
+                      {a.date ? <div className="text-xs opacity-90">{new Date(a.date).toLocaleDateString('th-TH')}</div> : null}
                     </div>
                   </div>
                 </Link>
               )
             })}
           </div>
-        )}
-        {error && (
+        ) : null}
+        {error ? (
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mt-3">{error}</div>
-        )}
-        {Array.isArray(items) && items.length === 0 && !error && (
+        ) : null}
+        {Array.isArray(items) && items.length === 0 && !error ? (
           <div className="text-gray-500">ยังไม่มีกิจกรรม</div>
-        )}
+        ) : null}
       </div>
     </section>
   )

@@ -121,7 +121,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
 
         <div className="lg:col-span-8 space-y-4">
 
-          {isLoading && (
+          {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
                 <div key={i} className="block bg-white p-4 rounded-lg shadow-sm border border-slate-100 animate-pulse">
@@ -131,13 +131,13 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                 </div>
               ))}
             </div>
-          )}
+          ) : null}
 
-          {error && (
+          {error ? (
             <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-3">{error}</div>
-          )}
+          ) : null}
 
-          {Array.isArray(filtered) && filtered.length > 0 && (
+          {Array.isArray(filtered) && filtered.length > 0 ? (
             <div className="space-y-4">
               {filtered.map(a => {
                 const categoryColors: Record<Announcement['category'], { label: string }> = {
@@ -170,26 +170,26 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                               year: 'numeric'
                             }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
                           </span>
-                          {a.viewCount !== undefined && a.viewCount > 0 && (
+                          {a.viewCount !== undefined && a.viewCount > 0 ? (
                             <>
                               <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                               <span className="text-slate-400 text-xs flex items-center gap-1">
                                 <i className="far fa-eye"></i> {a.viewCount}
                               </span>
                             </>
-                          )}
-                          {isNew(a) && (
+                          ) : null}
+                          {isNew(a) ? (
                             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                               ใหม่
                             </span>
-                          )}
+                          ) : null}
                         </div>
                         <h3 className="text-base font-semibold text-slate-800 transition">
                           <span className="group-hover:text-emerald-700 transition-colors duration-200">{a.title}</span>
                         </h3>
-                        {a.content && (
+                        {a.content ? (
                           <p className="text-xs text-slate-500 mt-1 line-clamp-1">{stripHtml(a.content)}</p>
-                        )}
+                        ) : null}
                         <div className="mt-2">&nbsp;</div>
                       </div>
                     </div>
@@ -197,11 +197,11 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                 )
               })}
             </div>
-          )}
+          ) : null}
 
-          {Array.isArray(filtered) && filtered.length === 0 && !error && (
+          {Array.isArray(filtered) && filtered.length === 0 && !error ? (
             <div className="text-slate-500">ยังไม่มีประกาศ</div>
-          )}
+          ) : null}
         </div>
       </div>
     )
@@ -247,7 +247,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
           </div>
         </div>
 
-        {isLoading && (
+        {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
               <div key={i} className="card">
@@ -259,13 +259,13 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
               </div>
             ))}
           </div>
-        )}
+        ) : null}
 
-        {error && (
+        {error ? (
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-3">{error}</div>
-        )}
+        ) : null}
 
-        {Array.isArray(filtered) && filtered.length > 0 && (
+        {Array.isArray(filtered) && filtered.length > 0 ? (
           <div className="space-y-3" id={`panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`}>
             {filtered.map(a => {
               // Color and icon by category
@@ -291,20 +291,20 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || style.badge} group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors duration-200`}>{a.category}</span>
-                        {isNew(a) && (
+                        {isNew(a) ? (
                           <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             ใหม่
                           </span>
-                        )}
+                        ) : null}
                         <span className="text-gray-400 text-xs">
                           <i className="fa-regular fa-calendar mr-1" />
                           {a.publishedAt ? new Date(a.publishedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                         </span>
-                        {a.viewCount !== undefined && a.viewCount > 0 && (
+                        {a.viewCount !== undefined && a.viewCount > 0 ? (
                           <span className="text-gray-400 text-xs flex items-center gap-1">
                             <i className="fa-regular fa-eye" /> {a.viewCount}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <div className="font-semibold text-gray-900 text-sm md:text-base group-hover:text-emerald-700 transition line-clamp-2">{a.title}</div>
                       {a.content && <div className="text-xs text-gray-600 mt-1 line-clamp-1">{stripHtml(a.content)}</div>}
@@ -315,13 +315,13 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
               )
             })}
           </div>
-        )}
+        ) : null}
 
-        {Array.isArray(filtered) && filtered.length === 0 && !error && (
+        {Array.isArray(filtered) && filtered.length === 0 && !error ? (
           <div className="text-gray-500">
             {activeTab === 'ทั้งหมด' ? 'ยังไม่มีประกาศ' : `ยังไม่มีประกาศในหมวด${activeTab}`}
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   )

@@ -95,7 +95,7 @@ function OrganizationChartPage() {
                         >
                             <div className="overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
                                 <img
-                                    src={chart.imageUrl}
+                                    src={`${chart.imageUrl}${chart.imageUrl.includes('?') ? '&' : '?'}w=1200`}
                                     alt={chart.title || "แผนผังองค์กร"}
                                     className="w-full h-auto object-contain"
                                     loading="lazy"

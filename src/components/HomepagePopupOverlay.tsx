@@ -304,7 +304,7 @@ export function HomepagePopupOverlay() {
           ✕
         </button>
         <img
-          src={imageSrc}
+          src={`${imageSrc}${imageSrc.includes('?') ? '&' : '?'}w=1000`}
           alt="ป๊อปอัปหน้าหลัก"
           className={`block max-h-[90vh] max-w-[90vw] rounded-3xl object-contain shadow-2xl ${imageIsClickable ? 'cursor-pointer' : ''}`}
           onClick={imageIsClickable ? handleOpenCta : undefined}

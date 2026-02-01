@@ -23,6 +23,7 @@ async function saveFileToDisk(buffer, filename) {
   const ext = path.extname(filename) || '.bin'
   const uniqueName = `${crypto.randomUUID()}${ext}`
   const filePath = path.join(UPLOAD_DIR, uniqueName)
+  // console.log('[Announcement] Writing file to:', filePath)
   await fs.writeFile(filePath, buffer)
   return uniqueName // Store relative filename
 }
@@ -334,7 +335,16 @@ export class Announcement {
 
               // Save to disk
               filePath = await saveFileToDisk(buffer, fileName)
+            } else {
+              throw new Error(`Invalid base64 data URL for attachment: ${fileName}`)
             }
+          } else {
+            console.warn(`[Announcement] Skipping invalid attachment URL in create: ${attachment.url}`)
+            throw new Error(`Invalid attachment format: ${fileName}`)
+          }
+
+          if (!filePath) {
+            throw new Error(`Failed to save attachment to disk: ${fileName}`)
           }
 
           await connection.execute(`
@@ -352,7 +362,15 @@ export class Announcement {
         }
       }
 
-      return { id: announcementId, ...data }
+      // Return constructed object to avoid transaction reading issues
+      // Ensure _id is present for DTO mapping
+      return {
+        _id: announcementId,
+        id: announcementId,
+        ...data,
+        // Ensure category is passed through (frontend sends name/code)
+        category: data.category
+      }
     })
   }
 
@@ -469,7 +487,18 @@ export class Announcement {
 
                 // Save to disk
                 filePath = await saveFileToDisk(buffer, fileName)
+              } else {
+                throw new Error(`Invalid base64 data URL for attachment: ${fileName}`)
               }
+            } else {
+              // If it's not a server URL and not a data URL, we can't save it. 
+              // Throw error to prevent ghost record.
+              console.warn(`[Announcement] Skipping invalid attachment URL: ${attachment.url}`)
+              throw new Error(`Invalid attachment format: ${fileName}`)
+            }
+
+            if (!filePath) {
+              throw new Error(`Failed to save attachment to disk: ${fileName}`)
             }
 
             await connection.execute(`

@@ -17,6 +17,32 @@ function applyPublicCache(res) {
   res.setHeader('Cache-Control', 'public, max-age=86400, immutable')
 }
 
+// Helper to resize image on the fly if 'w' query param is present
+const resizeImage = async (buffer, widthQuery, mimeType) => {
+  if (!widthQuery) return { buffer, mimeType }
+
+  const width = parseInt(widthQuery)
+  if (isNaN(width) || width <= 0 || width > 2000) return { buffer, mimeType }
+
+  try {
+    const pipeline = sharp(buffer)
+    const metadata = await pipeline.metadata()
+
+    // Don't upscale
+    if (metadata.width && metadata.width <= width) return { buffer, mimeType }
+
+    const resizedBuffer = await pipeline
+      .resize(width, null, { withoutEnlargement: true })
+      .webp({ quality: 80 }) // Always convert to WebP for better performance
+      .toBuffer()
+
+    return { buffer: resizedBuffer, mimeType: 'image/webp' }
+  } catch (e) {
+    console.warn('Resize failed, returning original:', e.message)
+    return { buffer, mimeType }
+  }
+}
+
 // ดึงรูปภาพจาก Slides
 router.get('/slides/:id', async (req, res) => {
   try {
@@ -25,11 +51,13 @@ router.get('/slides/:id', async (req, res) => {
       return res.status(404).json({ error: 'Image not found' })
     }
 
-    res.setHeader('Content-Type', imageData.mime_type)
-    res.setHeader('Content-Length', imageData.image_data.length)
+    const processed = await resizeImage(imageData.image_data, req.query.w, imageData.mime_type)
+
+    res.setHeader('Content-Type', processed.mimeType)
+    res.setHeader('Content-Length', processed.buffer.length)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
     applyPublicCache(res)
-    res.send(imageData.image_data)
+    res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching slide image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
@@ -73,10 +101,13 @@ router.get('/activities/:activityId/:imageId', async (req, res) => {
       return res.status(404).json({ error: 'Image data not found' })
     }
 
-    res.setHeader('Content-Type', row.mime_type)
+    // Optional: Add resize support for activity images too
+    const processed = await resizeImage(imageData, req.query.w, row.mime_type)
+
+    res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', row.file_name))
     applyPublicCache(res)
-    res.send(imageData)
+    res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching activity image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
@@ -96,35 +127,19 @@ router.get('/executives/:id', async (req, res) => {
     }
 
     const imageData = rows[0]
-    let imageBuffer = imageData.image_data
-    let mimeType = imageData.mime_type
 
-    // If image is large (> 200KB), resize properly
-    if (imageBuffer.length > 200 * 1024) {
-      try {
-        const pipeline = sharp(imageBuffer)
-        const metadata = await pipeline.metadata()
-        // If wider than 800px, resize
-        if (metadata.width && metadata.width > 800) {
-          imageBuffer = await pipeline
-            .resize(800, null, { withoutEnlargement: true })
-            .webp({ quality: 80 })
-            .toBuffer()
-          mimeType = 'image/webp'
-        } else if (imageBuffer.length > 500 * 1024) {
-          // Just compress if still huge but dimensions refer ok
-          imageBuffer = await pipeline.webp({ quality: 80 }).toBuffer()
-          mimeType = 'image/webp'
-        }
-      } catch (e) {
-        console.warn('On-the-fly image resize failed for executive:', req.params.id, e.message)
-      }
-    }
+    // Use the standard resizeImage helper which supports req.query.w
+    // Default to 'image/webp' if mime_type is missing, as we convert to webp on resize anyway
+    const processed = await resizeImage(
+      imageData.image_data,
+      req.query.w,
+      imageData.mime_type || 'image/webp'
+    )
 
-    res.setHeader('Content-Type', mimeType)
+    res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
     applyPublicCache(res)
-    res.send(imageBuffer)
+    res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching executive image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
@@ -144,10 +159,17 @@ router.get('/infographics/:id', async (req, res) => {
     }
 
     const imageData = rows[0]
-    res.setHeader('Content-Type', imageData.mime_type)
+
+    const processed = await resizeImage(
+      imageData.image_data,
+      req.query.w,
+      imageData.mime_type || 'image/webp'
+    )
+
+    res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.title || 'infographic'))
     applyPublicCache(res)
-    res.send(imageData.image_data)
+    res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching infographic image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
@@ -186,10 +208,12 @@ router.get('/pr-posters/:id', async (req, res) => {
       return res.status(404).json({ error: 'Image content missing' })
     }
 
-    res.setHeader('Content-Type', row.mime_type)
+    const processed = await resizeImage(imageData, req.query.w, row.mime_type)
+
+    res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', row.title || 'poster'))
     applyPublicCache(res)
-    res.send(imageData)
+    res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching PR poster image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
@@ -204,13 +228,13 @@ router.get('/popups/:id', async (req, res) => {
       return res.status(404).json({ error: 'Image not found' })
     }
 
-    res.setHeader('Content-Type', data.image_mime || 'image/webp')
-    if (data.image_size) {
-      res.setHeader('Content-Length', data.image_size)
-    }
+    const processed = await resizeImage(data.image_data, req.query.w, data.image_mime || 'image/webp')
+
+    res.setHeader('Content-Type', processed.mimeType)
+    // Content-Length will change after resize, let Express handle it or calculate from buffer
     res.setHeader('Content-Disposition', contentDisposition('inline', data.image_name || 'popup-image'))
     applyPublicCache(res)
-    res.send(data.image_data)
+    res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching popup image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })
@@ -254,6 +278,13 @@ router.get('/announcements/:announcementId/:attachmentId', async (req, res) => {
     }
 
     const row = rows[0]
+
+    // Check if record exists but has no file content/path
+    if (!row.file_data && !row.file_path) {
+      console.error(`[Images] Attachment #${req.params.attachmentId} has NULL file_data and NULL file_path`)
+      return res.status(404).json({ error: 'Attachment record exists but content is missing' })
+    }
+
     let fileData = row.file_data
 
     // If file_path exists, try reading from disk
@@ -262,7 +293,7 @@ router.get('/announcements/:announcementId/:attachmentId', async (req, res) => {
         const fullPath = path.join(UPLOAD_DIR, row.file_path)
         fileData = await fs.readFile(fullPath)
       } catch (e) {
-        console.error(`[Images] Failed to read file from disk: ${row.file_path}`, e)
+        console.error(`[Images] Failed to read file from disk. ID: ${row.file_name}, Path: ${path.join(UPLOAD_DIR, row.file_path)}`, e)
         // If file missing on disk and no blob data, we can't serve it
         if (!fileData) {
           return res.status(404).json({ error: 'File content missing' })
@@ -305,7 +336,7 @@ router.get('/organization/:id', async (req, res) => {
 
     const row = rows[0]
 
-    // Determine mime type from extension
+    // Determine mime type from extension (default fallback)
     const ext = path.extname(row.image_path).toLowerCase()
     let mimeType = 'application/octet-stream'
     if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg'
@@ -322,12 +353,20 @@ router.get('/organization/:id', async (req, res) => {
       return res.status(404).json({ error: 'Image file missing' })
     }
 
-    res.setHeader('Content-Type', mimeType)
+    // Read file to buffer for resizing
+    const fileBuffer = await fs.readFile(fullPath)
+
+    // Resize using helper
+    const processed = await resizeImage(
+      fileBuffer,
+      req.query.w,
+      mimeType
+    )
+
+    res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', row.title || 'org-chart'))
     applyPublicCache(res)
-
-    const fileStream = (await import('fs')).createReadStream(fullPath)
-    fileStream.pipe(res)
+    res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching organization chart image:', error)
     res.status(500).json({ error: 'Failed to fetch image' })

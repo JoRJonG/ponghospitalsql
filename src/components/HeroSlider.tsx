@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { responsiveImageProps, cloudinaryTransform, isCloudinaryUrl } from '../utils/image'
+import { responsiveImageProps, cloudinaryTransform, isCloudinaryUrl, nonCdnResponsiveUrl } from '../utils/image'
 import { useSWR } from '../hooks/useSWR'
 
 type Slide = { src: string; alt?: string; caption?: string; href?: string; duration?: number }
@@ -94,7 +94,7 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
         return cloudinaryTransform(s.src, { w: 40, h: 20, crop: 'fill', quality: 'auto:eco', format: 'auto' })
       }
       // Fallback: use the original image as background for non-Cloudinary sources
-      return s.src || undefined
+      return s.src ? nonCdnResponsiveUrl(s.src, 40) : undefined
     })
   }, [slides])
 

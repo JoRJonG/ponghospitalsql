@@ -127,25 +127,25 @@ export default function Navbar() {
             <NavLink to="/" className={navItemClass} end>หน้าหลัก</NavLink>
             <NavLink to="/announcements" className={({ isActive }) => `${navItemClass({ isActive })} relative`}>
               ประกาศ
-              {hasNewAnnouncements && (
+              {hasNewAnnouncements ? (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse">
                   ใหม่
                 </span>
-              )}
+              ) : null}
             </NavLink>
             <NavLink to="/executives" className={navItemClass}>ผู้บริหาร</NavLink>
             <div className="relative" onMouseEnter={openIta} onMouseLeave={closeItaLater}>
               <NavLink to="/ita" className={navItemClass} onClick={() => setItaOpen(o => !o)}>ITA ▾</NavLink>
-              {itaOpen && itaRoots.length > 0 && (
+              {itaOpen && itaRoots.length > 0 ? (
                 <div className="absolute left-0 mt-1 w-72 max-h-[70vh] overflow-auto rounded-lg border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-sm p-2 z-50 animate-fade-in">
                   <ul className="space-y-1">
                     {itaRoots.map(r => (
                       <li key={r._id} className="group">
                         <button onClick={() => goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center justify-between">
                           <span className="truncate pr-2">{r.title}</span>
-                          {r.children && r.children.length > 0 && <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-teal-600 transition-colors" />}
+                          {r.children && r.children.length > 0 ? <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-teal-600 transition-colors" /> : null}
                         </button>
-                        {r.children && r.children.length > 0 && (
+                        {r.children && r.children.length > 0 ? (
                           <ul className="ml-2 mt-1 border-l border-dashed border-gray-200 pl-2 space-y-1">
                             {r.children.slice(0, 6).map(c => (
                               <li key={c._id}>
@@ -155,21 +155,21 @@ export default function Navbar() {
                                 </button>
                               </li>
                             ))}
-                            {r.children.length > 6 && (
+                            {r.children.length > 6 ? (
                               <li><span className="text-[11px] text-gray-400 px-2 italic">+ {r.children.length - 6} รายการ</span></li>
-                            )}
+                            ) : null}
                           </ul>
-                        )}
+                        ) : null}
                       </li>
                     ))}
                   </ul>
                 </div>
-              )}
+              ) : null}
             </div>
             <NavLink to="/documents" className={navItemClass}>ดาวน์โหลด</NavLink>
             <NavLink to="/about" className={navItemClass}>เกี่ยวกับเรา</NavLink>
             <NavLink to="/contact" className={navItemClass}>ติดต่อเรา</NavLink>
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <>
                 <span className="mx-1 text-slate-300">|</span>
                 <NavLink to="/admin" className={navItemClass} end><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
@@ -177,14 +177,14 @@ export default function Navbar() {
                   <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
                 </button>
               </>
-            )}
+            ) : null}
           </nav>
           <button className="md:hidden p-2 text-gray-700" aria-label={open ? 'ปิดเมนู' : 'เปิดเมนู'} onClick={() => setOpen(o => !o)}>
             <i className={`fa-solid ${open ? 'fa-xmark' : 'fa-bars'} text-xl`} />
           </button>
         </div>
       </header>
-      {open && (
+      {open ? (
         <div>
           <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setOpen(false)} />
           <div className="md:hidden fixed inset-x-0 top-20 bottom-0 z-50 overflow-y-auto" onClick={() => setOpen(false)}>
@@ -194,9 +194,9 @@ export default function Navbar() {
                 <NavLink to="/announcements" className={({ isActive }) => navItemClass({ isActive })} onClick={() => setOpen(false)}>
                   <div className="flex items-center gap-2">
                     <span>ประกาศ</span>
-                    {hasNewAnnouncements && (
+                    {hasNewAnnouncements ? (
                       <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">ใหม่</span>
-                    )}
+                    ) : null}
                   </div>
                 </NavLink>
                 <div>
@@ -209,7 +209,7 @@ export default function Navbar() {
                     <span>ITA</span>
                     <i className={`fa-solid fa-chevron-${mobileItaOpen ? 'up' : 'down'} text-xs ml-2`} />
                   </button>
-                  {mobileItaOpen && itaRoots.length > 0 && (
+                  {mobileItaOpen && itaRoots.length > 0 ? (
                     <ul className="mt-1 mb-2 ml-3 border-l border-gray-200 pl-3 space-y-1">
                       {itaRoots.map(r => (
                         <li key={r._id}>
@@ -220,13 +220,13 @@ export default function Navbar() {
                         </li>
                       ))}
                     </ul>
-                  )}
+                  ) : null}
                 </div>
                 <NavLink to="/documents" className={navItemClass} onClick={() => setOpen(false)}>ดาวน์โหลด</NavLink>
                 <NavLink to="/executives" className={navItemClass} onClick={() => setOpen(false)}>ผู้บริหาร</NavLink>
                 <NavLink to="/about" className={navItemClass} onClick={() => setOpen(false)}>เกี่ยวกับเรา</NavLink>
                 <NavLink to="/contact" className={navItemClass} onClick={() => setOpen(false)}>ติดต่อเรา</NavLink>
-                {isAuthenticated && (
+                {isAuthenticated ? (
                   <>
                     <div className="border-t border-gray-200 my-2"></div>
                     <NavLink to="/admin" className={navItemClass} end onClick={() => setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
@@ -234,12 +234,12 @@ export default function Navbar() {
                       <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
                     </button>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

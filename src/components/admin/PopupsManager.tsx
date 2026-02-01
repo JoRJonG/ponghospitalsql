@@ -535,7 +535,7 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
                       {thumbSrc && (
                         <a href={thumbSrc} target="_blank" rel="noopener noreferrer" className="group mb-3 block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-emerald-200 hover:shadow-md">
                           <div className="relative flex h-40 w-full items-center justify-center bg-slate-50">
-                            <img src={thumbSrc} alt="รูปป๊อปอัป" className="max-h-full max-w-full object-contain transition duration-200 group-hover:scale-105" />
+                            <img src={`${thumbSrc}${thumbSrc.includes('?') ? '&' : '?'}w=256`} alt="รูปป๊อปอัป" className="max-h-full max-w-full object-contain transition duration-200 group-hover:scale-105" />
                           </div>
                         </a>
                       )}

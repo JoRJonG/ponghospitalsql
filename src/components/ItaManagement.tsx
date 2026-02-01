@@ -374,7 +374,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
           return (
             <li key={n._id} className="bg-white/60 rounded border p-3">
               <div className="flex items-start gap-2">
-                {hasChildren && (
+                {hasChildren ? (
                   <button
                     onClick={() => toggle(n._id)}
                     className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
@@ -382,12 +382,12 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                   >
                     {isOpen ? '-' : '+'}
                   </button>
-                )}
-                {!hasChildren && <span className="w-5" />}
+                ) : null}
+                {!hasChildren ? <span className="w-5" /> : null}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-800">{highlight(n.title)}</span>
-                    {n.pdfUrl && (
+                    {n.pdfUrl ? (
                       <a
                         href={n.pdfUrl}
                         target="_blank"
@@ -397,20 +397,20 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                         <span>🔗</span>
                         <span>เปิดลิงก์</span>
                       </a>
-                    )}
-                    {!n.isPublished && <span className="badge gray">ซ่อน</span>}
+                    ) : null}
+                    {!n.isPublished ? <span className="badge gray">ซ่อน</span> : null}
                     <span className="text-[10px] text-gray-400">order:{n.order}</span>
                   </div>
-                  {n.content && <div className="text-xs text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: n.content }} />}
-                  {(n.slug || pdfCount > 0) && (
+                  {n.content ? <div className="text-xs text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: n.content }} /> : null}
+                  {(n.slug || pdfCount > 0) ? (
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                      {n.slug && (
+                      {n.slug ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
                           <span className="text-gray-500">slug</span>
                           <span className="font-medium text-gray-700">{highlight(n.slug)}</span>
                         </span>
-                      )}
-                      {pdfCount > 0 && (
+                      ) : null}
+                      {pdfCount > 0 ? (
                         <button
                           type="button"
                           className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-900"
@@ -419,9 +419,9 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                           <span>📎</span>
                           <span>{isPdfOpen ? 'ซ่อนไฟล์' : `ดูไฟล์ (${pdfCount})`}</span>
                         </button>
-                      )}
+                      ) : null}
                     </div>
-                  )}
+                  ) : null}
                   <div className="mt-2 flex flex-wrap gap-2 text-xs">
                     <button onClick={() => startNew(n)} className="admin-btn admin-btn--outline">➕ เพิ่มเมนูย่อย</button>
                     <button onClick={() => startEdit(n)} className="admin-btn admin-btn--outline">✏️ แก้ไข</button>
@@ -429,7 +429,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                     <button onClick={() => move(n, -1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายขึ้น">⬆️</button>
                     <button onClick={() => move(n, 1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายลง">⬇️</button>
                   </div>
-                  {pdfCount > 0 && isPdfOpen && (
+                  {pdfCount > 0 && isPdfOpen ? (
                     <ul className="mt-3 space-y-1 rounded border border-emerald-200 bg-emerald-50/60 p-2 text-xs">
                       {n.pdfs!.map(pdf => (
                         <li key={pdf.id} className="flex items-center gap-2">
@@ -446,14 +446,14 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                         </li>
                       ))}
                     </ul>
-                  )}
+                  ) : null}
                 </div>
               </div>
-              {hasChildren && isOpen && (
+              {hasChildren && isOpen ? (
                 <div className="mt-2">
                   {renderNodes(n.children!, depth + 1)}
                 </div>
-              )}
+              ) : null}
             </li>
           )
         })}
@@ -485,11 +485,11 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                   placeholder="ค้นหาจากชื่อหรือ slug"
                   className="flex-1 rounded border px-3 py-1.5 text-sm"
                 />
-                {searchTerm && (
+                {searchTerm ? (
                   <button type="button" className="text-xs text-gray-500 underline" onClick={clearSearch}>
                     ล้าง
                   </button>
-                )}
+                ) : null}
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <span className="rounded-full bg-gray-100 px-2 py-0.5">ทั้งหมด {resultCount} รายการ</span>
@@ -513,7 +513,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
         </>
       )}
 
-      {(creating || editing) && (
+      {(creating || editing) ? (
         <div className="mt-8 card">
           <div className="card-header flex items-center justify-between">
             <span>{editing ? 'แก้ไขเมนู' : parentForNew ? 'เพิ่มเมนูย่อยของ: ' + parentForNew.title : 'เพิ่มเมนูหลัก'}</span>
@@ -574,7 +574,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                     />
                   </label>
                 </div>
-                {!editing && pendingNewPdfs.length > 0 && (
+                {!editing && pendingNewPdfs.length > 0 ? (
                   <ul className="mt-2 text-xs space-y-1">
                     {pendingNewPdfs.map((f, i) => (
                       <li key={i} className="flex items-center gap-2">
@@ -584,8 +584,8 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                       </li>
                     ))}
                   </ul>
-                )}
-                {editing && (
+                ) : null}
+                {editing ? (
                   <div className="mt-4 border-t pt-3 space-y-3">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium">ไฟล์ PDF ทั้งหมด ({pdfList.length})</span>
@@ -675,7 +675,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                       )
                     )}
                   </div>
-                )}
+                ) : null}
               </div>
               <div>
                 <label className="block text-sm mb-1">รายละเอียด (ถ้ามี)</label>
@@ -703,8 +703,8 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
             </form>
           </div>
         </div>
-      )}
-      {busy && <div className="fixed inset-0 bg-black/10 pointer-events-none animate-fade-in" aria-hidden />}
+      ) : null}
+      {busy ? <div className="fixed inset-0 bg-black/10 pointer-events-none animate-fade-in" aria-hidden /> : null}
     </div>
   )
 })

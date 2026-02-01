@@ -83,7 +83,7 @@ export default function InfographicPage() {
             >
               <div className="card-body p-0">
                 <img
-                  src={item.imageUrl}
+                  src={`${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}w=1200`}
                   alt={item.title}
                   className="w-full h-auto"
                   loading="lazy"

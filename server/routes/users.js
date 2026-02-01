@@ -49,7 +49,18 @@ function toPublicUser(user) {
 
 router.get('/', requireAuth, requirePermission('users'), async (req, res) => {
   try {
-    const users = await User.findAll(200, 0)
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit) || 20))
+    const offset = (page - 1) * limit
+
+    const total = await User.countDocuments()
+    const users = await User.findAll(limit, offset)
+    const totalPages = Math.ceil(total / limit)
+
+    res.setHeader('X-Total-Count', total)
+    res.setHeader('X-Total-Pages', totalPages)
+    res.setHeader('Access-Control-Expose-Headers', 'X-Total-Count, X-Total-Pages')
+
     res.json({ success: true, data: users.map(toPublicUser) })
   } catch (error) {
     console.error('[users] list error:', error?.message)

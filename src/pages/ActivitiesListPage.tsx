@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { responsiveImageProps } from '../utils/image'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
+import logo from '../assets/logo-150x150.png'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -190,7 +191,7 @@ export default function ActivitiesListPage() {
             {items.map(a => {
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
-                || '/favicon.png'
+                || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill' })
               return (
                 <Link to={`/activities/${a._id}`} key={a._id} className="block bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden">
@@ -221,7 +222,7 @@ export default function ActivitiesListPage() {
             {items.map(a => {
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
-                || '/favicon.png'
+                || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
               return (
                 <Link to={`/activities/${a._id}`} key={a._id} className="group block">

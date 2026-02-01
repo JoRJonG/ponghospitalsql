@@ -1,5 +1,6 @@
 import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react'
 import { formatFileSize, getFileIcon, getCategoryColor } from '../utils/documentHelpers'
+import { apiRequest } from '../utils/api'
 import DocumentForm from './admin/DocumentForm'
 
 import Swal from 'sweetalert2'
@@ -24,12 +25,10 @@ export interface DocumentsManagementHandle {
     refresh: () => Promise<void>
 }
 
-interface DocumentsManagementProps {
-    getToken: () => string | null
-}
+interface DocumentsManagementProps { }
 
 const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManagementProps>(
-    ({ getToken }, ref) => {
+    (_props, ref) => {
         const [documents, setDocuments] = useState<Document[]>([])
         const [loading, setLoading] = useState(true)
         const [showForm, setShowForm] = useState(false)
@@ -56,10 +55,6 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
         const fetchDocuments = useCallback(async () => {
             setLoading(true)
             try {
-                const token = getToken()
-                const headers: Record<string, string> = {}
-                if (token) headers['Authorization'] = `Bearer ${token}`
-
                 const params = new URLSearchParams({
                     page: currentPage.toString(),
                     limit: itemsPerPage.toString(),
@@ -67,7 +62,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                     search: debouncedSearch
                 })
 
-                const response = await fetch(`/api/documents?${params.toString()}`, { headers })
+                const response = await apiRequest(`/api/documents?${params.toString()}`)
                 if (response.ok) {
                     const result = await response.json()
                     // Check if response has pagination structure
@@ -87,7 +82,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
             } finally {
                 setLoading(false)
             }
-        }, [getToken, currentPage, itemsPerPage, filterCategory, debouncedSearch])
+        }, [currentPage, itemsPerPage, filterCategory, debouncedSearch])
 
         useImperativeHandle(ref, () => ({
             refresh: fetchDocuments
@@ -109,13 +104,8 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
             })
 
             try {
-                const token = getToken()
-                const headers: Record<string, string> = {}
-                if (token) headers['Authorization'] = `Bearer ${token}`
-
-                const response = await fetch('/api/documents', {
+                const response = await apiRequest('/api/documents', {
                     method: 'POST',
-                    headers,
                     body: formData
                 })
 
@@ -160,13 +150,8 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
             })
 
             try {
-                const token = getToken()
-                const headers: Record<string, string> = {}
-                if (token) headers['Authorization'] = `Bearer ${token}`
-
-                const response = await fetch(`/api/documents/${editingDocument.id}`, {
+                const response = await apiRequest(`/api/documents/${editingDocument.id}`, {
                     method: 'PUT',
-                    headers,
                     body: formData
                 })
 
@@ -223,13 +208,8 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
             })
 
             try {
-                const token = getToken()
-                const headers: Record<string, string> = {}
-                if (token) headers['Authorization'] = `Bearer ${token}`
-
-                const response = await fetch(`/api/documents/${id}`, {
-                    method: 'DELETE',
-                    headers
+                const response = await apiRequest(`/api/documents/${id}`, {
+                    method: 'DELETE'
                 })
 
                 if (!response.ok) {

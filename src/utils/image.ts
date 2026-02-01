@@ -48,16 +48,51 @@ export function cloudinarySrcSet(url: string, widths: number[], base: Omit<Trans
   return entries.join(', ')
 }
 
+export function nonCdnSrcSet(url: string, widths: number[]): string | undefined {
+  if (!url || widths.length === 0) return undefined
+  // Check if we can optimize this URL
+  const testUrl = nonCdnResponsiveUrl(url, 100)
+  if (testUrl === url) return undefined // URL doesn't support optimizing
+
+  const entries = widths.map(w => {
+    const optimized = nonCdnResponsiveUrl(url, w)
+    return `${optimized} ${w}w`
+  })
+  return entries.join(', ')
+}
+
 // For remote images, we can try to add width/quality hints in query if supported.
 export function nonCdnResponsiveUrl(url: string, w?: number): string {
   try {
-    const u = new URL(url)
-    // Basic support for Unsplash-style params
-    if (/images\.unsplash\.com$/.test(u.hostname)) {
-      if (w) u.searchParams.set('w', String(w))
-      u.searchParams.set('q', '80')
-      u.searchParams.set('auto', 'format')
-      return u.toString()
+    // Handle relative URLs (local API)
+    if (url.startsWith('/api/images/') || url.startsWith('http')) {
+      // If it's a full URL, check if it's our API
+      let u: URL
+      try {
+        u = new URL(url, 'http://dummy.com') // Base for relative URLs
+      } catch {
+        return url
+      }
+
+      const isLocalApi = u.pathname.startsWith('/api/images/')
+
+      if (isLocalApi && w) {
+        // If relative, we just append query. If absolute, we reconstruct.
+        if (url.startsWith('/')) {
+          const separator = url.includes('?') ? '&' : '?'
+          return `${url}${separator}w=${w}`
+        }
+        u.searchParams.set('w', String(w))
+        return u.toString()
+      }
+
+      // Basic support for Unsplash-style params
+      if (/images\.unsplash\.com$/.test(u.hostname)) {
+        if (w) u.searchParams.set('w', String(w))
+        u.searchParams.set('q', '80')
+        u.searchParams.set('auto', 'format')
+        return u.toString()
+      }
     }
   } catch (error) {
     console.debug('nonCdnResponsiveUrl: fallback to original URL', error)
@@ -80,7 +115,8 @@ export function responsiveImageProps(url?: string, opts?: ResponsiveImageOptions
 
   // Non-Cloudinary: best effort using query parameters
   const src = nonCdnResponsiveUrl(url, Math.max(...widths))
-  return { src, srcSet: undefined, sizes }
+  const srcSet = nonCdnSrcSet(url, widths)
+  return { src, srcSet, sizes }
 }
 
 export default { isCloudinaryUrl, cloudinaryTransform, cloudinarySrcSet, nonCdnResponsiveUrl, responsiveImageProps }
