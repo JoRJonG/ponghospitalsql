@@ -129,7 +129,7 @@ export default function ContactPage() {
         className="mb-8"
       >
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">ติดต่อเรา</h1>
-        <p className="mt-2 text-gray-600">สอบถามข้อมูล นัดหมายบริการ ตรวจสอบสิทธิผู้ป่วย และข้อเสนอแนะ ทีมงานยินดีให้บริการด้วยความมืออาชีพ</p>
+        <p className="mt-2 text-gray-600">สอบถามข้อมูล นัดหมายบริการ ตรวจสอบสิทธิผู้ป่วย และข้อเสนอแนะ </p>
       </motion.div>
 
       <div className="grid lg:grid-cols-2 gap-6">

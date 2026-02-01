@@ -453,7 +453,6 @@ export default function AboutPage() {
         className="mb-6"
       >
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">เกี่ยวกับเรา</h1>
-        <p className="mt-2 text-gray-600">โรงพยาบาลปง อำเภอปง จังหวัดพะเยา</p>
       </motion.div>
 
       {/* Sub Navigation */}
