@@ -120,7 +120,7 @@ export default function Navbar() {
             />
             <div className="flex flex-col">
               <span className="font-bold text-xl text-teal-800">โรงพยาบาลปง</span>
-              <span className="text-xs text-slate-500 -mt-0.5">PONG HOSPITAL, PHAYAO</span>
+              <span className="text-xs text-slate-500 -mt-0.5">PONG HOSPITAL</span>
             </div>
           </Link>
           <nav className="hidden md:flex items-center gap-1">

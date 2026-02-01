@@ -1,4 +1,5 @@
 import logo from '../assets/logo-150x150.png'
+import { Link } from 'react-router-dom'
 import VisitorCounter from './VisitorCounter'
 
 export default function Footer() {
@@ -15,7 +16,7 @@ export default function Footer() {
       <footer className="bg-white border-t border-slate-200 pt-16 pb-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-            
+
             {/* Hospital Info */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -43,12 +44,16 @@ export default function Footer() {
             {/* Site Map */}
             <div>
               <h4 className="font-bold text-slate-800 mb-6">แผนผังเว็บไซต์</h4>
-              <ul className="space-y-3 text-sm text-slate-500">
-                <li><a href="/" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> หน้าหลัก</a></li>
-                <li><a href="/about" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> เกี่ยวกับเรา</a></li>
-                <li><a href="/executives" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> คณะผู้บริหาร</a></li>
-                <li><a href="/announcements" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> ข่าวสาร/ประกาศ</a></li>
-                <li><a href="/contact" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> ติดต่อเรา</a></li>
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm text-slate-500">
+                <li><Link to="/" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> หน้าหลัก</Link></li>
+                <li><Link to="/about" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> เกี่ยวกับเรา</Link></li>
+                <li><Link to="/executives" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> คณะผู้บริหาร</Link></li>
+                <li><Link to="/announcements" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> ข่าวสาร/ประกาศ</Link></li>
+                <li><Link to="/activities" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> กิจกรรม</Link></li>
+                <li><Link to="/pr-posters" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> โปสเตอร์ประชาสัมพันธ์</Link></li>
+                <li><Link to="/documents" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> ดาวน์โหลดเอกสาร</Link></li>
+                <li><Link to="/ita" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> ITA</Link></li>
+                <li><Link to="/contact" className="hover:text-emerald-600 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs"></i> ติดต่อเรา</Link></li>
               </ul>
             </div>
 
@@ -73,7 +78,7 @@ export default function Footer() {
           </div>
 
           <div className="border-t border-slate-100 pt-8 text-center text-xs text-slate-400">
-            <p>&copy; {new Date().getFullYear()} Pong Hospital, Phayao. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Pong Hospital All rights reserved.</p>
           </div>
         </div>
       </footer>
