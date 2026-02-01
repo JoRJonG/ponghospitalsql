@@ -1,7 +1,7 @@
 
 import { query } from '../database.js'
 import { userHasPermission } from '../middleware/auth.js'
-import { toPRPosterDTO } from '../dtos/PRPosterDTO.js'
+import { toPRPosterDTO } from '../dto/PRPosterDTO.js'
 
 export const PRPosterController = {
     async index(req, res) {

@@ -144,17 +144,25 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                                     nextEl: '.swiper-button-next-custom'
                                 }}
                                 breakpoints={{
-                                    768: {
-                                        slidesPerView: 'auto',
+                                    640: {
+                                        slidesPerView: 2,
+                                        spaceBetween: 16
+                                    },
+                                    1024: {
+                                        slidesPerView: 4,
+                                        spaceBetween: 20
+                                    },
+                                    1280: {
+                                        slidesPerView: 4,
                                         spaceBetween: 24
                                     }
                                 }}
                                 className="pr-poster-swiper"
                             >
                                 {items.map((poster) => (
-                                    <SwiperSlide key={poster._id} className="!w-full md:!w-auto">
+                                    <SwiperSlide key={poster._id}>
                                         <div
-                                            className="w-full md:w-[280px] lg:w-[320px] bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 p-2 flex flex-col cursor-pointer mx-auto"
+                                            className="w-full bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 p-2 flex flex-col cursor-pointer"
                                             onClick={() => setSelectedPoster(poster)}
                                         >
                                             <div className="relative aspect-square overflow-hidden rounded-lg mb-3 bg-slate-100">

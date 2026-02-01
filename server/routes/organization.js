@@ -10,7 +10,7 @@ import { requireAuth, optionalAuth, requirePermission } from '../middleware/auth
 import { randomUUID } from 'crypto'
 import sharp from 'sharp'
 import { fileTypeFromBuffer } from 'file-type'
-import { toOrganizationChartDTO } from '../dtos/OrganizationChartDTO.js'
+import { toOrganizationChartDTO } from '../dto/OrganizationChartDTO.js'
 
 const router = Router()
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'organization')
