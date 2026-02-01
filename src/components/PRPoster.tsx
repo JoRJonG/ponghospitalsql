@@ -134,7 +134,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                                 loop={true}
                                 speed={2500} // Custom slow transition speed
                                 autoplay={{
-                                    delay: 5000,
+                                    delay: 2000,
                                     disableOnInteraction: false,
                                     pauseOnMouseEnter: true
                                 }}
