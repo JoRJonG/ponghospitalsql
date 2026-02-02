@@ -167,7 +167,7 @@ export default function AdminPage() {
   const [prPosterCount, setPrPosterCount] = useState(0)
   const [organizationCount, setOrganizationCount] = useState(0)
   const [documentCount, setDocumentCount] = useState(0)
-  const [prPosterList, setPrPosterList] = useState<any[]>([])
+
 
   const [annList, setAnnList] = useState<Announcement[]>([])
   const [actList, setActList] = useState<Activity[]>([])
@@ -426,7 +426,6 @@ export default function AdminPage() {
   const refreshPRPosters = useCallback(async () => {
     if (!permissions.pr_posters) {
       setPrPosterCount(0)
-      setPrPosterList([])
       return
     }
     const token = getToken()
@@ -439,7 +438,7 @@ export default function AdminPage() {
         const totalCount = parseInt(response.headers.get('X-Total-Count') || '0', 10)
         setPrPosterCount(totalCount)
         const data = await response.json()
-        if (Array.isArray(data)) setPrPosterList(data)
+        if (Array.isArray(data)) { /* prPosterList removed */ }
       }
     } catch (error) { console.error(error) }
   }, [getToken, permissions.pr_posters])
