@@ -132,7 +132,7 @@ const statusInfo = (it: { isPublished?: boolean; publishedAt?: string | null }) 
 
 
 export default function AdminPage() {
-  const { getToken, hasPermission } = useAuth()
+  const { getToken, hasPermission, user } = useAuth()
   const location = useLocation()
 
 
@@ -198,27 +198,16 @@ export default function AdminPage() {
     users: hasPermission('users'),
     feedback: hasPermission('feedback') || hasPermission('admin'),
     documents: hasPermission('documents') || hasPermission('admin'),
+    dashboard: hasPermission('dashboard'),
     admin: hasPermission('admin'),
     system: hasPermission('system'),
   }), [hasPermission])
 
   const allowedTabs = useMemo<Record<AdminTab, boolean>>(() => {
-    const hasAnyContentPermission = permissions.popups
-      || permissions.announcements
-      || permissions.activities
-      || permissions.slides
-      || permissions.units
-      || permissions.executives
-      || permissions.infographics
-      || permissions.organization
-      || permissions.pr_posters
-      || permissions.ita
-      || permissions.users
-
     return {
       intro: true,
       popups: permissions.popups,
-      overview: Boolean(hasAnyContentPermission || permissions.admin),
+      overview: permissions.dashboard,
       announce: permissions.announcements,
       activity: permissions.activities,
       slide: permissions.slides,
