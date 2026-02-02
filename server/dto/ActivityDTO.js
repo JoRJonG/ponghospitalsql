@@ -42,7 +42,9 @@ export function toAdminDTO(activity) {
             _id: img._id,
             url: img.url
         })) || [],
-        viewCount: activity.viewCount || 0
+        viewCount: activity.viewCount || 0,
+        createdAt: activity.createdAt || activity.created_at,
+        updatedAt: activity.updatedAt || activity.updated_at
     }
 }
 

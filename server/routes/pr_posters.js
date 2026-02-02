@@ -11,6 +11,7 @@ import { requireAuth, optionalAuth, requirePermission } from '../middleware/auth
 import { microCache, purgeCachePrefix } from '../middleware/cache.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { sanitizeText } from '../utils/sanitization.js'
+import { decodeUploadFilename } from '../utils/filename.js'
 import { PRPosterController } from '../controllers/PRPosterController.js'
 
 const router = Router()
@@ -143,6 +144,8 @@ router.post('/', requireAuth, requirePermission('pr_poster'), upload.single('ima
             console.warn('PRPoster image optimization failed, using original:', optErr?.message)
         }
 
+        const decodedName = decodeUploadFilename(req.file.originalname)
+
         // Generate filename
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
         const filename = `poster-${uniqueSuffix}${ext}`
@@ -157,7 +160,7 @@ router.post('/', requireAuth, requirePermission('pr_poster'), upload.single('ima
             `INSERT INTO pr_posters (title, image_path, image_data, image_size, mime_type, display_order, is_published, created_by, updated_by)
              VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?)`,
             [
-                payload.title || req.file.originalname,
+                payload.title || decodedName,
                 relativePath,
                 optimizedBuffer.length,
                 finalMime,
@@ -335,15 +338,16 @@ router.post('/reorder', requireAuth, requirePermission('pr_poster'), async (req,
     }
 
     try {
-        const { order } = req.body
+        const { order, startOrder = 0 } = req.body
         if (!Array.isArray(order)) {
             return res.status(400).json({ error: 'Invalid payload' })
         }
 
         // Update display_order for each id
+        const offset = parseInt(startOrder) || 0
         for (let i = 0; i < order.length; i++) {
             const id = order[i]
-            await query('UPDATE pr_posters SET display_order = ? WHERE id = ?', [i, id])
+            await query('UPDATE pr_posters SET display_order = ? WHERE id = ?', [i + offset, id])
         }
 
         purgeCachePrefix('/api/pr-posters')

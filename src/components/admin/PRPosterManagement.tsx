@@ -24,11 +24,20 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
     const [error, setError] = useState<string | null>(null)
     const [draggingId, setDraggingId] = useState<string | null>(null)
 
+    // Pagination
+    const [page, setPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const limit = 20
+
     const fetchPosters = async () => {
         try {
-            // Get ALL posters (including hidden ones) => exposed by endpoint param published=false
-            const res = await fetch('/api/pr-posters?published=false')
+            setLoading(true)
+            const res = await fetch(`/api/pr-posters?published=false&page=${page}&limit=${limit}`)
             if (!res.ok) throw new Error('Failed to fetch posters')
+
+            const totalPagesHeader = res.headers.get('X-Total-Pages')
+            if (totalPagesHeader) setTotalPages(parseInt(totalPagesHeader))
+
             const data = await res.json()
             setPosters(data)
         } catch (err: unknown) {
@@ -40,7 +49,7 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
 
     useEffect(() => {
         fetchPosters()
-    }, [])
+    }, [page])
 
     useImperativeHandle(ref, () => ({
         refresh: fetchPosters
@@ -70,7 +79,7 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
         formData.append('image', file)
         // Title will default to original filename in backend if not provided
         formData.append('isPublished', 'true')
-        formData.append('displayOrder', String(posters.length))
+        // formData.append('displayOrder', String(posters.length)) // Let backend default to 0 (top)
 
         try {
             const res = await fetch('/api/pr-posters', {
@@ -84,6 +93,7 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                 throw new Error(data.error || 'Upload failed')
             }
 
+            setPage(1) // Go to first page to see new item
             await fetchPosters()
             e.target.value = '' // Reset input
             Swal.fire({
@@ -183,7 +193,10 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${getToken()}`
                 },
-                body: JSON.stringify({ order: orderIds })
+                body: JSON.stringify({
+                    order: orderIds,
+                    startOrder: (page - 1) * limit
+                })
             })
 
             if (!res.ok) throw new Error('Reorder failed')
@@ -306,12 +319,12 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-semibold text-gray-900 truncate">
-                                                    {index + 1}. {item.title}
+                                                    {(page - 1) * limit + index + 1}. {item.title}
                                                 </h4>
                                                 <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
                                                     <span className="flex items-center gap-1">
                                                         <i className="fa-solid fa-sort-numeric-down" />
-                                                        ลำดับที่ {index + 1}
+                                                        ลำดับที่ {(page - 1) * limit + index + 1}
                                                     </span>
                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${item.isPublished
                                                         ? 'bg-green-100 text-green-800'
@@ -345,9 +358,34 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                             ))}
                         </div>
                     )}
+
+                    {/* Pagination Controls */}
+                    {posters.length > 0 && totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="btn btn-outline btn-sm"
+                            >
+                                <i className="fa-solid fa-chevron-left mr-1" />
+                                ก่อนหน้า
+                            </button>
+                            <span className="text-sm font-medium text-gray-600">
+                                หน้า {page} จาก {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                                className="btn btn-outline btn-sm"
+                            >
+                                ถัดไป
+                                <i className="fa-solid fa-chevron-right ml-1" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
-        </div>
+        </div >
     )
 })
 

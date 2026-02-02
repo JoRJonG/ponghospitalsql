@@ -6,7 +6,7 @@ import fs from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { requireAuth, optionalAuth, requirePermission } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import { randomUUID } from 'crypto'
 import sharp from 'sharp'
 import { fileTypeFromBuffer } from 'file-type'
@@ -65,15 +65,14 @@ const upload = multer({
 // List organization charts
 router.get('/', optionalAuth, async (req, res) => {
     try {
-        const isPublic = !req.user || !req.query.published
-
         let sql = 'SELECT * FROM organization_charts'
         const params = []
 
-        if (req.query.published === 'false') {
-            if (!req.user) {
-                sql += ' WHERE is_published = TRUE'
-            }
+        const wantAll = req.query.published === 'false'
+        const canViewAll = req.user && (userHasPermission(req.user, 'organization') || userHasPermission(req.user, 'admin'))
+
+        if (wantAll && canViewAll) {
+            // Allow viewing all (no WHERE clause needed for is_published)
         } else {
             sql += ' WHERE is_published = TRUE'
         }

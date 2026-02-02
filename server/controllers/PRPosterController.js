@@ -13,7 +13,7 @@ export const PRPosterController = {
             const { published, page, limit } = req.query
             const wantAll = published === 'false'
             const isAuthed = Boolean(req.user)
-            const allowAll = wantAll && isAuthed && userHasPermission(req.user, 'infographics') // Reuse infographic permission or add new one later
+            const allowAll = wantAll && isAuthed && (userHasPermission(req.user, 'pr_poster') || userHasPermission(req.user, 'admin'))
 
             const whereClause = allowAll ? 'WHERE 1=1' : 'WHERE is_published = TRUE'
 

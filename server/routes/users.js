@@ -22,6 +22,8 @@ const PERMISSION_OPTIONS = new Set([
   'feedback',
   'documents',
   'users',
+  'pr_poster',
+  'organization',
   'system',
 ])
 

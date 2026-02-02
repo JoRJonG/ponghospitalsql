@@ -107,32 +107,8 @@
     Require not ip 54.85.158.54
 
     # --- Group 3: The AWS Botnet Gang ---
-    Require not ip 34.19.116.48
-    Require not ip 34.19.116.49
-    Require not ip 34.19.116.50
-    Require not ip 34.19.116.52
-    Require not ip 34.19.116.54
-    Require not ip 34.19.116.58
-    
-    Require not ip 34.19.127.176
-    Require not ip 34.19.127.178
-    Require not ip 34.19.127.179
-    Require not ip 34.19.127.181
-    Require not ip 34.19.127.183
-    Require not ip 34.19.127.187
-    Require not ip 34.19.127.193
-    Require not ip 34.19.127.196
-    Require not ip 34.19.127.197
-    Require not ip 34.19.127.199
-    Require not ip 34.19.127.200
-    Require not ip 34.19.127.201
-    Require not ip 34.19.127.202
-    Require not ip 34.19.127.203
-    Require not ip 34.19.127.212
-    Require not ip 34.19.127.213
-    Require not ip 34.19.127.216
-    Require not ip 34.19.127.217
-    Require not ip 34.19.127.221
+    Require not ip 34.19.116
+    Require not ip 34.19.127
 
     # --- Group 4: Other Known Attackers ---
     Require not ip 54.155.140.84
@@ -145,6 +121,8 @@
     Require not ip 80.78.27.113
     Require not ip 39.194.1
     Require not ip 52.207.253.250
+    Require not ip 54.198.231.17
+    Require not ip 3.88.128.54
 </RequireAll>
 
 # ----------------------------------------------------------------------

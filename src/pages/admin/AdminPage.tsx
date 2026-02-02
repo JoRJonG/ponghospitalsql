@@ -59,7 +59,9 @@ type Activity = {
   createdBy?: string | null
   updatedBy?: string | null
   createdAt?: string
+  created_at?: string
   updatedAt?: string
+  updated_at?: string
 }
 
 type ActivityImage = string | { url: string; publicId?: string | null; displayOrder?: number | null }
@@ -162,6 +164,10 @@ export default function AdminPage() {
   const [unitPage, setUnitPage] = useState(1)
   const [unitTotalPages, setUnitTotalPages] = useState(1)
   const [unitCount, setUnitCount] = useState(0)
+  const [prPosterCount, setPrPosterCount] = useState(0)
+  const [organizationCount, setOrganizationCount] = useState(0)
+  const [documentCount, setDocumentCount] = useState(0)
+  const [prPosterList, setPrPosterList] = useState<any[]>([])
 
   const [annList, setAnnList] = useState<Announcement[]>([])
   const [actList, setActList] = useState<Activity[]>([])
@@ -186,7 +192,8 @@ export default function AdminPage() {
     units: hasPermission('units'),
     executives: hasPermission('executives'),
     infographics: hasPermission('infographics'),
-    pr_posters: hasPermission('infographics'), // Reuse permission
+    pr_posters: hasPermission('pr_poster'),
+    organization: hasPermission('organization'),
     ita: hasPermission('ita'),
     users: hasPermission('users'),
     feedback: hasPermission('feedback') || hasPermission('admin'),
@@ -203,7 +210,8 @@ export default function AdminPage() {
       || permissions.units
       || permissions.executives
       || permissions.infographics
-      || permissions.infographics // organization uses same permission
+      || permissions.organization
+      || permissions.pr_posters
       || permissions.ita
       || permissions.users
 
@@ -217,7 +225,7 @@ export default function AdminPage() {
       unit: permissions.units,
       executive: permissions.executives,
       infographic: permissions.infographics,
-      organization: permissions.infographics,
+      organization: permissions.organization,
       pr_poster: permissions.pr_posters,
       ita: permissions.ita,
       users: permissions.users,
@@ -241,6 +249,9 @@ export default function AdminPage() {
   const canManageActivities = allowedTabs.activity
   const canManageSlides = allowedTabs.slide
   const canManageUnits = allowedTabs.unit
+  const canManagePRPosters = allowedTabs.pr_poster
+  const canManageOrganization = allowedTabs.organization
+  const canManageDocuments = allowedTabs.documents
 
   // Simple per-tab search query
   const [query, setQuery] = useState<{ announce: string; activity: string; slide: string; unit: string }>({ announce: '', activity: '', slide: '', unit: '' })
@@ -412,6 +423,64 @@ export default function AdminPage() {
     }
   }, [getToken, permissions.units, unitPage, query.unit, status.unit])
 
+  const refreshPRPosters = useCallback(async () => {
+    if (!permissions.pr_posters) {
+      setPrPosterCount(0)
+      setPrPosterList([])
+      return
+    }
+    const token = getToken()
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
+    try {
+      const response = await fetch('/api/pr-posters?limit=5', { headers })
+      if (response.ok) {
+        const totalCount = parseInt(response.headers.get('X-Total-Count') || '0', 10)
+        setPrPosterCount(totalCount)
+        const data = await response.json()
+        if (Array.isArray(data)) setPrPosterList(data)
+      }
+    } catch (error) { console.error(error) }
+  }, [getToken, permissions.pr_posters])
+
+  const refreshOrganization = useCallback(async () => {
+    if (!permissions.organization) {
+      setOrganizationCount(0)
+      return
+    }
+    const token = getToken()
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
+    try {
+      const response = await fetch('/api/organization', { headers })
+      if (response.ok) {
+        const totalCount = parseInt(response.headers.get('X-Total-Count') || '0', 10)
+        setOrganizationCount(totalCount)
+      }
+    } catch (error) { console.error(error) }
+  }, [getToken, permissions.organization])
+
+  const refreshDocuments = useCallback(async () => {
+    if (!permissions.documents) {
+      setDocumentCount(0)
+      return
+    }
+    const token = getToken()
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
+    try {
+      const response = await fetch('/api/documents?limit=1', { headers })
+      if (response.ok) {
+        const json = await response.json()
+        const total = json.pagination?.total || 0
+        setDocumentCount(total)
+      }
+    } catch (error) { console.error(error) }
+  }, [getToken, permissions.documents])
+
   useEffect(() => {
     if (tab === 'announce' || tab === 'overview') refreshAnn()
   }, [refreshAnn, tab])
@@ -427,6 +496,18 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === 'unit' || tab === 'overview') refreshUnits()
   }, [refreshUnits, tab])
+
+  useEffect(() => {
+    if (tab === 'pr_poster' || tab === 'overview') refreshPRPosters()
+  }, [refreshPRPosters, tab])
+
+  useEffect(() => {
+    if (tab === 'organization' || tab === 'overview') refreshOrganization()
+  }, [refreshOrganization, tab])
+
+  useEffect(() => {
+    if (tab === 'documents' || tab === 'overview') refreshDocuments()
+  }, [refreshDocuments, tab])
 
   useEffect(() => {
     if (tab !== 'announce') setShowAnnouncementForm(false)
@@ -457,9 +538,9 @@ export default function AdminPage() {
   // Filtered lists for nicer UX when searching
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-indigo-50">
+    <div className="min-h-screen lg:h-screen w-full lg:overflow-hidden bg-gradient-to-br from-white via-blue-50 to-indigo-50">
       {/* Dashboard Layout */}
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-indigo-50 lg:flex">
+      <div className="min-h-screen lg:h-full lg:flex">
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <div
@@ -783,7 +864,7 @@ export default function AdminPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-x-hidden">
+        <div className="flex-1 flex flex-col min-h-0 lg:overflow-y-auto overflow-x-hidden">
           {/* Top Bar */}
           <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-4 lg:px-6 lg:py-4">
             <div className="flex items-center justify-between">
@@ -944,7 +1025,7 @@ export default function AdminPage() {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
                     {canManageAnnouncements && (
-                      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
+                      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="text-blue-600 text-xs lg:text-sm font-medium mb-1">ประกาศทั้งหมด</div>
@@ -959,7 +1040,7 @@ export default function AdminPage() {
                     )}
 
                     {canManageActivities && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="text-emerald-600 text-sm font-medium mb-1">กิจกรรมทั้งหมด</div>
@@ -974,7 +1055,7 @@ export default function AdminPage() {
                     )}
 
                     {canManageSlides && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="text-purple-600 text-sm font-medium mb-1">สไลด์ทั้งหมด</div>
@@ -1001,9 +1082,55 @@ export default function AdminPage() {
                           </div>
                         </div>
                       </div>
+
                     )}
 
-                    {!canManageAnnouncements && !canManageActivities && !canManageSlides && !canManageUnits && (
+                    {canManagePRPosters && (
+                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-pink-600 text-sm font-medium mb-1">PR Poster</div>
+                            <div className="text-3xl font-bold text-gray-900">{prPosterCount}</div>
+                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                          </div>
+                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-pink-50">
+                            <span className="text-xl">🖼️</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {canManageOrganization && (
+                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-indigo-600 text-sm font-medium mb-1">ผังองค์กร</div>
+                            <div className="text-3xl font-bold text-gray-900">{organizationCount}</div>
+                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                          </div>
+                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50">
+                            <span className="text-xl">🧩</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {canManageDocuments && (
+                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-slate-600 text-sm font-medium mb-1">เอกสารทั้งหมด</div>
+                            <div className="text-3xl font-bold text-gray-900">{documentCount}</div>
+                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                          </div>
+                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50">
+                            <span className="text-xl">📄</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!canManageAnnouncements && !canManageActivities && !canManageSlides && !canManageUnits && !canManagePRPosters && !canManageOrganization && !canManageDocuments && (
                       <div className="col-span-full bg-white rounded-2xl p-6 text-center text-gray-500 border border-dashed border-gray-200">
                         ยังไม่มีสิทธิ์ดูสถิติของส่วนนี้
                       </div>
@@ -1019,7 +1146,7 @@ export default function AdminPage() {
                           กิจกรรมล่าสุด
                         </h3>
                         <div className="space-y-3">
-                          {actList.slice(0, 3).map((activity, index) => (
+                          {actList.slice(0, 5).map((activity, index) => (
                             <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                               <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 flex-shrink-0">
                                 <span className="text-sm">📸</span>
@@ -1027,7 +1154,7 @@ export default function AdminPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="text-sm font-medium text-gray-900 truncate">{activity.title}</div>
                                 <div className="text-xs text-gray-500">
-                                  {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                                  {(activity.createdAt || activity.created_at) ? new Date(activity.createdAt || activity.created_at!).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
                                 </div>
                               </div>
                             </div>
@@ -1049,7 +1176,7 @@ export default function AdminPage() {
                           ประกาศล่าสุด
                         </h3>
                         <div className="space-y-3">
-                          {annList.slice(0, 3).map((announcement, index) => (
+                          {annList.slice(0, 5).map((announcement, index) => (
                             <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                               <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
                                 <span className="text-sm">📢</span>
@@ -1072,7 +1199,7 @@ export default function AdminPage() {
                       </div>
                     )}
 
-                    {!canManageActivities && !canManageAnnouncements && (
+                    {!canManageActivities && !canManageAnnouncements && !canManagePRPosters && !canManageDocuments && (
                       <div className="col-span-full bg-white rounded-2xl p-6 text-center text-gray-500 border border-dashed border-gray-200">
                         ยังไม่มีสิทธิ์ดูบันทึกล่าสุดในส่วนนี้
                       </div>

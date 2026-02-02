@@ -15,7 +15,7 @@ router.get('/display-mode', async (req, res) => {
       return res.json({ success: true, data: { mode: DEFAULT_DISPLAY_MODE } })
     }
     const raw = await SiteSetting.get(DISPLAY_MODE_KEY)
-  const mode = ALLOWED_DISPLAY_MODES.has(raw) ? raw : DEFAULT_DISPLAY_MODE
+    const mode = ALLOWED_DISPLAY_MODES.has(raw) ? raw : DEFAULT_DISPLAY_MODE
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
     res.setHeader('Pragma', 'no-cache')
     res.json({ success: true, data: { mode } })
@@ -30,7 +30,7 @@ router.put('/display-mode', requireAuth, requirePermission('system'), async (req
     if (!req.app.locals.dbConnected) {
       return res.status(503).json({ success: false, error: 'ฐานข้อมูลยังไม่พร้อม' })
     }
-  const mode = typeof req.body?.mode === 'string' ? req.body.mode.trim() : ''
+    const mode = typeof req.body?.mode === 'string' ? req.body.mode.trim() : ''
     if (!ALLOWED_DISPLAY_MODES.has(mode)) {
       return res.status(400).json({ success: false, error: 'โหมดการแสดงผลไม่ถูกต้อง' })
     }
@@ -43,7 +43,7 @@ router.put('/display-mode', requireAuth, requirePermission('system'), async (req
   }
 })
 
-router.get('/status', requireAuth, requireRole('admin'), async (_req, res) => {
+router.get('/status', requireAuth, async (_req, res) => {
   try {
     const [disk, memory] = await Promise.all([
       getDiskUsage().catch(() => null),
