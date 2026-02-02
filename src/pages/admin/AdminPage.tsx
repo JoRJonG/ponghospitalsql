@@ -132,7 +132,7 @@ const statusInfo = (it: { isPublished?: boolean; publishedAt?: string | null }) 
 
 
 export default function AdminPage() {
-  const { getToken, hasPermission, user } = useAuth()
+  const { getToken, hasPermission } = useAuth()
   const location = useLocation()
 
 
