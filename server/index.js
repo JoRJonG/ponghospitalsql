@@ -12,6 +12,19 @@ async function start() {
   const { app, connectDb } = await createServer()
   await connectDb()
 
+  // Debug: Check for ThaID environment variables
+  const thaidVars = [
+    'THAID_CLIENT_ID',
+    'THAID_CLIENT_SECRET',
+    'THAID_REDIRECT_URI',
+    'THAID_ISSUER'
+  ]
+  console.log('🔍 Checking Environment Variables:')
+  thaidVars.forEach(key => {
+    const val = process.env[key]
+    console.log(`   - ${key}: ${val ? '✅ Present' : '❌ Missing'} ${val ? `(Length: ${val.length})` : ''}`)
+  })
+
   // In Plesk environment, always use HTTP as Plesk handles SSL
   if (process.env.NODE_ENV === 'plesk' || !USE_HTTPS) {
     app.listen(PORT, '0.0.0.0', () => console.log(`🌐 HTTP server listening on port ${PORT}`))
