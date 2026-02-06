@@ -23,6 +23,7 @@ import usersRouter from './routes/users.js'
 import feedbackRouter from './routes/feedback.js'
 import documentsRouter from './routes/documents.js'
 import prPostersRouter from './routes/pr_posters.js'
+import prPlansRouter from './routes/pr_plans.js'
 import organizationRouter from './routes/organization.js'
 import thaidAuthRouter from './routes/thaidAuth.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
@@ -178,6 +179,7 @@ export async function createServer() {
   app.use('/api/feedback', feedbackRouter)
   app.use('/api/documents', documentsRouter)
   app.use('/api/pr-posters', prPostersRouter)
+  app.use('/api/pr-plans', prPlansRouter)
   app.use('/api/organization', organizationRouter)
 
   // Visitor tracking middleware (must be after API routes)

@@ -88,6 +88,8 @@ export class Executive {
   }
 
   static async updateById(id, data) {
+
+
     return await transaction(async (connection) => {
       const updateFields = []
       const updateParams = []
@@ -115,6 +117,7 @@ export class Executive {
 
       // อัพเดทรูปถ้ามี
       if (data.imageData !== undefined) {
+
         updateFields.push('image_data = ?', 'file_name = ?', 'mime_type = ?', 'file_size = ?')
         updateParams.push(
           data.imageData,
@@ -127,6 +130,8 @@ export class Executive {
       if (updateFields.length > 0) {
         updateFields.push('updated_at = CURRENT_TIMESTAMP')
         updateParams.push(id)
+
+
 
         await connection.execute(`
           UPDATE executives SET ${updateFields.join(', ')} WHERE id = ?

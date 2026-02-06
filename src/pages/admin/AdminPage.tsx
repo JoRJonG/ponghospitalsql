@@ -21,6 +21,7 @@ import Modal from '../../components/admin/Modal'
 import FeedbackManagement from '../../components/admin/FeedbackManagement'
 import DocumentsManagement, { type DocumentsManagementHandle } from '../../components/DocumentsManagement'
 import PRPosterManagement, { type PRPosterManagementHandle } from '../../components/admin/PRPosterManagement'
+import PRPlanManagement, { type PRPlanManagementHandle } from '../../components/admin/PRPlanManagement'
 import OrganizationChartManagement from '../../components/admin/OrganizationChartManagement'
 
 // Types
@@ -103,10 +104,10 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'pr_plan' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user'
 
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'pr_plan', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user'] as const
 const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -193,6 +194,7 @@ export default function AdminPage() {
     executives: hasPermission('executives'),
     infographics: hasPermission('infographics'),
     pr_posters: hasPermission('pr_poster'),
+    pr_plans: hasPermission('pr_plan'),
     organization: hasPermission('organization'),
     ita: hasPermission('ita'),
     users: hasPermission('users'),
@@ -216,6 +218,7 @@ export default function AdminPage() {
       infographic: permissions.infographics,
       organization: permissions.organization,
       pr_poster: permissions.pr_posters,
+      pr_plan: permissions.pr_plans,
       ita: permissions.ita,
       users: permissions.users,
       feedback: permissions.feedback,
@@ -268,6 +271,7 @@ export default function AdminPage() {
   const usersRef = useRef<UserManagementHandle>(null)
   const documentsRef = useRef<DocumentsManagementHandle>(null)
   const prPosterRef = useRef<PRPosterManagementHandle>(null)
+  const prPlanRef = useRef<PRPlanManagementHandle>(null)
 
   const refreshAnn = useCallback(async () => {
     if (!permissions.announcements) {
@@ -735,6 +739,22 @@ export default function AdminPage() {
               </button>
             )}
 
+            {allowedTabs.pr_plan && (
+              <button
+                onClick={() => {
+                  setTab('pr_plan')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'pr_plan'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
+              >
+                <span className="text-xl">📋</span>
+                <span>แผนปฏิบัติการ ป้องกัน ปราบปราม</span>
+              </button>
+            )}
+
             {allowedTabs.users && (
               <button
                 onClick={() => {
@@ -878,6 +898,7 @@ export default function AdminPage() {
                     {tab === 'infographic' && 'จัดการ Infographic'}
                     {tab === 'organization' && 'จัดการโครงสร้างองค์กร'}
                     {tab === 'pr_poster' && 'จัดการ PR Poster'}
+                    {tab === 'pr_plan' && 'จัดการแผนปฏิบัติการ ป้องกัน ปราบปราม'}
                     {tab === 'ita' && 'จัดการ ITA'}
                     {tab === 'users' && 'จัดการผู้ใช้'}
                     {tab === 'feedback' && 'จัดการความคิดเห็น'}
@@ -897,6 +918,7 @@ export default function AdminPage() {
                     {tab === 'executive' && 'จัดการข้อมูลผู้บริหาร'}
                     {tab === 'infographic' && 'จัดการรูปภาพ Infographic แบบเรียงกัน'}
                     {tab === 'pr_poster' && 'จัดการรูปภาพโปสเตอร์ประชาสัมพันธ์'}
+                    {tab === 'pr_plan' && 'จัดการไฟล์ PDF แผนปฏิบัติการป้องกันและปราบปรามการทุจริต'}
                     {tab === 'ita' && 'จัดการข้อมูล ITA'}
                     {tab === 'users' && 'เพิ่ม แก้ไข ลบผู้ใช้ และกำหนดสิทธิ์การเข้าถึง'}
                     {tab === 'feedback' && 'ดู ตอบกลับ และจัดการความคิดเห็นจากผู้ใช้งาน'}
@@ -1594,6 +1616,17 @@ export default function AdminPage() {
                   className="space-y-4 lg:space-y-6"
                 >
                   <PRPosterManagement ref={prPosterRef} />
+                </motion.div>
+              ) : tab === 'pr_plan' ? (
+                <motion.div
+                  key="pr_plan"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4 lg:space-y-6"
+                >
+                  <PRPlanManagement ref={prPlanRef} />
                 </motion.div>
               ) : tab === 'organization' ? (
                 <motion.div

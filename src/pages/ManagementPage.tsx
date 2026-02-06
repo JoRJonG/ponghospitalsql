@@ -8,6 +8,7 @@ type Manager = {
   phone?: string
   imageUrl?: string | null
   displayOrder?: number
+  updatedAt?: string
 }
 
 // Fallback data
@@ -40,7 +41,7 @@ function DirectorCard({ m }: { m: Manager }) {
               <div className="w-full h-full rounded-[50%] overflow-hidden">
                 {m.imageUrl && !imgError ? (
                   <img
-                    src={`${m.imageUrl}${m.imageUrl?.includes('?') ? '&' : '?'}w=400`}
+                    src={`${m.imageUrl}${m.imageUrl?.includes('?') ? '&' : '?'}w=400&v=${new Date(m.updatedAt || Date.now()).getTime()}`}
                     alt={m.name}
                     loading="eager"
                     onError={() => setImgError(true)}
@@ -97,7 +98,12 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
   // End of row (5th item)
   const isRowEndItem = (index + 1) % colCount === 0
   const hasMoreItems = total > index + 1
+
+  // Check if the slot directly below is empty (e.g. Item 10 is missing for Item 5)
+  // If so, we need a "Long Wrap" to connect back to the start of the next row (Item 6)
+  const itemBelowExists = index + colCount < total
   const showWrapConnector = isRowEndItem && hasMoreItems
+  const useLongWrap = showWrapConnector && !itemBelowExists
 
   return (
     <motion.div
@@ -125,7 +131,11 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
 
       {/* Right-Side L-Shape Wrap Connector (Bridge to next row) */}
       {showWrapConnector && (
-        <div className="hidden lg:block absolute -top-8 right-[-1.5rem] w-[calc(50%+1.5rem)] h-[calc(100%+3.2rem)] border-r-2 border-t-2 border-b-2 border-green-300 rounded-r-lg pointer-events-none z-0"></div>
+        <div
+          className={`hidden lg:block absolute -top-8 right-[-1.5rem] h-[calc(100%+3.2rem)] border-t-2 border-r-2 border-b-2 border-green-300 rounded-tr-lg rounded-br-lg pointer-events-none z-0
+            ${useLongWrap ? 'w-[calc(450%+7.5rem)]' : 'w-[calc(50%+1.5rem)]'}
+          `}
+        ></div>
       )}
 
       <div className="bg-white rounded-xl p-5 shadow hover:shadow-lg border border-gray-100 transition-all duration-300 h-full flex flex-col items-center text-center max-w-[280px] mx-auto z-10 relative">
@@ -135,7 +145,7 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
             <div className="w-full h-full rounded-[50%] overflow-hidden">
               {m.imageUrl && !imgError ? (
                 <img
-                  src={`${m.imageUrl}${m.imageUrl?.includes('?') ? '&' : '?'}w=200`}
+                  src={`${m.imageUrl}${m.imageUrl?.includes('?') ? '&' : '?'}w=200&v=${new Date(m.updatedAt || Date.now()).getTime()}`}
                   alt={m.name}
                   loading="lazy"
                   onError={() => setImgError(true)}

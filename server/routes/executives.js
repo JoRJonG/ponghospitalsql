@@ -28,6 +28,29 @@ const upload = multer({
 
 router.use(createRateLimiter({ windowMs: 10_000, max: 40 }))
 
+// Optimize image buffer using sharp (convert to WebP)
+async function optimizeImage(buffer, mimetype) {
+  try {
+    if (mimetype === 'image/gif') return buffer
+
+    let pipeline = sharp(buffer)
+    const metadata = await pipeline.metadata()
+
+    // Resize to max 800px width (standard for profile card)
+    if (metadata.width && metadata.width > 800) {
+      pipeline = pipeline.resize(800, null, { withoutEnlargement: true })
+    }
+
+    // Convert to WebP for better compression
+    pipeline = pipeline.webp({ quality: 85 })
+
+    return await pipeline.toBuffer()
+  } catch (error) {
+    console.warn('Image optimization failed:', error.message)
+    return buffer
+  }
+}
+
 // List executives
 router.get('/', optionalAuth, microCache(30_000), ExecutiveController.index)
 
@@ -65,31 +88,6 @@ router.post('/', requireAuth, requirePermission('executives'), upload.single('im
     if (payload.isPublished !== undefined) {
       payload.isPublished = payload.isPublished === 'true' || payload.isPublished === true
     }
-
-    // Optimize image buffer using sharp
-    async function optimizeImage(buffer, mimetype) {
-      try {
-        if (mimetype === 'image/gif') return buffer
-
-        let pipeline = sharp(buffer)
-        const metadata = await pipeline.metadata()
-
-        // Resize to max 800px width (standard for profile card)
-        if (metadata.width && metadata.width > 800) {
-          pipeline = pipeline.resize(800, null, { withoutEnlargement: true })
-        }
-
-        // Convert to WebP for better compression
-        pipeline = pipeline.webp({ quality: 85 })
-
-        return await pipeline.toBuffer()
-      } catch (error) {
-        console.warn('Image optimization failed:', error.message)
-        return buffer
-      }
-    }
-
-    // ... existing code ...
 
     // Handle image upload
     if (req.file) {
@@ -166,7 +164,7 @@ router.put('/:id', requireAuth, requirePermission('executives'), (req, res, next
 
   try {
     const payload = { ...req.body }
-    console.log('[executives] PUT payload raw:', payload)
+
 
     // Sanitize user inputs
     if (payload.name) payload.name = sanitizeText(payload.name)
@@ -176,13 +174,11 @@ router.put('/:id', requireAuth, requirePermission('executives'), (req, res, next
 
     // Parse isPublished
     if (payload.isPublished !== undefined) {
-      console.log('[executives] Processing isPublished:', payload.isPublished, typeof payload.isPublished)
+
       if (typeof payload.isPublished === 'string') {
         payload.isPublished = payload.isPublished === 'true'
       }
     }
-    console.log('[executives] PUT payload processed:', payload)
-
     // Handle new image upload
     if (req.file) {
       let optimizedBuffer = req.file.buffer

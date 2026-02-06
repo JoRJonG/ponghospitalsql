@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { NavLink, Routes, Route } from 'react-router-dom'
 import InfographicPage from './InfographicPage'
 import OrganizationChartPage from './OrganizationChartPage'
+import PRPlanPage from './PRPlanPage'
 
 function AboutContent() {
   return (
@@ -496,6 +497,18 @@ export default function AboutPage() {
               <i className="fa-solid fa-sitemap" aria-hidden="true" />
               โครงสร้างองค์กร
             </NavLink>
+            <NavLink
+              to="/about/pr-plan"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all ${isActive
+                  ? 'bg-green-600 text-white shadow'
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                }`
+              }
+            >
+              <i className="fa-solid fa-shield-halved" aria-hidden="true" />
+              แผนปฏิบัติการป้องกัน ปราบปราม
+            </NavLink>
           </div>
         </div>
       </div>
@@ -505,6 +518,7 @@ export default function AboutPage() {
         <Route index element={<AboutContent />} />
         <Route path="infographic" element={<InfographicPage />} />
         <Route path="organization" element={<OrganizationChartPage />} />
+        <Route path="pr-plan" element={<PRPlanPage />} />
       </Routes>
     </div>
   )

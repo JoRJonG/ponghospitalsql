@@ -24,6 +24,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
   const [form, setForm] = useState({ name: '', position: '', phone: '', isPublished: true })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
+  const [updatedAt, setUpdatedAt] = useState<string>('')
 
   useEffect(() => {
     if (!initialId) return
@@ -42,6 +43,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
           isPublished: data.isPublished === true || data.isPublished === 1 || data.isPublished === 'true',
         })
         if (data.imageUrl) setImagePreview(data.imageUrl)
+        if (data.updatedAt) setUpdatedAt(data.updatedAt)
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return
@@ -178,7 +180,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
           {imagePreview ? (
             <div className="mt-3">
               <img
-                src={!imagePreview.startsWith('blob:') ? `${imagePreview}${imagePreview.includes('?') ? '&' : '?'}w=200` : imagePreview}
+                src={!imagePreview.startsWith('blob:') ? `${imagePreview}${imagePreview.includes('?') ? '&' : '?'}w=200&v=${new Date(updatedAt || Date.now()).getTime()}` : imagePreview}
                 alt="Preview"
                 className="w-24 h-24 rounded-full object-cover border-2"
               />
@@ -230,7 +232,6 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
   const [draggingId, setDraggingId] = useState<string | null>(null)
 
 
-
   const refreshExecutives = useCallback(async () => {
     try {
       const token = getToken()
@@ -264,7 +265,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
     newList.splice(toIndex, 0, moved)
     setExecutives(newList)
 
-    // Create orderMap: { id: newDisplayOrder }
+    // Create orderMap: {id: newDisplayOrder }
     const orderMap: Record<string, number> = {}
     newList.forEach((exec, index) => {
       if (exec._id) {
@@ -436,7 +437,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
               <div className="relative shrink-0">
                 {exec.imageUrl ? (
                   <img
-                    src={`${exec.imageUrl}${exec.imageUrl?.includes('?') ? '&' : '?'}w=128`}
+                    src={`${exec.imageUrl}${exec.imageUrl?.includes('?') ? '&' : '?'}w=128&v=${new Date(exec.updatedAt || Date.now()).getTime()}`}
                     alt={exec.name}
                     className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 shadow-sm group-hover:border-green-200"
                   />

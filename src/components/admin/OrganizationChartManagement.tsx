@@ -152,6 +152,86 @@ const OrganizationChartManagement = forwardRef<OrganizationChartManagementHandle
         }
     }
 
+    const handleEdit = async (chart: OrganizationChart) => {
+        const { value: formValues } = await Swal.fire({
+            title: 'แก้ไขข้อมูลผู้บริหาร',
+            html: `
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
+                        <input id="swal-title" class="swal2-input w-full" value="${chart.title}" placeholder="ระบุชื่อ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">เปลี่ยนรูปภาพ (ไม่บังคับ)</label>
+                        <input id="swal-image" type="file" accept="image/*" class="swal2-file w-full">
+                        <p class="text-xs text-gray-500 mt-1">หากต้องการเปลี่ยนรูป ให้เลือกไฟล์ใหม่ (ขนาดไม่เกิน 10MB)</p>
+                    </div>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#10b981',
+            preConfirm: () => {
+                const title = (document.getElementById('swal-title') as HTMLInputElement).value
+                const imageInput = document.getElementById('swal-image') as HTMLInputElement
+                const imageFile = imageInput.files?.[0]
+
+                if (!title.trim()) {
+                    Swal.showValidationMessage('กรุณาระบุชื่อ')
+                    return false
+                }
+
+                if (imageFile && imageFile.size > 10 * 1024 * 1024) {
+                    Swal.showValidationMessage('ไฟล์รูปภาพใหญ่เกิน 10MB')
+                    return false
+                }
+
+                if (imageFile && !imageFile.type.startsWith('image/')) {
+                    Swal.showValidationMessage('กรุณาเลือกไฟล์รูปภาพเท่านั้น')
+                    return false
+                }
+
+                return { title, imageFile }
+            }
+        })
+
+        if (!formValues) return
+
+        try {
+            const formData = new FormData()
+            formData.append('title', formValues.title)
+
+            // ถ้ามีการเลือกรูปใหม่ ให้เพิ่มเข้า FormData
+            if (formValues.imageFile) {
+                formData.append('image', formValues.imageFile)
+            }
+
+            const res = await fetch(`/api/organization/${chart._id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${getToken()}` },
+                body: formData
+            })
+
+            if (!res.ok) {
+                const data = await res.json()
+                throw new Error(data.error || 'Update failed')
+            }
+
+            await fetchCharts()
+            Swal.fire({
+                title: 'สำเร็จ',
+                text: 'แก้ไขข้อมูลสำเร็จ',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            })
+        } catch (err: unknown) {
+            Swal.fire('ข้อผิดพลาด', `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error')
+        }
+    }
+
     const handleReorder = async (fromIndex: number, toIndex: number) => {
         if (fromIndex === toIndex) return
 
@@ -314,6 +394,13 @@ const OrganizationChartManagement = forwardRef<OrganizationChartManagementHandle
 
                                             {/* Actions */}
                                             <div className="flex gap-2 flex-shrink-0">
+                                                <button
+                                                    onClick={() => handleEdit(item)}
+                                                    className="btn btn-sm btn-warning"
+                                                    title="แก้ไข"
+                                                >
+                                                    <i className="fa-solid fa-edit" />
+                                                </button>
                                                 <button
                                                     onClick={() => handleTogglePublish(item._id, item.isPublished)}
                                                     className="btn btn-sm btn-secondary"

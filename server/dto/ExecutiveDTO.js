@@ -15,7 +15,8 @@ export function toPublicDTO(executive) {
         position: executive.position,
         phone: executive.phone,
         imageUrl: executive.imageUrl,
-        displayOrder: executive.displayOrder
+        displayOrder: executive.displayOrder,
+        updatedAt: executive.updatedAt
     }
 }
 
@@ -32,7 +33,9 @@ export function toAdminDTO(executive) {
         phone: executive.phone,
         imageUrl: executive.imageUrl,
         displayOrder: executive.displayOrder,
-        isPublished: executive.isPublished
+        isPublished: executive.isPublished,
+        createdAt: executive.createdAt,
+        updatedAt: executive.updatedAt
     }
 }
 

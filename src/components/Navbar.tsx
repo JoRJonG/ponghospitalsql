@@ -59,6 +59,11 @@ export default function Navbar() {
   const [itaOpen, setItaOpen] = useState(false)
   const [mobileItaOpen, setMobileItaOpen] = useState(false)
   const itaTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // About dropdown menu
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false)
+  const aboutTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     const ac = new AbortController()
     fetch('/api/ita/tree', { signal: ac.signal })
@@ -88,6 +93,17 @@ export default function Navbar() {
     setItaOpen(false)
     // เปลี่ยนพฤติกรรม: ทุกเมนูเปิดหน้าเฉพาะของตัวเอง
     navigate(`/ita/item/${id}`)
+  }
+
+  // About menu handlers
+  const openAbout = () => {
+    if (aboutTimer.current) clearTimeout(aboutTimer.current)
+    aboutTimer.current = null
+    setAboutOpen(true)
+  }
+  const closeAboutLater = () => {
+    if (aboutTimer.current) clearTimeout(aboutTimer.current)
+    aboutTimer.current = setTimeout(() => setAboutOpen(false), 180)
   }
   return (
     <div>
@@ -166,8 +182,39 @@ export default function Navbar() {
                 </div>
               ) : null}
             </div>
-            <NavLink to="/documents" className={navItemClass}>ดาวน์โหลด</NavLink>
-            <NavLink to="/about" className={navItemClass}>เกี่ยวกับเรา</NavLink>
+            <div className="relative" onMouseEnter={openAbout} onMouseLeave={closeAboutLater}>
+              <NavLink to="/about" className={navItemClass} onClick={() => setAboutOpen(o => !o)}>เกี่ยวกับเรา ▾</NavLink>
+              {aboutOpen ? (
+                <div className="absolute left-0 mt-1 w-64 rounded-lg border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-sm p-2 z-50 animate-fade-in">
+                  <ul className="space-y-1">
+                    <li>
+                      <NavLink to="/about" end onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                        <i className="fa-solid fa-info-circle text-gray-500" />
+                        <span>ข้อมูลทั่วไป</span>
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink to="/about/infographic" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                        <i className="fa-solid fa-chart-bar text-gray-500" />
+                        <span>Infographic</span>
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink to="/about/organization" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                        <i className="fa-solid fa-sitemap text-gray-500" />
+                        <span>โครงสร้างองค์กร</span>
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink to="/about/pr-plan" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                        <i className="fa-solid fa-shield-halved text-gray-500" />
+                        <span>แผนปฏิบัติการป้องกัน ปราบปราม</span>
+                      </NavLink>
+                    </li>
+                  </ul>
+                </div>
+              ) : null}
+            </div>
             <NavLink to="/contact" className={navItemClass}>ติดต่อเรา</NavLink>
             {isAuthenticated ? (
               <>
@@ -224,7 +271,63 @@ export default function Navbar() {
                 </div>
                 <NavLink to="/documents" className={navItemClass} onClick={() => setOpen(false)}>ดาวน์โหลด</NavLink>
                 <NavLink to="/executives" className={navItemClass} onClick={() => setOpen(false)}>ผู้บริหาร</NavLink>
-                <NavLink to="/about" className={navItemClass} onClick={() => setOpen(false)}>เกี่ยวกับเรา</NavLink>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileAboutOpen(o => !o)}
+                    className={navItemClass({ isActive: window.location.pathname.startsWith('/about') }) + ' w-full flex items-center justify-between'}
+                    aria-expanded={mobileAboutOpen}
+                  >
+                    <span>เกี่ยวกับเรา</span>
+                    <i className={`fa-solid fa-chevron-${mobileAboutOpen ? 'up' : 'down'} text-xs ml-2`} />
+                  </button>
+                  {mobileAboutOpen ? (
+                    <ul className="mt-1 mb-2 ml-3 border-l border-gray-200 pl-3 space-y-1">
+                      <li>
+                        <NavLink
+                          to="/about"
+                          end
+                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                        >
+
+                          <i className="fa-solid fa-info-circle text-gray-500 text-xs" />
+                          <span>ข้อมูลทั่วไป</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/about/infographic"
+                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-chart-bar text-gray-500 text-xs" />
+                          <span>Infographic</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/about/organization"
+                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-sitemap text-gray-500 text-xs" />
+                          <span>โครงสร้างองค์กร</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/about/pr-plan"
+                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-shield-halved text-gray-500 text-xs" />
+                          <span>แผนปฏิบัติการป้องกัน ปราบปราม</span>
+                        </NavLink>
+                      </li>
+                    </ul>
+                  ) : null}
+                </div>
                 <NavLink to="/contact" className={navItemClass} onClick={() => setOpen(false)}>ติดต่อเรา</NavLink>
                 {isAuthenticated ? (
                   <>
