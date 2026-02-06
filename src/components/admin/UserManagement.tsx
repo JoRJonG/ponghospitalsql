@@ -45,6 +45,7 @@ const PERMISSION_OPTIONS: PermissionOption[] = [
   { value: 'feedback', label: 'ความคิดเห็น', description: 'ดูและจัดการความคิดเห็นจากผู้ใช้' },
   { value: 'users', label: 'ผู้ใช้', description: 'จัดการบัญชีผู้ใช้และสิทธิ์' },
   { value: 'pr_poster', label: 'PR Poster', description: 'จัดการรูปภาพประชาสัมพันธ์ (PR Poster)' },
+  { value: 'pr_plan', label: 'แผนปฏิบัติการ ป้องกัน ปราบปราม', description: 'จัดการแผนปฏิบัติการ ป้องกัน ปราบปราม' },
   { value: 'organization', label: 'โครงสร้างองค์กร', description: 'จัดการแผนผังองค์กร' },
   { value: 'system', label: 'ระบบ', description: 'เข้าถึงการตั้งค่าระบบเพิ่มเติม' },
 ]

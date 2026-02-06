@@ -34,7 +34,8 @@ export default function LoginSuccessPage() {
 
                 // Redirect ไปหน้า Dashboard หลังจาก 1 วินาที
                 setTimeout(() => {
-                    navigate('/admin', { replace: true })
+                    // Force reload to update AuthContext state from localStorage
+                    window.location.replace('/admin')
                 }, 1000)
             } catch (error) {
                 console.error('[ThaID] Token parsing failed:', error)

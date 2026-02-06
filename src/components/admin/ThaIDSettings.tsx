@@ -178,11 +178,7 @@ export default function ThaIDSettings() {
                                                 </svg>
                                                 <span className="font-medium">เชื่อมต่อแล้ว</span>
                                             </div>
-                                            {thaidPid && (
-                                                <p className="text-sm text-gray-600 mt-1">
-                                                    เลขบัตรประชาชน: {thaidPid.replace(/(\d{1})(\d{4})(\d{5})(\d{2})(\d{1})/, '$1-$2-$3-$4-$5')}
-                                                </p>
-                                            )}
+
                                         </div>
                                     ) : (
                                         <div className="mt-2">

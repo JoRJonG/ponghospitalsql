@@ -25,6 +25,7 @@ const PERMISSION_OPTIONS = new Set([
   'pr_poster',
   'organization',
   'system',
+  'pr_plan',
 ])
 
 function sanitizePermissions(perms) {
