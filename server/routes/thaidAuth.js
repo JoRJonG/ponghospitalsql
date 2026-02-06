@@ -111,6 +111,8 @@ router.get('/callback', async (req, res) => {
         // ลบ state ที่ใช้แล้ว
         pendingStates.delete(params.state)
 
+        logger.info('[ThaID] Exchanging code for token...', { code: params.code })
+
         // แลก authorization code เป็น tokens (v6 API)
         const redirectUri = process.env.THAID_REDIRECT_URI
         const tokenSet = await openidClient.authorizationCodeGrant(
@@ -118,8 +120,11 @@ router.get('/callback', async (req, res) => {
             new URL(req.originalUrl, `http://${req.headers.host}`),
             {
                 expectedState: params.state,
+                redirect_uri: redirectUri, // 👈 REQUIRED: Must match the one in Auth Request!
             }
         )
+
+        logger.info('[ThaID] Token exchanged success')
 
         // ดึงข้อมูลผู้ใช้จาก ThaID (v6 API)
         const userinfo = await openidClient.fetchUserInfo(client, tokenSet.access_token, tokenSet.claims())
@@ -127,6 +132,7 @@ router.get('/callback', async (req, res) => {
         logger.info('[ThaID] User info received', {
             sub: userinfo.sub,
             pid: userinfo.pid,
+            linkMode: savedState.linkMode
         })
 
         // ข้อมูลที่ได้จาก ThaID
@@ -144,6 +150,7 @@ router.get('/callback', async (req, res) => {
         // ตรวจสอบว่าเป็นโหมด link หรือไม่
         if (savedState.linkMode && savedState.userId) {
             // โหมด Link: เชื่อมต่อ ThaID กับ account ที่ login อยู่
+            logger.info('[ThaID] Processing Link Mode', { userId: savedState.userId })
             user = await linkThaIDToExistingUser(savedState.userId, {
                 sub,
                 pid,
@@ -152,8 +159,10 @@ router.get('/callback', async (req, res) => {
                 birthdate,
                 address,
             })
+            logger.info('[ThaID] Link Mode Success', { userId: user.id })
         } else {
             // โหมด Login: ค้นหาหรือสร้าง User
+            logger.info('[ThaID] Processing Login Mode')
             user = await findOrCreateUserFromThaID({
                 sub,
                 pid,
@@ -178,13 +187,11 @@ router.get('/callback', async (req, res) => {
             linkMode: savedState.linkMode,
         })
 
-        // Redirect based on mode
+        // Redirect based on mode (Previously fixed logic)
         if (savedState.linkMode) {
-            // โหมด Link: กลับไปหน้า Settings โดยตรง (ไม่ต้อง set token ใหม่ เพราะมี session เดิมอยู่แล้ว)
             logger.info('[ThaID] Redirecting to settings page')
             res.redirect('/admin/settings?thaid_linked=success')
         } else {
-            // โหมด Login: ไปหน้า Login Success เพื่อ save token
             logger.info('[ThaID] Redirecting to login success')
             const redirectUrl = `/login-success?token=${jwtToken}`
             res.redirect(redirectUrl)
