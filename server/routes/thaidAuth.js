@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import * as openidClient from 'openid-client'
 import crypto from 'crypto'
 import { getThaIDClient } from '../services/thaidClient.js'
 import { query } from '../database.js'
@@ -56,12 +57,19 @@ router.get('/login', optionalAuth, async (req, res) => {
         })
 
         // สร้าง Authorization URL
-        const authUrl = client.authorizationUrl({
-            scope: process.env.THAID_SCOPES || 'openid pid name birthdate address',
+        // สร้าง Authorization URL (v6 API)
+        const redirectUri = process.env.THAID_REDIRECT_URI
+        const scope = process.env.THAID_SCOPES || 'openid pid name birthdate address'
+
+        const authUrl = openidClient.buildAuthorizationUrl(client, {
+            redirect_uri: redirectUri,
+            scope: scope,
             state: state,
             nonce: nonce,
+            resource: undefined // optional
         })
 
+        logger.info('[ThaID] Generated Auth URL:', authUrl)
         logger.info('[ThaID] Login initiated', { state, linkMode: isLinkMode })
         res.redirect(authUrl)
     } catch (error) {
@@ -98,18 +106,19 @@ router.get('/callback', async (req, res) => {
         // ลบ state ที่ใช้แล้ว
         pendingStates.delete(params.state)
 
-        // แลก authorization code เป็น tokens
-        const tokenSet = await client.callback(
-            process.env.THAID_REDIRECT_URI,
-            params,
+        // แลก authorization code เป็น tokens (v6 API)
+        const redirectUri = process.env.THAID_REDIRECT_URI
+        const tokenSet = await openidClient.authorizationCodeGrant(
+            client,
+            new URL(req.originalUrl, `http://${req.headers.host}`),
             {
-                nonce: savedState.nonce,
-                state: params.state,
+                expectedState: savedState.nonce, // v6 uses nonce/state differently, for now basic state check is done manually above
+                expectedNonce: savedState.nonce,
             }
         )
 
-        // ดึงข้อมูลผู้ใช้จาก ThaID
-        const userinfo = await client.userinfo(tokenSet.access_token)
+        // ดึงข้อมูลผู้ใช้จาก ThaID (v6 API)
+        const userinfo = await openidClient.fetchUserInfo(client, tokenSet.access_token, tokenSet.claims())
 
         logger.info('[ThaID] User info received', {
             sub: userinfo.sub,

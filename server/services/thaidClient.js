@@ -5,7 +5,6 @@ import { logger } from '../utils/logger.js'
 dotenv.config()
 
 let thaidClient = null
-let thaidIssuer = null
 let initializationAttempted = false
 let initializationError = null
 
@@ -21,11 +20,11 @@ function hasThaidCredentials() {
 }
 
 /**
- * ดึง ThaID OpenID Connect Client
- * Auto-discover configuration จาก ThaID issuer
+ * ดึง ThaID OpenID Connect Configuration
+ * Auto-discover หรือ Manual Config
  */
 export async function getThaIDClient() {
-    // ถ้าเคย initialize สำเร็จแล้ว ให้ return client
+    // ถ้าเคย initialize สำเร็จแล้ว ให้ return config object
     if (thaidClient) return thaidClient
 
     // ถ้าเคยพยายามแล้วแต่ล้มเหลว ให้ throw error เดิม
@@ -47,40 +46,48 @@ export async function getThaIDClient() {
     initializationAttempted = true
 
     try {
-        // Auto-discover ThaID OpenID Connect configuration
-        if (!thaidIssuer) {
-            const issuerUrl = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
+        const issuerUrl = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
+        let config
+
+        try {
+            // 1. ลอง Auto-discovery ก่อน (ถ้าเน็ตออกได้)
             logger.info('[ThaID] Discovering issuer:', issuerUrl)
-            thaidIssuer = await openidClient.Issuer.discover(issuerUrl)
-            logger.info('[ThaID] Issuer discovered:', thaidIssuer.metadata.issuer)
+            config = await openidClient.discovery(new URL(issuerUrl), process.env.THAID_CLIENT_ID, process.env.THAID_CLIENT_SECRET)
+            logger.info('[ThaID] Discovery successful')
+        } catch (e) {
+            // 2. ถ้า Auto-discovery พัง ให้ใช้ Manual Config
+            logger.warn('[ThaID] Discovery failed, falling back to manual config:', e.message)
+
+            config = {
+                client_id: process.env.THAID_CLIENT_ID,
+                client_secret: process.env.THAID_CLIENT_SECRET,
+                serverMetadata: {
+                    issuer: issuerUrl,
+                    authorization_endpoint: `${issuerUrl}/api/v2/oauth2/auth/`,
+                    token_endpoint: `${issuerUrl}/api/v2/oauth2/token/`,
+                    userinfo_endpoint: `${issuerUrl}/api/v2/oauth2/userinfo/`,
+                    revocation_endpoint: `${issuerUrl}/api/v2/oauth2/revoke/`,
+                    introspection_endpoint: `${issuerUrl}/api/v2/oauth2/introspect/`,
+                }
+            }
         }
 
-        // สร้าง OpenID Client
-        thaidClient = new thaidIssuer.Client({
-            client_id: process.env.THAID_CLIENT_ID,
-            client_secret: process.env.THAID_CLIENT_SECRET,
-            redirect_uris: [process.env.THAID_REDIRECT_URI],
-            response_types: ['code'],
-            token_endpoint_auth_method: 'client_secret_basic', // Enforce Basic Auth header as per PDF
-        })
-
-        logger.info('[ThaID] Client created successfully')
+        // เก็บ config ไว้ใช้
+        thaidClient = config
         return thaidClient
+
     } catch (error) {
         initializationError = error
-        logger.error('[ThaID] Failed to create client:', error.message)
+        logger.error('[ThaID] Failed to initialize client:', error.message)
         throw new Error(`ThaID client initialization failed: ${error.message}`)
     }
 }
 
 /**
- * ดึง ThaID Issuer (สำหรับ advanced use cases)
+ * Helper to get the redirect URI
  */
-export async function getThaIDIssuer() {
-    if (!thaidIssuer) {
-        await getThaIDClient() // จะสร้าง issuer ด้วย
-    }
-    return thaidIssuer
+export function getRedirectUri() {
+    return process.env.THAID_REDIRECT_URI
 }
 
 /**
@@ -90,4 +97,4 @@ export function isThaidAvailable() {
     return hasThaidCredentials()
 }
 
-export default { getThaIDClient, getThaIDIssuer, isThaidAvailable }
+export default { getThaIDClient, getRedirectUri, isThaidAvailable }
