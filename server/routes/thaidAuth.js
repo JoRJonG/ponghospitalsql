@@ -44,30 +44,29 @@ router.get('/login', optionalAuth, async (req, res) => {
             })
         }
 
-        // สร้าง state และ nonce สำหรับป้องกัน CSRF และ replay attacks
+        // สร้าง state สำหรับป้องกัน CSRF (ThaID ไม่ระบุให้ใช้ Nonce ในเอกสาร Request)
         const state = crypto.randomBytes(32).toString('hex')
-        const nonce = crypto.randomBytes(32).toString('hex')
 
-        // เก็บ state และ nonce ไว้ตรวจสอบตอน callback (หมดอายุใน 5 นาที)
+        // เก็บ state ไว้ตรวจสอบตอน callback (หมดอายุใน 5 นาที)
         pendingStates.set(state, {
-            nonce,
             expiresAt: Date.now() + 5 * 60 * 1000,
-            linkMode: isLinkMode,  // บันทึกว่าเป็นโหมด link หรือไม่
-            userId: isLinkMode ? userId : null,  // บันทึก userId ถ้าเป็นโหมด link
+            linkMode: isLinkMode,
+            userId: isLinkMode ? userId : null,
         })
 
-        // สร้าง Authorization URL
-        // สร้าง Authorization URL (v6 API)
-        const redirectUri = process.env.THAID_REDIRECT_URI
-        const scope = process.env.THAID_SCOPES || 'openid pid name birthdate address'
+        // สร้าง Authorization URL แบบ Manual (เพื่อไม่ให้มี Prams เกินที่ DOPA กำหนด)
+        const issuerUrl = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
+        const authEndpoint = `${issuerUrl}/api/v2/oauth2/auth/`
 
-        const authUrl = openidClient.buildAuthorizationUrl(client, {
-            redirect_uri: redirectUri,
-            scope: scope,
-            state: state,
-            nonce: nonce,
-            resource: undefined // optional
+        const params = new URLSearchParams({
+            response_type: 'code',
+            client_id: process.env.THAID_CLIENT_ID,
+            redirect_uri: process.env.THAID_REDIRECT_URI,
+            scope: process.env.THAID_SCOPES || 'openid pid name birthdate address',
+            state: state
         })
+
+        const authUrl = `${authEndpoint}?${params.toString()}`
 
         logger.info('[ThaID] Generated Auth URL:', authUrl)
         logger.info('[ThaID] Login initiated', { state, linkMode: isLinkMode })
@@ -112,8 +111,7 @@ router.get('/callback', async (req, res) => {
             client,
             new URL(req.originalUrl, `http://${req.headers.host}`),
             {
-                expectedState: savedState.nonce, // v6 uses nonce/state differently, for now basic state check is done manually above
-                expectedNonce: savedState.nonce,
+                expectedState: params.state,
             }
         )
 
