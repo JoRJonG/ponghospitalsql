@@ -344,7 +344,7 @@ async function linkThaIDToExistingUser(userId, thaidData) {
     }
 
     // เชื่อมต่อ ThaID กับ account นี้
-    await query(
+    const result = await query(
         `UPDATE users SET 
             thaid_sub = ?,
             thaid_pid = ?,
@@ -353,6 +353,13 @@ async function linkThaIDToExistingUser(userId, thaidData) {
         WHERE id = ?`,
         [sub, pid, userId]
     )
+
+    logger.info('[ThaID] Update result', { affectedRows: result.affectedRows, info: result.info })
+
+    if (result.affectedRows === 0) {
+        logger.error('[ThaID] Update failed: No rows affected', { userId, thaid_sub: sub })
+        throw new Error('Database update failed: User not found or not updated')
+    }
 
     logger.info('[ThaID] Linked to existing user', { userId, pid })
     return User.findById(userId)
