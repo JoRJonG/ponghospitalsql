@@ -203,6 +203,15 @@ router.get('/callback', async (req, res) => {
             maxAge: 30 * 60 * 1000
         })
 
+        // Add frontend session marker (to prevent AuthContext from clearing storage)
+        res.cookie('ph_admin_session_active', 'true', {
+            httpOnly: false, // Must be accessible by JS if needed, or at least visible
+            secure: isProduction || process.env.USE_HTTPS === 'true',
+            sameSite: 'lax',
+            maxAge: 30 * 60 * 1000,
+            path: '/'
+        })
+
         if (savedState.linkMode) {
             res.redirect('/admin/settings?thaid_linked=success')
         } else {
