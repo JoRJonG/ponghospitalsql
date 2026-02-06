@@ -6,6 +6,21 @@ import { query } from '../database.js'
 import { signToken, requireAuth, optionalAuth } from '../middleware/auth.js'
 import { logger } from '../utils/logger.js'
 import User from '../models/mysql/User.js'
+import fs from 'fs'
+import path from 'path'
+
+// Direct debug logger
+const logFile = path.join(process.cwd(), 'debug_thaid.log')
+const debugLog = (msg, data = {}) => {
+    const timestamp = new Date().toISOString()
+    const logLine = `[${timestamp}] ${msg} ${JSON.stringify(data)}\n`
+    try {
+        fs.appendFileSync(logFile, logLine)
+    } catch (e) {
+        console.error('Failed to write debug log', e)
+    }
+}
+
 
 const router = Router()
 
@@ -20,6 +35,8 @@ router.get('/login', optionalAuth, async (req, res) => {
         const userId = req.user?.sub || req.user?.id
 
         logger.info('[ThaID] Login Init', { isLinkMode, userId: userId || 'guest', headers: req.headers })
+        debugLog('Login Init', { isLinkMode, userId, query: req.query })
+
 
         if (isLinkMode && !userId) {
             return res.status(401).json({
@@ -59,6 +76,8 @@ router.get('/login', optionalAuth, async (req, res) => {
         res.redirect(authUrl)
     } catch (error) {
         logger.error('[ThaID] Login failed', { error: error.message, stack: error.stack })
+        debugLog('Login failed', { error: error.message, stack: error.stack })
+
         if (error.message.includes('credentials not configured')) {
             return res.status(503).json({ error: 'ThaID login is not available' })
         }
@@ -73,6 +92,8 @@ router.get('/login', optionalAuth, async (req, res) => {
 router.get('/callback', async (req, res) => {
     try {
         logger.info('[ThaID] Callback received', { query: req.query, cookies: Object.keys(req.signedCookies || {}) })
+        debugLog('Callback received', { query: req.query, cookies: Object.keys(req.signedCookies || {}) })
+
 
         const client = await getThaIDClient()
         const params = client.callbackParams(req)
@@ -85,6 +106,8 @@ router.get('/callback', async (req, res) => {
             cookieState: savedState?.state,
             match: savedState?.state === params.state
         })
+        debugLog('State Check', { paramsState: params.state, cookieState: savedState })
+
 
         if (!savedState || savedState.state !== params.state) {
             logger.warn('[ThaID] Invalid or expired state', {
@@ -100,6 +123,8 @@ router.get('/callback', async (req, res) => {
         res.clearCookie('thaid_state')
 
         logger.info('[ThaID] Exchanging code for token...', { code: params.code })
+        debugLog('Exchanging code', { code: params.code })
+
 
         const redirectUri = process.env.THAID_REDIRECT_URI
         const tokenSet = await openidClient.authorizationCodeGrant(
@@ -161,6 +186,8 @@ router.get('/callback', async (req, res) => {
         }
     } catch (error) {
         logger.error('[ThaID] Callback failed', { error: error.message, stack: error.stack })
+        debugLog('Callback failed', { error: error.message, stack: error.stack })
+
         if (error.message.includes('ThaID_NOT_LINKED')) {
             return res.redirect('/login?error=thaid_not_linked')
         }
