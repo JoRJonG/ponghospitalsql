@@ -167,6 +167,42 @@ router.get('/callback', async (req, res) => {
             permissions: user.permissions,
         })
 
+        // Generate Refresh Token for session persistence
+        const { signRefreshToken } = await import('../middleware/auth.js')
+        const refreshToken = signRefreshToken({
+            sub: user.id.toString(),
+            username: user.username,
+            roles: user.roles,
+            permissions: user.permissions,
+        })
+
+        // Set cookies matching standard auth.js logic
+        const isProduction = process.env.NODE_ENV === 'production'
+        const sessionCookieOptions = {
+            httpOnly: true,
+            sameSite: isProduction ? 'strict' : 'lax',
+            secure: isProduction || process.env.USE_HTTPS === 'true',
+            path: '/',
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        }
+
+        const refreshCookieOptions = {
+            httpOnly: true,
+            sameSite: isProduction ? 'strict' : 'lax',
+            secure: isProduction || process.env.USE_HTTPS === 'true',
+            path: '/api/auth/refresh',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        }
+
+        res.cookie('ph_token', jwtToken, sessionCookieOptions)
+        res.cookie('ph_refresh_token', refreshToken, refreshCookieOptions)
+        res.cookie('ph_last_activity', String(Date.now()), {
+            httpOnly: true,
+            secure: isProduction || process.env.USE_HTTPS === 'true',
+            sameSite: 'lax',
+            maxAge: 30 * 60 * 1000
+        })
+
         if (savedState.linkMode) {
             res.redirect('/admin/settings?thaid_linked=success')
         } else {
