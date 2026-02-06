@@ -61,6 +61,7 @@ export async function getThaIDClient() {
             client_secret: process.env.THAID_CLIENT_SECRET,
             redirect_uris: [process.env.THAID_REDIRECT_URI],
             response_types: ['code'],
+            token_endpoint_auth_method: 'client_secret_basic', // Enforce Basic Auth header as per PDF
         })
 
         logger.info('[ThaID] Client created successfully')

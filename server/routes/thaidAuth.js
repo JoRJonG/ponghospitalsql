@@ -2,7 +2,7 @@ import { Router } from 'express'
 import crypto from 'crypto'
 import { getThaIDClient } from '../services/thaidClient.js'
 import { query } from '../database.js'
-import { signToken } from '../middleware/auth.js'
+import { signToken, requireAuth, optionalAuth } from '../middleware/auth.js'
 import { logger } from '../utils/logger.js'
 import User from '../models/mysql/User.js'
 
@@ -27,7 +27,7 @@ setInterval(() => {
  * Query params:
  *   - link=true: โหมดเชื่อมต่อ ThaID กับ account ที่ login อยู่
  */
-router.get('/login', async (req, res) => {
+router.get('/login', optionalAuth, async (req, res) => {
     try {
         const client = await getThaIDClient()
 
@@ -189,7 +189,7 @@ router.get('/callback', async (req, res) => {
  * GET /api/auth/thaid/status
  * ดึงสถานะการเชื่อมต่อ ThaID ของผู้ใช้
  */
-router.get('/status', async (req, res) => {
+router.get('/status', requireAuth, async (req, res) => {
     try {
         // ต้อง authenticate ก่อน
         const userId = req.user?.sub || req.user?.id
@@ -225,7 +225,7 @@ router.get('/status', async (req, res) => {
  * POST /api/auth/thaid/unlink
  * ยกเลิกการเชื่อมต่อ ThaID
  */
-router.post('/unlink', async (req, res) => {
+router.post('/unlink', requireAuth, async (req, res) => {
     try {
         // ต้อง authenticate ก่อน (ใช้ middleware requireAuth)
         const userId = req.user?.sub || req.user?.id
