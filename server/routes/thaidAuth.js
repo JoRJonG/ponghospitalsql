@@ -19,6 +19,8 @@ router.get('/login', optionalAuth, async (req, res) => {
         const isLinkMode = req.query.link === 'true'
         const userId = req.user?.sub || req.user?.id
 
+        logger.info('[ThaID] Login Init', { isLinkMode, userId: userId || 'guest', headers: req.headers })
+
         if (isLinkMode && !userId) {
             return res.status(401).json({
                 error: 'Unauthorized',
@@ -40,6 +42,7 @@ router.get('/login', optionalAuth, async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' || process.env.USE_HTTPS === 'true',
             signed: true,
+            sameSite: 'lax', // Explicitly set SameSite
             maxAge: 5 * 60 * 1000
         })
 
@@ -52,10 +55,10 @@ router.get('/login', optionalAuth, async (req, res) => {
 
         const authUrl = `${authEndpoint}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopeStr}&state=${state}`
 
-        logger.info('[ThaID] Login initiated (Cookie Mode)', { state, linkMode: isLinkMode })
+        logger.info('[ThaID] Redirecting to Auth URL', { authUrl, state })
         res.redirect(authUrl)
     } catch (error) {
-        logger.error('[ThaID] Login failed', { error: error.message })
+        logger.error('[ThaID] Login failed', { error: error.message, stack: error.stack })
         if (error.message.includes('credentials not configured')) {
             return res.status(503).json({ error: 'ThaID login is not available' })
         }
@@ -69,11 +72,19 @@ router.get('/login', optionalAuth, async (req, res) => {
  */
 router.get('/callback', async (req, res) => {
     try {
+        logger.info('[ThaID] Callback received', { query: req.query, cookies: Object.keys(req.signedCookies || {}) })
+
         const client = await getThaIDClient()
         const params = client.callbackParams(req)
 
         // อ่านและตรวจสอบ State จาก Signed Cookie
         const savedState = req.signedCookies.thaid_state
+
+        logger.info('[ThaID] State Check', {
+            receivedState: params.state,
+            cookieState: savedState?.state,
+            match: savedState?.state === params.state
+        })
 
         if (!savedState || savedState.state !== params.state) {
             logger.warn('[ThaID] Invalid or expired state', {
@@ -100,14 +111,15 @@ router.get('/callback', async (req, res) => {
             }
         )
 
-        logger.info('[ThaID] Token exchanged success')
+        logger.info('[ThaID] Token exchanged success', { claims: tokenSet.claims() })
 
         const userinfo = await openidClient.fetchUserInfo(client, tokenSet.access_token, tokenSet.claims())
 
         logger.info('[ThaID] User info received', {
             sub: userinfo.sub,
             pid: userinfo.pid,
-            linkMode: savedState.linkMode
+            linkMode: savedState.linkMode,
+            targetUserId: savedState.userId
         })
 
         const { sub, pid, given_name, family_name, birthdate, address } = userinfo
@@ -118,7 +130,7 @@ router.get('/callback', async (req, res) => {
             user = await linkThaIDToExistingUser(savedState.userId, {
                 sub, pid, given_name, family_name, birthdate, address
             })
-            logger.info('[ThaID] Link Mode Success', { userId: user.id })
+            logger.info('[ThaID] Link Mode Success', { userId: user.id, loginMethod: user.login_method })
         } else {
             logger.info('[ThaID] Processing Login Mode')
             user = await findOrCreateUserFromThaID({
@@ -133,7 +145,7 @@ router.get('/callback', async (req, res) => {
             permissions: user.permissions,
         })
 
-        logger.info('[ThaID] Login successful', {
+        logger.info('[ThaID] Login/Link process completed', {
             userId: user.id,
             username: user.username,
             linkMode: savedState.linkMode,
@@ -148,7 +160,7 @@ router.get('/callback', async (req, res) => {
             res.redirect(redirectUrl)
         }
     } catch (error) {
-        logger.error('[ThaID] Callback failed', { error: error.message })
+        logger.error('[ThaID] Callback failed', { error: error.message, stack: error.stack })
         if (error.message.includes('ThaID_NOT_LINKED')) {
             return res.redirect('/login?error=thaid_not_linked')
         }
@@ -170,15 +182,23 @@ router.get('/status', requireAuth, async (req, res) => {
         const userId = req.user?.sub || req.user?.id
         if (!userId) return res.status(401).json({ error: 'Unauthorized' })
 
+        // Debug query
+        logger.info('[ThaID] Checking status for user', { userId })
+
         const users = await query(
             'SELECT thaid_pid, thaid_sub, thaid_linked_at, login_method FROM users WHERE id = ?',
             [userId]
         )
 
-        if (users.length === 0) return res.status(404).json({ error: 'User not found' })
+        if (users.length === 0) {
+            logger.warn('[ThaID] User not found for status check', { userId })
+            return res.status(404).json({ error: 'User not found' })
+        }
 
         const user = users[0]
         const isLinked = Boolean(user.thaid_sub)
+
+        logger.info('[ThaID] Status result', { userId, isLinked, pid: user.thaid_pid })
 
         res.json({
             isLinked,
@@ -227,7 +247,7 @@ async function findOrCreateUserFromThaID(thaidData) {
             `UPDATE users SET thaid_sub = ?, thaid_pid = ?, thaid_linked_at = NOW(), login_method = 'thaid', updated_at = NOW() WHERE id = ?`,
             [sub, pid, user.id]
         )
-        logger.info('[ThaID] User updated', { userId: user.id })
+        logger.info('[ThaID] User updated (login)', { userId: user.id })
         return User.findById(user.id)
     }
 
@@ -253,7 +273,7 @@ async function linkThaIDToExistingUser(userId, thaidData) {
         [sub, pid, userId]
     )
 
-    logger.info('[ThaID] Update result', { affectedRows: result.affectedRows, info: result.info })
+    logger.info('[ThaID] Update result (Link)', { affectedRows: result.affectedRows, info: result.info, userId, pid })
 
     if (result.affectedRows === 0) {
         logger.error('[ThaID] Update failed: No rows affected', { userId, thaid_sub: sub })
