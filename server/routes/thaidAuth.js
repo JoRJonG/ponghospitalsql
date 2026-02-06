@@ -28,139 +28,136 @@ const router = Router()
  * GET /api/auth/thaid/login
  * เริ่มต้น ThaID OAuth flow (Stateless - Uses Signed Cookies)
  */
+// Strict ThaID Endpoints (Manual)
+const THAID_API_BASE = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
+const ENDPOINTS = {
+    AUTH: `${THAID_API_BASE}/api/v2/oauth2/auth/`,
+    TOKEN: `${THAID_API_BASE}/api/v2/oauth2/token/`,
+    USERINFO: `${THAID_API_BASE}/api/v2/oauth2/userinfo/`
+}
+
+/**
+ * GET /api/auth/thaid/login
+ * เริ่มต้น ThaID OAuth flow (Strict Manual Mode)
+ */
 router.get('/login', optionalAuth, async (req, res) => {
     try {
-        const client = await getThaIDClient()
         const isLinkMode = req.query.link === 'true'
         const userId = req.user?.sub || req.user?.id
 
-        logger.info('[ThaID] Login Init', { isLinkMode, userId: userId || 'guest', headers: req.headers })
-        debugLog('Login Init', { isLinkMode, userId, query: req.query })
-
+        logger.info('[ThaID] Login Init (Strict)', { isLinkMode, userId: userId || 'guest' })
 
         if (isLinkMode && !userId) {
-            return res.status(401).json({
-                error: 'Unauthorized',
-                message: 'You must be logged in to link ThaID account'
-            })
+            return res.status(401).json({ error: 'Unauthorized', message: 'Must be logged in to link account' })
         }
 
         const state = crypto.randomBytes(16).toString('hex')
 
-        // เก็บ State ลง Signed Cookie (ปลอดภัยและไม่หายเมื่อ Server Restart)
-        // หมดอายุใน 5 นาที
-        const stateData = {
-            state,
-            linkMode: isLinkMode,
-            userId: isLinkMode ? userId : null,
-        }
-
-        res.cookie('thaid_state', stateData, {
+        // Store State in Signed Cookie
+        res.cookie('thaid_state', { state, linkMode: isLinkMode, userId }, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' || process.env.USE_HTTPS === 'true',
             signed: true,
-            sameSite: 'lax', // Explicitly set SameSite
+            sameSite: 'lax',
             maxAge: 5 * 60 * 1000
         })
 
-        const issuerUrl = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
-        const authEndpoint = `${issuerUrl}/api/v2/oauth2/auth/`
         const clientId = process.env.THAID_CLIENT_ID
-        const redirectUri = encodeURIComponent(process.env.THAID_REDIRECT_URI)
-        const scopeRaw = process.env.THAID_SCOPES || 'pid name birthdate openid'
-        const scopeStr = scopeRaw.trim().replace(/\s+/g, '%20')
+        const redirectUri = process.env.THAID_REDIRECT_URI
 
-        const authUrl = `${authEndpoint}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopeStr}&state=${state}`
-
-        logger.info('[ThaID] Redirecting to Auth URL', { authUrl, state })
-        res.redirect(authUrl)
-    } catch (error) {
-        logger.error('[ThaID] Login failed', { error: error.message, stack: error.stack })
-        debugLog('Login failed', { error: error.message, stack: error.stack })
-
-        if (error.message.includes('credentials not configured')) {
-            return res.status(503).json({ error: 'ThaID login is not available' })
+        if (!clientId || !redirectUri) {
+            throw new Error('Missing ThaID Environment Variables')
         }
-        res.redirect('/login?error=thaid_init_failed')
+
+        // Construct URL manually using URLSearchParams for correct encoding
+        const authUrl = new URL(ENDPOINTS.AUTH)
+        authUrl.searchParams.append('response_type', 'code')
+        authUrl.searchParams.append('client_id', clientId)
+        authUrl.searchParams.append('redirect_uri', redirectUri)
+        authUrl.searchParams.append('scope', 'openid pid')
+        authUrl.searchParams.append('state', state)
+
+        logger.info('[ThaID] Redirecting to Auth URL', { url: authUrl.toString() })
+        res.redirect(authUrl.toString())
+
+    } catch (error) {
+        logger.error('[ThaID] Login failed', { error: error.message })
+        res.redirect(`/login?error=thaid_init_failed&details=${encodeURIComponent(error.message)}`)
     }
 })
 
 /**
  * GET /api/auth/thaid/callback
- * รับ callback จาก ThaID หลังจากผู้ใช้ยืนยันตัวตน
+ * รับ callback (Strict Manual Mode)
  */
 router.get('/callback', async (req, res) => {
     try {
-        logger.info('[ThaID] Callback received', { query: req.query, cookies: Object.keys(req.signedCookies || {}) })
-        debugLog('Callback received', { query: req.query, cookies: Object.keys(req.signedCookies || {}) })
+        const { code, state, error, error_description } = req.query
+        logger.info('[ThaID] Callback received', { code: code ? 'YES' : 'NO', state, error })
 
-
-        const client = await getThaIDClient()
-        const params = client.callbackParams(req)
-
-        // อ่านและตรวจสอบ State จาก Signed Cookie
-        const savedState = req.signedCookies.thaid_state
-
-        logger.info('[ThaID] State Check', {
-            receivedState: params.state,
-            cookieState: savedState?.state,
-            match: savedState?.state === params.state
-        })
-        debugLog('State Check', { paramsState: params.state, cookieState: savedState })
-
-
-        if (!savedState || savedState.state !== params.state) {
-            logger.warn('[ThaID] Invalid or expired state', {
-                cookieState: savedState?.state,
-                paramState: params.state
-            })
-            // หาก State ไม่ถูกต้อง อาจเกิดจาก Cookie หาย หรือ Timeout
-            // แต่เพื่อ UX ที่ดี ถ้าเราตรวจสอบแล้วว่าไม่มี Cookie เราอาจจะ redirect ไปหน้า dashboard แทน error
-            return res.redirect('/login?error=invalid_state')
+        if (error) {
+            throw new Error(`ThaID Error: ${error} - ${error_description}`)
         }
 
-        // ลบ Cookie ทิ้งเมื่อใช้งานเสร็จ
+        if (!code) throw new Error('No authorization code received')
+
+        // Verify State
+        const savedState = req.signedCookies.thaid_state
+        if (!savedState || savedState.state !== state) {
+            logger.warn('[ThaID] State mismatch', { expected: savedState?.state, received: state })
+            return res.redirect('/login?error=invalid_state')
+        }
         res.clearCookie('thaid_state')
 
-        logger.info('[ThaID] Exchanging code for token...', { code: params.code })
-        debugLog('Exchanging code', { code: params.code })
+        // 1. Token Exchange (POST body as per Page 9)
+        const tokenParams = new URLSearchParams()
+        tokenParams.append('grant_type', 'authorization_code')
+        tokenParams.append('code', code)
+        tokenParams.append('redirect_uri', process.env.THAID_REDIRECT_URI)
+        tokenParams.append('client_id', process.env.THAID_CLIENT_ID)
+        tokenParams.append('client_secret', process.env.THAID_CLIENT_SECRET)
 
+        logger.info('[ThaID] Exchanging Token', { endpoint: ENDPOINTS.TOKEN })
 
-        const redirectUri = process.env.THAID_REDIRECT_URI
-        const tokenSet = await openidClient.authorizationCodeGrant(
-            client,
-            new URL(req.originalUrl, `http://${req.headers.host}`),
-            {
-                expectedState: params.state,
-                redirect_uri: redirectUri, // REQUIRED by ThaID
-            }
-        )
-
-        logger.info('[ThaID] Token exchanged success', { claims: tokenSet.claims() })
-
-        const userinfo = await openidClient.fetchUserInfo(client, tokenSet.access_token, tokenSet.claims())
-
-        logger.info('[ThaID] User info received', {
-            sub: userinfo.sub,
-            pid: userinfo.pid,
-            linkMode: savedState.linkMode,
-            targetUserId: savedState.userId
+        const tokenResp = await fetch(ENDPOINTS.TOKEN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: tokenParams
         })
 
+        if (!tokenResp.ok) {
+            const errText = await tokenResp.text()
+            logger.error('[ThaID] Token Exchange Failed', { status: tokenResp.status, body: errText })
+            throw new Error(`Token invalid: ${tokenResp.status} ${errText}`)
+        }
+
+        const tokenData = await tokenResp.json()
+        const { access_token, id_token, token_type } = tokenData
+
+        logger.info('[ThaID] Token Success', { type: token_type })
+
+        // 2. UserInfo Fetch
+        logger.info('[ThaID] Fetching UserInfo', { endpoint: ENDPOINTS.USERINFO })
+        const userResp = await fetch(ENDPOINTS.USERINFO, {
+            headers: { 'Authorization': `Bearer ${access_token}` }
+        })
+
+        if (!userResp.ok) {
+            const errText = await userResp.text()
+            throw new Error(`UserInfo failed: ${userResp.status} ${errText}`)
+        }
+
+        const userinfo = await userResp.json()
+        logger.info('[ThaID] UserInfo Success', { pid: userinfo.pid })
+
+        // 3. Logic for Login/Link
         const { sub, pid, given_name, family_name, birthdate, address } = userinfo
         let user
 
         if (savedState.linkMode && savedState.userId) {
-            logger.info('[ThaID] Processing Link Mode', { userId: savedState.userId })
-            user = await linkThaIDToExistingUser(savedState.userId, {
-                sub, pid, given_name, family_name, birthdate, address
-            })
-            logger.info('[ThaID] Link Mode Success', { userId: user.id, loginMethod: user.login_method })
+            user = await linkThaIDToExistingUser(savedState.userId, { sub, pid, given_name, family_name, birthdate, address })
         } else {
-            logger.info('[ThaID] Processing Login Mode')
-            user = await findOrCreateUserFromThaID({
-                sub, pid, given_name, family_name, birthdate, address
-            })
+            user = await findOrCreateUserFromThaID({ sub, pid, given_name, family_name, birthdate, address })
         }
 
         const jwtToken = signToken({
@@ -170,33 +167,14 @@ router.get('/callback', async (req, res) => {
             permissions: user.permissions,
         })
 
-        logger.info('[ThaID] Login/Link process completed', {
-            userId: user.id,
-            username: user.username,
-            linkMode: savedState.linkMode,
-        })
-
         if (savedState.linkMode) {
-            logger.info('[ThaID] Redirecting to settings page')
             res.redirect('/admin/settings?thaid_linked=success')
         } else {
-            logger.info('[ThaID] Redirecting to login success')
-            const redirectUrl = `/login-success?token=${jwtToken}`
-            res.redirect(redirectUrl)
+            res.redirect(`/login-success?token=${jwtToken}`)
         }
-    } catch (error) {
-        logger.error('[ThaID] Callback failed', { error: error.message, stack: error.stack })
-        debugLog('Callback failed', { error: error.message, stack: error.stack })
 
-        if (error.message.includes('ThaID_NOT_LINKED')) {
-            return res.redirect('/login?error=thaid_not_linked')
-        }
-        if (error.message.includes('already linked')) {
-            return res.redirect('/login?error=thaid_already_used')
-        }
-        if (error.message.includes('Database update failed')) {
-            return res.redirect('/login?error=thaid_db_update_failed')
-        }
+    } catch (error) {
+        logger.error('[ThaID] Callback Exception', { msg: error.message, stack: error.stack })
         const safeError = encodeURIComponent(error.message.substring(0, 100))
         res.redirect(`/login?error=thaid_auth_failed&details=${safeError}`)
     }

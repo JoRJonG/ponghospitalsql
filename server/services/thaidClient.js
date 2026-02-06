@@ -50,29 +50,33 @@ export async function getThaIDClient() {
         let config
 
         try {
-            // 1. ลอง Auto-discovery ก่อน (ถ้าเน็ตออกได้ - วิธีนี้ worked ตอนแรก)
+            // 1. ลอง Auto-discovery ก่อน
             logger.info('[ThaID] Discovering issuer:', issuerUrl)
             config = await openidClient.discovery(new URL(issuerUrl), process.env.THAID_CLIENT_ID, process.env.THAID_CLIENT_SECRET)
+
+            // Force client_secret_post as recommended in Title 9 of ThaID manual
+            config.token_endpoint_auth_method = 'client_secret_post'
+
             logger.info('[ThaID] Discovery successful')
         } catch (e) {
             // 2. ถ้า Auto-discovery พัง ให้ใช้ Manual Config
             logger.warn('[ThaID] Discovery failed, falling back to manual config:', e.message)
 
-            config = new openidClient.Issuer({
-                issuer: issuerUrl,
-                authorization_endpoint: `${issuerUrl}/api/v2/oauth2/auth/`,
-                token_endpoint: `${issuerUrl}/api/v2/oauth2/token/`,
-                userinfo_endpoint: `${issuerUrl}/api/v2/oauth2/userinfo/`,
-                revocation_endpoint: `${issuerUrl}/api/v2/oauth2/revoke/`,
-                introspection_endpoint: `${issuerUrl}/api/v2/oauth2/introspect/`,
-            }).Client({
+            config = {
+                serverMetadata: {
+                    issuer: issuerUrl,
+                    authorization_endpoint: `${issuerUrl}/api/v2/oauth2/auth/`,
+                    token_endpoint: `${issuerUrl}/api/v2/oauth2/token/`,
+                    userinfo_endpoint: `${issuerUrl}/api/v2/oauth2/userinfo/`,
+                    revocation_endpoint: `${issuerUrl}/api/v2/oauth2/revoke/`,
+                    introspection_endpoint: `${issuerUrl}/api/v2/oauth2/introspect/`,
+                },
                 client_id: process.env.THAID_CLIENT_ID,
                 client_secret: process.env.THAID_CLIENT_SECRET,
-                redirect_uris: [process.env.THAID_REDIRECT_URI],
-                token_endpoint_auth_method: 'client_secret_post' // Force POST method in Manual Fallback
-            })
+                // redirect_uris not strictly needed on config object for v6 but good to store
+            }
 
-            logger.info('[ThaID] Using Manual Configuration (Fallback)')
+            logger.info('[ThaID] Using Manual Configuration (Fallback Object)')
         }
 
         // เก็บ config ไว้ใช้
