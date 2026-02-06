@@ -9,7 +9,7 @@ import { useAuth } from '../../auth/AuthContext'
 export default function ThaIDSettings() {
     const { getToken } = useAuth()
     const [isLinked, setIsLinked] = useState(false)
-    const [thaidPid, setThaidPid] = useState<string | null>(null)
+
     const [loading, setLoading] = useState(false)
     const [fetching, setFetching] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -54,7 +54,7 @@ export default function ThaIDSettings() {
 
             const data = await response.json()
             setIsLinked(data.isLinked)
-            setThaidPid(data.thaidPid)
+
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error'
             console.error('[ThaID] Failed to fetch status:', errorMessage)
