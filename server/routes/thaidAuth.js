@@ -61,8 +61,13 @@ router.get('/login', optionalAuth, async (req, res) => {
 
         const clientId = process.env.THAID_CLIENT_ID
         const redirectUri = encodeURIComponent(process.env.THAID_REDIRECT_URI)
+
         // Manual scope addition with %20 encoding
-        const scopeStr = (process.env.THAID_SCOPES || 'openid pid name birthdate address').replace(/ /g, '%20')
+        // Note: PDF example (Page 8) shows 'pid name birthdate openid' (openid last)
+        // We will try to match this strict order and minimal set first.
+        // FORCE IGNORE .env for now to ensure we send the correct string
+        const scopeRaw = 'pid name birthdate openid'
+        const scopeStr = scopeRaw.replace(/ /g, '%20')
 
         // เรียง Parameter ตามคู่มือหน้า 8: response_type -> client_id -> redirect_uri -> scope -> state
         const authUrl = `${authEndpoint}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopeStr}&state=${state}`
