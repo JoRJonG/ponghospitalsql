@@ -197,7 +197,8 @@ router.get('/callback', async (req, res) => {
         if (error.message.includes('Database update failed')) {
             return res.redirect('/login?error=thaid_db_update_failed')
         }
-        res.redirect('/login?error=thaid_auth_failed')
+        const safeError = encodeURIComponent(error.message.substring(0, 100))
+        res.redirect(`/login?error=thaid_auth_failed&details=${safeError}`)
     }
 })
 

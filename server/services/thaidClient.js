@@ -49,28 +49,24 @@ export async function getThaIDClient() {
         const issuerUrl = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
         let config
 
-        try {
-            // 1. ลอง Auto-discovery ก่อน (ถ้าเน็ตออกได้)
-            logger.info('[ThaID] Discovering issuer:', issuerUrl)
-            config = await openidClient.discovery(new URL(issuerUrl), process.env.THAID_CLIENT_ID, process.env.THAID_CLIENT_SECRET)
-            logger.info('[ThaID] Discovery successful')
-        } catch (e) {
-            // 2. ถ้า Auto-discovery พัง ให้ใช้ Manual Config
-            logger.warn('[ThaID] Discovery failed, falling back to manual config:', e.message)
 
-            config = {
-                client_id: process.env.THAID_CLIENT_ID,
-                client_secret: process.env.THAID_CLIENT_SECRET,
-                serverMetadata: {
-                    issuer: issuerUrl,
-                    authorization_endpoint: `${issuerUrl}/api/v2/oauth2/auth/`,
-                    token_endpoint: `${issuerUrl}/api/v2/oauth2/token/`,
-                    userinfo_endpoint: `${issuerUrl}/api/v2/oauth2/userinfo/`,
-                    revocation_endpoint: `${issuerUrl}/api/v2/oauth2/revoke/`,
-                    introspection_endpoint: `${issuerUrl}/api/v2/oauth2/introspect/`,
-                }
-            }
-        }
+        // 2. ถ้า Auto-discovery พัง หรือต้องการ Force Config ให้ใช้ Manual Config
+        // ThaID มักจะต้องการ client_secret_post 
+        config = new openidClient.Issuer({
+            issuer: issuerUrl,
+            authorization_endpoint: `${issuerUrl}/api/v2/oauth2/auth/`,
+            token_endpoint: `${issuerUrl}/api/v2/oauth2/token/`,
+            userinfo_endpoint: `${issuerUrl}/api/v2/oauth2/userinfo/`,
+            revocation_endpoint: `${issuerUrl}/api/v2/oauth2/revoke/`,
+            introspection_endpoint: `${issuerUrl}/api/v2/oauth2/introspect/`,
+        }).Client({
+            client_id: process.env.THAID_CLIENT_ID,
+            client_secret: process.env.THAID_CLIENT_SECRET,
+            redirect_uris: [process.env.THAID_REDIRECT_URI],
+            token_endpoint_auth_method: 'client_secret_post' // Force POST method
+        })
+
+        logger.info('[ThaID] Using Manual Configuration with client_secret_post')
 
         // เก็บ config ไว้ใช้
         thaidClient = config
