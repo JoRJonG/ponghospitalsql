@@ -12,9 +12,19 @@ export default function SEO({ title, description, image, url }: SEOProps) {
     const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle
 
     const siteUrl = 'https://ponghospital.moph.go.th'
-    // ถ้าไม่มี url ส่งมา ให้ใช้ window.location.href (แต่ตัด query params ออกเพื่อความ clean)
-    // แต่ใน SSR หรือ initial render อาจจะต้องระวังเรื่อง window
-    const currentUrl = url || (typeof window !== 'undefined' ? window.location.origin + window.location.pathname : siteUrl)
+
+    // สร้าง canonical URL ที่สะอาดและสอดคล้องกับ sitemap
+    let currentUrl = url || (typeof window !== 'undefined' ? window.location.origin + window.location.pathname : siteUrl)
+
+    // ลบ trailing slash ออก (ยกเว้นหน้าแรก)
+    if (currentUrl !== siteUrl && currentUrl.endsWith('/')) {
+        currentUrl = currentUrl.slice(0, -1)
+    }
+
+    // แปลง /executives เป็น /management เพื่อให้ canonical ตรงกับ sitemap
+    if (currentUrl.includes('/executives')) {
+        currentUrl = currentUrl.replace('/executives', '/management')
+    }
 
     const defaultDescription = 'โรงพยาบาลปง จังหวัดพะเยา ให้บริการด้านสุขภาพครบวงจรเพื่อประชาชน บริการตรวจรักษา ฉุกเฉิน 24 ชั่วโมง ข้อมูลข่าวสาร และประกาศจัดซื้อจัดจ้างอย่างเป็นทางการ'
     const metaDescription = description || defaultDescription

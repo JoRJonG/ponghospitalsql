@@ -33,6 +33,7 @@ const BlockedPage = lazy(() => import('./pages/BlockedPage'))
 const RateLimitError = lazy(() => import('./pages/RateLimitError'))
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage'))
 const PRPostersPage = lazy(() => import('./pages/PRPostersPage'))
+const LoginSuccessPage = lazy(() => import('./pages/LoginSuccessPage'))
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth()
@@ -106,7 +107,8 @@ function App() {
                         <Route path="/announcements/*" element={<AnnouncementsPage />} />
                         <Route path="/announcement/:id" element={<AnnouncementDetailPage />} />
                         <Route path="/management" element={<ManagementPage />} />
-                        <Route path="/executives" element={<ManagementPage />} />
+                        {/* Redirect /executives ไปยัง /management เพื่อป้องกัน duplicate content */}
+                        <Route path="/executives" element={<Navigate to="/management" replace />} />
                         <Route path="/ita" element={<ItaPage />} />
                         <Route path="/ita/item/:id" element={<ItaItemPage />} />
                         <Route path="/about/*" element={<AboutPage />} />
@@ -116,6 +118,7 @@ function App() {
                         <Route path="/documents" element={<DocumentsPage />} />
                         <Route path="/pr-posters" element={<PRPostersPage />} />
                         <Route path="/login" element={<LoginPage />} />
+                        <Route path="/login-success" element={<LoginSuccessPage />} />
                         <Route path="/admin/*" element={<RequireAuth><AdminPage /></RequireAuth>} />
                         <Route path="/403" element={<ForbiddenPage />} />
                         <Route path="/blocked" element={<BlockedPage />} />

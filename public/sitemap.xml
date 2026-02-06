@@ -7,7 +7,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://ponghospital.moph.go.th/</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
@@ -15,7 +15,7 @@
   <!-- Announcements -->
   <url>
     <loc>https://ponghospital.moph.go.th/announcements</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -23,43 +23,36 @@
   <!-- Announcements - Sub Categories -->
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/jobs</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/news</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/notices</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/procurement</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
 
-  <!-- Management / Executives -->
+  <!-- Management (ลบ /executives ออกเพราะซ้ำกัน) -->
   <url>
     <loc>https://ponghospital.moph.go.th/management</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.80</priority>
-  </url>
-
-  <url>
-    <loc>https://ponghospital.moph.go.th/executives</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -67,7 +60,7 @@
   <!-- ITA (Information Technology Assessment) -->
   <url>
     <loc>https://ponghospital.moph.go.th/ita</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -75,14 +68,14 @@
   <!-- About -->
   <url>
     <loc>https://ponghospital.moph.go.th/about</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
 
   <url>
     <loc>https://ponghospital.moph.go.th/about/infographic</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -90,7 +83,7 @@
   <!-- Contact -->
   <url>
     <loc>https://ponghospital.moph.go.th/contact</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -98,7 +91,23 @@
   <!-- Activities -->
   <url>
     <loc>https://ponghospital.moph.go.th/activities</loc>
-    <lastmod>2026-01-09T00:00:00+07:00</lastmod>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <!-- Documents (เพิ่มหน้าที่ขาดหายไป) -->
+  <url>
+    <loc>https://ponghospital.moph.go.th/documents</loc>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- PR Posters (เพิ่มหน้าที่ขาดหายไป) -->
+  <url>
+    <loc>https://ponghospital.moph.go.th/pr-posters</loc>
+    <lastmod>2026-02-06T00:00:00+07:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>

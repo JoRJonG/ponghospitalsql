@@ -24,6 +24,7 @@ import feedbackRouter from './routes/feedback.js'
 import documentsRouter from './routes/documents.js'
 import prPostersRouter from './routes/pr_posters.js'
 import organizationRouter from './routes/organization.js'
+import thaidAuthRouter from './routes/thaidAuth.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
 import { preventHpp, xssSanitizer } from './middleware/security.js'
 import { trackVisitors } from './middleware/visitorTracker.js'
@@ -166,6 +167,7 @@ export async function createServer() {
   app.use('/api/infographics', infographicsRouter)
   app.use('/api/ita', itaRouter)
   app.use('/api/auth', authRouter)
+  app.use('/api/auth/thaid', thaidAuthRouter)
   app.use('/api/images', imagesRouter)
   app.use('/api/uploads', uploadsRouter)
   app.use('/api/visitors', visitorsRouter)
