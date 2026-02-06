@@ -62,11 +62,12 @@ router.get('/login', optionalAuth, async (req, res) => {
             response_type: 'code',
             client_id: process.env.THAID_CLIENT_ID,
             redirect_uri: process.env.THAID_REDIRECT_URI,
-            scope: process.env.THAID_SCOPES || 'openid pid name birthdate address',
             state: state
         })
 
-        const authUrl = `${authEndpoint}?${params.toString()}`
+        // Manual scope addition with %20 encoding (URLSearchParams uses +)
+        const scopeStr = (process.env.THAID_SCOPES || 'openid pid name birthdate address').replace(/ /g, '%20')
+        const authUrl = `${authEndpoint}?${params.toString()}&scope=${scopeStr}`
 
         logger.info('[ThaID] Generated Auth URL:', authUrl)
         logger.info('[ThaID] Login initiated', { state, linkMode: isLinkMode })
