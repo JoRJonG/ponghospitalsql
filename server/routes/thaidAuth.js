@@ -178,9 +178,17 @@ router.get('/callback', async (req, res) => {
             linkMode: savedState.linkMode,
         })
 
-        // Redirect ไปหน้า Frontend พร้อม token
-        const redirectUrl = `${process.env.THAID_REDIRECT_URI}?token=${jwtToken}`
-        res.redirect(redirectUrl)
+        // Redirect based on mode
+        if (savedState.linkMode) {
+            // โหมด Link: กลับไปหน้า Settings โดยตรง (ไม่ต้อง set token ใหม่ เพราะมี session เดิมอยู่แล้ว)
+            logger.info('[ThaID] Redirecting to settings page')
+            res.redirect('/admin/settings?thaid_linked=success')
+        } else {
+            // โหมด Login: ไปหน้า Login Success เพื่อ save token
+            logger.info('[ThaID] Redirecting to login success')
+            const redirectUrl = `/login-success?token=${jwtToken}`
+            res.redirect(redirectUrl)
+        }
     } catch (error) {
         logger.error('[ThaID] Callback failed', { error: error.message })
 
