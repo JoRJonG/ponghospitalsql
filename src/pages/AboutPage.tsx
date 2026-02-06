@@ -507,7 +507,7 @@ export default function AboutPage() {
               }
             >
               <i className="fa-solid fa-shield-halved" aria-hidden="true" />
-              แผนปฏิบัติการป้องกัน ปราบปราม
+              แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ
             </NavLink>
           </div>
         </div>

@@ -208,7 +208,7 @@ export default function Navbar() {
                     <li>
                       <NavLink to="/about/pr-plan" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
                         <i className="fa-solid fa-shield-halved text-gray-500" />
-                        <span>แผนปฏิบัติการป้องกัน ปราบปราม</span>
+                        <span>แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ</span>
                       </NavLink>
                     </li>
                   </ul>
@@ -322,7 +322,7 @@ export default function Navbar() {
                           className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
                         >
                           <i className="fa-solid fa-shield-halved text-gray-500 text-xs" />
-                          <span>แผนปฏิบัติการป้องกัน ปราบปราม</span>
+                          <span>แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ</span>
                         </NavLink>
                       </li>
                     </ul>

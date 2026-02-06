@@ -56,7 +56,7 @@ export default function PRPlanPage() {
             >
                 <div className="flex items-center gap-2">
                     <i className="fa-solid fa-shield-halved text-purple-600 text-xl" />
-                    <h2 className="text-xl font-bold text-gray-900">แผนปฏิบัติการป้องกัน ปราบปราม</h2>
+                    <h2 className="text-xl font-bold text-gray-900">แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ</h2>
                 </div>
             </motion.div>
 
