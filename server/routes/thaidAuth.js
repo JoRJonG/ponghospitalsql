@@ -45,7 +45,8 @@ router.get('/login', optionalAuth, async (req, res) => {
         }
 
         // สร้าง state สำหรับป้องกัน CSRF (ThaID ไม่ระบุให้ใช้ Nonce ในเอกสาร Request)
-        const state = crypto.randomBytes(32).toString('hex')
+        // สร้าง state สำหรับป้องกัน CSRF (ลดความยาวลงเหลือ 16 bytes -> 32 chars เพื่อความปลอดภัยและเข้ากันได้)
+        const state = crypto.randomBytes(16).toString('hex')
 
         // เก็บ state ไว้ตรวจสอบตอน callback (หมดอายุใน 5 นาที)
         pendingStates.set(state, {
@@ -54,20 +55,17 @@ router.get('/login', optionalAuth, async (req, res) => {
             userId: isLinkMode ? userId : null,
         })
 
-        // สร้าง Authorization URL แบบ Manual (เพื่อไม่ให้มี Prams เกินที่ DOPA กำหนด)
+        // สร้าง Authorization URL แบบ Manual (เรียงตามตัวอย่างใน PDF เป๊ะๆ)
         const issuerUrl = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
         const authEndpoint = `${issuerUrl}/api/v2/oauth2/auth/`
 
-        const params = new URLSearchParams({
-            response_type: 'code',
-            client_id: process.env.THAID_CLIENT_ID,
-            redirect_uri: process.env.THAID_REDIRECT_URI,
-            state: state
-        })
-
-        // Manual scope addition with %20 encoding (URLSearchParams uses +)
+        const clientId = process.env.THAID_CLIENT_ID
+        const redirectUri = encodeURIComponent(process.env.THAID_REDIRECT_URI)
+        // Manual scope addition with %20 encoding
         const scopeStr = (process.env.THAID_SCOPES || 'openid pid name birthdate address').replace(/ /g, '%20')
-        const authUrl = `${authEndpoint}?${params.toString()}&scope=${scopeStr}`
+
+        // เรียง Parameter ตามคู่มือหน้า 8: response_type -> client_id -> redirect_uri -> scope -> state
+        const authUrl = `${authEndpoint}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopeStr}&state=${state}`
 
         logger.info('[ThaID] Generated Auth URL:', authUrl)
         logger.info('[ThaID] Login initiated', { state, linkMode: isLinkMode })
