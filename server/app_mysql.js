@@ -102,8 +102,9 @@ export async function createServer() {
   // Body parser for form data (multipart handled by multer per-route)
   app.use(express.urlencoded({ extended: true, limit: '250mb' }))
 
-  // Cookie parser
-  app.use(cookieParser())
+  // Cookie parser with secret for signed cookies
+  const cookieSecret = process.env.COOKIE_SECRET || 'ph-secure-secret-key-change-in-prod-v1'
+  app.use(cookieParser(cookieSecret))
 
   // Security Middleware
   // Prevent HTTP Parameter Pollution

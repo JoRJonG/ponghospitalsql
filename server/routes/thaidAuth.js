@@ -9,34 +9,16 @@ import User from '../models/mysql/User.js'
 
 const router = Router()
 
-// เก็บ state และ nonce ชั่วคราว (ใน production ควรใช้ Redis)
-const pendingStates = new Map()
-
-// ทำความสะอาด expired states ทุก 5 นาที
-setInterval(() => {
-    const now = Date.now()
-    for (const [state, data] of pendingStates.entries()) {
-        if (data.expiresAt < now) {
-            pendingStates.delete(state)
-        }
-    }
-}, 5 * 60 * 1000)
-
 /**
  * GET /api/auth/thaid/login
- * เริ่มต้น ThaID OAuth flow
- * Query params:
- *   - link=true: โหมดเชื่อมต่อ ThaID กับ account ที่ login อยู่
+ * เริ่มต้น ThaID OAuth flow (Stateless - Uses Signed Cookies)
  */
 router.get('/login', optionalAuth, async (req, res) => {
     try {
         const client = await getThaIDClient()
-
-        // ตรวจสอบว่าเป็นโหมด "link" หรือไม่
         const isLinkMode = req.query.link === 'true'
         const userId = req.user?.sub || req.user?.id
 
-        // ถ้าเป็นโหมด link ต้อง login อยู่ก่อน
         if (isLinkMode && !userId) {
             return res.status(401).json({
                 error: 'Unauthorized',
@@ -44,50 +26,39 @@ router.get('/login', optionalAuth, async (req, res) => {
             })
         }
 
-        // สร้าง state สำหรับป้องกัน CSRF (ThaID ไม่ระบุให้ใช้ Nonce ในเอกสาร Request)
-        // สร้าง state สำหรับป้องกัน CSRF (ลดความยาวลงเหลือ 16 bytes -> 32 chars เพื่อความปลอดภัยและเข้ากันได้)
         const state = crypto.randomBytes(16).toString('hex')
 
-        // เก็บ state ไว้ตรวจสอบตอน callback (หมดอายุใน 5 นาที)
-        pendingStates.set(state, {
-            expiresAt: Date.now() + 5 * 60 * 1000,
+        // เก็บ State ลง Signed Cookie (ปลอดภัยและไม่หายเมื่อ Server Restart)
+        // หมดอายุใน 5 นาที
+        const stateData = {
+            state,
             linkMode: isLinkMode,
             userId: isLinkMode ? userId : null,
+        }
+
+        res.cookie('thaid_state', stateData, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production' || process.env.USE_HTTPS === 'true',
+            signed: true,
+            maxAge: 5 * 60 * 1000
         })
 
-        // สร้าง Authorization URL แบบ Manual (เรียงตามตัวอย่างใน PDF เป๊ะๆ)
         const issuerUrl = process.env.THAID_ISSUER || 'https://imauth.bora.dopa.go.th'
         const authEndpoint = `${issuerUrl}/api/v2/oauth2/auth/`
-
         const clientId = process.env.THAID_CLIENT_ID
         const redirectUri = encodeURIComponent(process.env.THAID_REDIRECT_URI)
-
-        // Manual scope addition with %20 encoding
-        // Note: PDF example (Page 8) shows 'pid name birthdate openid' (openid last)
-        // We will try to match this strict order and minimal set first.
-        // Use scopes from .env or default to standard set
-        // Note: Strict manual encoding is required (spaces -> %20) because
-        // openid-client/URLSearchParams might default to '+' which ThaID rejects.
         const scopeRaw = process.env.THAID_SCOPES || 'pid name birthdate openid'
         const scopeStr = scopeRaw.trim().replace(/\s+/g, '%20')
 
-        // เรียง Parameter ตามคู่มือหน้า 8: response_type -> client_id -> redirect_uri -> scope -> state
         const authUrl = `${authEndpoint}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopeStr}&state=${state}`
 
-        logger.info('[ThaID] Generated Auth URL:', authUrl)
-        logger.info('[ThaID] Login initiated', { state, linkMode: isLinkMode })
+        logger.info('[ThaID] Login initiated (Cookie Mode)', { state, linkMode: isLinkMode })
         res.redirect(authUrl)
     } catch (error) {
         logger.error('[ThaID] Login failed', { error: error.message })
-
-        // ถ้าเป็น error เรื่อง credentials ไม่ครบ ให้แสดง error message ที่ชัดเจน
         if (error.message.includes('credentials not configured')) {
-            return res.status(503).json({
-                error: 'ThaID login is not available',
-                message: 'ThaID authentication is not configured on this server. Please contact the administrator.',
-            })
+            return res.status(503).json({ error: 'ThaID login is not available' })
         }
-
         res.redirect('/login?error=thaid_init_failed')
     }
 })
@@ -101,32 +72,36 @@ router.get('/callback', async (req, res) => {
         const client = await getThaIDClient()
         const params = client.callbackParams(req)
 
-        // ตรวจสอบ state
-        const savedState = pendingStates.get(params.state)
-        if (!savedState) {
-            logger.warn('[ThaID] Invalid or expired state', { state: params.state })
+        // อ่านและตรวจสอบ State จาก Signed Cookie
+        const savedState = req.signedCookies.thaid_state
+
+        if (!savedState || savedState.state !== params.state) {
+            logger.warn('[ThaID] Invalid or expired state', {
+                cookieState: savedState?.state,
+                paramState: params.state
+            })
+            // หาก State ไม่ถูกต้อง อาจเกิดจาก Cookie หาย หรือ Timeout
+            // แต่เพื่อ UX ที่ดี ถ้าเราตรวจสอบแล้วว่าไม่มี Cookie เราอาจจะ redirect ไปหน้า dashboard แทน error
             return res.redirect('/login?error=invalid_state')
         }
 
-        // ลบ state ที่ใช้แล้ว
-        pendingStates.delete(params.state)
+        // ลบ Cookie ทิ้งเมื่อใช้งานเสร็จ
+        res.clearCookie('thaid_state')
 
         logger.info('[ThaID] Exchanging code for token...', { code: params.code })
 
-        // แลก authorization code เป็น tokens (v6 API)
         const redirectUri = process.env.THAID_REDIRECT_URI
         const tokenSet = await openidClient.authorizationCodeGrant(
             client,
             new URL(req.originalUrl, `http://${req.headers.host}`),
             {
                 expectedState: params.state,
-                redirect_uri: redirectUri, // 👈 REQUIRED: Must match the one in Auth Request!
+                redirect_uri: redirectUri, // REQUIRED by ThaID
             }
         )
 
         logger.info('[ThaID] Token exchanged success')
 
-        // ดึงข้อมูลผู้ใช้จาก ThaID (v6 API)
         const userinfo = await openidClient.fetchUserInfo(client, tokenSet.access_token, tokenSet.claims())
 
         logger.info('[ThaID] User info received', {
@@ -135,45 +110,22 @@ router.get('/callback', async (req, res) => {
             linkMode: savedState.linkMode
         })
 
-        // ข้อมูลที่ได้จาก ThaID
-        const {
-            sub, // ThaID Subject ID (unique identifier)
-            pid, // เลขบัตรประชาชน 13 หลัก
-            given_name, // ชื่อ
-            family_name, // นามสกุล
-            birthdate, // วันเกิด (YYYY-MM-DD)
-            address, // ที่อยู่
-        } = userinfo
-
+        const { sub, pid, given_name, family_name, birthdate, address } = userinfo
         let user
 
-        // ตรวจสอบว่าเป็นโหมด link หรือไม่
         if (savedState.linkMode && savedState.userId) {
-            // โหมด Link: เชื่อมต่อ ThaID กับ account ที่ login อยู่
             logger.info('[ThaID] Processing Link Mode', { userId: savedState.userId })
             user = await linkThaIDToExistingUser(savedState.userId, {
-                sub,
-                pid,
-                given_name,
-                family_name,
-                birthdate,
-                address,
+                sub, pid, given_name, family_name, birthdate, address
             })
             logger.info('[ThaID] Link Mode Success', { userId: user.id })
         } else {
-            // โหมด Login: ค้นหาหรือสร้าง User
             logger.info('[ThaID] Processing Login Mode')
             user = await findOrCreateUserFromThaID({
-                sub,
-                pid,
-                given_name,
-                family_name,
-                birthdate,
-                address,
+                sub, pid, given_name, family_name, birthdate, address
             })
         }
 
-        // สร้าง JWT Token สำหรับระบบของคุณ
         const jwtToken = signToken({
             sub: user.id.toString(),
             username: user.username,
@@ -187,7 +139,6 @@ router.get('/callback', async (req, res) => {
             linkMode: savedState.linkMode,
         })
 
-        // Redirect based on mode (Previously fixed logic)
         if (savedState.linkMode) {
             logger.info('[ThaID] Redirecting to settings page')
             res.redirect('/admin/settings?thaid_linked=success')
@@ -198,41 +149,33 @@ router.get('/callback', async (req, res) => {
         }
     } catch (error) {
         logger.error('[ThaID] Callback failed', { error: error.message })
-
-        // ตรวจสอบว่าเป็น error เรื่อง ThaID ยังไม่ได้ link หรือไม่
         if (error.message.includes('ThaID_NOT_LINKED')) {
             return res.redirect('/login?error=thaid_not_linked')
         }
-
-        // ตรวจสอบว่าเป็น error เรื่อง ThaID ถูกใช้โดย account อื่นแล้ว
         if (error.message.includes('already linked')) {
             return res.redirect('/login?error=thaid_already_used')
         }
-
+        if (error.message.includes('Database update failed')) {
+            return res.redirect('/login?error=thaid_db_update_failed')
+        }
         res.redirect('/login?error=thaid_auth_failed')
     }
 })
 
 /**
  * GET /api/auth/thaid/status
- * ดึงสถานะการเชื่อมต่อ ThaID ของผู้ใช้
  */
 router.get('/status', requireAuth, async (req, res) => {
     try {
-        // ต้อง authenticate ก่อน
         const userId = req.user?.sub || req.user?.id
-        if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' })
-        }
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' })
 
         const users = await query(
             'SELECT thaid_pid, thaid_sub, thaid_linked_at, login_method FROM users WHERE id = ?',
             [userId]
         )
 
-        if (users.length === 0) {
-            return res.status(404).json({ error: 'User not found' })
-        }
+        if (users.length === 0) return res.status(404).json({ error: 'User not found' })
 
         const user = users[0]
         const isLinked = Boolean(user.thaid_sub)
@@ -251,23 +194,14 @@ router.get('/status', requireAuth, async (req, res) => {
 
 /**
  * POST /api/auth/thaid/unlink
- * ยกเลิกการเชื่อมต่อ ThaID
  */
 router.post('/unlink', requireAuth, async (req, res) => {
     try {
-        // ต้อง authenticate ก่อน (ใช้ middleware requireAuth)
         const userId = req.user?.sub || req.user?.id
-        if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' })
-        }
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' })
 
         await query(
-            `UPDATE users SET 
-        thaid_sub = NULL,
-        thaid_pid = NULL,
-        thaid_linked_at = NULL,
-        login_method = 'local'
-      WHERE id = ?`,
+            `UPDATE users SET thaid_sub = NULL, thaid_pid = NULL, thaid_linked_at = NULL, login_method = 'local' WHERE id = ?`,
             [userId]
         )
 
@@ -279,13 +213,9 @@ router.post('/unlink', requireAuth, async (req, res) => {
     }
 })
 
-/**
- * ฟังก์ชันค้นหาหรือสร้าง User จากข้อมูล ThaID
- */
 async function findOrCreateUserFromThaID(thaidData) {
     const { sub, pid, given_name, family_name, birthdate, address } = thaidData
 
-    // ค้นหา User ที่มี ThaID นี้อยู่แล้ว
     const existingUsers = await query(
         'SELECT * FROM users WHERE thaid_sub = ? OR thaid_pid = ?',
         [sub, pid]
@@ -293,64 +223,33 @@ async function findOrCreateUserFromThaID(thaidData) {
 
     if (existingUsers.length > 0) {
         const user = existingUsers[0]
-
-        // อัพเดทข้อมูลล่าสุด
         await query(
-            `UPDATE users SET 
-        thaid_sub = ?,
-        thaid_pid = ?,
-        thaid_linked_at = NOW(),
-        login_method = 'thaid',
-        updated_at = NOW()
-      WHERE id = ?`,
+            `UPDATE users SET thaid_sub = ?, thaid_pid = ?, thaid_linked_at = NOW(), login_method = 'thaid', updated_at = NOW() WHERE id = ?`,
             [sub, pid, user.id]
         )
-
         logger.info('[ThaID] User updated', { userId: user.id })
         return User.findById(user.id)
     }
 
-    // ❌ ไม่สร้าง User ใหม่อัตโนมัติ
-    // ผู้ใช้ต้อง Login ด้วย username/password ก่อน แล้วค่อย Link ThaID ในหน้า Settings
-
     logger.warn('[ThaID] User not found, auto-creation disabled', { pid })
-
-    throw new Error(
-        'ThaID_NOT_LINKED: คุณยังไม่ได้เชื่อมต่อ ThaID กับบัญชีของคุณ ' +
-        'กรุณา Login ด้วย Username/Password แล้วไปที่หน้า Settings เพื่อเชื่อมต่อ ThaID'
-    )
+    throw new Error('ThaID_NOT_LINKED: คุณยังไม่ได้เชื่อมต่อ ThaID กับบัญชีของคุณ กรุณา Login ด้วย Username/Password แล้วไปที่หน้า Settings เพื่อเชื่อมต่อ ThaID')
 }
 
-/**
- * ฟังก์ชันเชื่อมต่อ ThaID กับ User ที่มีอยู่แล้ว
- */
 async function linkThaIDToExistingUser(userId, thaidData) {
     const { sub, pid, given_name, family_name, birthdate, address } = thaidData
 
-    // ตรวจสอบว่า User นี้มีอยู่จริง
     const user = await User.findById(userId)
-    if (!user) {
-        throw new Error('User not found')
-    }
+    if (!user) throw new Error('User not found')
 
-    // ตรวจสอบว่าเลขบัตรนี้ถูกใช้โดย account อื่นหรือไม่
     const existingUsers = await query(
         'SELECT id FROM users WHERE (thaid_sub = ? OR thaid_pid = ?) AND id != ?',
         [sub, pid, userId]
     )
 
-    if (existingUsers.length > 0) {
-        throw new Error('This ThaID is already linked to another account')
-    }
+    if (existingUsers.length > 0) throw new Error('This ThaID is already linked to another account')
 
-    // เชื่อมต่อ ThaID กับ account นี้
     const result = await query(
-        `UPDATE users SET 
-            thaid_sub = ?,
-            thaid_pid = ?,
-            thaid_linked_at = NOW(),
-            updated_at = NOW()
-        WHERE id = ?`,
+        `UPDATE users SET thaid_sub = ?, thaid_pid = ?, thaid_linked_at = NOW(), updated_at = NOW() WHERE id = ?`,
         [sub, pid, userId]
     )
 
