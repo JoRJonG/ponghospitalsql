@@ -19,14 +19,16 @@ export default function LoginPage() {
 
     // ตรวจสอบ error จาก ThaID
     const error = searchParams.get('error')
-    if (error === 'thaid_not_linked') {
+    const details = searchParams.get('details') || ''
+
+    if (error === 'thaid_not_linked' || (error === 'thaid_auth_failed' && details.includes('ThaID_NOT_LINKED'))) {
       void Swal.fire({
         icon: 'info',
         title: 'ยังไม่ได้เชื่อมต่อ ThaID',
         html: 'คุณยังไม่ได้เชื่อมต่อ ThaID กับบัญชีของคุณ<br><br>' +
           '<strong>วิธีเชื่อมต่อ:</strong><br>' +
-          '1. Login ด้วย Username/Password<br>' +
-          '2. ไปที่หน้า Settings<br>' +
+          '1. Login ด้วย Username/Password ปกติ<br>' +
+          '2. ไปที่หน้า Settings (Admin)<br>' +
           '3. กดปุ่ม "เชื่อมต่อ ThaID"',
         confirmButtonText: 'เข้าใจแล้ว',
       })
@@ -35,6 +37,13 @@ export default function LoginPage() {
         icon: 'error',
         title: 'ThaID ถูกใช้แล้ว',
         text: 'เลขบัตรประชาชนนี้ถูกเชื่อมต่อกับบัญชีอื่นอยู่แล้ว',
+        confirmButtonText: 'ตกลง',
+      })
+    } else if (error === 'thaid_auth_failed') {
+      void Swal.fire({
+        icon: 'error',
+        title: 'เข้าสู่ระบบ ThaID ไม่สำเร็จ',
+        text: decodeURIComponent(details),
         confirmButtonText: 'ตกลง',
       })
     }
