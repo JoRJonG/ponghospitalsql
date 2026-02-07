@@ -28,7 +28,7 @@ export default function LoginPage() {
         html: 'คุณยังไม่ได้เชื่อมต่อ ThaID กับบัญชีของคุณ<br><br>' +
           '<strong>วิธีเชื่อมต่อ:</strong><br>' +
           '1. Login ด้วย Username/Password ปกติ<br>' +
-          '2. ไปที่หน้า Settings (Admin)<br>' +
+          '2. ไปที่หน้า ตั้งค่าผู้ใช้<br>' +
           '3. กดปุ่ม "เชื่อมต่อ ThaID"',
         confirmButtonText: 'เข้าใจแล้ว',
       })
