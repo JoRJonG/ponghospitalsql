@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSWR } from '../hooks/useSWR'
 import { motion } from 'framer-motion'
 import PdfViewer from '../components/PdfViewer'
 
@@ -14,36 +15,27 @@ type PRPlan = {
 }
 
 export default function PRPlanPage() {
-    const [plans, setPlans] = useState<PRPlan[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
     const [selectedPlan, setSelectedPlan] = useState<PRPlan | null>(null)
 
+    const fetcher = async () => {
+        const res = await fetch('/api/pr-plans?isPublished=true')
+        if (!res.ok) throw new Error('Failed to fetch PR plans')
+        const data = await res.json()
+        return data.data || []
+    }
+
+    const { data: plans = [], error: swrError, isLoading: loading } = useSWR('/api/pr-plans?isPublished=true', fetcher, {
+        revalidateOnFocus: false
+    })
+
+    // Auto-select first plan when data loads
     useEffect(() => {
-        const fetchPlans = async () => {
-            try {
-                setLoading(true)
-                const res = await fetch('/api/pr-plans?isPublished=true')
-                if (!res.ok) throw new Error('Failed to fetch PR plans')
-
-                const data = await res.json()
-                const fetchedPlans = data.data || []
-                setPlans(fetchedPlans)
-
-                // เลือกแผนแรกโดยอัตโนมัติ
-                if (fetchedPlans.length > 0) {
-                    setSelectedPlan(fetchedPlans[0])
-                }
-            } catch (err) {
-                console.error('Error fetching PR plans:', err)
-                setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด')
-            } finally {
-                setLoading(false)
-            }
+        if (plans.length > 0 && !selectedPlan) {
+            setSelectedPlan(plans[0])
         }
+    }, [plans, selectedPlan])
 
-        fetchPlans()
-    }, [])
+    const error = swrError ? (swrError.message || 'เกิดข้อผิดพลาด') : null
 
     return (
         <div className="h-[calc(100vh-80px)] flex flex-col">
@@ -92,7 +84,7 @@ export default function PRPlanPage() {
                     {/* แท็บเลือกไฟล์ (ถ้ามีหลายไฟล์) */}
                     {plans.length > 1 && (
                         <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 flex gap-2 overflow-x-auto">
-                            {plans.map((plan) => (
+                            {plans.map((plan: PRPlan) => (
                                 <button
                                     key={plan.id}
                                     onClick={() => setSelectedPlan(plan)}
