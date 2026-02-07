@@ -58,22 +58,22 @@ export default function PdfViewer({ url, className, onError }: PdfViewerProps) {
           {numPages && `${numPages} หน้า`}
         </div>
         <div className="flex items-center gap-2">
-          <button 
-            title="พอดีความกว้าง" 
+          <button
+            title="พอดีความกว้าง"
             className={`px-2 py-1 text-xs border rounded hover:bg-gray-100 ${isFit ? 'bg-green-100 border-green-300' : 'bg-white border-gray-300'}`}
             onClick={() => setIsFit(true)}
           >
             <i className="fa-solid fa-arrows-left-right-to-line mr-1" />
             Fit
           </button>
-          <button 
-            title="100%" 
-            className={`px-2 py-1 text-xs border rounded hover:bg-gray-100 ${!isFit && Math.round(scale*100) === 100 ? 'bg-green-100 border-green-300' : 'bg-white border-gray-300'}`}
+          <button
+            title="100%"
+            className={`px-2 py-1 text-xs border rounded hover:bg-gray-100 ${!isFit && Math.round(scale * 100) === 100 ? 'bg-green-100 border-green-300' : 'bg-white border-gray-300'}`}
             onClick={() => { setIsFit(false); setScale(1) }}
           >
             100%
           </button>
-          <button 
+          <button
             className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 bg-white"
             onClick={() => { setIsFit(false); setScale(s => Math.max(0.5, +(s - 0.1).toFixed(2))) }}
           >
@@ -82,7 +82,7 @@ export default function PdfViewer({ url, className, onError }: PdfViewerProps) {
           <span className="text-gray-600 w-12 text-center text-xs">
             {Math.round((isFit ? 1.2 : scale) * 100)}%
           </span>
-          <button 
+          <button
             className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 bg-white"
             onClick={() => { setIsFit(false); setScale(s => Math.min(3, +(s + 0.1).toFixed(2))) }}
           >
@@ -92,14 +92,14 @@ export default function PdfViewer({ url, className, onError }: PdfViewerProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-gray-100 p-4 overflow-auto flex flex-col items-center gap-4" style={{ maxHeight: '80vh' }}>
+      <div className="bg-gray-100 p-4 overflow-auto flex flex-col items-center gap-4" style={{ height: 'calc(100vh - 30px)' }}>
         {loading && (
           <div className="p-4 text-sm text-gray-600 bg-white rounded shadow">
             <i className="fa-solid fa-spinner fa-spin mr-2" />
             กำลังโหลดเอกสาร...
           </div>
         )}
-        
+
         {error && (
           <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
             <i className="fa-solid fa-exclamation-triangle mr-2" />

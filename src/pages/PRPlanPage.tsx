@@ -38,13 +38,13 @@ export default function PRPlanPage() {
     const error = swrError ? (swrError.message || 'เกิดข้อผิดพลาด') : null
 
     return (
-        <div className="h-[calc(100vh-80px)] flex flex-col">
+        <div className="min-h-screen flex flex-col">
             {/* Header - แบบกระชับ */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-4"
+                className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-2 mb-2"
             >
                 <div className="flex items-center gap-2">
                     <i className="fa-solid fa-shield-halved text-purple-600 text-xl" />
