@@ -1,9 +1,10 @@
 
-import { useCallback, useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { responsiveImageProps } from '../utils/image'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
+import { useSWR } from '../hooks/useSWR'
 import logo from '../assets/logo-150x150.png'
 
 const stripHtml = (html?: string) => {
@@ -41,7 +42,6 @@ export default function ActivitiesListPage() {
   const [items, setItems] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
 
   const { refreshKey } = useHomepageRefresh()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -54,14 +54,8 @@ export default function ActivitiesListPage() {
   const sortBy = (searchParams.get('sort') as 'newest' | 'oldest') || 'newest'
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
 
-  useEffect(() => {
-    setLoading(true)
-
-    if (abortRef.current) abortRef.current.abort()
-    const ac = new AbortController()
-    abortRef.current = ac
-    setError(null)
-
+  // Fetcher function handles both data and total count
+  const activitiesFetcher = async () => {
     const url = new URL('/api/activities', window.location.origin)
     url.searchParams.set('published', 'true')
     url.searchParams.set('page', String(page))
@@ -70,28 +64,42 @@ export default function ActivitiesListPage() {
 
     if (searchQuery) url.searchParams.set('q', searchQuery)
 
-    fetch(url.toString(), { signal: ac.signal })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(res.statusText)
-        const total = parseInt(res.headers.get('X-Total-Count') || '0', 10)
-        setTotalCount(total)
-        setTotalPages(Math.ceil(total / pageSize) || 1)
-        return res.json()
-      })
-      .then(data => {
-        setItems(data)
-        setLoading(false)
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError') {
-          setItems([])
-          setError(e?.message || 'เกิดข้อผิดพลาด')
-          setLoading(false)
-        }
-      })
+    const res = await fetch(url.toString())
+    if (!res.ok) throw new Error(res.statusText)
 
-    return () => ac.abort()
-  }, [refreshKey, page, pageSize, searchQuery, sortBy])
+    const total = parseInt(res.headers.get('X-Total-Count') || '0', 10)
+    const items = await res.json()
+    return { items, total }
+  }
+
+  const { data, error: swrError, isLoading } = useSWR(
+    `/api/activities?page=${page}&limit=${pageSize}&sort=${sortBy}&q=${searchQuery}`,
+    activitiesFetcher,
+    {
+      // Custom options if needed
+      revalidateOnFocus: false
+    }
+  )
+
+  useEffect(() => {
+    setLoading(isLoading)
+  }, [isLoading])
+
+  useEffect(() => {
+    if (data) {
+      setItems(data.items)
+      setTotalCount(data.total)
+      setTotalPages(Math.ceil(data.total / pageSize) || 1)
+    }
+  }, [data, pageSize])
+
+  useEffect(() => {
+    if (swrError) {
+      setItems([])
+      setError(swrError.message || 'เกิดข้อผิดพลาด')
+      setLoading(false)
+    }
+  }, [swrError])
 
   // --- Handlers ---
 

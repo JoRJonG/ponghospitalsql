@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Swal from 'sweetalert2'
 import { useAuth } from '../../auth/AuthContext'
 
@@ -14,12 +14,7 @@ export default function ThaIDSettings() {
     const [fetching, setFetching] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    // ดึงสถานะ ThaID เมื่อ component โหลด
-    useEffect(() => {
-        void fetchThaidStatus()
-    }, [])
-
-    const fetchThaidStatus = async () => {
+    const fetchThaidStatus = useCallback(async () => {
         try {
             const token = getToken()
 
@@ -63,7 +58,12 @@ export default function ThaIDSettings() {
         } finally {
             setFetching(false)
         }
-    }
+    }, [getToken])
+
+    // ดึงสถานะ ThaID เมื่อ component โหลด
+    useEffect(() => {
+        void fetchThaidStatus()
+    }, [fetchThaidStatus])
 
     const handleLinkThaID = async () => {
         try {

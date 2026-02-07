@@ -49,14 +49,16 @@ export const AnnouncementController = {
             }
 
             // Execute query
-            const list = await Announcement.find(query, options)
+            const [list, total] = await Promise.all([
+                Announcement.find(query, options),
+                limitVal > 0 ? Announcement.countDocuments(query) : Promise.resolve(0)
+            ])
 
             // กรองข้อมูลด้วย DTO ก่อนส่งให้ client
             const filteredList = canManage ? toAdminDTOList(list) : toPublicDTOList(list)
 
             // If pagination is requested, we should provide total count in headers
             if (limitVal > 0) {
-                const total = await Announcement.countDocuments(query)
                 res.setHeader('X-Total-Count', total)
                 res.setHeader('X-Page', pageNum)
                 res.setHeader('X-Per-Page', limitVal)

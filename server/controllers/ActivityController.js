@@ -50,13 +50,15 @@ export const ActivityController = {
                 options.skip = (pageNum - 1) * limitVal
             }
 
-            const list = await Activity.find(query, options)
+            const [list, total] = await Promise.all([
+                Activity.find(query, options),
+                limitVal > 0 ? Activity.countDocuments(query) : Promise.resolve(0)
+            ])
 
             // กรองข้อมูลด้วย DTO ก่อนส่งให้ client
             const filteredList = canManage ? toAdminDTOList(list) : toPublicDTOList(list)
 
             if (limitVal > 0) {
-                const total = await Activity.countDocuments(query)
                 res.setHeader('X-Total-Count', total)
                 res.setHeader('X-Page', pageNum)
                 res.setHeader('X-Per-Page', limitVal)

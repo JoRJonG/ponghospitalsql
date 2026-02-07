@@ -61,8 +61,16 @@ export function useSWR<T = unknown>(
     const mountedRef = useRef(true)
     const revalidateCountRef = useRef(0)
 
-    // Function สำหรับ fetch ข้อมูล
-    const fetchData = useCallback(
+
+
+    // Store fetcher in ref to avoid re-triggering effect when fetcher identity changes
+    const fetcherRef = useRef(fetcher)
+    useEffect(() => {
+        fetcherRef.current = fetcher
+    }, [fetcher])
+
+    // Update fetchData to use fetcher from ref
+    const fetchDataCallback = useCallback(
         async (force = false) => {
             if (!key) return
 
@@ -92,8 +100,8 @@ export function useSWR<T = unknown>(
 
             setIsValidating(true)
 
-            // สร้าง request ใหม่
-            const request = fetcher()
+            // สร้าง request ใหม่ โดยใช้ fetcher จาก ref
+            const request = fetcherRef.current()
             ongoingRequests.set(key, request)
 
             try {
@@ -131,24 +139,26 @@ export function useSWR<T = unknown>(
                 }
             }
         },
-        [key, fetcher, staleTime, onSuccess, onError]
+        [key, staleTime, onSuccess, onError]
     )
+
+
 
     // Initial fetch
     useEffect(() => {
-        fetchData()
-    }, [fetchData])
+        fetchDataCallback()
+    }, [fetchDataCallback])
 
     // Auto refresh interval
     useEffect(() => {
         if (!refreshInterval || refreshInterval <= 0) return
 
         const interval = setInterval(() => {
-            fetchData()
+            fetchDataCallback()
         }, refreshInterval)
 
         return () => clearInterval(interval)
-    }, [refreshInterval, fetchData])
+    }, [refreshInterval, fetchDataCallback])
 
     // Revalidate on focus
     useEffect(() => {
@@ -158,24 +168,24 @@ export function useSWR<T = unknown>(
             // Debounce - ไม่ revalidate บ่อยเกินไป
             if (Date.now() - revalidateCountRef.current < dedupingInterval) return
             revalidateCountRef.current = Date.now()
-            fetchData()
+            fetchDataCallback()
         }
 
         window.addEventListener('focus', handleFocus)
         return () => window.removeEventListener('focus', handleFocus)
-    }, [revalidateOnFocus, dedupingInterval, fetchData])
+    }, [revalidateOnFocus, dedupingInterval, fetchDataCallback])
 
     // Revalidate on reconnect
     useEffect(() => {
         if (!revalidateOnReconnect) return
 
         const handleOnline = () => {
-            fetchData()
+            fetchDataCallback()
         }
 
         window.addEventListener('online', handleOnline)
         return () => window.removeEventListener('online', handleOnline)
-    }, [revalidateOnReconnect, fetchData])
+    }, [revalidateOnReconnect, fetchDataCallback])
 
     // Cleanup on unmount
     useEffect(() => {
@@ -189,7 +199,7 @@ export function useSWR<T = unknown>(
         error,
         isValidating,
         isLoading: !data && !error,
-        mutate: fetchData, // Manual revalidation
+        mutate: fetchDataCallback, // Manual revalidation
     }
 }
 

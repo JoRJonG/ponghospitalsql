@@ -1,5 +1,5 @@
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react'
 import Swal from 'sweetalert2'
 import { useAuth } from '../../auth/AuthContext'
 
@@ -32,7 +32,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
     const [totalPages, setTotalPages] = useState(1)
     const limit = 20
 
-    const fetchPlans = async () => {
+    const fetchPlans = useCallback(async () => {
         try {
             setLoading(true)
             // Admin ควรเห็นทั้งหมด ไม่กรอง isPublished
@@ -47,11 +47,11 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [page, limit])
 
     useEffect(() => {
         fetchPlans()
-    }, [page])
+    }, [fetchPlans])
 
     useImperativeHandle(ref, () => ({
         refresh: fetchPlans

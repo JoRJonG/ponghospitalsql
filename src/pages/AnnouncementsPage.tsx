@@ -1,6 +1,7 @@
 
 import { NavLink, Routes, Route, Link, useSearchParams } from 'react-router-dom'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { useSWR } from '../hooks/useSWR'
 
 
 
@@ -36,7 +37,6 @@ function List({ category }: { category?: Announcement['category'] }) {
   const [items, setItems] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
 
   // URL and Pagination State
   const [searchParams, setSearchParams] = useSearchParams()
@@ -50,51 +50,50 @@ function List({ category }: { category?: Announcement['category'] }) {
   const sortBy = (searchParams.get('sort') as 'newest' | 'oldest') || 'newest'
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
 
-  // --- Data Fetching Effect ---
-  useEffect(() => {
-    setLoading(true)
-
-    // Cancel previous request
-    if (abortRef.current) abortRef.current.abort()
-    const ac = new AbortController()
-    abortRef.current = ac
-    setError(null)
-
+  // Fetcher for announcements
+  const fetcher = async () => {
     const url = new URL('/api/announcements', window.location.origin)
     url.searchParams.set('page', String(page))
     url.searchParams.set('limit', String(pageSize))
     url.searchParams.set('sort', sortBy)
 
-    // Search filter
     if (searchQuery) url.searchParams.set('q', searchQuery)
-
-    // Category filter
     if (urlCategory && urlCategory !== 'all') {
       url.searchParams.set('category', urlCategory)
     }
 
-    fetch(url.toString(), { signal: ac.signal })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(res.statusText)
-        const total = parseInt(res.headers.get('X-Total-Count') || '0', 10)
-        setTotalCount(total)
-        setTotalPages(Math.ceil(total / pageSize) || 1)
-        return res.json()
-      })
-      .then(data => {
-        setItems(data)
-        setLoading(false)
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError') {
-          setItems([])
-          setError(e?.message || 'เกิดข้อผิดพลาดในการดึงข้อมูล')
-          setLoading(false)
-        }
-      })
+    const res = await fetch(url.toString())
+    if (!res.ok) throw new Error(res.statusText)
 
-    return () => ac.abort()
-  }, [page, pageSize, searchQuery, urlCategory, sortBy])
+    const total = parseInt(res.headers.get('X-Total-Count') || '0', 10)
+    const items = await res.json()
+    return { items, total }
+  }
+
+  const { data, error: swrError, isLoading } = useSWR(
+    `/api/announcements?page=${page}&limit=${pageSize}&sort=${sortBy}&cat=${urlCategory}&q=${searchQuery}`,
+    fetcher
+  )
+
+  useEffect(() => {
+    setLoading(isLoading)
+  }, [isLoading])
+
+  useEffect(() => {
+    if (data) {
+      setItems(data.items)
+      setTotalCount(data.total)
+      setTotalPages(Math.ceil(data.total / pageSize) || 1)
+    }
+  }, [data, pageSize])
+
+  useEffect(() => {
+    if (swrError) {
+      setItems([])
+      setError(swrError.message || 'เกิดข้อผิดพลาดในการดึงข้อมูล')
+      setLoading(false)
+    }
+  }, [swrError])
 
   // --- Handlers ---
 

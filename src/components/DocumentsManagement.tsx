@@ -25,7 +25,7 @@ export interface DocumentsManagementHandle {
     refresh: () => Promise<void>
 }
 
-interface DocumentsManagementProps { }
+type DocumentsManagementProps = Record<string, never>
 
 const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManagementProps>(
     (_props, ref) => {

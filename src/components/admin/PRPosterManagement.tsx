@@ -1,5 +1,5 @@
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react'
 import Swal from 'sweetalert2'
 import { useAuth } from '../../auth/AuthContext'
 import { buildApiUrl } from '../../utils/api'
@@ -29,7 +29,7 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
     const [totalPages, setTotalPages] = useState(1)
     const limit = 20
 
-    const fetchPosters = async () => {
+    const fetchPosters = useCallback(async () => {
         try {
             setLoading(true)
             const res = await fetch(`/api/pr-posters?published=false&page=${page}&limit=${limit}`)
@@ -45,11 +45,11 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [page, limit])
 
     useEffect(() => {
         fetchPosters()
-    }, [page])
+    }, [fetchPosters])
 
     useImperativeHandle(ref, () => ({
         refresh: fetchPosters
