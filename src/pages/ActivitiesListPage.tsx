@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { responsiveImageProps } from '../utils/image'
-import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
+// import { useHomepageRefresh } from '../contexts/useHomepageRefresh' // unused
 import { useSWR } from '../hooks/useSWR'
 import logo from '../assets/logo-150x150.png'
 
@@ -43,7 +43,7 @@ export default function ActivitiesListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { refreshKey } = useHomepageRefresh()
+  // const { refreshKey } = useHomepageRefresh() // unused
   const [searchParams, setSearchParams] = useSearchParams()
   const pageSize = 12 // Using 12 as requested in "limit=12"
   const [totalCount, setTotalCount] = useState(0)

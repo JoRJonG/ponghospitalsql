@@ -25,7 +25,8 @@ export interface DocumentsManagementHandle {
     refresh: () => Promise<void>
 }
 
-type DocumentsManagementProps = Record<string, never>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface DocumentsManagementProps { }
 
 const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManagementProps>(
     (_props, ref) => {
