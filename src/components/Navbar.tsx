@@ -215,6 +215,7 @@ export default function Navbar() {
                 </div>
               ) : null}
             </div>
+            <NavLink to="/documents" className={navItemClass}>ดาวน์โหลดเอกสาร</NavLink>
             <NavLink to="/contact" className={navItemClass}>ติดต่อเรา</NavLink>
             {isAuthenticated ? (
               <>
