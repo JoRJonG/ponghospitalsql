@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -9,20 +9,24 @@ import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSrc
 
 type PdfViewerProps = {
-  url: string
+  url?: string
+  data?: ArrayBuffer | null
   className?: string
   onError?: (message: string) => void
 }
 
-export default function PdfViewer({ url, className, onError }: PdfViewerProps) {
+export default function PdfViewer({ url, data, className, onError }: PdfViewerProps) {
   const [numPages, setNumPages] = useState<number>()
   const [scale, setScale] = useState(1.2)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isFit, setIsFit] = useState(true)
 
-  // Build a same-origin URL via proxy for cross-origin sources to avoid CORS
-  const srcUrl = (() => {
+  // Determine the file source for React-PDF
+  const fileSource = useMemo(() => {
+    if (data) return data
+    if (!url) return null
+
     try {
       const u = new URL(url, window.location.href)
       const sameOrigin = u.origin === window.location.origin
@@ -30,7 +34,7 @@ export default function PdfViewer({ url, className, onError }: PdfViewerProps) {
     } catch {
       return url
     }
-  })()
+  }, [url, data])
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages)
@@ -107,9 +111,9 @@ export default function PdfViewer({ url, className, onError }: PdfViewerProps) {
           </div>
         )}
 
-        {!error && (
+        {!error && fileSource && (
           <Document
-            file={srcUrl}
+            file={fileSource}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
             loading=""
@@ -123,6 +127,8 @@ export default function PdfViewer({ url, className, onError }: PdfViewerProps) {
                   scale={currentScale}
                   width={isFit ? Math.min(800, window.innerWidth - 100) : undefined}
                   className="border border-gray-300 bg-white"
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
                 />
               </div>
             ))}

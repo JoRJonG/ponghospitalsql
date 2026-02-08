@@ -121,10 +121,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
             }
         }
 
-        const isAdmin = userHasPermission(req.user, 'pr_plan') || userHasPermission(req.user, 'admin')
-        const result = isAdmin ? toAdminDTO(plan) : toPublicDTO(plan)
-
-        res.json(result)
+        // ส่งข้อมูลเต็มเหมือน announcements API
+        res.json(plan)
     } catch (e) {
         console.error('[pr-plans] GET :id error:', e.message)
         res.status(500).json({ error: 'Failed to fetch PR plan' })
