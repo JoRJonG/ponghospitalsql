@@ -8,6 +8,7 @@ import { logger } from '../utils/logger.js'
 import User from '../models/mysql/User.js'
 import fs from 'fs'
 import path from 'path'
+import { encrypt, decrypt } from '../utils/encryption.js'
 
 // Direct debug logger
 const logFile = path.join(process.cwd(), 'debug_thaid.log')
@@ -248,12 +249,13 @@ router.get('/status', requireAuth, async (req, res) => {
 
         const user = users[0]
         const isLinked = Boolean(user.thaid_sub)
+        const decryptedPid = user.thaid_pid ? decrypt(user.thaid_pid) : null
 
-        logger.info('[ThaID] Status result', { userId, isLinked, pid: user.thaid_pid })
+        logger.info('[ThaID] Status result', { userId, isLinked, pid: decryptedPid ? '***' : null })
 
         res.json({
             isLinked,
-            thaidPid: user.thaid_pid,
+            thaidPid: decryptedPid,
             linkedAt: user.thaid_linked_at,
             loginMethod: user.login_method,
         })
@@ -287,51 +289,57 @@ router.post('/unlink', requireAuth, async (req, res) => {
 async function findOrCreateUserFromThaID(thaidData) {
     const { sub, pid, given_name, family_name, birthdate, address } = thaidData
 
+    const encSub = encrypt(sub)
+    const encPid = encrypt(pid)
+
     const existingUsers = await query(
         'SELECT * FROM users WHERE thaid_sub = ? OR thaid_pid = ?',
-        [sub, pid]
+        [encSub, encPid]
     )
 
     if (existingUsers.length > 0) {
         const user = existingUsers[0]
         await query(
             `UPDATE users SET thaid_sub = ?, thaid_pid = ?, thaid_linked_at = NOW(), login_method = 'thaid', updated_at = NOW() WHERE id = ?`,
-            [sub, pid, user.id]
+            [encSub, encPid, user.id]
         )
         logger.info('[ThaID] User updated (login)', { userId: user.id })
         return User.findById(user.id)
     }
 
-    logger.warn('[ThaID] User not found, auto-creation disabled', { pid })
+    logger.warn('[ThaID] User not found, auto-creation disabled', { pid: '***' })
     throw new Error('ThaID_NOT_LINKED: คุณยังไม่ได้เชื่อมต่อ ThaID กับบัญชีของคุณ กรุณา Login ด้วย Username/Password แล้วไปที่หน้า Settings เพื่อเชื่อมต่อ ThaID')
 }
 
 async function linkThaIDToExistingUser(userId, thaidData) {
     const { sub, pid, given_name, family_name, birthdate, address } = thaidData
 
+    const encSub = encrypt(sub)
+    const encPid = encrypt(pid)
+
     const user = await User.findById(userId)
     if (!user) throw new Error('User not found')
 
     const existingUsers = await query(
         'SELECT id FROM users WHERE (thaid_sub = ? OR thaid_pid = ?) AND id != ?',
-        [sub, pid, userId]
+        [encSub, encPid, userId]
     )
 
     if (existingUsers.length > 0) throw new Error('This ThaID is already linked to another account')
 
     const result = await query(
         `UPDATE users SET thaid_sub = ?, thaid_pid = ?, thaid_linked_at = NOW(), updated_at = NOW() WHERE id = ?`,
-        [sub, pid, userId]
+        [encSub, encPid, userId]
     )
 
-    logger.info('[ThaID] Update result (Link)', { affectedRows: result.affectedRows, info: result.info, userId, pid })
+    logger.info('[ThaID] Update result (Link)', { affectedRows: result.affectedRows, info: result.info, userId })
 
     if (result.affectedRows === 0) {
-        logger.error('[ThaID] Update failed: No rows affected', { userId, thaid_sub: sub })
+        logger.error('[ThaID] Update failed: No rows affected', { userId })
         throw new Error('Database update failed: User not found or not updated')
     }
 
-    logger.info('[ThaID] Linked to existing user', { userId, pid })
+    logger.info('[ThaID] Linked to existing user', { userId })
     return User.findById(userId)
 }
 
