@@ -133,9 +133,12 @@ const statusInfo = (it: { isPublished?: boolean; publishedAt?: string | null }) 
 
 
 export default function AdminPage() {
-  const { getToken, hasPermission } = useAuth()
+  const { getToken, hasPermission, user } = useAuth()
   const location = useLocation()
 
+
+  // Debug check user
+  // console.log('Current Auth User:', user)
 
   // Show login success alert if redirected from login
   useEffect(() => {
@@ -530,7 +533,7 @@ export default function AdminPage() {
   // Filtered lists for nicer UX when searching
 
   return (
-    <div className="min-h-screen lg:h-screen w-full lg:overflow-hidden bg-gradient-to-br from-white via-blue-50 to-indigo-50">
+    <div className="min-h-screen lg:h-[calc(100vh-8rem)] w-full lg:overflow-hidden bg-gradient-to-br from-white via-blue-50 to-indigo-50">
       {/* Dashboard Layout */}
       <div className="min-h-screen lg:h-full lg:flex">
         {/* Mobile sidebar overlay */}
@@ -859,6 +862,21 @@ export default function AdminPage() {
 
           {/* Sidebar Footer */}
           <div className="flex-shrink-0 p-4 border-t border-gray-200">
+            {/* User Profile */}
+            {user && (
+              <div className="flex items-center gap-3 mb-4 px-1">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white">
+                  {user.username.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-gray-900 truncate">{user.username}</div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {user.roles.includes('admin') ? 'ผู้ดูแลระบบสูงสุด' : 'เจ้าหน้าที่'}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="inline-flex items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-800 px-3 py-2 w-full">
               <div className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 flex-shrink-0">
                 <i className="fa-solid fa-shield-halved text-amber-600 text-xs" />
@@ -929,6 +947,19 @@ export default function AdminPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 lg:gap-4">
+                {user && (
+                  <div className="hidden md:flex items-center gap-3 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-800 leading-tight">{user.username}</div>
+                      <div className="text-[10px] text-gray-500 font-medium">
+                        {user.roles.includes('admin') ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่'}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="hidden md:block text-right">
                   <div className="text-xs text-gray-500">อัปเดตล่าสุด</div>
                   <div className="text-sm font-medium text-gray-900">{new Date().toLocaleDateString('th-TH')}</div>
