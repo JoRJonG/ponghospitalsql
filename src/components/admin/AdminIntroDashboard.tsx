@@ -528,7 +528,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                   ยังไม่มีข้อมูลในช่วงเวลานี้
                 </div>
               )}
-              {trend.map(item => {
+              {[...trend].reverse().map(item => {
                 const width = Math.round(((item.uniqueVisitors || 0) / trendMax) * 100)
                 return (
                   <div key={item.date} className="flex items-center gap-3">
