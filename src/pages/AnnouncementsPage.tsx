@@ -261,11 +261,14 @@ function List({ category }: { category?: Announcement['category'] }) {
           <Link
             to={`/announcement/${a._id}`}
             key={a._id}
-            className="bg-white/90 backdrop-blur-sm border border-white/20 rounded-lg shadow-sm block transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-white/95"
+            className={
+              `block bg-white p-4 rounded-lg shadow-sm border border-slate-100 transition-all duration-300 group relative overflow-hidden ` +
+              `hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-50/30 hover:to-teal-50/30 hover:shadow-xl hover:-translate-y-1`
+            }
           >
             <div className="card-body">
-              <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2 mb-1">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || 'bg-slate-100 text-slate-700'} group-hover:bg-emerald-100 group-hover:text-emerald-700`}>{a.category}</span>
+              <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2 mb-2">
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || 'bg-slate-100 text-slate-700'} group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors duration-200`}>{a.category}</span>
                 <span>{a.publishedAt ?
                   new Date(a.publishedAt).toLocaleDateString('th-TH', {
                     day: 'numeric',
@@ -273,15 +276,20 @@ function List({ category }: { category?: Announcement['category'] }) {
                     year: 'numeric'
                   }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
                 </span>
-                {a.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>}
+                {a.viewCount !== undefined && (
+                  <>
+                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                    <span className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>
+                  </>
+                )}
                 {isNew(a) && (
                   <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                     ใหม่
                   </span>
                 )}
               </div>
-              <div className="font-semibold text-gray-800">{a.title}</div>
-              {a.content && <p className="text-sm text-gray-600 line-clamp-2">{stripHtml(a.content)}</p>}
+              <div className="font-semibold text-gray-800 text-base mb-1 group-hover:text-emerald-500 transition-colors duration-200">{a.title}</div>
+              {a.content && <p className="text-xs text-gray-500 line-clamp-2">{stripHtml(a.content)}</p>}
             </div>
           </Link>
         ))}

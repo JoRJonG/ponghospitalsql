@@ -75,7 +75,29 @@ export function useSWR<T = unknown>(
             if (!key) return
 
             // ตรวจสอบว่ามี cache ที่ยังสดอยู่หรือไม่
+            // ตรวจสอบว่ามี cache ที่ยังสดอยู่หรือไม่
             const cached = cache.get(key)
+
+            // Sync state with cache immediately
+            // ตรวจสอบว่าต้อง update state หรือไม่ (ป้องกันการ update ที่ไม่จำเป็น)
+            if (mountedRef.current) {
+                if (cached) {
+                    setData(prev => {
+                        // ถ้าข้อมูลเหมือนเดิม ไม่ต้อง update เพื่อลด re-render
+                        if (prev === cached.data) return prev
+                        return cached.data as T
+                    })
+                    setError(cached.error)
+                } else {
+                    // ถ้าไม่มี cache (เช่น เปลี่ยน key ไปหน้าใหม่ที่ไม่เคยโหลด) 
+                    // ให้ clear data เก่าออก เพื่อแสดง loading state
+                    // แต่ต้องระวังกรณีที่เป็นการ revalidate key เดิมที่ไม่มี cache (ไม่ควรเกิดขึ้นถ้า logic ถูกต้อง)
+                    // การ check key change ทำได้ยากใน callback นี้ ดังนั้นการ reset data เมื่อไม่เจอ cache ถือว่าปลอดภัยสุดสำหรับ key switch artifacting
+                    setData(undefined)
+                    setError(undefined)
+                }
+            }
+
             if (!force && cached && Date.now() - cached.timestamp < staleTime) {
                 // ข้อมูลยังสด ไม่ต้อง fetch ใหม่
                 return
