@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from './auth/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { HomepageRefreshProvider } from './contexts/HomepageRefreshContext'
-import BackgroundPattern from './components/BackgroundPattern'
+
 import HomepagePopupOverlay from './components/HomepagePopupOverlay'
 import { ToastContainer } from './components/ToastContainer'
 import { useScrollToTop } from './utils/scrollToTop'
