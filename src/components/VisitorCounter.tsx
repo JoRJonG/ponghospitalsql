@@ -10,9 +10,9 @@ interface VisitorStats {
 type VisitorStatsResponse = {
   success: boolean
   data?: {
-  today?: number | string | null
-  todayUnique?: number | string | null
-  todayPageViews?: number | string | null
+    today?: number | string | null
+    todayUnique?: number | string | null
+    todayPageViews?: number | string | null
     lifetimeTotal?: number | string | null
     total?: number | string | null
   }
@@ -79,30 +79,30 @@ const VisitorCounter: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-      
+
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-emerald-900/50 rounded flex items-center justify-center border border-emerald-800 text-emerald-500">
+        <div className="w-12 h-12 bg-white/20 rounded flex items-center justify-center border border-white/30 text-white backdrop-blur-sm">
           <i className="fa-solid fa-chart-pie text-xl"></i>
         </div>
         <div>
-          <h4 className="text-white font-semibold text-sm tracking-widest uppercase">Website Statistics</h4>
-          <p className="text-slate-400 text-xs">ข้อมูลสถิติการเข้าชมเว็บไซต์</p>
+          <h4 className="text-white font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h4>
+          <p className="text-teal-100/90 text-xs font-medium">ข้อมูลสถิติการเข้าชมเว็บไซต์</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-12">
+      <div className="flex items-center gap-8 md:gap-12">
         <div className="text-center">
-          <span className="block text-3xl font-bold text-emerald-400">{formatNumber(stats.today)}</span>
-          <span className="text-xs text-slate-500 uppercase tracking-wide">Visits Today</span>
+          <span className="block text-3xl font-bold text-white drop-shadow-sm">{formatNumber(stats.today)}</span>
+          <span className="text-xs text-teal-100 uppercase tracking-wide font-semibold">Visits Today</span>
         </div>
-        <div className="h-8 w-px bg-slate-700"></div>
+        <div className="h-8 w-px bg-teal-400/50"></div>
         <div className="text-center">
-          <span className="block text-3xl font-bold text-white">{formatNumber(stats.lifetimeTotal)}</span>
-          <span className="text-xs text-slate-500 uppercase tracking-wide">Total Visits</span>
+          <span className="block text-3xl font-bold text-white drop-shadow-sm">{formatNumber(stats.lifetimeTotal)}</span>
+          <span className="text-xs text-teal-100 uppercase tracking-wide font-semibold">Total Visits</span>
         </div>
       </div>
-      
-      <div className="hidden md:block text-slate-600 text-xs">
+
+      <div className="hidden md:block text-teal-100/80 text-xs">
         Last update: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
       </div>
     </div>

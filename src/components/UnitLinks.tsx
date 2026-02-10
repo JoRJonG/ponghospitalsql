@@ -68,7 +68,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
                   <i className="fa-solid fa-building-user" />
                 )}
               </div>
-              <span className="font-bold text-slate-700 group-hover:text-emerald-700 text-center line-clamp-2">{u.name}</span>
+              <span className="font-bold text-slate-700 group-hover:text-emerald-500 text-center line-clamp-2">{u.name}</span>
             </div>
           )
           return u.href ? (
@@ -117,7 +117,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
                     <i className="fa-solid fa-building" />
                   )}
                 </div>
-                <span className="font-bold text-slate-700 group-hover:text-emerald-700 text-center line-clamp-2">{u.name}</span>
+                <span className="font-bold text-slate-700 group-hover:text-emerald-600 text-center line-clamp-2">{u.name}</span>
               </div>
             )
             return u.href ? (

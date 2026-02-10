@@ -50,16 +50,20 @@ function List({ category }: { category?: Announcement['category'] }) {
   const sortBy = (searchParams.get('sort') as 'newest' | 'oldest') || 'newest'
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
 
+  // คำนวณ effectiveCategory ก่อน (ใช้ category prop ถ้ามี มิฉะนั้นใช้ urlCategory)
+  const effectiveCategory = category || urlCategory
+
   // Fetcher for announcements
-  const fetcher = async () => {
+  const fetcher = useCallback(async () => {
     const url = new URL('/api/announcements', window.location.origin)
     url.searchParams.set('page', String(page))
     url.searchParams.set('limit', String(pageSize))
     url.searchParams.set('sort', sortBy)
 
     if (searchQuery) url.searchParams.set('q', searchQuery)
-    if (urlCategory && urlCategory !== 'all') {
-      url.searchParams.set('category', urlCategory)
+
+    if (effectiveCategory && effectiveCategory !== 'all') {
+      url.searchParams.set('category', effectiveCategory)
     }
 
     const res = await fetch(url.toString())
@@ -68,12 +72,24 @@ function List({ category }: { category?: Announcement['category'] }) {
     const total = parseInt(res.headers.get('X-Total-Count') || '0', 10)
     const items = await res.json()
     return { items, total }
-  }
+  }, [page, pageSize, sortBy, searchQuery, effectiveCategory])
 
-  const { data, error: swrError, isLoading } = useSWR(
-    `/api/announcements?page=${page}&limit=${pageSize}&sort=${sortBy}&cat=${urlCategory}&q=${searchQuery}`,
-    fetcher
+  // สร้าง cache key ที่ unique สำหรับแต่ละ category
+  const cacheKey = `/api/announcements?page=${page}&limit=${pageSize}&sort=${sortBy}&cat=${effectiveCategory}&q=${searchQuery}`
+
+  const { data, error: swrError, isLoading, mutate } = useSWR(
+    cacheKey,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      staleTime: 0, // ไม่ใช้ stale time เพื่อให้ fetch ใหม่ทุกครั้งที่ key เปลี่ยน
+    }
   )
+
+  // Force revalidate เมื่อ category เปลี่ยน
+  useEffect(() => {
+    mutate()
+  }, [category, mutate])
 
   useEffect(() => {
     setLoading(isLoading)

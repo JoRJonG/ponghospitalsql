@@ -1,16 +1,72 @@
 @import "tailwindcss";
 
+
+@layer utilities {
+  .card-hover {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .card-hover-premium {
+    @apply transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-2xl;
+  }
+
+  .btn-press {
+    @apply active:scale-95 transition-transform duration-100;
+  }
+
+  .glass-panel {
+    @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+
+  .glass-strong {
+    @apply bg-white/80 backdrop-blur-lg border border-white/30 shadow-lg;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent;
+  }
+
+  /* Text Color Utilities */
+  .text-primary {
+    @apply text-gray-900;
+  }
+
+  .text-secondary {
+    @apply text-gray-700;
+  }
+
+  .text-muted {
+    @apply text-gray-500;
+  }
+
+  /* Standard Hover Effects */
+  .card-hover-standard {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .link-hover-standard {
+    @apply transition-colors duration-200 hover:text-emerald-800;
+  }
+
+  .button-hover-standard {
+    @apply transition-all duration-300 hover:shadow-md hover:scale-[1.02];
+  }
+}
+
+
 /* Professional Hospital Theme Variables */
 :root {
-  /* Primary Medical Brand Colors */
-  --hospital-primary: #16a34a;
-  /* Medical green */
-  --hospital-primary-dark: #15803d;
-  --hospital-primary-light: #22c55e;
-  --hospital-secondary: #059669;
-  /* Teal for medical equipment */
-  --hospital-accent: #0d9488;
-  /* Professional accent */
+  /* Primary Medical Brand Colors - Lighter/Fresher Theme */
+  --hospital-primary: #10b981;
+  /* Emerald 500 */
+  --hospital-primary-dark: #059669;
+  /* Emerald 600 */
+  --hospital-primary-light: #34d399;
+  /* Emerald 400 */
+  --hospital-secondary: #0d9488;
+  /* Teal 600 */
+  --hospital-accent: #14b8a6;
+  /* Teal 500 */
 
   /* Neutral Medical Colors */
   --hospital-gray-50: #f8fafc;
@@ -80,6 +136,23 @@
   --hospital-space-16: 4rem;
   --hospital-space-20: 5rem;
   --hospital-space-24: 6rem;
+
+  /* Gradient System */
+  --gradient-primary: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  --gradient-primary-soft: linear-gradient(135deg, #d1fae5 0%, #ccfbf1 100%);
+  --gradient-accent: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  --gradient-overlay: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.1);
+
+  /* Enhanced Shadows with Color */
+  --shadow-emerald-sm: 0 2px 8px rgba(16, 185, 129, 0.1);
+  --shadow-emerald-md: 0 4px 16px rgba(16, 185, 129, 0.15);
+  --shadow-emerald-lg: 0 8px 24px rgba(16, 185, 129, 0.2);
+  --shadow-emerald-xl: 0 12px 32px rgba(16, 185, 129, 0.25);
 
   /* Legacy compatibility */
   --brand-blue: #16a34a;
@@ -610,30 +683,70 @@ a:focus-visible {
   animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
 
-/* Hover Effects */
+/* Enhanced Hover Effects */
 .hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-emerald-lg);
+}
+
+.hover-lift-subtle {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift-subtle:hover {
   transform: translateY(-2px);
-  box-shadow: var(--hospital-shadow-lg);
+  box-shadow: var(--shadow-emerald-md);
 }
 
 .hover-scale {
-  transition: transform 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-scale:hover {
-  transform: scale(1.02);
+  transform: scale(1.03);
+}
+
+.hover-scale-subtle {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale-subtle:hover {
+  transform: scale(1.01);
 }
 
 .hover-glow {
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.4), 0 0 48px rgba(16, 185, 129, 0.2);
+}
+
+.hover-gradient-border {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.hover-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: var(--gradient-primary);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hover-gradient-border:hover::before {
+  opacity: 1;
 }
 
 /* Loading States */
@@ -786,6 +899,34 @@ html {
       transparent 100px,
       #4CAF50 100px,
       #4CAF50 102px);
+}
+
+.bg-pattern-lines {
+  background-color: var(--hospital-primary-dark);
+  background-image:
+    linear-gradient(30deg, #0d9488 12%, transparent 12.5%, transparent 87%, #0d9488 87.5%, #0d9488),
+    linear-gradient(150deg, #0d9488 12%, transparent 12.5%, transparent 87%, #0d9488 87.5%, #0d9488),
+    linear-gradient(30deg, #0d9488 12%, transparent 12.5%, transparent 87%, #0d9488 87.5%, #0d9488),
+    linear-gradient(150deg, #0d9488 12%, transparent 12.5%, transparent 87%, #0d9488 87.5%, #0d9488),
+    linear-gradient(60deg, rgba(255, 255, 255, 0.1) 25%, transparent 25.5%, transparent 75%, rgba(255, 255, 255, 0.1) 75%, rgba(255, 255, 255, 0.1)),
+    linear-gradient(60deg, rgba(255, 255, 255, 0.1) 25%, transparent 25.5%, transparent 75%, rgba(255, 255, 255, 0.1) 75%, rgba(255, 255, 255, 0.1));
+  background-size: 20px 35px;
+  background-position: 0 0, 0 0, 10px 18px, 10px 18px, 0 0, 10px 18px;
+  opacity: 1;
+}
+
+.bg-pattern-professional {
+  background-image: repeating-linear-gradient(135deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 10px),
+    repeating-linear-gradient(45deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 10px);
+  background-size: 20px 20px;
 }
 
 /* Toast animations */

@@ -103,7 +103,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       srcSet={srcSet}
                       sizes={sizes}
                       alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
-                      className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     {categoryColor && a.category ? (
                       <span className={`absolute top-3 left-3 ${categoryColor.bg} ${categoryColor.text} px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide shadow-lg`}>
@@ -122,7 +122,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
                     ) : null}
                   </div>
-                  <h3 className="text-base md:text-lg font-semibold text-slate-800 leading-snug group-hover:text-emerald-700 transition mb-2">
+                  <h3 className="text-base md:text-lg font-semibold text-slate-800 leading-snug group-hover:text-emerald-500 transition mb-2">
                     {a.title}
                   </h3>
                   {a.description ? (
@@ -181,7 +181,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                 || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
               return (
-                <Link to={`/activities/${a._id}`} key={a._id} className="card overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-0 shadow-lg">
+                <Link to={`/activities/${a._id}`} key={a._id} className="card overflow-hidden group transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-emerald-300 border-0 shadow-lg">
                   <div className="relative">
                     <img
                       loading="lazy"
@@ -192,7 +192,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
                       className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
                       <div className="font-semibold line-clamp-2 text-sm leading-tight mb-1">{a.title}</div>
                       {a.date ? <div className="text-xs opacity-90">{new Date(a.date).toLocaleDateString('th-TH')}</div> : null}

@@ -45,7 +45,7 @@ function DirectorCard({ m }: { m: Manager }) {
                     alt={m.name}
                     loading="eager"
                     onError={() => setImgError(true)}
-                    className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover object-top hover:scale-110 transition-transform duration-700"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 text-4xl font-bold">
@@ -138,7 +138,7 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
         ></div>
       )}
 
-      <div className="bg-white rounded-xl p-5 shadow hover:shadow-lg border border-gray-100 transition-all duration-300 h-full flex flex-col items-center text-center max-w-[280px] mx-auto z-10 relative">
+      <div className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl border border-gray-100 transition-all duration-500 h-full flex flex-col items-center text-center max-w-[280px] mx-auto z-10 relative hover:-translate-y-1">
         {/* Image - Vertical Oval */}
         <div className="mb-3">
           <div className="w-36 h-48 rounded-[50%] p-1 bg-white border-[3px] border-green-600 shadow-sm mx-auto">
@@ -149,7 +149,7 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
                   alt={m.name}
                   loading="lazy"
                   onError={() => setImgError(true)}
-                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover object-top hover:scale-110 transition-transform duration-700"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 text-3xl font-bold">

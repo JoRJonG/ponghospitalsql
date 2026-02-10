@@ -184,35 +184,35 @@ export default function ContactPage() {
             <h2 className="text-lg font-semibold text-gray-900">ข้อมูลติดต่ออย่างเป็นทางการ</h2>
             <div className="mt-4 space-y-4 text-gray-700">
               <div className="flex items-start gap-3">
-                <i className="fa-solid fa-location-dot mt-1.5 text-gray-600" aria-hidden />
+                <i className="fa-solid fa-location-dot mt-1.5 text-red-500" aria-hidden />
                 <div>
                   <div className="font-medium">ที่อยู่</div>
                   <p>{address}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <i className="fa-solid fa-phone mt-1.5 text-gray-600" aria-hidden />
+                <i className="fa-solid fa-phone mt-1.5 text-green-500" aria-hidden />
                 <div>
                   <div className="font-medium">โทรศัพท์</div>
                   <a href={`tel:${phoneMain}`} className="text-gray-900 hover:underline">{phoneMain}</a>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <i className="fa-solid fa-fax mt-1.5 text-gray-600" aria-hidden />
+                <i className="fa-solid fa-fax mt-1.5 text-indigo-500" aria-hidden />
                 <div>
                   <div className="font-medium">โทรสาร</div>
                   <a href={`tel:${phoneFax}`} className="text-gray-900">{phoneFax}</a>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <i className="fa-regular fa-envelope mt-1.5 text-gray-600" aria-hidden />
+                <i className="fa-regular fa-envelope mt-1.5 text-sky-500" aria-hidden />
                 <div>
                   <div className="font-medium">อีเมล</div>
                   <a href={`mailto:${emailMain}`} className="text-gray-900 hover:underline">{emailMain}</a>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <i className="fa-regular fa-clock mt-1.5 text-gray-600" aria-hidden />
+                <i className="fa-regular fa-clock mt-1.5 text-orange-500" aria-hidden />
                 <div>
                   <div className="font-medium">เวลาทำการ</div>
                   <p>จันทร์–ศุกร์ 08:00–16:00 <span className="text-gray-500">(ห้องฉุกเฉิน 24 ชม.)</span></p>
@@ -249,7 +249,7 @@ export default function ContactPage() {
             />
           </div>
           <div className="mt-3 flex items-center justify-between gap-3">
-            <div className="text-sm text-gray-700 flex items-center gap-2"><i className="fa-solid fa-location-dot text-blue-700" aria-hidden /> {address}</div>
+            <div className="text-sm text-gray-700 flex items-center gap-2"><i className="fa-solid fa-location-dot text-red-500" aria-hidden /> {address}</div>
             <a
               href={mapsSearch}
               target="_blank"

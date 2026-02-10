@@ -96,8 +96,7 @@ function App() {
               <ScrollToTopWrapper />
               <VisitorTrackingBeacon />
               <SEO />
-              <div className="relative flex min-h-screen flex-col text-gray-800 bg-gradient-to-b from-[#f6fbf7] via-white to-white">
-                <BackgroundPattern />
+              <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50">
                 <Navbar />
                 <main className="flex-1">
                   <div className="app-container py-0">

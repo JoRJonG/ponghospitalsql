@@ -173,14 +173,14 @@ export default function DocumentsPage() {
                 ) : (
                     <div className="space-y-4">
                         {documents.map(doc => (
-                            <div key={doc.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                            <div key={doc.id} className="bg-white rounded-lg shadow-sm p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border hover:border-emerald-100">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-4">
                                         <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
                                             {getFileIcon(doc.mimeType)}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1" title={doc.title}>
+                                            <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-1" title={doc.title}>
                                                 {doc.title}
                                             </h3>
                                             {doc.description && (
@@ -211,7 +211,7 @@ export default function DocumentsPage() {
                                     <button
                                         onClick={() => handleDownload(doc)}
                                         disabled={downloading === doc.id}
-                                        className="flex-shrink-0 bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        className="flex-shrink-0 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:shadow-md hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     >
                                         {downloading === doc.id ? (
                                             <div className="animate-spin h-5 w-5 border-2 border-green-600 border-t-transparent rounded-full"></div>

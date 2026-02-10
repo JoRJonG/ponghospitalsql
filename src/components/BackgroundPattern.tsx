@@ -1,34 +1,43 @@
-// Beautiful hospital-themed background with gradient, floating shapes, and medical patterns
-// Features glass-morphism effects and smooth animations
 export default function BackgroundPattern() {
   return (
-    <div className="absolute inset-0 overflow-hidden -z-10">
-      {/* Base gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#a5d6a7] via-[#81c784] to-[#66bb6a]" />
+    <div className="fixed inset-0 overflow-hidden -z-10 bg-slate-50 pointer-events-none">
+      {/* 
+        High-Performance Mesh Gradient (Aurora Style) 
+        Uses static radial gradients to mimic the effect without heavy browser composition.
+        Avoids `filter: blur()` and `mix-blend-mode` on animating elements.
+      */}
+      <div
+        className="absolute inset-0 w-full h-full opacity-60"
+        style={{
+          background: `
+            radial-gradient(at 0% 0%, hsla(147, 60%, 85%, 1) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, hsla(170, 70%, 85%, 1) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, hsla(190, 60%, 85%, 1) 0px, transparent 50%),
+            radial-gradient(at 0% 100%, hsla(150, 60%, 85%, 1) 0px, transparent 50%),
+            radial-gradient(at 50% 50%, hsla(160, 50%, 90%, 1) 0px, transparent 50%)
+          `,
+          filter: 'blur(40px)', // Single blur on the container is cheaper than multiple blurred moving blobs
+        }}
+      />
 
-      {/* Radial gradient overlays */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-radial-gradient-25-25" />
-        <div className="absolute top-0 left-0 w-full h-full bg-radial-gradient-75-75" />
-      </div>
+      {/* Subtle Aurora Animation using Opacity (Cheaper than transform) */}
+      <div
+        className="absolute inset-0 w-full h-full opacity-30 animate-pulse"
+        style={{
+          background: `
+            radial-gradient(at 30% 30%, hsla(150, 70%, 80%, 1) 0px, transparent 40%),
+            radial-gradient(at 70% 70%, hsla(180, 70%, 80%, 1) 0px, transparent 40%)
+          `,
+          animationDuration: '8s',
+          filter: 'blur(60px)',
+        }}
+      />
 
-      {/* Medical pattern grid */}
-      <div className="absolute inset-0 opacity-[0.03] bg-medical-pattern" />
-
-      {/* Decorative floating shapes */}
-      <div className="decorative-shapes">
-        {/* Shape 1 - Large top-right */}
-        <div className="shape shape1 absolute w-[450px] h-[450px] bg-gradient-to-br from-[#81C784] to-[#A5D6A7] -top-[150px] -right-[150px] rounded-full opacity-10 animate-float-20" />
-
-        {/* Shape 2 - Medium bottom-left */}
-        <div className="shape shape2 absolute w-[350px] h-[350px] bg-gradient-to-bl from-[#66BB6A] to-[#81C784] -bottom-[100px] -left-[100px] rounded-full opacity-10 animate-float-25-reverse" />
-
-        {/* Shape 3 - Medium center-right */}
-        <div className="shape shape3 absolute w-[250px] h-[250px] bg-gradient-to-br from-[#4CAF50] to-[#66BB6A] top-[40%] right-[15%] rounded-full opacity-10 animate-float-30" />
-
-        {/* Shape 4 - Small top-left */}
-        <div className="shape shape4 absolute w-[180px] h-[180px] bg-gradient-to-r from-[#8BC34A] to-[#9CCC65] top-[20%] left-[10%] rounded-full opacity-8 animate-float-22" />
-      </div>
+      {/* Noise Texture Overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.015]"
+        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+      />
     </div>
   )
 }

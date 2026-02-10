@@ -1800,34 +1800,50 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
 
       // ถ้ามีรูปภาพ
       if (image?.url) {
-        // ถ้ารูปเป็น URL ภายนอก ส่ง URL ไปให้ backend ดาวน์โหลด
-        if (image.url.startsWith('http://') || image.url.startsWith('https://')) {
-          fd.append('imageUrl', image.url)
-        }
         // ถ้าเป็น data URL (จาก file input) แปลงเป็น blob
-        else if (image.url.startsWith('data:')) {
-          const dataUrlToBlob = (dataUrl: string): Blob => {
-            // Convert base64 data URLs locally to satisfy strict CSP policies
-            const [prefix, base64] = dataUrl.split(',')
-            const match = prefix.match(/data:(.*?);base64/)
-            const mime = match?.[1] || 'application/octet-stream'
-            const binary = atob(base64 || '')
-            const len = binary.length
-            const bytes = new Uint8Array(len)
-            for (let i = 0; i < len; i++) {
-              bytes[i] = binary.charCodeAt(i)
-            }
-            return new Blob([bytes], { type: mime })
-          }
+        if (image.url.startsWith('data:')) {
           try {
-            const blob = dataUrlToBlob(image.url)
-            const fileName = image.publicId ? `unit-${image.publicId}.jpg` : 'unit.jpg'
+            // Helper function to convert data URL to Blob
+            const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
+              try {
+                // Try manual conversion derived from base64
+                const [prefix, base64] = dataUrl.split(',')
+                const match = prefix.match(/data:(.*?);base64/)
+                const mime = match?.[1] || 'application/octet-stream'
+                const binary = atob(base64 || '')
+                const len = binary.length
+                const bytes = new Uint8Array(len)
+                for (let i = 0; i < len; i++) {
+                  bytes[i] = binary.charCodeAt(i)
+                }
+                return new Blob([bytes], { type: mime })
+              } catch (e) {
+                // Determine if fetch is possible fallback
+                console.warn('Manual blob conversion failed, fallback to fetch:', e)
+                const res = await fetch(dataUrl)
+                return await res.blob()
+              }
+            }
+
+            const blob = await dataUrlToBlob(image.url)
+
+            // Determine extension from blob type logic
+            let ext = 'jpg'
+            if (blob.type === 'image/png') ext = 'png'
+            else if (blob.type === 'image/webp') ext = 'webp'
+            else if (blob.type === 'image/gif') ext = 'gif'
+
+            const fileName = image.publicId ? `unit-${image.publicId}.${ext}` : `unit.${ext}`
             fd.append('image', blob, fileName)
           } catch (err) {
             console.error('Failed to convert image:', err)
-            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถประมวลผลรูปภาพได้', 'error')
+            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถประมวลผลรูปภาพได้ กรุณาลองใหม่', 'error')
             return
           }
+        }
+        // ถ้าเป็น URL ปกติ (http/https) ส่ง URL ไปให้ backend ดาวน์โหลด
+        else if (image.url.startsWith('http://') || image.url.startsWith('https://')) {
+          fd.append('imageUrl', image.url)
         }
       }
 
@@ -1890,7 +1906,7 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
         </div>
         {image && (
           <div className="mt-2">
-            <img src={`${image.url}${image.url.includes('?') ? '&' : '?'}w=160`} loading="lazy" decoding="async" width={160} height={64} className="h-16 object-contain" />
+            <img src={image.url.startsWith('data:') ? image.url : `${image.url}${image.url.includes('?') ? '&' : '?'}w=160`} loading="lazy" decoding="async" width={160} height={64} className="h-16 object-contain" />
           </div>
         )}
       </div>
@@ -2075,7 +2091,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
           </>
         ) : (
           <div className="mt-2 flex items-center gap-3">
-            <img src={`${image.url}${image.url.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={200} height={120} className="h-24 rounded" />
+            <img src={image.url.startsWith('data:') ? image.url : `${image.url}${image.url.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={200} height={120} className="h-24 rounded" />
             <button type="button" className="admin-btn admin-btn--outline" onClick={() => setImage(null)}>ลบรูป</button>
           </div>
         )}
@@ -2378,7 +2394,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
             <label className="block text-sm mb-1">รูปภาพ</label>
             {form?.image?.url ? (
               <div className="flex items-center gap-3">
-                <img src={`${form.image.url}${form.image.url.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={240} height={160} className="h-28 rounded" />
+                <img src={form.image.url.startsWith('data:') ? form.image.url : `${form.image.url}${form.image.url.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={240} height={160} className="h-28 rounded" />
                 <button type="button" className="admin-btn admin-btn--outline" onClick={removeImage}>ลบรูป</button>
               </div>
             ) : (

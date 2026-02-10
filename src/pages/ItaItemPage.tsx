@@ -49,7 +49,7 @@ export default function ItaItemPage() {
       {!loading && !error && item && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="mb-4 text-sm text-gray-500 flex items-center gap-2 flex-wrap">
-            <Link to="/ita" className="hover:underline">ITA</Link>
+            <Link to="/ita" className="hover:text-emerald-700 hover:underline transition-colors duration-200">ITA</Link>
             <span>/</span>
             <span className="text-gray-700 font-medium">{item.title}</span>
           </div>
@@ -63,7 +63,7 @@ export default function ItaItemPage() {
               <ul className="list-disc ml-6 space-y-1 text-sm">
                 {children.map(c => (
                   <li key={c._id}>
-                    <Link to={`/ita/item/${c._id}`} className="text-green-700 hover:underline">{c.title}</Link>
+                    <Link to={`/ita/item/${c._id}`} className="text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-200">{c.title}</Link>
                   </li>
                 ))}
               </ul>

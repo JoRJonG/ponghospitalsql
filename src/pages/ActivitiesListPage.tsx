@@ -202,7 +202,7 @@ export default function ActivitiesListPage() {
                 || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill' })
               return (
-                <Link to={`/activities/${a._id}`} key={a._id} className="block bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                <Link to={`/activities/${a._id}`} key={a._id} className="block bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-200">
                   <div className="flex gap-3 p-3">
                     <img
                       loading="lazy"
@@ -214,8 +214,8 @@ export default function ActivitiesListPage() {
                       className="h-24 w-32 object-cover rounded"
                     />
                     <div className="flex-1 min-w-0 py-1">
-                      <div className="font-semibold text-gray-900 line-clamp-2">{a.title}</div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                      <div className="font-semibold text-gray-800 line-clamp-2">{a.title}</div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                         {a.date && <div>{new Date(a.date).toLocaleDateString()}</div>}
                         {a.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</div>}
                       </div>
@@ -242,7 +242,7 @@ export default function ActivitiesListPage() {
                       srcSet={srcSet}
                       sizes={sizes}
                       alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 transform"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
@@ -256,11 +256,11 @@ export default function ActivitiesListPage() {
                       <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
                     )}
                   </div>
-                  <h3 className="text-base md:text-lg font-semibold text-emerald-700 leading-snug group-hover:text-emerald-900 transition mb-2">
+                  <h3 className="text-base md:text-lg font-semibold text-gray-800 leading-snug group-hover:text-emerald-700 transition-colors duration-200 mb-2">
                     {a.title}
                   </h3>
                   {a.description && (
-                    <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                       {stripHtml(a.description)}
                     </p>
                   )}

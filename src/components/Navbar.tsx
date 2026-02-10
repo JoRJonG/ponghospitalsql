@@ -5,7 +5,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import logo from '../assets/logo-150x150.png'
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
-  `px-4 py-2 text-base font-medium transition-colors ${isActive ? 'text-teal-700' : 'text-slate-700 hover:text-teal-600'}`
+  `px-4 py-2 text-base font-medium transition-colors ${isActive ? 'text-emerald-600 bg-emerald-50 rounded-md' : 'text-slate-600 hover:text-emerald-500 hover:bg-emerald-50/50 rounded-md'}`
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
@@ -108,15 +108,15 @@ export default function Navbar() {
   return (
     <div>
       {/* Top Bar */}
-      <div className="bg-teal-900 text-white text-sm">
+      <div className="bg-teal-600 bg-pattern-professional border-b border-teal-500 text-white text-sm shadow-sm">
         <div className="container-narrow flex items-center h-10">
           <div className="flex items-center gap-6">
-            <a href="tel:1669" className="flex items-center gap-2 hover:text-teal-200 transition">
-              <i className="fa-solid fa-truck-medical" />
-              <span>ฉุกเฉิน 1669</span>
+            <a href="tel:1669" className="flex items-center gap-2 hover:text-emerald-100 transition">
+              <i className="fa-solid fa-phone-volume"></i>
+              <span className="font-bold">ฉุกเฉิน 1669</span>
             </a>
-            <span className="text-teal-400">|</span>
-            <a href="tel:054497030" className="flex items-center gap-2 hover:text-teal-200 transition">
+            <div className="h-4 w-px bg-teal-500/50"></div>
+            <a href="tel:054497030" className="flex items-center gap-2 hover:text-emerald-100 transition">
               <i className="fa-solid fa-phone" />
               <span>สายด่วน รพ. 054-497030</span>
             </a>
@@ -125,7 +125,7 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <header className="border-b border-gray-200 bg-white sticky top-0 z-40 shadow-sm">
+      <header className="border-b border-gray-100 bg-white/90 backdrop-blur-lg sticky top-0 z-40 shadow-md transition-all duration-300">
         <div className="container-narrow flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3">
             <img
@@ -149,7 +149,7 @@ export default function Navbar() {
                 </span>
               ) : null}
             </NavLink>
-            <NavLink to="/executives" className={navItemClass}>ผู้บริหาร</NavLink>
+            <NavLink to="/management" className={navItemClass}>ผู้บริหาร</NavLink>
             <div className="relative" onMouseEnter={openIta} onMouseLeave={closeItaLater}>
               <NavLink to="/ita" className={navItemClass} onClick={() => setItaOpen(o => !o)}>ITA ▾</NavLink>
               {itaOpen && itaRoots.length > 0 ? (
@@ -157,7 +157,7 @@ export default function Navbar() {
                   <ul className="space-y-1">
                     {itaRoots.map(r => (
                       <li key={r._id} className="group">
-                        <button onClick={() => goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center justify-between">
+                        <button onClick={() => goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center justify-between">
                           <span className="truncate pr-2">{r.title}</span>
                           {r.children && r.children.length > 0 ? <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-teal-600 transition-colors" /> : null}
                         </button>
@@ -165,7 +165,7 @@ export default function Navbar() {
                           <ul className="ml-2 mt-1 border-l border-dashed border-gray-200 pl-2 space-y-1">
                             {r.children.slice(0, 6).map(c => (
                               <li key={c._id}>
-                                <button onClick={() => goItaAnchor(c._id)} className="w-full text-left px-2 py-0.5 rounded hover:bg-teal-50 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
+                                <button onClick={() => goItaAnchor(c._id)} className="w-full text-left px-2 py-0.5 rounded hover:bg-emerald-50 hover:text-emerald-700 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
                                   <i className="fa-regular fa-circle text-[6px] text-gray-400" />
                                   <span className="truncate">{c.title}</span>
                                 </button>
@@ -188,25 +188,25 @@ export default function Navbar() {
                 <div className="absolute left-0 mt-1 w-64 rounded-lg border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-sm p-2 z-50 animate-fade-in">
                   <ul className="space-y-1">
                     <li>
-                      <NavLink to="/about" end onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                      <NavLink to="/about" end onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
                         <i className="fa-solid fa-info-circle text-gray-500" />
                         <span>ข้อมูลทั่วไป</span>
                       </NavLink>
                     </li>
                     <li>
-                      <NavLink to="/about/infographic" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                      <NavLink to="/about/infographic" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
                         <i className="fa-solid fa-chart-bar text-gray-500" />
                         <span>Infographic</span>
                       </NavLink>
                     </li>
                     <li>
-                      <NavLink to="/about/organization" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                      <NavLink to="/about/organization" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
                         <i className="fa-solid fa-sitemap text-gray-500" />
                         <span>โครงสร้างองค์กร</span>
                       </NavLink>
                     </li>
                     <li>
-                      <NavLink to="/about/pr-plan" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-teal-50 text-sm text-gray-700 flex items-center gap-2">
+                      <NavLink to="/about/pr-plan" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
                         <i className="fa-solid fa-shield-halved text-gray-500" />
                         <span>แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ</span>
                       </NavLink>
@@ -263,7 +263,7 @@ export default function Navbar() {
                         <li key={r._id}>
                           <button
                             onClick={() => { navigate(`/ita/item/${r._id}`); setOpen(false); setMobileItaOpen(false) }}
-                            className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 truncate"
+                            className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 truncate"
                           >{r.title}</button>
                         </li>
                       ))}
@@ -289,7 +289,7 @@ export default function Navbar() {
                           to="/about"
                           end
                           onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2"
                         >
 
                           <i className="fa-solid fa-info-circle text-gray-500 text-xs" />
@@ -300,7 +300,7 @@ export default function Navbar() {
                         <NavLink
                           to="/about/infographic"
                           onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2"
                         >
                           <i className="fa-solid fa-chart-bar text-gray-500 text-xs" />
                           <span>Infographic</span>
@@ -310,7 +310,7 @@ export default function Navbar() {
                         <NavLink
                           to="/about/organization"
                           onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2"
                         >
                           <i className="fa-solid fa-sitemap text-gray-500 text-xs" />
                           <span>โครงสร้างองค์กร</span>
@@ -320,7 +320,7 @@ export default function Navbar() {
                         <NavLink
                           to="/about/pr-plan"
                           onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-teal-50 text-gray-700 flex items-center gap-2"
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2"
                         >
                           <i className="fa-solid fa-shield-halved text-gray-500 text-xs" />
                           <span>แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ</span>
