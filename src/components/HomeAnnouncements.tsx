@@ -307,7 +307,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                         ) : null}
                       </div>
                       <div className="font-semibold text-gray-900 text-sm md:text-base group-hover:text-emerald-500 transition line-clamp-2">{a.title}</div>
-                      {a.content && <div className="text-xs text-gray-600 mt-1 line-clamp-1">{stripHtml(a.content)}</div>}
+                      {a.content ? <div className="text-xs text-gray-600 mt-1 line-clamp-1">{stripHtml(a.content)}</div> : null}
                       <div className="mt-2">&nbsp;</div>
                     </div>
                   </div>

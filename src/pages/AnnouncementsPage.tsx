@@ -276,26 +276,26 @@ function List({ category }: { category?: Announcement['category'] }) {
                     year: 'numeric'
                   }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
                 </span>
-                {a.viewCount !== undefined && (
+                {a.viewCount !== undefined ? (
                   <>
                     <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                     <span className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</span>
                   </>
-                )}
-                {isNew(a) && (
+                ) : null}
+                {isNew(a) ? (
                   <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                     ใหม่
                   </span>
-                )}
+                ) : null}
               </div>
               <div className="font-semibold text-gray-800 text-base mb-1 group-hover:text-emerald-500 transition-colors duration-200">{a.title}</div>
-              {a.content && <p className="text-xs text-gray-500 line-clamp-2">{stripHtml(a.content)}</p>}
+              {a.content ? <p className="text-xs text-gray-500 line-clamp-2">{stripHtml(a.content)}</p> : null}
             </div>
           </Link>
         ))}
-        {!loading && !error && items.length === 0 && <div className="text-gray-500 text-center py-8">ไม่พบประกาศ</div>}
+        {!loading && !error && items.length === 0 ? <div className="text-gray-500 text-center py-8">ไม่พบประกาศ</div> : null}
 
-        {!loading && !error && totalCount > 0 && (
+        {!loading && !error && totalCount > 0 ? (
           <div className="flex items-center justify-between pt-4 border-t border-white/30">
             <div className="text-sm text-gray-600">
               แสดง {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, totalCount)} จาก {totalCount} รายการ (หน้า {page} จาก {totalPages})
@@ -319,7 +319,7 @@ function List({ category }: { category?: Announcement['category'] }) {
               </button>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )
