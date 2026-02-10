@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSWR } from '../hooks/useSWR'
 import PdfViewer from '../components/PdfViewer'
+import { sanitize } from '../utils/sanitize'
 
 type PRPlan = {
     _id: string
@@ -144,7 +145,7 @@ export default function PRPlanPage() {
                             <article className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                                 {selectedPlan.description && (
                                     <div className="px-6 py-4 prose max-w-none text-gray-700 bg-gray-50/50 border-b border-gray-100">
-                                        <div dangerouslySetInnerHTML={{ __html: selectedPlan.description }} />
+                                        <div dangerouslySetInnerHTML={sanitize(selectedPlan.description)} />
                                     </div>
                                 )}
 

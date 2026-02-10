@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { sanitize } from '../utils/sanitize'
 import PdfViewer from '../components/PdfViewer'
 import { Link, useParams } from 'react-router-dom'
 import { shareItem } from '../utils/share'
@@ -166,7 +167,7 @@ export default function AnnouncementDetailPage() {
           </div>
           <h2 className="text-xl font-semibold">{item.title}</h2>
           {item.content && (
-            <div className="prose max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: item.content }} />
+            <div className="prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
           )}
           {item.attachments && item.attachments.length > 0 && (
             <div>

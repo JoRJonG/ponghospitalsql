@@ -27,7 +27,8 @@ import prPlansRouter from './routes/pr_plans.js'
 import organizationRouter from './routes/organization.js'
 import thaidAuthRouter from './routes/thaidAuth.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
-import { preventHpp, xssSanitizer } from './middleware/security.js'
+import { preventHpp, xssSanitizer, validateOrigin } from './middleware/security.js'
+import { botBlocker } from './middleware/botBlocker.js'
 import { trackVisitors } from './middleware/visitorTracker.js'
 import { logger } from './utils/logger.js'
 import { testConnection } from './database.js'
@@ -112,6 +113,10 @@ export async function createServer() {
   app.use(preventHpp)
   // Sanitize inputs against XSS
   app.use(xssSanitizer)
+  // CSRF Protection
+  app.use(validateOrigin)
+  // Bot/Scanner Protection
+  app.use(botBlocker)
 
   // Force browser to revalidate API responses (304 support)
   app.use('/api', (req, res, next) => {

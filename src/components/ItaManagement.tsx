@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, forwardRef, useImperativeHan
 import Swal from 'sweetalert2'
 import RichTextEditor from './RichTextEditor'
 import { useAuth } from '../auth/AuthContext'
+import { sanitize } from '../utils/sanitize'
 
 
 type ItaItem = {
@@ -401,7 +402,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                     {!n.isPublished ? <span className="badge gray">ซ่อน</span> : null}
                     <span className="text-[10px] text-gray-400">order:{n.order}</span>
                   </div>
-                  {n.content ? <div className="text-xs text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: n.content }} /> : null}
+                  {n.content ? <div className="text-xs text-gray-600 line-clamp-2" dangerouslySetInnerHTML={sanitize(n.content)} /> : null}
                   {(n.slug || pdfCount > 0) ? (
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-600">
                       {n.slug ? (

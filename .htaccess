@@ -93,13 +93,15 @@
 <RequireAll>
     Require all granted
     
-    # --- Group 1: Google Cloud Scanners ---
+    # --- Group 1: Google Cloud Scanners (Updated 2026-02-10) ---
     Require not ip 8.34.210.41
     Require not ip 8.34.210.44
     Require not ip 8.34.210.55
     Require not ip 34.68.34.95
     Require not ip 34.68.34.83
     Require not ip 34.68.34.92
+    Require not ip 34.68.34.85
+    Require not ip 34.68.34.73
 
     # --- Group 2: Data Thieves & .env Hunters ---
     Require not ip 206.238.73.183
@@ -126,23 +128,27 @@
 </RequireAll>
 
 # ----------------------------------------------------------------------
-# | 4. FILE SYSTEM PROTECTION
+# | 4. FILE SYSTEM PROTECTION (Professional Grade)
 # ----------------------------------------------------------------------
 Options -Indexes
 
+# Block all dot-files and directories (except .well-known)
 <FilesMatch "^\.(?!well-known)">
     Require all denied
 </FilesMatch>
 
-<FilesMatch "^(package\.json|package-lock\.json|yarn\.lock|\.env|\.env\..*|\.git.*|\.htpasswd|web\.config|phpinfo\.php)$">
+# Block sensitive config and dependency files
+<FilesMatch "^(package\.json|package-lock\.json|yarn\.lock|\.env|\.env\..*|\.git.*|\.htpasswd|web\.config|phpinfo\.php|composer\.json|composer\.lock)$">
     Require all denied
 </FilesMatch>
 
-<FilesMatch "\.(bak|backup|log|sql|sqlite|old|orig|save|tmp|ps1|sh|yaml|yml|config|ini|rar|zip)$">
+# Block backup, log, and temporary files
+<FilesMatch "\.(bak|backup|log|sql|sqlite|old|orig|save|tmp|ps1|sh|yaml|yml|config|ini|rar|zip|tar|gz|7z)$">
     Require all denied
 </FilesMatch>
 
-RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg|\.bzr|\.vscode)(?:/|$)
+# Prevent access to source code directories via direct URL
+RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg|\.bzr|\.vscode|\.idea)(?:/|$)
 
 # ----------------------------------------------------------------------
 # | 5. PERFORMANCE & CACHING

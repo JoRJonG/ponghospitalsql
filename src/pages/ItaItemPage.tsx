@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { sanitize } from '../utils/sanitize'
 
 type ItaItem = { _id: number; title: string; content?: string | null; pdfUrl?: string | null; parentId?: number | null }
 type ItaChild = ItaItem
@@ -54,7 +55,7 @@ export default function ItaItemPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{item.title}</h1>
           {item.content && (
-            <div ref={contentRef} className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: item.content }} />
+            <div ref={contentRef} className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={sanitize(item.content)} />
           )}
           {children.length > 0 && (
             <div className="mt-8">

@@ -19,7 +19,7 @@ export const apiLimiter = rateLimit({
 // Stricter limiter for auth endpoints (more lenient in development)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isProd ? 50 : 500,
+  max: isProd ? 10 : 500, // Reduced from 50 to 10 for production security
   message: { error: 'การเข้าสู่ระบบล้มเหลวหลายครั้ง กรุณาลองใหม่อีกครั้งภายหลัง' },
   standardHeaders: true,
   legacyHeaders: false,

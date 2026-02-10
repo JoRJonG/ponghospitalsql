@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { sanitize } from '../utils/sanitize'
 
 type ItaNode = {
   _id: number
@@ -28,7 +29,7 @@ export default function ItaPage() {
           <Link to={`/ita/item/${node._id}`} className="font-medium text-gray-800 hover:underline" title="เปิดหน้าแยก">{node.title}</Link>
         </div>
         {node.content && (
-          <div className="prose prose-sm max-w-none text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: node.content }} />
+          <div className="prose prose-sm max-w-none text-gray-600 mt-1" dangerouslySetInnerHTML={sanitize(node.content)} />
         )}
         {node.children && node.children.length > 0 && (
           <ul className="ml-4 border-l border-gray-200 pl-4 mt-1">

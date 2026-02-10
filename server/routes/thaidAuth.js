@@ -149,7 +149,7 @@ router.get('/callback', async (req, res) => {
         }
 
         const userinfo = await userResp.json()
-        logger.info('[ThaID] UserInfo Success', { pid: userinfo.pid })
+        logger.info('[ThaID] UserInfo Success', { pid: '***' })
 
         // 3. Logic for Login/Link
         const { sub, pid, given_name, family_name, birthdate, address } = userinfo
