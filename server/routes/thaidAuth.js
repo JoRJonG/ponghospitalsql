@@ -235,7 +235,7 @@ router.get('/status', requireAuth, async (req, res) => {
         if (!userId) return res.status(401).json({ error: 'Unauthorized' })
 
         // Debug query
-        logger.info('[ThaID] Checking status for user', { userId })
+        // logger.info('[ThaID] Checking status for user', { userId })
 
         const users = await query(
             'SELECT thaid_pid, thaid_sub, thaid_linked_at, login_method FROM users WHERE id = ?',
@@ -251,7 +251,7 @@ router.get('/status', requireAuth, async (req, res) => {
         const isLinked = Boolean(user.thaid_sub)
         const decryptedPid = user.thaid_pid ? decrypt(user.thaid_pid) : null
 
-        logger.info('[ThaID] Status result', { userId, isLinked, pid: decryptedPid ? '***' : null })
+        // logger.info('[ThaID] Status result', { userId, isLinked, pid: decryptedPid ? '***' : null })
 
         res.json({
             isLinked,

@@ -2,6 +2,9 @@ import { Router } from 'express'
 import { requireAuth, requireRole, requirePermission } from '../middleware/auth.js'
 import { getCpuLoad, getDiskUsage, getMemoryUsage, getSystemMeta } from '../utils/systemInfo.js'
 import SiteSetting from '../models/mysql/SiteSetting.js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 const router = Router()
 
@@ -68,5 +71,74 @@ router.get('/status', requireAuth, async (_req, res) => {
     res.status(500).json({ success: false, error: 'ไม่สามารถดึงข้อมูลระบบได้' })
   }
 })
+
+router.get('/banned-ips', requireAuth, requireRole('admin'), async (_req, res) => {
+  try {
+    const __dirname = path.dirname(fileURLToPath(import.meta.url))
+    const bannedFile = path.resolve(__dirname, '../banned-ips.json')
+
+    if (!fs.existsSync(bannedFile)) {
+      return res.json({ success: true, data: [] })
+    }
+
+    const data = fs.readFileSync(bannedFile, 'utf-8')
+    const bannedIps = JSON.parse(data)
+
+    res.json({ success: true, data: bannedIps })
+  } catch (error) {
+    console.error('[system] get banned-ips error:', error?.message)
+    res.status(500).json({ success: false, error: 'ไม่สามารถดึงรายชื่อ IP ที่ถูกแบนได้' })
+  }
+})
+
+// Unban IP Endpoint
+import { unbanIp } from '../middleware/botBlocker.js'
+
+router.delete('/banned-ips/:ip', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const ip = req.params.ip
+    if (!ip) return res.status(400).json({ success: false, error: 'ระบุ IP Address' })
+
+    const result = unbanIp(ip)
+
+    if (result) {
+      res.json({ success: true, message: `ปลดแบน ${ip} เรียบร้อย` })
+    } else {
+      res.json({ success: false, message: `ไม่พบ IP ${ip} ในรายการ` })
+    }
+  } catch (error) {
+    console.error('[system] unban ip error:', error?.message)
+    res.status(500).json({ success: false, error: 'ไม่สามารถปลดแบนได้' })
+  }
+})
+
+// Manual Ban Endpoint
+import { banIp } from '../middleware/botBlocker.js'
+
+router.post('/banned-ips', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { ip } = req.body
+
+    // Basic IP validation
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+    if (!ip || !ipRegex.test(ip)) {
+      return res.status(400).json({ success: false, error: 'รูปแบบ IP Address ไม่ถูกต้อง' })
+    }
+
+    // Ban permanently by default for manual bans
+    const result = banIp(ip, null)
+
+    if (result) {
+      res.json({ success: true, message: `แบน IP ${ip} เรียบร้อย` })
+    } else {
+      res.status(500).json({ success: false, error: 'ไม่สามารถบันทึกการแบนได้' })
+    }
+  } catch (error) {
+    console.error('[system] manual ban error:', error?.message)
+    res.status(500).json({ success: false, error: 'ไม่สามารถแบนได้' })
+  }
+})
+
+
 
 export default router

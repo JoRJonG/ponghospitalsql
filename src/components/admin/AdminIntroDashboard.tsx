@@ -305,6 +305,8 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
       }
     }, [rangeDays])
 
+
+
     useImperativeHandle(ref, () => ({ refresh: load }), [load])
 
     useEffect(() => {
@@ -690,6 +692,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
               </div>
             )}
           </div>
+
         </section>
       </div >
     )

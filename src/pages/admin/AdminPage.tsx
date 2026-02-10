@@ -23,6 +23,7 @@ import DocumentsManagement, { type DocumentsManagementHandle } from '../../compo
 import PRPosterManagement, { type PRPosterManagementHandle } from '../../components/admin/PRPosterManagement'
 import PRPlanManagement, { type PRPlanManagementHandle } from '../../components/admin/PRPlanManagement'
 import OrganizationChartManagement from '../../components/admin/OrganizationChartManagement'
+import BannedIPsManagement, { type BannedIPsManagementHandle } from '../../components/admin/BannedIPsManagement'
 
 // Types
 // ----------------------------------------------------------------------------
@@ -104,10 +105,10 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'pr_plan' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'pr_plan' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user' | 'banned_ips'
 
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'pr_plan', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'pr_plan', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user', 'banned_ips'] as const
 const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -173,6 +174,7 @@ export default function AdminPage() {
   const [documentCount, setDocumentCount] = useState(0)
 
 
+
   const [annList, setAnnList] = useState<Announcement[]>([])
   const [actList, setActList] = useState<Activity[]>([])
   const [slideList, setSlideList] = useState<SlideItem[]>([])
@@ -228,6 +230,7 @@ export default function AdminPage() {
       documents: permissions.documents,
       'settings-display': permissions.system,
       'settings-user': true,
+      'banned_ips': permissions.admin || permissions.system,
     }
   }, [permissions])
 
@@ -275,6 +278,7 @@ export default function AdminPage() {
   const documentsRef = useRef<DocumentsManagementHandle>(null)
   const prPosterRef = useRef<PRPosterManagementHandle>(null)
   const prPlanRef = useRef<PRPlanManagementHandle>(null)
+  const bannedIpsRef = useRef<BannedIPsManagementHandle>(null)
 
   const refreshAnn = useCallback(async () => {
     if (!permissions.announcements) {
@@ -857,6 +861,22 @@ export default function AdminPage() {
                   <span>ตั้งค่าผู้ใช้</span>
                 </button>
               )}
+
+              {allowedTabs.banned_ips && (
+                <button
+                  onClick={() => {
+                    setTab('banned_ips')
+                    if (window.innerWidth < 1024) setSidebarOpen(false)
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'banned_ips'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                    }`}
+                >
+                  <span className="text-xl">🚫</span>
+                  <span>Banned IPs</span>
+                </button>
+              )}
             </div>
           </nav>
 
@@ -923,6 +943,7 @@ export default function AdminPage() {
                     {tab === 'documents' && 'จัดการเอกสาร'}
                     {tab === 'settings-display' && 'ตั้งค่าการแสดงผลเว็บไซต์'}
                     {tab === 'settings-user' && 'ตั้งค่าผู้ใช้'}
+                    {tab === 'banned_ips' && 'จัดการ Banned IPs'}
                   </h1>
                   <p className="text-gray-600 text-sm mt-1 hidden sm:block">
                     {tab === 'intro' && 'ข้อมูลสรุปการเข้าเว็บไซต์และผู้ใช้ล่าสุด'}
@@ -943,6 +964,7 @@ export default function AdminPage() {
                     {tab === 'documents' && 'จัดการเอกสารและแบบฟอร์มต่างๆ ของโรงพยาบาล'}
                     {tab === 'settings-display' && 'เลือกรูปแบบสีที่ต้องการแสดงให้ผู้เข้าชมเห็นบนทุกหน้า'}
                     {tab === 'settings-user' && 'เปลี่ยนรหัสผ่านและจัดการบัญชีผู้ดูแลระบบ'}
+                    {tab === 'banned_ips' && 'ตรวจสอบรายชื่อ IP ที่ถูกแบนถาวรและชั่วคราวจากระบบความปลอดภัย'}
                   </p>
                 </div>
               </div>
@@ -1003,6 +1025,9 @@ export default function AdminPage() {
                       } else {
                         Toast.fire({ icon: 'success', title: 'โหลดข้อมูลเอกสารเสร็จสิ้น' })
                       }
+                    }
+                    else if (tab === 'banned_ips') {
+                      bannedIpsRef.current?.refresh().then(() => Toast.fire({ icon: 'success', title: 'โหลดข้อมูล Banned IPs เสร็จสิ้น' }))
                     }
                     else refreshAnn().then(() => Toast.fire({ icon: 'success', title: 'โหลดข้อมูลเสร็จสิ้น' })); // Default
                   }}
@@ -1614,6 +1639,17 @@ export default function AdminPage() {
                       confirmButtonColor: '#10b981'
                     })
                   }} />
+                </motion.div>
+              ) : tab === 'banned_ips' ? (
+                <motion.div
+                  key="banned_ips"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-6"
+                >
+                  <BannedIPsManagement ref={bannedIpsRef} />
                 </motion.div>
               ) : tab === 'executive' ? (
                 <motion.div
