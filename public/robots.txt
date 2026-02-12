@@ -19,3 +19,4 @@ Allow: /uploads/
 
 # Sitemap location
 Sitemap: https://ponghospital.moph.go.th/sitemap.php
+Sitemap: https://ponghospital.moph.go.th/sitemap.xml
