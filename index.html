@@ -92,14 +92,19 @@
     }
   </script>
 
-  <!-- Structured Data: WebSite -->
+  <!-- Structured Data: WebSite — ใช้บอก Google ว่าชื่อ site คือ "โรงพยาบาลปง" ไม่ใช่ "moph.go.th" -->
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "โรงพยาบาลปง",
       "alternateName": ["Pong Hospital", "รพ.ปง", "PongHospital"],
-      "url": "https://ponghospital.moph.go.th/"
+      "url": "https://ponghospital.moph.go.th/",
+      "publisher": {
+        "@type": "Organization",
+        "name": "โรงพยาบาลปง",
+        "url": "https://ponghospital.moph.go.th"
+      }
     }
   </script>
 
