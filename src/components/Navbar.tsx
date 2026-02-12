@@ -108,14 +108,15 @@ export default function Navbar() {
   return (
     <div>
       {/* Top Bar */}
-      <div className="bg-teal-600 bg-pattern-professional border-b border-teal-500 text-white text-sm shadow-sm">
+      <div className="bg-emerald-600 bg-pattern-professional border-b border-emerald-500 text-white text-sm shadow-sm">
         <div className="container-narrow flex items-center h-10">
           <div className="flex items-center gap-6">
-            <a href="tel:1669" className="flex items-center gap-2 hover:text-emerald-100 transition">
+            <a href="tel:1669" className="flex items-center gap-2 hover:text-amber-200 transition group">
               <i className="fa-solid fa-phone-volume"></i>
-              <span className="font-bold">ฉุกเฉิน 1669</span>
+              {/* ใช้ amber accent ให้ปุ่มฉุกเฉินเด่นจาก top bar teal */}
+              <span className="font-bold bg-amber-500 text-white px-2 py-0.5 rounded text-xs group-hover:bg-amber-400 transition-colors">ฉุกเฉิน 1669</span>
             </a>
-            <div className="h-4 w-px bg-teal-500/50"></div>
+            <div className="h-4 w-px bg-emerald-500/50"></div>
             <a href="tel:054497030" className="flex items-center gap-2 hover:text-emerald-100 transition">
               <i className="fa-solid fa-phone" />
               <span>สายด่วน รพ. 054-497030</span>
@@ -135,7 +136,7 @@ export default function Navbar() {
               loading="eager"
             />
             <div className="flex flex-col">
-              <span className="font-bold text-xl text-teal-800">โรงพยาบาลปง</span>
+              <span className="font-bold text-xl text-emerald-800">โรงพยาบาลปง</span>
               <span className="text-xs text-slate-500 -mt-0.5">PONG HOSPITAL</span>
             </div>
           </Link>
@@ -159,7 +160,7 @@ export default function Navbar() {
                       <li key={r._id} className="group">
                         <button onClick={() => goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center justify-between">
                           <span className="truncate pr-2">{r.title}</span>
-                          {r.children && r.children.length > 0 ? <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-teal-600 transition-colors" /> : null}
+                          {r.children && r.children.length > 0 ? <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-emerald-600 transition-colors" /> : null}
                         </button>
                         {r.children && r.children.length > 0 ? (
                           <ul className="ml-2 mt-1 border-l border-dashed border-gray-200 pl-2 space-y-1">

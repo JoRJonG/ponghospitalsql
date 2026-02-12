@@ -263,8 +263,8 @@ function List({ category }: { category?: Announcement['category'] }) {
             to={`/announcement/${a._id}`}
             key={a._id}
             className={
-              `block bg-white p-4 rounded-lg shadow-sm border border-slate-100 transition-all duration-300 group relative overflow-hidden ` +
-              `hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-50/30 hover:to-teal-50/30 hover:shadow-xl hover:-translate-y-1`
+              `block bg-white p-4 rounded-lg shadow-sm border border-slate-100 transition-all duration-300 font-medium duration-300 group relative overflow-hidden ` +
+              `hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-50/30 hover:to-emerald-50/30 hover:shadow-xl hover:-translate-y-1`
             }
           >
             <div className="card-body">
@@ -337,22 +337,22 @@ export default function AnnouncementsPage() {
         description="ข่าวสาร ประกาศรับสมัครงาน ประชาสัมพันธ์ และประกาศจัดซื้อจัดจ้างของโรงพยาบาลปง จังหวัดพะเยา อัปเดตล่าสุด"
       />
       <div
-        className={`container-narrow py-8 transform transition-all duration-500 ease-out will-change-auto ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
+        className={`container-narrow py-8 transform transition-all duration-300 font-medium duration-500 ease-out will-change-auto ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
           }`}
       >
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">ประกาศ</h1>
         </div>
         <div className="mb-6">
-          <div className="relative rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm">
+          <div className="relative rounded-2xl border border-emerald-100 bg-white/90 backdrop-blur-md shadow-md shadow-emerald-500/5">
             <div className="grid grid-cols-2 gap-2 px-3 py-3 text-sm sm:flex sm:flex-nowrap sm:gap-2">
               <NavLink
                 to="/announcements"
                 end
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all ${isActive
-                    ? 'bg-green-600 text-white shadow'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >
@@ -362,9 +362,9 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/jobs"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all ${isActive
-                    ? 'bg-green-600 text-white shadow'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >
@@ -374,9 +374,9 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/news"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all ${isActive
-                    ? 'bg-green-600 text-white shadow'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >
@@ -386,9 +386,9 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/notices"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all ${isActive
-                    ? 'bg-green-600 text-white shadow'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >
@@ -398,9 +398,9 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/procurement"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all ${isActive
-                    ? 'bg-green-600 text-white shadow'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >

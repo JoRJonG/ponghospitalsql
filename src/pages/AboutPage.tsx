@@ -66,19 +66,19 @@ function AboutContent() {
           </div>
           <ul className="space-y-3 text-gray-700">
             <li className="flex items-start gap-3">
-              <span className="text-green-600 mt-1">✅</span>
+              <span className="text-emerald-600 mt-1">✅</span>
               <span>ให้บริการด้านสุขภาพแก่ประชาชนอย่างมีคุณภาพ ครอบคลุม 4 มิติ</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-green-600 mt-1">✅</span>
+              <span className="text-emerald-600 mt-1">✅</span>
               <span>พัฒนาบริการสาธารณสุขอย่างเป็นองค์รวม ทั้งในและนอกเครือข่ายบริการสุขภาพ</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-green-600 mt-1">✅</span>
+              <span className="text-emerald-600 mt-1">✅</span>
               <span>จัดระบบบริการด้วยเทคโนโลยีสารสนเทศที่ทันสมัยและมีประสิทธิภาพ</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-green-600 mt-1">✅</span>
+              <span className="text-emerald-600 mt-1">✅</span>
               <span>ส่งเสริมให้บุคลากรมีสมรรถนะและสร้างวัฒนธรรรมองค์กร เน้นความรัก ความสามัคคี</span>
             </li>
           </ul>
@@ -239,7 +239,7 @@ function AboutContent() {
               <p className="text-sm text-gray-600 mt-1">ให้บริการด้วยความเมตตา เอาใจใส่</p>
             </div>
             <div className="bg-white rounded-lg p-4 text-center">
-              <i className="fa-solid fa-clipboard-check text-green-600 text-3xl mb-2"></i>
+              <i className="fa-solid fa-clipboard-check text-emerald-600 text-3xl mb-2"></i>
               <div className="font-semibold text-gray-900">รับผิดชอบ</div>
               <p className="text-sm text-gray-600 mt-1">ทำงานด้วยความละเอียดรอบคอบ</p>
             </div>
@@ -385,37 +385,37 @@ function AboutContent() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-        className="card border-2 border-green-200"
+        className="card border-2 border-emerald-200"
       >
         <div className="card-body">
           <div className="flex items-center gap-2 mb-4">
-            <i className="fa-solid fa-target text-green-600 text-xl"></i>
+            <i className="fa-solid fa-target text-emerald-600 text-xl"></i>
             <h2 className="text-xl font-bold text-gray-900">ยุทธศาสตร์ของหน่วยงาน</h2>
           </div>
-          <div className="bg-green-50 rounded-lg p-6 space-y-4">
+          <div className="bg-emerald-50 rounded-lg p-6 space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 font-bold">1</div>
+              <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 font-bold">1</div>
               <div>
                 <div className="font-semibold text-gray-900 mb-1">พัฒนาความเป็นเลิศด้านการส่งเสริมสุขภาพและป้องกันโรค</div>
                 <p className="text-gray-700"></p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 font-bold">2</div>
+              <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 font-bold">2</div>
               <div>
                 <div className="font-semibold text-gray-900 mb-1">พัฒนาระบบบริการสุขภาพให้มีคุณภาพมาตรฐานและเป็นที่ยอมรับ</div>
                 <p className="text-gray-700"></p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 font-bold">3</div>
+              <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 font-bold">3</div>
               <div>
                 <div className="font-semibold text-gray-900 mb-1">ส่งเสริมความเป็นเลิศในการจัดการกำลังคนที่มีประสิทธิภาพ</div>
                 <p className="text-gray-700">และเสริมสร้างสุขภาวการณ์ทำงานที่เหมาะสม</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center flex-shrink-0 font-bold">4</div>
+              <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 font-bold">4</div>
               <div>
                 <div className="font-semibold text-gray-900 mb-1">เสริมสร้างความเป็นเลิศด้านธรรมาภิบาลการพัฒนาและสนับสนุนระบบบริการ</div>
                 <p className="text-gray-700"></p>
@@ -464,15 +464,15 @@ export default function AboutPage() {
 
       {/* Sub Navigation */}
       <div className="mb-6">
-        <div className="relative rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm">
+        <div className="relative rounded-2xl border border-emerald-100 bg-white/90 backdrop-blur-md shadow-md shadow-emerald-500/5">
           <div className="flex flex-wrap gap-2 px-3 py-3 text-sm">
             <NavLink
               to="/about"
               end
               className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all ${isActive
-                  ? 'bg-green-600 text-white shadow'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                 }`
               }
             >
@@ -482,9 +482,9 @@ export default function AboutPage() {
             <NavLink
               to="/about/infographic"
               className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all ${isActive
-                  ? 'bg-green-600 text-white shadow'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                 }`
               }
             >
@@ -494,9 +494,9 @@ export default function AboutPage() {
             <NavLink
               to="/about/organization"
               className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all ${isActive
-                  ? 'bg-green-600 text-white shadow'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                 }`
               }
             >
@@ -506,9 +506,9 @@ export default function AboutPage() {
             <NavLink
               to="/about/pr-plan"
               className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all ${isActive
-                  ? 'bg-green-600 text-white shadow'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                 }`
               }
             >

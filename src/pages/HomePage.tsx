@@ -45,6 +45,12 @@ export default function HomePage() {
   const { refreshKey } = useHomepageRefresh()
   useEffect(() => { setMounted(true) }, [])
 
+  /* scroll-reveal refs สำหรับทุก section */
+  const posterRef = useReveal<HTMLDivElement>()
+  const announcementsRef = useReveal<HTMLDivElement>()
+  const activitiesRef = useReveal<HTMLDivElement>()
+  const unitsRef = useReveal<HTMLDivElement>()
+
   return (
     <div className="relative min-h-screen bg-slate-50">
       {/* SEO meta tags สำหรับหน้าแรก — ใช้ชื่อ site เป็น title หลัก */}
@@ -53,26 +59,34 @@ export default function HomePage() {
         <HeroSlider />
       </div>
 
-      <section className="py-6 md:py-12 bg-white">
-        <div className="container-narrow">
+      {/* PR Poster — wave top + decorative blob */}
+      <section ref={posterRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">
+        {/* Decorative blob สร้าง atmosphere — เบลอหนักจนแทบไม่เห็น */}
+        <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20" />
+        <div className="container-narrow relative z-10">
           <PRPoster embedded={true} />
         </div>
       </section>
 
-      <section ref={useReveal<HTMLDivElement>()} className="py-6 md:py-12 bg-slate-50 border-t border-slate-200">
-        <div className="container-narrow">
+      {/* ประกาศข่าวสาร — noise overlay + blob */}
+      <section ref={announcementsRef} className="relative py-6 md:py-12 bg-slate-50 bg-noise overflow-hidden">
+        <div className="decorative-blob decorative-blob-amber w-80 h-80 -bottom-24 -left-24" />
+        <div className="container-narrow relative z-10">
           <HomeAnnouncements key={`announcements-${refreshKey}`} limit={6} embedded={true} />
         </div>
       </section>
 
-      <section className="py-6 md:py-12 bg-white border-t border-slate-200">
-        <div className="container-narrow">
+      {/* ภาพกิจกรรม — wave top + clean bg */}
+      <section ref={activitiesRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">
+        <div className="decorative-blob decorative-blob-emerald w-64 h-64 top-10 -left-16" />
+        <div className="container-narrow relative z-10">
           <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
         </div>
       </section>
 
-      <section className="py-6 md:py-12 bg-slate-50 border-t border-slate-200">
-        <div className="container-narrow">
+      {/* ลิงก์หน่วยงาน */}
+      <section ref={unitsRef} className="relative py-6 md:py-12 bg-slate-50 bg-noise overflow-hidden">
+        <div className="container-narrow relative z-10">
           <UnitLinks embedded={true} />
         </div>
       </section>

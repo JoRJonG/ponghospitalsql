@@ -51,9 +51,9 @@ function OrganizationChartPage() {
             animate="visible"
             className="space-y-6"
         >
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-teal-100/50 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-cyan-100/50 rounded-full blur-3xl"></div>
 
                 <div className="relative z-10">
                     <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">โครงสร้างองค์กร</h2>

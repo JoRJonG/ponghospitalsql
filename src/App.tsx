@@ -93,43 +93,52 @@ function App() {
             <BrowserRouter>
               <ScrollToTopWrapper />
               <VisitorTrackingBeacon />
-              <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50">
-                <Navbar />
-                <main className="flex-1">
-                  <div className="app-container py-0">
-                    <Suspense fallback={<LoadingFallback />}>
-                      <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/announcements/*" element={<AnnouncementsPage />} />
-                        <Route path="/announcement/:id" element={<AnnouncementDetailPage />} />
-                        <Route path="/management" element={<ManagementPage />} />
-                        {/* Redirect /executives ไปยัง /management เพื่อป้องกัน duplicate content */}
-                        <Route path="/executives" element={<Navigate to="/management" replace />} />
-                        <Route path="/ita" element={<ItaPage />} />
-                        <Route path="/ita/item/:id" element={<ItaItemPage />} />
-                        <Route path="/about/*" element={<AboutPage />} />
-                        <Route path="/contact" element={<ContactPage />} />
-                        <Route path="/activities" element={<ActivitiesListPage />} />
-                        <Route path="/activities/:id" element={<ActivityDetailPage />} />
-                        <Route path="/documents" element={<DocumentsPage />} />
-                        <Route path="/pr-posters" element={<PRPostersPage />} />
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/login-success" element={<LoginSuccessPage />} />
-                        <Route path="/admin/*" element={<RequireAuth><AdminPage /></RequireAuth>} />
-                        <Route path="/403" element={<ForbiddenPage />} />
-                        <Route path="/blocked" element={<BlockedPage />} />
-                        <Route path="/rate-limit" element={<RateLimitError />} />
-                        <Route path="*" element={<NotFoundPage />} />
-                      </Routes>
-                    </Suspense>
-                  </div>
-                </main>
-                <HomepagePopupOverlay />
-                <CookieConsent />
-                <div className="app-container w-full">
-                  <Footer />
+              <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50 overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
+                {/* Organic Background Blobs */}
+                <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                  <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-emerald-200/20 rounded-full blur-[100px] opacity-60 animate-blob mix-blend-multiply"></div>
+                  <div className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-200/20 rounded-full blur-[100px] opacity-60 animate-blob animation-delay-2000 mix-blend-multiply"></div>
+                  <div className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] bg-amber-100/40 rounded-full blur-[100px] opacity-60 animate-blob animation-delay-4000 mix-blend-multiply"></div>
                 </div>
-                <ToastContainer />
+
+                <div className="relative z-10 flex flex-col min-h-screen">
+                  <Navbar />
+                  <main className="flex-1">
+                    <div className="app-container py-0">
+                      <Suspense fallback={<LoadingFallback />}>
+                        <Routes>
+                          <Route path="/" element={<HomePage />} />
+                          <Route path="/announcements/*" element={<AnnouncementsPage />} />
+                          <Route path="/announcement/:id" element={<AnnouncementDetailPage />} />
+                          <Route path="/management" element={<ManagementPage />} />
+                          {/* Redirect /executives ไปยัง /management เพื่อป้องกัน duplicate content */}
+                          <Route path="/executives" element={<Navigate to="/management" replace />} />
+                          <Route path="/ita" element={<ItaPage />} />
+                          <Route path="/ita/item/:id" element={<ItaItemPage />} />
+                          <Route path="/about/*" element={<AboutPage />} />
+                          <Route path="/contact" element={<ContactPage />} />
+                          <Route path="/activities" element={<ActivitiesListPage />} />
+                          <Route path="/activities/:id" element={<ActivityDetailPage />} />
+                          <Route path="/documents" element={<DocumentsPage />} />
+                          <Route path="/pr-posters" element={<PRPostersPage />} />
+                          <Route path="/login" element={<LoginPage />} />
+                          <Route path="/login-success" element={<LoginSuccessPage />} />
+                          <Route path="/admin/*" element={<RequireAuth><AdminPage /></RequireAuth>} />
+                          <Route path="/403" element={<ForbiddenPage />} />
+                          <Route path="/blocked" element={<BlockedPage />} />
+                          <Route path="/rate-limit" element={<RateLimitError />} />
+                          <Route path="*" element={<NotFoundPage />} />
+                        </Routes>
+                      </Suspense>
+                    </div>
+                  </main>
+                  <HomepagePopupOverlay />
+                  <CookieConsent />
+                  <div className="app-container w-full">
+                    <Footer />
+                  </div>
+                  <ToastContainer />
+                </div>
               </div>
             </BrowserRouter>
           </AuthProvider>

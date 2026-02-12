@@ -139,7 +139,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
 
           {Array.isArray(filtered) && filtered.length > 0 ? (
             <div className="space-y-4">
-              {filtered.map(a => {
+              {filtered.map((a, i) => {
                 const categoryColors: Record<Announcement['category'], { label: string }> = {
                   'ประกาศจัดซื้อจัดจ้าง': { label: 'จัดซื้อจัดจ้าง' },
                   'สมัครงาน': { label: 'รับสมัครงาน' },
@@ -153,8 +153,8 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                     to={`/announcement/${a._id}`}
                     key={a._id}
                     className={
-                      `block bg-white p-4 rounded-lg shadow-sm border border-slate-100 transition-all duration-300 group relative overflow-hidden ` +
-                      `hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-50/30 hover:to-teal-50/30 hover:shadow-xl hover:-translate-y-1`
+                      `block glass-fresh p-5 rounded-2xl transition-all duration-500 group relative overflow-hidden stagger-item stagger-delay-${Math.min(i, 11)} ` +
+                      `hover:shadow-2xl hover:-translate-y-2`
                     }
                   >
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -225,7 +225,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
         </div>
 
         <div className="mb-6" role="tablist" aria-label="แถบกรองประกาศ">
-          <div className="relative z-10 rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-md shadow-sm">
+          <div className="relative z-10 rounded-3xl glass-fresh">
             <div className="grid grid-cols-2 gap-2 px-3 py-3 sm:flex sm:flex-nowrap sm:gap-2">
               {tabs.map(t => (
                 <button

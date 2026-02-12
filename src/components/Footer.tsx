@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <>
       {/* Visitor Counter Section */}
-      <section className="py-8 bg-teal-600 bg-pattern-professional border-t border-teal-500 text-white shadow-inner">
+      <section className="py-8 bg-emerald-600 bg-pattern-professional border-t border-emerald-500 text-white shadow-inner">
         <div className="container mx-auto px-4">
           <VisitorCounter />
         </div>
@@ -60,7 +60,7 @@ export default function Footer() {
                   <span>395 หมู่ 9 ตำบลนาปรัง อำเภอปง <br />จังหวัดพะเยา 56140</span>
                 </li>
                 <li className="flex gap-3">
-                  <i className="fa-solid fa-phone text-green-500 mt-1"></i>
+                  <i className="fa-solid fa-phone text-emerald-500 mt-1"></i>
                   <span>โทรศัพท์: 054-497030 <br />แฟกซ์: 054-497289</span>
                 </li>
                 <li className="flex gap-3">

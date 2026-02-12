@@ -38,7 +38,7 @@ function DirectorCard({ m }: { m: Manager }) {
         <div className="flex flex-col items-center">
           {/* Image - Vertical Oval */}
           <div className="mb-4 relative">
-            <div className="w-40 h-56 rounded-[50%] p-1 bg-white border-[3px] border-green-600 shadow-md mx-auto">
+            <div className="w-40 h-56 rounded-[50%] p-1 bg-white border-[3px] border-emerald-600 shadow-md mx-auto">
               <div className="w-full h-full rounded-[50%] overflow-hidden">
                 {m.imageUrl && !imgError ? (
                   <img
@@ -60,7 +60,7 @@ function DirectorCard({ m }: { m: Manager }) {
 
           {/* Content */}
           <div className="w-full">
-            <h2 className="text-xl font-bold text-green-700 mb-2">
+            <h2 className="text-xl font-bold text-emerald-700 mb-2">
               {m.name}
             </h2>
             <p className="text-sm text-gray-600 font-medium mb-3 leading-snug px-2">
@@ -116,24 +116,24 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
       {/* Connector Lines (Desktop Only) */}
       <div className="hidden lg:block absolute -top-8 left-0 w-full h-8 pointer-events-none z-0">
         {/* Vertical Line Up (Stem) */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-0.5 h-full bg-green-300"></div>
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-0.5 h-full bg-emerald-300"></div>
 
         {/* Horizontal Arms (Rail) - Extends into the gap (approx 24px gap -> 12px overlap) */}
         {showLeftArm && (
-          <div className="absolute top-0 right-1/2 h-0.5 bg-green-300 w-[calc(50%+16px)]"></div>
+          <div className="absolute top-0 right-1/2 h-0.5 bg-emerald-300 w-[calc(50%+16px)]"></div>
         )}
         {showRightArm && (
-          <div className="absolute top-0 left-1/2 h-0.5 bg-green-300 w-[calc(50%+16px)]"></div>
+          <div className="absolute top-0 left-1/2 h-0.5 bg-emerald-300 w-[calc(50%+16px)]"></div>
         )}
 
         {/* Dot at junction */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-green-500 -mt-[2px] z-10"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500 -mt-[2px] z-10"></div>
       </div>
 
       {/* Right-Side L-Shape Wrap Connector (Bridge to next row) */}
       {showWrapConnector && (
         <div
-          className={`hidden lg:block absolute -top-8 right-[-1.5rem] h-[calc(100%+3.2rem)] border-t-2 border-r-2 border-b-2 border-green-300 rounded-tr-lg rounded-br-lg pointer-events-none z-0
+          className={`hidden lg:block absolute -top-8 right-[-1.5rem] h-[calc(100%+3.2rem)] border-t-2 border-r-2 border-b-2 border-emerald-300 rounded-tr-lg rounded-br-lg pointer-events-none z-0
             ${useLongWrap ? 'w-[calc(450%+7.5rem)]' : 'w-[calc(50%+1.5rem)]'}
           `}
         ></div>
@@ -142,7 +142,7 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
       <div className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl border border-gray-100 transition-all duration-500 h-full flex flex-col items-center text-center max-w-[280px] mx-auto z-10 relative hover:-translate-y-1">
         {/* Image - Vertical Oval */}
         <div className="mb-3">
-          <div className="w-36 h-48 rounded-[50%] p-1 bg-white border-[3px] border-green-600 shadow-sm mx-auto">
+          <div className="w-36 h-48 rounded-[50%] p-1 bg-white border-[3px] border-emerald-600 shadow-sm mx-auto">
             <div className="w-full h-full rounded-[50%] overflow-hidden">
               {m.imageUrl && !imgError ? (
                 <img
@@ -163,7 +163,7 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
 
         {/* Content */}
         <div className="flex-1 w-full space-y-1">
-          <h3 className="text-base font-bold text-green-700 leading-tight min-h-[2.5rem] flex items-center justify-center">
+          <h3 className="text-base font-bold text-emerald-700 leading-tight min-h-[2.5rem] flex items-center justify-center">
             {m.name}
           </h3>
           <p className="text-sm text-gray-600 font-medium leading-tight min-h-[2rem] flex items-center justify-center">
@@ -212,7 +212,7 @@ export default function ManagementPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-6"
       >
-        <h1 className="text-2xl font-extrabold text-green-800 mb-2">
+        <h1 className="text-2xl font-extrabold text-emerald-800 mb-2">
           โครงสร้างผู้บริหารโรงพยาบาลปง
         </h1>
       </motion.div>
@@ -223,7 +223,7 @@ export default function ManagementPage() {
           <DirectorCard m={director} />
           {/* Connector Line Down (Desktop Only) */}
           {others.length > 0 && (
-            <div className="hidden lg:block absolute -bottom-8 left-1/2 -translate-x-1/2 w-0.5 h-10 bg-green-300"></div>
+            <div className="hidden lg:block absolute -bottom-8 left-1/2 -translate-x-1/2 w-0.5 h-10 bg-emerald-300"></div>
           )}
         </div>
       )}
@@ -247,7 +247,7 @@ export default function ManagementPage() {
 
       {loading && (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
         </div>
       )}
     </div>

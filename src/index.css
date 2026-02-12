@@ -51,22 +51,60 @@
   .button-hover-standard {
     @apply transition-all duration-300 hover:shadow-md hover:scale-[1.02];
   }
+
+  .glass-fresh {
+    @apply bg-white/70 backdrop-blur-lg border border-white/40 shadow-lg shadow-emerald-500/5;
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
 
 /* Professional Hospital Theme Variables */
 :root {
-  /* Primary Medical Brand Colors - Lighter/Fresher Theme */
+  /* Mor Prom Green (Modern Emerald) - สดใส ล้ำสมัย สบายตา */
   --hospital-primary: #10b981;
-  /* Emerald 500 */
-  --hospital-primary-dark: #059669;
-  /* Emerald 600 */
-  --hospital-primary-light: #34d399;
-  /* Emerald 400 */
-  --hospital-secondary: #0d9488;
-  /* Teal 600 */
-  --hospital-accent: #14b8a6;
-  /* Teal 500 */
+  /* Emerald 500 - Main Brand Color */
+  --hospital-primary-dark: #047857;
+  /* Emerald 700 - Hover States */
+  --hospital-primary-light: #d1fae5;
+  /* Emerald 100 - Backgrounds */
+  --hospital-secondary: #059669;
+  /* Emerald 600 - Secondary Elements */
+  --hospital-accent: #34d399;
+  /* Emerald 400 - Highlights */
+  --hospital-accent-dark: #065f46;
+  /* Emerald 800 - Deep Accent */
+  --hospital-accent-light: #6ee7b7;
+  /* Emerald 300 - Light Accent */
 
   /* Neutral Medical Colors */
   --hospital-gray-50: #f8fafc;
@@ -80,13 +118,13 @@
   --hospital-gray-800: #1e293b;
   --hospital-gray-900: #0f172a;
 
-  /* Medical-themed Background Colors */
-  --hospital-bg-primary: #f0fdf4;
-  /* Very light green */
-  --hospital-bg-secondary: #ecfdf5;
+  /* Medical-themed Background Colors — mint cream ที่ match teal palette */
+  --hospital-bg-primary: #f0fdfa;
+  /* Light teal tint — สบายตา */
+  --hospital-bg-secondary: #f0fdf4;
   /* Light mint */
-  --hospital-bg-accent: #f0fdfa;
-  /* Light teal */
+  --hospital-bg-accent: #fffbeb;
+  /* Light amber tint — สำหรับ accent sections */
 
   /* Professional Text Colors */
   --hospital-text-primary: #0f172a;
@@ -94,8 +132,8 @@
   --hospital-text-muted: #6b7280;
 
   /* Status Colors for Medical Context */
-  --hospital-success: #16a34a;
-  --hospital-warning: #ca8a04;
+  --hospital-success: #0d9488;
+  --hospital-warning: #f59e0b;
   --hospital-error: #dc2626;
   --hospital-info: #0891b2;
 
@@ -138,10 +176,10 @@
   --hospital-space-24: 6rem;
 
   /* Gradient System */
-  --gradient-primary: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
-  --gradient-primary-soft: linear-gradient(135deg, #d1fae5 0%, #ccfbf1 100%);
-  --gradient-accent: linear-gradient(135deg, #059669 0%, #0d9488 100%);
-  --gradient-overlay: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
+  --gradient-primary: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+  --gradient-primary-soft: linear-gradient(135deg, #ccfbf1 0%, #cffafe 100%);
+  --gradient-accent: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+  --gradient-overlay: linear-gradient(180deg, rgba(13, 148, 136, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
 
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.85);
@@ -155,8 +193,8 @@
   --shadow-emerald-xl: 0 12px 32px rgba(16, 185, 129, 0.25);
 
   /* Legacy compatibility */
-  --brand-blue: #16a34a;
-  --brand-blue-600: #16a34a;
+  --brand-blue: #0d9488;
+  --brand-blue-600: #0d9488;
   --brand-blue-700: #15803d;
   --brand-gray-50: #f8fafc;
   --brand-gray-100: #f1f5f9;
@@ -184,12 +222,42 @@ body,
 body {
   background-color: var(--hospital-bg-primary);
   color: var(--hospital-text-primary);
-  font-family: "Noto Sans Thai", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: var(--hospital-font-size-base);
 }
+
+/* Display font สำหรับ headings และตัวหนา — บังคับใช้ Prompt เพื่อความ Consistent ทั้งเว็บ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-bold,
+.font-semibold,
+b,
+strong,
+th {
+  font-family: "Prompt", "Noto Sans Thai", sans-serif !important;
+  letter-spacing: 0em;
+}
+
+/* ปรับน้ำหนัก headings ให้พอดีกับ Prompt */
+h1,
+h2,
+h3 {
+  font-weight: 600;
+}
+
+h4,
+h5,
+h6 {
+  font-weight: 500;
+}
+
 
 html.grayscale-mode {
   filter: grayscale(0.6) saturate(0.6);
@@ -1264,4 +1332,160 @@ textarea {
 
 .prose .ql-align-justify {
   text-align: justify;
+}
+
+/* ===================================================
+   Wave Section Dividers — ใช้คั่นระหว่าง sections
+   =================================================== */
+.section-wave-top {
+  position: relative;
+}
+
+.section-wave-top::before {
+  content: '';
+  position: absolute;
+  top: -29px;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background: inherit;
+  /* inherit background color จาก section */
+  clip-path: ellipse(55% 100% at 50% 100%);
+  z-index: 1;
+}
+
+.section-wave-bottom {
+  position: relative;
+}
+
+.section-wave-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: -29px;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background: inherit;
+  clip-path: ellipse(55% 100% at 50% 0%);
+  z-index: 1;
+}
+
+/* ===================================================
+   Noise Texture Overlay — เพิ่ม depth ให้ backgrounds
+   =================================================== */
+.bg-noise {
+  position: relative;
+}
+
+.bg-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===================================================
+   Stagger Animation Utilities — ให้ cards ปรากฏทีละใบ
+   =================================================== */
+.stagger-item {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: stagger-reveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes stagger-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Delay utilities สำหรับ stagger — ใช้กับ card items (0-11) */
+.stagger-delay-0 {
+  animation-delay: 0ms;
+}
+
+.stagger-delay-1 {
+  animation-delay: 60ms;
+}
+
+.stagger-delay-2 {
+  animation-delay: 120ms;
+}
+
+.stagger-delay-3 {
+  animation-delay: 180ms;
+}
+
+.stagger-delay-4 {
+  animation-delay: 240ms;
+}
+
+.stagger-delay-5 {
+  animation-delay: 300ms;
+}
+
+.stagger-delay-6 {
+  animation-delay: 360ms;
+}
+
+.stagger-delay-7 {
+  animation-delay: 420ms;
+}
+
+.stagger-delay-8 {
+  animation-delay: 480ms;
+}
+
+.stagger-delay-9 {
+  animation-delay: 540ms;
+}
+
+.stagger-delay-10 {
+  animation-delay: 600ms;
+}
+
+.stagger-delay-11 {
+  animation-delay: 660ms;
+}
+
+/* ===================================================
+   Slider Progress Bar — แสดง countdown ของ HeroSlider
+   =================================================== */
+@keyframes progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.slide-progress-bar {
+  transform-origin: left;
+  animation: progress-fill var(--slide-duration, 5s) linear;
+}
+
+/* ===================================================
+   Decorative Gradient Blobs — เพิ่ม atmosphere
+   =================================================== */
+.decorative-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.decorative-blob-emerald {
+  background: radial-gradient(circle, var(--hospital-primary) 0%, transparent 70%);
+}
+
+.decorative-blob-amber {
+  background: radial-gradient(circle, var(--hospital-accent) 0%, transparent 70%);
 }

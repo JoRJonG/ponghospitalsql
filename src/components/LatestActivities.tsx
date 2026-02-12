@@ -78,7 +78,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
       ) : null}
       {Array.isArray(items) && items.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map(a => {
+          {items.map((a, i) => {
             const first = a.images && a.images.length ? a.images[0] : undefined
             const img = typeof first === 'string' ? first : first?.url
               || logo
@@ -94,8 +94,9 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
 
             return (
               <Link to={`/activities/${a._id}`} key={a._id}>
-                <article className="group cursor-pointer">
-                  <div className="overflow-hidden rounded-lg shadow-sm mb-3">
+                {/* stagger-item + delay ให้ cards ปรากฏทีละใบ */}
+                <article className={`group cursor-pointer stagger-item stagger-delay-${Math.min(i, 11)} glass-fresh p-3 rounded-2xl hover:-translate-y-2 hover:shadow-2xl transition-all duration-500`}>
+                  <div className="overflow-hidden rounded-xl shadow-inner mb-3">
                     <img
                       loading="lazy"
                       decoding="async"

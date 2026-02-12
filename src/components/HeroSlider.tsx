@@ -138,13 +138,23 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
             )
           })}
           {/* Caption overlay removed per request */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+          {/* Progress bar — แสดง countdown ของ slide ปัจจุบัน */}
+          {slides.length > 1 && (
+            <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/20">
+              <div
+                key={`progress-${idx}`}
+                className="h-full bg-white/70 slide-progress-bar"
+                style={{ '--slide-duration': `${(slides[idx]?.duration || 5)}s` } as React.CSSProperties}
+              />
+            </div>
+          )}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-20">
             {slides.map((_, i) => (
               <button
                 key={i}
                 aria-label={`slide ${i + 1}`}
                 onClick={() => setIdx(i)}
-                className={`h-3 w-3 rounded-full transition-colors ${i === idx ? 'bg-white' : 'bg-white/60 hover:bg-white/80'}`}
+                className={`h-3 w-3 rounded-full transition-all duration-300 ${i === idx ? 'bg-white scale-110 shadow-md' : 'bg-white/50 hover:bg-white/80'}`}
                 style={{ outline: 'none' }}
                 onFocus={() => { /* keep to allow focus-visible CSS to show */ }}
               />
