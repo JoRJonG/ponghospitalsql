@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { sanitize } from '../utils/sanitize'
+import SEO from '../components/SEO'
 
 type ItaItem = { _id: number; title: string; content?: string | null; pdfUrl?: string | null; parentId?: number | null }
 type ItaChild = ItaItem
@@ -44,6 +45,11 @@ export default function ItaItemPage() {
 
   return (
     <div className="container-narrow py-8">
+      {/* SEO meta tags แบบ dynamic — ใช้ชื่อ ITA item เป็น title */}
+      <SEO
+        title={item?.title ? `ITA - ${item.title}` : 'ITA'}
+        description={item?.title ? `${item.title} - ข้อมูล ITA ของโรงพยาบาลปง จังหวัดพะเยา` : 'ข้อมูลการประเมินคุณธรรมและความโปร่งใส (ITA) โรงพยาบาลปง'}
+      />
       {loading && <div className="text-gray-600">กำลังโหลด...</div>}
       {!loading && error && <div className="text-red-600">{error}</div>}
       {!loading && !error && item && (

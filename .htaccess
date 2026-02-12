@@ -1,90 +1,99 @@
 # ==============================================================================
-# PONG HOSPITAL - PROFESSIONAL SECURITY CONFIGURATION (v2026.01.31 - Sitemap Support)
+# PONG HOSPITAL - ENTERPRISE SECURITY SUITE (v2026.02.11 - GOLD MASTER)
 # ==============================================================================
-# Environment: Node.js / Next.js via Apache Proxy
-# Objective:   Maximum Security + Dynamic Sitemap Support
+# Architecture: Apache Proxy -> Node.js (Next.js/Passenger)
+# Security Level: MAXIMUM (Zero Trust)
 # ==============================================================================
 
 # ----------------------------------------------------------------------
-# | 1. SECURITY HEADERS (เกราะป้องกันฝั่ง Browser)
+# | 1. CORE SERVER CONFIGURATION
+# ----------------------------------------------------------------------
+# ป้องกันการแสดงรายชื่อไฟล์ใน Folder และเปิด SymLinks เพื่อประสิทธิภาพ
+Options -Indexes +FollowSymLinks -MultiViews
+# ปิดการแสดงลายเซ็น Server ในหน้า Error
+ServerSignature Off
+# ตั้งค่า Encoding พื้นฐาน
+AddDefaultCharset UTF-8
+
+# ----------------------------------------------------------------------
+# | 2. SECURITY HEADERS (Browser Hardening)
 # ----------------------------------------------------------------------
 <IfModule mod_headers.c>
-    # ป้องกันการถูกฝังหน้าเว็บใน Iframe (Clickjacking)
-    Header set X-Frame-Options "SAMEORIGIN"
-    
-    # บังคับให้ Browser ไม่เดาชนิดไฟล์ (MIME Sniffing)
-    Header set X-Content-Type-Options "nosniff"
-    
-    # ป้องกัน XSS Attack แบบพื้นฐาน
-    Header set X-XSS-Protection "1; mode=block"
-    
-    # ควบคุมการส่งข้อมูล Referrer
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    
-    # บังคับใช้ HTTPS (HSTS)
-    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-    
-    # ปิดฟีเจอร์ที่ไม่จำเป็น
-    Header set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
-    
-    # ปิดบังข้อมูล Server
+    # ป้องกัน Clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # ป้องกัน MIME Sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    # เปิด XSS Protection
+    Header always set X-XSS-Protection "1; mode=block"
+    # ควบคุม Referrer
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # บังคับ HTTPS (HSTS) - 1 ปี
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    # ปิดฟีเจอร์ Hardware ที่ไม่จำเป็น
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+    # ลบ Header ที่บอกรุ่น Server
     Header unset X-Powered-By
     Header unset Server
+    Header unset X-AspNet-Version
     
-    # ปรับแต่ง Cookie
+    # ปรับแต่ง Cookie ให้ปลอดภัย
     Header edit Set-Cookie ^(.*)$ "$1; HttpOnly; Secure; SameSite=Lax"
+
+    # [OPTIONAL] Content Security Policy (CSP)
+    # เปิดใช้บรรทัดล่างนี้เมื่อตรวจสอบ Domain ภายนอกครบแล้วเท่านั้น เพื่อป้องกันเว็บพัง
+    # Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com;"
     
-    # ตั้งค่า Header สำหรับ Sitemap เพื่อให้แน่ใจว่า Bot อ่านได้
+    # อนุญาตให้ Bot อ่าน Sitemap
     <FilesMatch "^(sitemap\.xml|sitemap\.php)$">
         Header unset X-Robots-Tag
     </FilesMatch>
 </IfModule>
 
 # ----------------------------------------------------------------------
-# | 2. WEB APPLICATION FIREWALL (WAF) & BOT PROTECTION
+# | 3. WAF & REWRITE RULES (The Gatekeeper)
 # ----------------------------------------------------------------------
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # --- 2.1 Block Bad User-Agents ---
-    RewriteCond %{HTTP_USER_AGENT} ^(sqlmap|nikto|wpscan|python-requests|libwww-perl|curl|wget) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (havij|absinthe|netsparker|appscan|burp|acunetix|hydra|masscan) [NC]
+    # ============================================================
+    # 3.1 KILL SWITCH: BLOCK PHP ON NODE.JS (CRITICAL)
+    # ============================================================
+    # กฎนี้จะทำงานก่อนส่ง Request ไป Node.js แก้ปัญหา 200 OK หลอกๆ
+    # ยกเว้น sitemap.php ไว้ตัวเดียว นอกนั้นบล็อกหมด
+    RewriteCond %{REQUEST_URI} !^/sitemap\.php$ [NC]
+    RewriteCond %{REQUEST_URI} (\.php$|\.php/|\.php\?|\.pHp|\.PHP) [NC]
     RewriteRule .* - [F,L]
 
-    # --- 2.2 Block Malicious Query Strings ---
-    RewriteCond %{QUERY_STRING} (union.*select|insert.*into|update.*set|delete.*from) [NC,OR]
-    RewriteCond %{QUERY_STRING} (base64_decode|eval\(|passwd|boot\.ini|/etc/shadow|/proc/self) [NC,OR]
-    RewriteCond %{QUERY_STRING} (<script>|javascript:|vbscript:|onload=|onerror=) [NC]
-    RewriteRule .* - [F,L]
-
-    # --- 2.3 Block Directory Traversal ---
-    RewriteCond %{QUERY_STRING} \.\.\/ [NC,OR]
-    RewriteCond %{QUERY_STRING} \.\.\\ [NC]
-    RewriteRule .* - [F,L]
-
-    # --- 2.4 Block Log4Shell ---
-    RewriteCond %{QUERY_STRING} jndi:ldap [NC,OR]
+    # ============================================================
+    # 3.2 BLOCK EXPLOITS & VULNERABILITIES
+    # ============================================================
+    # Block Log4Shell
+    RewriteCond %{QUERY_STRING} jndi:(ldap|rmi|dns|nis|iiop|corba|nds|http) [NC,OR]
     RewriteCond %{HTTP_USER_AGENT} \$\{jndi: [NC]
     RewriteRule .* - [F,L]
 
-    # --- 2.5 Block Scanner Paths ---
-    RewriteRule ^(wp-login\.php|xmlrpc\.php|composer\.json|package\.json|yarn\.lock)$ - [F,L]
-    RewriteRule ^(wp-admin|wp-content|wp-includes|phpmyadmin|admin|install|backup|old|test)$ - [F,L]
-    RewriteRule ^(serverlogin|sign|adminLogin|controlpanel|ccms|showlogin|auth|_adm|user|cpanel|maintenance|member|account|validate|mcp|bonita|jasperserver)$ - [F,L]
+    # Block Common SQL Injection & RCE patterns
+    RewriteCond %{QUERY_STRING} (union.*select|insert.*into|update.*set|delete.*from) [NC,OR]
+    RewriteCond %{QUERY_STRING} (base64_decode|eval\(|passwd|boot\.ini|/etc/shadow|/proc/self) [NC,OR]
+    RewriteCond %{QUERY_STRING} (<script>|javascript:|vbscript:|onload=|onerror=) [NC,OR]
+    RewriteCond %{QUERY_STRING} (\.\./|\.\.\\) [NC]
+    RewriteRule .* - [F,L]
 
-    # --- 2.6 Sitemap & PHP Handling (แก้ไขใหม่!) ---
-    
-    # (A) ถ้าเรียก sitemap.xml ให้เปลี่ยนไปรัน sitemap.php แทน
+    # ============================================================
+    # 3.3 BLOCK BAD BOTS & SCANNERS
+    # ============================================================
+    RewriteCond %{HTTP_USER_AGENT} ^(sqlmap|nikto|wpscan|python-requests|libwww-perl|masscan) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (havij|absinthe|netsparker|appscan|burp|acunetix|hydra|zgrab|fuzz|scanne) [NC]
+    RewriteRule .* - [F,L]
+
+    # ============================================================
+    # 3.4 SITEMAP HANDLING
+    # ============================================================
     RewriteRule ^sitemap\.xml$ sitemap.php [L]
-
-    # (B) บล็อกไฟล์ PHP ทั้งหมด *ยกเว้น* sitemap.php (Security หัวใจสำคัญ)
-    RewriteCond %{REQUEST_URI} !^/sitemap\.php$
-    RewriteRule \.php$ - [F,L]
-
 </IfModule>
 
 # ----------------------------------------------------------------------
-# | 3. IP BLACKLIST (รวมมิตรผู้รุกราน - อัปเดตล่าสุด)
+# | 4. IP FIREWALL (Network Level Blocking)
 # ----------------------------------------------------------------------
 <LimitExcept GET POST HEAD OPTIONS PUT DELETE PATCH>
     Require all denied
@@ -93,26 +102,39 @@
 <RequireAll>
     Require all granted
     
-    # --- Group 1: Google Cloud Scanners (Updated 2026-02-10) ---
-    Require not ip 8.34.210.41
-    Require not ip 8.34.210.44
-    Require not ip 8.34.210.55
-    Require not ip 34.68.34.95
-    Require not ip 34.68.34.83
+    # -------------------------------------------------------
+    # [ZONE 1] GOOGLE CLOUD SCANNERS (The GCP Gang)
+    # -------------------------------------------------------
+    # ใช้ Partial IP เพื่อความเสถียรสูงสุด (เทียบเท่า /24)
+    Require not ip 34.68.34
+    Require not ip 8.34.210
+    
+    # Specific IPs (เก็บตก)
+    Require not ip 34.68.34.84
     Require not ip 34.68.34.92
-    Require not ip 34.68.34.85
     Require not ip 34.68.34.73
 
-    # --- Group 2: Data Thieves & .env Hunters ---
+    # -------------------------------------------------------
+    # [ZONE 2] THE AWS BOTNET
+    # -------------------------------------------------------
+    # Block Subnets
+    Require not ip 34.19.116
+    Require not ip 34.19.127
+    
+    # Individual AWS Attackers
+    Require not ip 52.90.33.129
+    Require not ip 35.171.83.28
+    Require not ip 44.222.85.175
+    Require not ip 34.204.183.189
+
+    # -------------------------------------------------------
+    # [ZONE 3] GLOBAL THREATS
+    # -------------------------------------------------------
     Require not ip 206.238.73.183
     Require not ip 34.222.105.144
     Require not ip 54.85.158.54
-
-    # --- Group 3: The AWS Botnet Gang ---
-    Require not ip 34.19.116
-    Require not ip 34.19.127
-
-    # --- Group 4: Other Known Attackers ---
+    Require not ip 54.198.231.17
+    Require not ip 3.88.128.54
     Require not ip 54.155.140.84
     Require not ip 104.131.189.0
     Require not ip 213.108.0.73
@@ -123,35 +145,37 @@
     Require not ip 80.78.27.113
     Require not ip 39.194.1
     Require not ip 52.207.253.250
-    Require not ip 54.198.231.17
-    Require not ip 3.88.128.54
+    
+    # -------------------------------------------------------
+    # [ZONE 4] LOCAL THREATS (Thailand)
+    # -------------------------------------------------------
+    Require not ip 180.243.11.68
+    Require not ip 49.228.245.115
 </RequireAll>
 
 # ----------------------------------------------------------------------
-# | 4. FILE SYSTEM PROTECTION (Professional Grade)
+# | 5. FILE SYSTEM HARDENING
 # ----------------------------------------------------------------------
-Options -Indexes
-
-# Block all dot-files and directories (except .well-known)
+# ห้ามเข้าถึงไฟล์ . (Dotfiles) ยกเว้น .well-known
 <FilesMatch "^\.(?!well-known)">
     Require all denied
 </FilesMatch>
 
-# Block sensitive config and dependency files
-<FilesMatch "^(package\.json|package-lock\.json|yarn\.lock|\.env|\.env\..*|\.git.*|\.htpasswd|web\.config|phpinfo\.php|composer\.json|composer\.lock)$">
+# ห้ามเข้าถึงไฟล์ Config, Git และ Dependencies
+<FilesMatch "^(package\.json|package-lock\.json|yarn\.lock|\.env|\.env\..*|\.git.*|\.htpasswd|web\.config|phpinfo\.php|composer\.json|composer\.lock|Dockerfile|docker-compose\.yml)$">
     Require all denied
 </FilesMatch>
 
-# Block backup, log, and temporary files
+# ห้ามเข้าถึงไฟล์ Backup และ Log
 <FilesMatch "\.(bak|backup|log|sql|sqlite|old|orig|save|tmp|ps1|sh|yaml|yml|config|ini|rar|zip|tar|gz|7z)$">
     Require all denied
 </FilesMatch>
 
-# Prevent access to source code directories via direct URL
+# ป้องกัน Direct Access ไปยัง Folder Source Code
 RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg|\.bzr|\.vscode|\.idea)(?:/|$)
 
 # ----------------------------------------------------------------------
-# | 5. PERFORMANCE & CACHING
+# | 6. PERFORMANCE & COMPRESSION
 # ----------------------------------------------------------------------
 <IfModule mod_mime.c>
     AddType application/javascript js mjs
@@ -161,10 +185,17 @@ RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg
 </IfModule>
 
 <IfModule mod_headers.c>
-    <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$">
+    # Assets (Images, Fonts) - Cache 1 ปี
+    <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp|ico|woff|woff2|ttf|eot)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
     
+    # CSS/JS - Cache 1 ปี (Next.js มี Hashing ในชื่อไฟล์อยู่แล้ว ปลอดภัย)
+    <FilesMatch "\.(css|js|mjs)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    
+    # HTML/Dynamic Content - ห้าม Cache
     <FilesMatch "\.(html|htm)$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"
         Header set Pragma "no-cache"
@@ -175,8 +206,10 @@ RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE application/javascript
     AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/x-javascript
     AddOutputFilterByType DEFLATE text/css
     AddOutputFilterByType DEFLATE text/html
     AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/plain
     AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>

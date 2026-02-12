@@ -20,22 +20,18 @@ export default function Footer() {
             {/* Hospital Info */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <img src={logo} alt="Logo" className="w-12 h-12" />
+                {/* เพิ่ม alt text ที่ดีขึ้นสำหรับ SEO */}
+                <img src={logo} alt="โลโก้โรงพยาบาลปง จังหวัดพะเยา" className="w-12 h-12" />
                 <span className="text-lg font-bold text-slate-800">โรงพยาบาลปง</span>
               </div>
               <p className="text-slate-600 text-sm leading-relaxed font-medium">
                 มุ่งมั่นพัฒนาบริการสุขภาพที่มีคุณภาพ เพื่อประชาชนในอำเภอปงและพื้นที่ใกล้เคียง ด้วยทีมแพทย์และบุคลากรมืออาชีพ
               </p>
               <div className="flex gap-4 pt-2">
-                <a href="https://www.facebook.com/profile.php?id=100095603284237" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 transition-all duration-300 hover:scale-110 hover-glow">
+                <a href="https://www.facebook.com/profile.php?id=100095603284237" target="_blank" rel="noopener noreferrer" aria-label="Facebook โรงพยาบาลปง" className="text-blue-600 hover:text-blue-700 transition-all duration-300 hover:scale-110 hover-glow">
                   <i className="fa-brands fa-facebook fa-xl"></i>
                 </a>
-                <a href="#" className="text-green-500 hover:text-green-600 transition-all duration-300 hover:scale-110 hover-glow">
-                  <i className="fa-brands fa-line fa-xl"></i>
-                </a>
-                <a href="#" className="text-red-600 hover:text-red-700 transition-all duration-300 hover:scale-110 hover-glow">
-                  <i className="fa-brands fa-youtube fa-xl"></i>
-                </a>
+                {/* ลบ dead links (href="#") สำหรับ Line และ YouTube ออก — ไม่มี URL จริงให้ใช้ */}
               </div>
             </div>
 
@@ -45,7 +41,7 @@ export default function Footer() {
               <ul className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm text-slate-600 font-medium">
                 <li><Link to="/" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> หน้าหลัก</Link></li>
                 <li><Link to="/about" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> เกี่ยวกับเรา</Link></li>
-                <li><Link to="/executives" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> คณะผู้บริหาร</Link></li>
+                <li><Link to="/management" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> คณะผู้บริหาร</Link></li>
                 <li><Link to="/announcements" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> ข่าวสาร/ประกาศ</Link></li>
                 <li><Link to="/activities" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> กิจกรรม</Link></li>
                 <li><Link to="/pr-posters" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> โปสเตอร์ประชาสัมพันธ์</Link></li>

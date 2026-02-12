@@ -6,6 +6,7 @@ import { responsiveImageProps } from '../utils/image'
 // import { useHomepageRefresh } from '../contexts/useHomepageRefresh' // unused
 import { useSWR } from '../hooks/useSWR'
 import logo from '../assets/logo-150x150.png'
+import SEO from '../components/SEO'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -122,6 +123,11 @@ export default function ActivitiesListPage() {
 
   return (
     <div className="container-narrow py-8">
+      {/* SEO meta tags สำหรับหน้ากิจกรรม */}
+      <SEO
+        title="ภาพกิจกรรม"
+        description="ภาพกิจกรรมและข่าวสารกิจกรรมล่าสุดของโรงพยาบาลปง อำเภอปง จังหวัดพะเยา การบริการชุมชน และกิจกรรมส่งเสริมสุขภาพ"
+      />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">กิจกรรมทั้งหมด</h1>
       </div>

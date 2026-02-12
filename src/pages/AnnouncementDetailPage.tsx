@@ -4,6 +4,7 @@ import PdfViewer from '../components/PdfViewer'
 import { Link, useParams } from 'react-router-dom'
 import { shareItem } from '../utils/share'
 import { fastFetch } from '../utils/fastFetch'
+import SEO from '../components/SEO'
 
 type Attachment = { url: string; publicId?: string; kind?: 'image' | 'pdf' | 'file'; name?: string; bytes?: number }
 type Announcement = {
@@ -117,6 +118,11 @@ export default function AnnouncementDetailPage() {
 
   return (
     <div className="container-narrow py-8">
+      {/* SEO meta tags แบบ dynamic — ใช้ชื่อประกาศเป็น title */}
+      <SEO
+        title={item?.title || 'รายละเอียดประกาศ'}
+        description={item?.title ? `${item.title} - ข่าวสาร/ประกาศจากโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดข่าวสารและประกาศจากโรงพยาบาลปง จังหวัดพะเยา'}
+      />
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">รายละเอียดประกาศ</h1>
         <div className="flex items-center gap-3">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { sanitize } from '../utils/sanitize'
+import SEO from '../components/SEO'
 
 type ItaNode = {
   _id: number
@@ -42,6 +43,11 @@ export default function ItaPage() {
 
   return (
     <div className="container-narrow py-8">
+      {/* SEO meta tags สำหรับหน้า ITA */}
+      <SEO
+        title="ITA - การประเมินคุณธรรมและความโปร่งใส"
+        description="ข้อมูลการประเมินคุณธรรมและความโปร่งใส (ITA) ของโรงพยาบาลปง จังหวัดพะเยา ธรรมาภิบาล Integrity & Transparency"
+      />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">ITA</h1>
         <p className="text-gray-600 mt-2">ข้อมูลและเมนูธรรมาภิบาล (Integrity & Transparency)</p>

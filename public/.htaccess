@@ -4,7 +4,6 @@
 # ตั้งค่า MIME type สำหรับ sitemap.xml
 <Files "sitemap.xml">
     Header set Content-Type "application/xml; charset=UTF-8"
-    Header set X-Robots-Tag "noindex, follow"
 </Files>
 
 # ตั้งค่า MIME type สำหรับ robots.txt

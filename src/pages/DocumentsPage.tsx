@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { formatFileSize, getFileIcon, downloadDocument } from '../utils/documentHelpers'
 import Swal from 'sweetalert2'
+import SEO from '../components/SEO'
 
 interface Document {
     id: number
@@ -116,6 +117,11 @@ export default function DocumentsPage() {
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="container-narrow">
+                {/* SEO meta tags สำหรับหน้าเอกสารดาวน์โหลด */}
+                <SEO
+                    title="เอกสารดาวน์โหลด"
+                    description="ดาวน์โหลดเอกสาร แบบฟอร์ม ระเบียบ คำสั่ง และเอกสารราชการต่างๆ ของโรงพยาบาลปง จังหวัดพะเยา"
+                />
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">เอกสารดาวน์โหลด</h1>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { buildApiUrl } from '../utils/api'
+import SEO from '../components/SEO'
 
 type PRPoster = {
     _id: string | number
@@ -76,6 +77,11 @@ export default function PRPostersPage() {
     return (
         <div className="container-narrow py-8">
             <div className="space-y-8">
+                {/* SEO meta tags สำหรับหน้าโปสเตอร์ประชาสัมพันธ์ */}
+                <SEO
+                    title="โปสเตอร์ประชาสัมพันธ์"
+                    description="โปสเตอร์ประชาสัมพันธ์ ข่าวสาร และสื่อสุขภาพจากโรงพยาบาลปง จังหวัดพะเยา สำหรับประชาชนในพื้นที่"
+                />
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}

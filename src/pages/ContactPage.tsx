@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useToast } from '../contexts/ToastContext'
+import SEO from '../components/SEO'
 
 export default function ContactPage() {
   const { showToast } = useToast()
@@ -121,6 +122,11 @@ export default function ContactPage() {
 
   return (
     <div className="container-narrow py-10">
+      {/* SEO meta tags สำหรับหน้าติดต่อเรา */}
+      <SEO
+        title="ติดต่อเรา"
+        description="ข้อมูลการติดต่อโรงพยาบาลปง อ.ปง จ.พะเยา โทร 054-497030 บริการฉุกเฉิน 24 ชม. แผนที่ที่ตั้ง และแบบฟอร์มความคิดเห็น"
+      />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -223,9 +229,8 @@ export default function ContactPage() {
             <div className="mt-5">
               <div className="text-sm text-gray-600 mb-2">ช่องทางออนไลน์</div>
               <div className="flex flex-wrap gap-3">
-                <a href="https://www.facebook.com/profile.php?id=100095603284237" target="_blank" rel="noopener noreferrer" className="btn btn-outline" aria-label="Facebook โรงพยาบาล"><i className="fa-brands fa-facebook text-[#1877F2]" /> Facebook</a>
-                <a href="#" className="btn btn-outline" aria-label="Line โรงพยาบาล"><i className="fa-brands fa-line text-[#06C755]" /> Line</a>
-                <a href="#" className="btn btn-outline" aria-label="YouTube โรงพยาบาล"><i className="fa-brands fa-youtube text-[#FF0000]" /> YouTube</a>
+                <a href="https://www.facebook.com/profile.php?id=100095603284237" target="_blank" rel="noopener noreferrer" className="btn btn-outline" aria-label="Facebook โรงพยาบาลปง"><i className="fa-brands fa-facebook text-[#1877F2]" /> Facebook</a>
+                {/* ลบ Line/YouTube dead links ออก — ไม่มี URL จริง */}
               </div>
             </div>
           </div>

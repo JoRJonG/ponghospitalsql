@@ -46,8 +46,6 @@ function ScrollToTopWrapper() {
   return null
 }
 
-import SEO from './components/SEO'
-
 function VisitorTrackingBeacon() {
   const location = useLocation()
 
@@ -95,7 +93,6 @@ function App() {
             <BrowserRouter>
               <ScrollToTopWrapper />
               <VisitorTrackingBeacon />
-              <SEO />
               <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50">
                 <Navbar />
                 <main className="flex-1">

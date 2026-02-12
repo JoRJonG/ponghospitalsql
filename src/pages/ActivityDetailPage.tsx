@@ -4,6 +4,7 @@ import { shareItem } from '../utils/share'
 import { sanitize } from '../utils/sanitize'
 import { fastFetch } from '../utils/fastFetch'
 import { responsiveImageProps } from '../utils/image'
+import SEO from '../components/SEO'
 
 type Activity = {
   _id: string
@@ -78,6 +79,11 @@ export default function ActivityDetailPage() {
 
   return (
     <div className="container-narrow py-8">
+      {/* SEO meta tags แบบ dynamic — ใช้ชื่อกิจกรรมเป็น title */}
+      <SEO
+        title={item?.title || 'รายละเอียดกิจกรรม'}
+        description={item?.title ? `${item.title} - กิจกรรมของโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดกิจกรรมของโรงพยาบาลปง อำเภอปง จังหวัดพะเยา'}
+      />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">รายละเอียดกิจกรรม</h1>
         <div className="flex items-center gap-3">

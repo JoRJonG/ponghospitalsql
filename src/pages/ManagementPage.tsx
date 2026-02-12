@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import SEO from '../components/SEO'
 
 type Manager = {
   _id?: string
@@ -200,6 +201,11 @@ export default function ManagementPage() {
 
   return (
     <div className="container-narrow py-12">
+      {/* SEO meta tags สำหรับหน้าคณะผู้บริหาร */}
+      <SEO
+        title="คณะผู้บริหาร"
+        description="คณะผู้บริหารโรงพยาบาลปง ผู้อำนวยการ และทีมบริหารที่มุ่งมั่นพัฒนาบริการสุขภาพเพื่อประชาชนอำเภอปง จังหวัดพะเยา"
+      />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

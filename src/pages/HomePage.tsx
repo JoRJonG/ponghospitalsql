@@ -6,6 +6,7 @@ import PRPoster from '../components/PRPoster'
 import UnitLinks from '../components/UnitLinks'
 import { useRef } from 'react'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
+import SEO from '../components/SEO'
 
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)
@@ -46,6 +47,8 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen bg-slate-50">
+      {/* SEO meta tags สำหรับหน้าแรก — ใช้ชื่อ site เป็น title หลัก */}
+      <SEO description="โรงพยาบาลปง จังหวัดพะเยา ให้บริการด้านสุขภาพครบวงจร ตรวจรักษาทั่วไป ฉุกเฉิน 24 ชม. ข่าวสาร กิจกรรม และประกาศจัดซื้อจัดจ้าง" />
       <div className={`transform transition-all duration-700 ease-out ${mounted ? 'animate-fade-in' : 'opacity-0 translate-y-4'}`}>
         <HeroSlider />
       </div>

@@ -2,6 +2,7 @@
 import { NavLink, Routes, Route, Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useState, useCallback } from 'react'
 import { useSWR } from '../hooks/useSWR'
+import SEO from '../components/SEO'
 
 
 
@@ -330,6 +331,11 @@ export default function AnnouncementsPage() {
   useEffect(() => { setMounted(true) }, [])
   return (
     <div className="relative min-h-screen">
+      {/* SEO meta tags สำหรับหน้าข่าวสาร/ประกาศ */}
+      <SEO
+        title="ข่าวสาร/ประกาศ"
+        description="ข่าวสาร ประกาศรับสมัครงาน ประชาสัมพันธ์ และประกาศจัดซื้อจัดจ้างของโรงพยาบาลปง จังหวัดพะเยา อัปเดตล่าสุด"
+      />
       <div
         className={`container-narrow py-8 transform transition-all duration-500 ease-out will-change-auto ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
           }`}

@@ -3,6 +3,7 @@ import { NavLink, Routes, Route } from 'react-router-dom'
 import InfographicPage from './InfographicPage'
 import OrganizationChartPage from './OrganizationChartPage'
 import PRPlanPage from './PRPlanPage'
+import SEO from '../components/SEO'
 
 function AboutContent() {
   return (
@@ -446,6 +447,11 @@ function AboutContent() {
 export default function AboutPage() {
   return (
     <div className="container-narrow py-8">
+      {/* SEO meta tags สำหรับหน้าเกี่ยวกับเรา */}
+      <SEO
+        title="เกี่ยวกับเรา"
+        description="ข้อมูลเกี่ยวกับโรงพยาบาลปง ประวัติ วิสัยทัศน์ พันธกิจ ค่านิยมองค์กร โครงสร้างองค์กร และอินโฟกราฟิก โรงพยาบาลปง อำเภอปง จังหวัดพะเยา"
+      />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
