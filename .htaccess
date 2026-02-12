@@ -15,6 +15,10 @@ ServerSignature Off
 # ตั้งค่า Encoding พื้นฐาน
 AddDefaultCharset UTF-8
 
+# Redirect sitemap.xml → sitemap.php (Apache core level - ทำงานก่อน mod_rewrite และ Passenger)
+# ใช้ Redirect แทน RewriteRule เพราะ Passenger อาจจับ request ก่อน mod_rewrite ทำงาน
+Redirect 301 /sitemap.xml /sitemap.php
+
 # ----------------------------------------------------------------------
 # | 2. SECURITY HEADERS (Browser Hardening)
 # ----------------------------------------------------------------------
@@ -56,6 +60,13 @@ AddDefaultCharset UTF-8
     RewriteEngine On
 
     # ============================================================
+    # 3.0 SITEMAP HANDLING (ต้องอยู่ก่อนสุด!)
+    # ============================================================
+    # Redirect sitemap.xml → sitemap.php ก่อนที่ Passenger/Node.js จะจับ request
+    # ถ้าไม่ redirect ก่อน Node.js จะส่ง SPA HTML กลับแทน XML จริง
+    RewriteRule ^sitemap\.xml$ /sitemap.php [R=301,L]
+
+    # ============================================================
     # 3.1 KILL SWITCH: BLOCK PHP ON NODE.JS (CRITICAL)
     # ============================================================
     # กฎนี้จะทำงานก่อนส่ง Request ไป Node.js แก้ปัญหา 200 OK หลอกๆ
@@ -85,13 +96,6 @@ AddDefaultCharset UTF-8
     RewriteCond %{HTTP_USER_AGENT} ^(sqlmap|nikto|wpscan|python-requests|libwww-perl|masscan) [NC,OR]
     RewriteCond %{HTTP_USER_AGENT} (havij|absinthe|netsparker|appscan|burp|acunetix|hydra|zgrab|fuzz|scanne) [NC]
     RewriteRule .* - [F,L]
-
-    # ============================================================
-    # 3.4 SITEMAP HANDLING
-    # ============================================================
-    # เปลี่ยนจาก internal rewrite เป็น 301 redirect
-    # เพราะ internal rewrite ไม่ทำงานบน Node.js/Passenger ทำให้ Google ดึง sitemap.xml ไม่ได้
-    RewriteRule ^sitemap\.xml$ /sitemap.php [R=301,L]
 </IfModule>
 
 # ----------------------------------------------------------------------
