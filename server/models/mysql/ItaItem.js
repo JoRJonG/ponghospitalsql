@@ -132,16 +132,44 @@ async function ensurePdfTable() {
 }
 
 export class ItaItem {
-  static async findAll({ includeUnpublished = false } = {}) {
+  static async findAll({ includeUnpublished = false, excludeContent = false } = {}) {
     await ensureTable()
     const where = includeUnpublished ? '' : 'WHERE is_published = 1'
-    const rows = await query(`SELECT id, parent_id, title, slug, content, pdf_url, display_order, is_published, created_at, updated_at FROM ita_items ${where} ORDER BY parent_id ASC, display_order ASC, id ASC`)
+    const columns = excludeContent
+      ? 'id, parent_id, title, slug, pdf_url, display_order, is_published, created_at, updated_at'
+      : 'id, parent_id, title, slug, content, pdf_url, display_order, is_published, created_at, updated_at'
+
+    const rows = await query(`SELECT ${columns} FROM ita_items ${where} ORDER BY parent_id ASC, display_order ASC, id ASC`)
     return rows.map(r => ({
       _id: r.id,
       parentId: r.parent_id,
       title: r.title,
       slug: r.slug,
-      content: r.content,
+      content: r.content, // undefined if excluded
+      pdfUrl: r.pdf_url,
+      order: r.display_order,
+      isPublished: !!r.is_published,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    }))
+  }
+
+  static async findByParentId(parentId, { includeUnpublished = false } = {}) {
+    await ensureTable()
+    let sql = 'SELECT id, parent_id, title, slug, pdf_url, display_order, is_published, created_at, updated_at FROM ita_items WHERE parent_id <=> ?'
+    const params = [parentId]
+    if (!includeUnpublished) {
+      sql += ' AND is_published = 1'
+    }
+    sql += ' ORDER BY display_order ASC, id ASC'
+
+    const rows = await query(sql, params)
+    return rows.map(r => ({
+      _id: r.id,
+      parentId: r.parent_id,
+      title: r.title,
+      slug: r.slug,
+      // content is intentionally omitted for list views to save bandwidth/memory
       pdfUrl: r.pdf_url,
       order: r.display_order,
       isPublished: !!r.is_published,
@@ -150,7 +178,7 @@ export class ItaItem {
     }))
   }
   static async findTree({ includeUnpublished = false } = {}) {
-    const flat = await this.findAll({ includeUnpublished })
+    const flat = await this.findAll({ includeUnpublished, excludeContent: true })
     const byId = new Map(flat.map(i => [i._id, { ...i, children: [] }]))
     const roots = []
     for (const item of byId.values()) {

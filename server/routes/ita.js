@@ -42,8 +42,11 @@ router.get('/item/:id', optionalAuth, microCache(10_000), async (req, res) => {
     const item = await ItaItem.findById(id)
     if (!item) return res.status(404).json({ error: 'Not found' })
     if (!includeUnpublished && item.isPublished === false) return res.status(404).json({ error: 'Not found' })
-    const all = await ItaItem.findAll({ includeUnpublished })
-    const children = all.filter(r => r.parentId === id && (includeUnpublished || r.isPublished))
+    // const all = await ItaItem.findAll({ includeUnpublished })
+    // const children = all.filter(r => r.parentId === id && (includeUnpublished || r.isPublished))
+
+    // Optimized: Fetch only children from DB
+    const children = await ItaItem.findByParentId(id, { includeUnpublished })
     const pdfs = await listItemPdfs(id)
     res.json({ item, children, pdfs })
   } catch (e) {

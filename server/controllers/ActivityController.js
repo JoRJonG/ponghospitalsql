@@ -36,7 +36,8 @@ export const ActivityController = {
             const pageNum = Math.max(1, parseInt(page) || 1)
             const limitVal = Math.min(parseInt(limit) || 0, 100)
             const options = {
-                sort: { publishedAt: -1, updatedAt: -1, createdAt: -1, date: -1 }
+                sort: { publishedAt: -1, updatedAt: -1, createdAt: -1, date: -1 },
+                excludeContent: true // Optimized: Don't load full content for list views
             }
 
             if (sort === 'oldest') {

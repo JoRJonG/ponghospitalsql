@@ -34,7 +34,7 @@ export const ItaController = {
 
             // If no limit, use existing findAll behavior
             if (limitVal === 0) {
-                const all = await ItaItem.findAll({ includeUnpublished })
+                const all = await ItaItem.findAll({ includeUnpublished, excludeContent: true })
                 return res.json(all)
             }
 
@@ -45,7 +45,8 @@ export const ItaController = {
             // Let's assume for now we use the findAll and slice if the model doesn't support pagination, 
             // OR better, we check ItaItem.js content. I know from context it has findAll.
 
-            const all = await ItaItem.findAll({ includeUnpublished })
+            // Optimize: Exclude content for list views
+            const all = await ItaItem.findAll({ includeUnpublished, excludeContent: true })
             const total = all.length
             const start = (pageNum - 1) * limitVal
             const end = start + limitVal

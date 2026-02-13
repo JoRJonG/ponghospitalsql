@@ -143,6 +143,7 @@ export class Activity {
   static async _executeFind(filter = {}, options = {}, sortOptions = null) {
     await ensureSchema()
     const { whereClause, params } = this._buildWhereClause(filter)
+    const excludeContent = options.excludeContent === true
 
     let orderClause = 'ORDER BY published_at DESC'
     if (sortOptions) {
@@ -182,9 +183,12 @@ export class Activity {
       }
     }
 
+    const columns = excludeContent
+      ? 'id as _id, title, date, published_at, is_published, created_by, updated_by, created_at, updated_at, view_count'
+      : 'id as _id, title, description, date, published_at, is_published, created_by, updated_by, created_at, updated_at, view_count'
+
     const rows = await query(`
-      SELECT id as _id, title, description, date, published_at, is_published, 
-             created_by, updated_by, created_at, updated_at, view_count
+      SELECT ${columns}
       FROM activities
       ${whereClause}
       ${orderClause}

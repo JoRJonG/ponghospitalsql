@@ -26,8 +26,12 @@ class PRPlan {
     }
 
     // ดึงรายการ PR Plans ทั้งหมด (พร้อม Pagination & Search)
-    static async findAll({ isPublished, page, limit, search } = {}) {
-        let query = 'SELECT id, title, description, file_name, mime_type, file_size, download_count, is_published, display_order, created_by, created_at, updated_at FROM pr_plans WHERE 1=1'
+    static async findAll({ isPublished, page, limit, search, excludeContent = false } = {}) {
+        const columns = excludeContent
+            ? 'id, title, file_name, mime_type, file_size, download_count, is_published, display_order, created_by, created_at, updated_at'
+            : 'id, title, description, file_name, mime_type, file_size, download_count, is_published, display_order, created_by, created_at, updated_at'
+
+        let query = `SELECT ${columns} FROM pr_plans WHERE 1=1`
         const params = []
 
         if (isPublished !== undefined) {

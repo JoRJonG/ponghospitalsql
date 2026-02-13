@@ -72,7 +72,9 @@ router.get('/', optionalAuth, async (req, res) => {
             search,
             page: pageNum,
             limit: limitNum,
-            isPublished: isPublishedFilter
+            limit: limitNum,
+            isPublished: isPublishedFilter,
+            excludeContent: true // Optimized: Don't load full description for list views
         }
 
         const [plans, total] = await Promise.all([
