@@ -21,7 +21,7 @@ function useReveal<T extends HTMLElement>() {
         }
       })
     }, { threshold: 0.1 })
-    el.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-700', 'ease-out')
+    el.classList.add('opacity-0', 'translate-y-4', 'transition-[opacity,transform]', 'duration-700', 'ease-out')
     obs.observe(el)
 
     // Fallback: show element after 1 second if not yet revealed

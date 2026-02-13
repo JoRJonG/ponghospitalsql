@@ -94,14 +94,7 @@ function App() {
               <ScrollToTopWrapper />
               <VisitorTrackingBeacon />
               <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50 overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
-                {/* Organic Background Blobs */}
-                <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-                  <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-emerald-200/20 rounded-full blur-[100px] opacity-60 animate-blob mix-blend-multiply"></div>
-                  <div className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-200/20 rounded-full blur-[100px] opacity-60 animate-blob animation-delay-2000 mix-blend-multiply"></div>
-                  <div className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] bg-amber-100/40 rounded-full blur-[100px] opacity-60 animate-blob animation-delay-4000 mix-blend-multiply"></div>
-                </div>
-
-                <div className="relative z-10 flex flex-col min-h-screen">
+                <div className="flex flex-col min-h-screen">
                   <Navbar />
                   <main className="flex-1">
                     <div className="app-container py-0">

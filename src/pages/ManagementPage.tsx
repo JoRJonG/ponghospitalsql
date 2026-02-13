@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import SEO from '../components/SEO'
+import PageHeader from '../components/PageHeader'
 
 type Manager = {
   _id?: string
@@ -200,56 +201,49 @@ export default function ManagementPage() {
   const [director, ...others] = managers
 
   return (
-    <div className="container-narrow py-12">
-      {/* SEO meta tags สำหรับหน้าคณะผู้บริหาร */}
-      <SEO
-        title="คณะผู้บริหาร"
-        description="คณะผู้บริหารโรงพยาบาลปง ผู้อำนวยการ และทีมบริหารที่มุ่งมั่นพัฒนาบริการสุขภาพเพื่อประชาชนอำเภอปง จังหวัดพะเยา"
-      />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
-      >
-        <h1 className="text-2xl font-extrabold text-emerald-800 mb-2">
-          โครงสร้างผู้บริหารโรงพยาบาลปง
-        </h1>
-      </motion.div>
+    <div className="page-wrapper">
+      <div className="container-narrow py-12">
+        {/* SEO meta tags สำหรับหน้าคณะผู้บริหาร */}
+        <SEO
+          title="คณะผู้บริหาร"
+          description="คณะผู้บริหารโรงพยาบาลปง ผู้อำนวยการ และทีมบริหารที่มุ่งมั่นพัฒนาบริการสุขภาพเพื่อประชาชนอำเภอปง จังหวัดพะเยา"
+        />
+        <PageHeader title="โครงสร้างผู้บริหารโรงพยาบาลปง" center />
 
-      {/* Director Section */}
-      {director && (
-        <div className="mb-16 relative">
-          <DirectorCard m={director} />
-          {/* Connector Line Down (Desktop Only) */}
-          {others.length > 0 && (
-            <div className="hidden lg:block absolute -bottom-8 left-1/2 -translate-x-1/2 w-0.5 h-10 bg-emerald-300"></div>
-          )}
-        </div>
-      )}
+        {/* Director Section */}
+        {director && (
+          <div className="mb-16 relative">
+            <DirectorCard m={director} />
+            {/* Connector Line Down (Desktop Only) */}
+            {others.length > 0 && (
+              <div className="hidden lg:block absolute -bottom-8 left-1/2 -translate-x-1/2 w-0.5 h-10 bg-emerald-300"></div>
+            )}
+          </div>
+        )}
 
-      {/* Other Executives Grid */}
-      {others.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-y-12 relative">
-          {others.map((m, i) => (
-            <ExecutiveCard key={m._id || i} m={m} index={i} total={others.length} />
-          ))}
-        </div>
-      )}
+        {/* Other Executives Grid */}
+        {others.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-y-12 relative">
+            {others.map((m, i) => (
+              <ExecutiveCard key={m._id || i} m={m} index={i} total={others.length} />
+            ))}
+          </div>
+        )}
 
-      {/* Empty State */}
-      {others.length === 0 && !loading && !director && (
-        <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
-          <i className="fa-regular fa-id-card text-4xl text-gray-300 mb-4"></i>
-          <p className="text-gray-500">ยังไม่มีข้อมูลผู้บริหาร</p>
-        </div>
-      )}
+        {/* Empty State */}
+        {others.length === 0 && !loading && !director && (
+          <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+            <i className="fa-regular fa-id-card text-4xl text-gray-300 mb-4"></i>
+            <p className="text-gray-500">ยังไม่มีข้อมูลผู้บริหาร</p>
+          </div>
+        )}
 
-      {loading && (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-        </div>
-      )}
+        {loading && (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

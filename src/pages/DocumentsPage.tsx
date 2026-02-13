@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { formatFileSize, getFileIcon, downloadDocument } from '../utils/documentHelpers'
 import Swal from 'sweetalert2'
 import SEO from '../components/SEO'
+import PageHeader from '../components/PageHeader'
+import SearchFilterBar from '../components/SearchFilterBar'
+import Pagination from '../components/Pagination'
 
 interface Document {
     id: number
@@ -115,51 +118,38 @@ export default function DocumentsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="container-narrow">
+        <div className="page-wrapper">
+            <div className="container-narrow py-8">
                 {/* SEO meta tags สำหรับหน้าเอกสารดาวน์โหลด */}
                 <SEO
                     title="เอกสารดาวน์โหลด"
                     description="ดาวน์โหลดเอกสาร แบบฟอร์ม ระเบียบ คำสั่ง และเอกสารราชการต่างๆ ของโรงพยาบาลปง จังหวัดพะเยา"
                 />
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">เอกสารดาวน์โหลด</h1>
-                    <p className="text-gray-600">เอกสารและแบบฟอร์มต่างๆ ของโรงพยาบาลปง</p>
-                </div>
+                <PageHeader title="เอกสารดาวน์โหลด" subtitle="เอกสารและแบบฟอร์มต่างๆ ของโรงพยาบาลปง" />
 
-                {/* Search and Tabs Container */}
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                    {/* Search */}
-                    <div className="mb-6">
-                        <div className="relative">
-                            <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input
-                                type="text"
-                                placeholder="ค้นหาชื่อเอกสาร หรือคำอธิบาย..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                            />
-                        </div>
-                    </div>
+                {/* Search and Category Tabs */}
+                <SearchFilterBar
+                    searchValue={searchQuery}
+                    onSearchChange={(e) => setSearchQuery(e.target.value)}
+                    searchPlaceholder="ค้นหาชื่อเอกสาร หรือคำอธิบาย..."
+                    summary={!loading && totalItems > 0 ? <>พบ {totalItems} เอกสาร</> : undefined}
+                />
 
-                    {/* Category Tabs */}
-                    <div className="flex overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
-                        <div className="flex gap-2">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => handleCategoryChange(cat)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat
-                                        ? 'bg-green-600 text-white shadow-md transform scale-105'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
+                {/* Category Tabs */}
+                <div className="flex overflow-x-auto pb-2 mb-6 scrollbar-hide">
+                    <div className="flex gap-2">
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => handleCategoryChange(cat)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${selectedCategory === cat
+                                    ? 'bg-emerald-600 text-white shadow-md'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -179,7 +169,7 @@ export default function DocumentsPage() {
                 ) : (
                     <div className="space-y-4">
                         {documents.map(doc => (
-                            <div key={doc.id} className="bg-white rounded-lg shadow-sm p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border hover:border-emerald-100">
+                            <div key={doc.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-emerald-200">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-4">
                                         <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
@@ -232,60 +222,16 @@ export default function DocumentsPage() {
                     </div>
                 )}
 
-                {/* Pagination Controls */}
-                {!loading && totalPages > 1 && (
-                    <div className="mt-8 flex justify-center items-center gap-2">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <i className="fa-solid fa-chevron-left"></i>
-                        </button>
-
-                        <div className="flex items-center gap-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let pageNum = currentPage;
-                                if (totalPages <= 5) {
-                                    pageNum = i + 1;
-                                } else if (currentPage <= 3) {
-                                    pageNum = i + 1;
-                                } else if (currentPage >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i;
-                                } else {
-                                    pageNum = currentPage - 2 + i;
-                                }
-
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => setCurrentPage(pageNum)}
-                                        className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-all ${currentPage === pageNum
-                                            ? 'bg-green-600 text-white shadow-md'
-                                            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <i className="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                )}
-
-                {/* Footer Info */}
+                {/* Pagination */}
                 {!loading && totalItems > 0 && (
-                    <div className="text-center mt-4 text-sm text-gray-500">
-                        แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} จากทั้งหมด {totalItems} รายการ
-                    </div>
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalItems}
+                        pageSize={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        itemLabel="เอกสาร"
+                    />
                 )}
             </div>
         </div>

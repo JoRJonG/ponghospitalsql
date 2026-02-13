@@ -58,6 +58,7 @@
 
   .animate-blob {
     animation: blob 7s infinite;
+    will-change: transform;
   }
 
   .animation-delay-2000 {
@@ -332,6 +333,13 @@ html.grayscale-mode {
   .container-narrow {
     max-width: 1420px;
   }
+}
+
+/* Standard Page Wrapper — consistent background across all pages */
+.page-wrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  /* slate-50 */
 }
 
 /* Professional Button System */
@@ -659,6 +667,7 @@ a:focus-visible {
   border-radius: 1rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   padding: 2rem;
+  contain: layout style paint;
 }
 
 /* Professional Animations and Micro-interactions */
@@ -1187,38 +1196,7 @@ textarea {
   z-index: 100000 !important;
 }
 
-/* Blob Animation for Error Pages */
-@keyframes blob {
-
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  25% {
-    transform: translate(20px, -50px) scale(1.1);
-  }
-
-  50% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-
-  75% {
-    transform: translate(50px, 50px) scale(1.05);
-  }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
+/* (Removed duplicate blob keyframes — defined in @layer utilities above) */
 
 /* 
    Quill Editor Compatibility Fixes 
@@ -1488,4 +1466,25 @@ textarea {
 
 .decorative-blob-amber {
   background: radial-gradient(circle, var(--hospital-accent) 0%, transparent 70%);
+}
+
+/* Respect user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-blob,
+  .animate-float-20,
+  .animate-float-25-reverse,
+  .animate-float-30,
+  .animate-float-22,
+  .animate-pulse,
+  .dot-pulse__ping {
+    animation: none !important;
+  }
+
+  .hover-lift:hover,
+  .hover-lift-subtle:hover,
+  .hover-scale:hover,
+  .hover-scale-subtle:hover {
+    transform: none !important;
+  }
 }

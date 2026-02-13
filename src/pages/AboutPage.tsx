@@ -4,6 +4,7 @@ import InfographicPage from './InfographicPage'
 import OrganizationChartPage from './OrganizationChartPage'
 import PRPlanPage from './PRPlanPage'
 import SEO from '../components/SEO'
+import PageHeader from '../components/PageHeader'
 
 function AboutContent() {
   return (
@@ -446,86 +447,80 @@ function AboutContent() {
 
 export default function AboutPage() {
   return (
-    <div className="container-narrow py-8">
-      {/* SEO meta tags สำหรับหน้าเกี่ยวกับเรา */}
-      <SEO
-        title="เกี่ยวกับเรา"
-        description="ข้อมูลเกี่ยวกับโรงพยาบาลปง ประวัติ วิสัยทัศน์ พันธกิจ ค่านิยมองค์กร โครงสร้างองค์กร และอินโฟกราฟิก โรงพยาบาลปง อำเภอปง จังหวัดพะเยา"
-      />
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-6"
-      >
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">เกี่ยวกับเรา</h1>
-      </motion.div>
+    <div className="page-wrapper">
+      <div className="container-narrow py-8">
+        {/* SEO meta tags สำหรับหน้าเกี่ยวกับเรา */}
+        <SEO
+          title="เกี่ยวกับเรา"
+          description="ข้อมูลเกี่ยวกับโรงพยาบาลปง ประวัติ วิสัยทัศน์ พันธกิจ ค่านิยมองค์กร โครงสร้างองค์กร และอินโฟกราฟิก โรงพยาบาลปง อำเภอปง จังหวัดพะเยา"
+        />
+        <PageHeader title="เกี่ยวกับเรา" />
 
-      {/* Sub Navigation */}
-      <div className="mb-6">
-        <div className="relative rounded-2xl border border-emerald-100 bg-white/90 backdrop-blur-md shadow-md shadow-emerald-500/5">
-          <div className="flex flex-wrap gap-2 px-3 py-3 text-sm">
-            <NavLink
-              to="/about"
-              end
-              className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                }`
-              }
-            >
-              <i className="fa-solid fa-info-circle" aria-hidden="true" />
-              ข้อมูลทั่วไป
-            </NavLink>
-            <NavLink
-              to="/about/infographic"
-              className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                }`
-              }
-            >
-              <i className="fa-solid fa-chart-bar" aria-hidden="true" />
-              Infographic
-            </NavLink>
-            <NavLink
-              to="/about/organization"
-              className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                }`
-              }
-            >
-              <i className="fa-solid fa-sitemap" aria-hidden="true" />
-              โครงสร้างองค์กร
-            </NavLink>
-            <NavLink
-              to="/about/pr-plan"
-              className={({ isActive }) =>
-                `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                }`
-              }
-            >
-              <i className="fa-solid fa-shield-halved" aria-hidden="true" />
-              แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ
-            </NavLink>
+        {/* Sub Navigation */}
+        <div className="mb-6">
+          <div className="relative rounded-2xl border border-emerald-100 bg-white/90 backdrop-blur-md shadow-md shadow-emerald-500/5">
+            <div className="flex flex-wrap gap-2 px-3 py-3 text-sm">
+              <NavLink
+                to="/about"
+                end
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-info-circle" aria-hidden="true" />
+                ข้อมูลทั่วไป
+              </NavLink>
+              <NavLink
+                to="/about/infographic"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-chart-bar" aria-hidden="true" />
+                Infographic
+              </NavLink>
+              <NavLink
+                to="/about/organization"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-sitemap" aria-hidden="true" />
+                โครงสร้างองค์กร
+              </NavLink>
+              <NavLink
+                to="/about/pr-plan"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-shield-halved" aria-hidden="true" />
+                แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ
+              </NavLink>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Routes */}
-      <Routes>
-        <Route index element={<AboutContent />} />
-        <Route path="infographic" element={<InfographicPage />} />
-        <Route path="organization" element={<OrganizationChartPage />} />
-        <Route path="pr-plan" element={<PRPlanPage />} />
-      </Routes>
+        {/* Routes */}
+        <Routes>
+          <Route index element={<AboutContent />} />
+          <Route path="infographic" element={<InfographicPage />} />
+          <Route path="organization" element={<OrganizationChartPage />} />
+          <Route path="pr-plan" element={<PRPlanPage />} />
+        </Routes>
+      </div>
     </div>
   )
 }

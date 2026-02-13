@@ -3,6 +3,9 @@ import { NavLink, Routes, Route, Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useState, useCallback } from 'react'
 import { useSWR } from '../hooks/useSWR'
 import SEO from '../components/SEO'
+import PageHeader from '../components/PageHeader'
+import SearchFilterBar from '../components/SearchFilterBar'
+import Pagination from '../components/Pagination'
 
 
 
@@ -190,62 +193,49 @@ function List({ category }: { category?: Announcement['category'] }) {
   return (
     <div className="space-y-4">
       {/* Search and Filter Controls */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-white/20 p-4 mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="ค้นหาประกาศ..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
-            />
-          </div>
-
-          {/* Category Filter - Only enabled on the 'All' tab */}
-          <div className="sm:w-48">
-            <select
-              value={isCategoryRoute ? category : urlCategory}
-              onChange={handleCategoryChange}
-              disabled={isCategoryRoute}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent ${isCategoryRoute ? 'bg-gray-100 text-gray-500' : ''}`}
-            >
-              <option value="all">ทุกหมวดหมู่</option>
-              <option value="ประชาสัมพันธ์">ประชาสัมพันธ์</option>
-              <option value="ประกาศ">ประกาศ</option>
-              <option value="ประกาศจัดซื้อจัดจ้าง">ประกาศจัดซื้อจัดจ้าง</option>
-              <option value="สมัครงาน">สมัครงาน</option>
-            </select>
-          </div>
-
-          {/* Sort Options */}
-          <div className="sm:w-32">
-            <select
-              value={sortBy}
-              onChange={handleSortChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
-            >
-              <option value="newest">ใหม่ล่าสุด</option>
-              <option value="oldest">เก่าที่สุด</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Results Summary */}
-        {!loading && (
-          <div className="text-sm text-gray-600">
-            พบ {totalCount} รายการ {searchQuery && `สำหรับ "${searchQuery}"`}
-          </div>
-        )}
-      </div>
+      <SearchFilterBar
+        searchValue={searchQuery}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="ค้นหาประกาศ..."
+        filters={
+          <>
+            {/* Category Filter */}
+            <div className="sm:w-48">
+              <select
+                value={isCategoryRoute ? category : urlCategory}
+                onChange={handleCategoryChange}
+                disabled={isCategoryRoute}
+                className={`w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm ${isCategoryRoute ? 'bg-gray-100 text-gray-500' : ''}`}
+              >
+                <option value="all">ทุกหมวดหมู่</option>
+                <option value="ประชาสัมพันธ์">ประชาสัมพันธ์</option>
+                <option value="ประกาศ">ประกาศ</option>
+                <option value="ประกาศจัดซื้อจัดจ้าง">ประกาศจัดซื้อจัดจ้าง</option>
+                <option value="สมัครงาน">สมัครงาน</option>
+              </select>
+            </div>
+            {/* Sort */}
+            <div className="sm:w-32">
+              <select
+                value={sortBy}
+                onChange={handleSortChange}
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+              >
+                <option value="newest">ใหม่ล่าสุด</option>
+                <option value="oldest">เก่าที่สุด</option>
+              </select>
+            </div>
+          </>
+        }
+        summary={!loading ? <>พบ {totalCount} รายการ {searchQuery && `สำหรับ "${searchQuery}"`}</> : undefined}
+      />
 
       {/* Announcements List */}
       <div className="space-y-3">
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-sm overflow-hidden animate-pulse">
+              <div key={i} className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden animate-pulse p-4">
                 <div className="h-3 w-40 bg-gray-200 rounded mb-3" />
                 <div className="h-4 w-3/4 bg-gray-200 rounded mb-2" />
                 <div className="h-4 w-1/2 bg-gray-200 rounded" />
@@ -254,7 +244,7 @@ function List({ category }: { category?: Announcement['category'] }) {
           </div>
         )}
         {!loading && error && (
-          <div className="border border-red-200 bg-red-50/80 backdrop-blur-sm text-red-700 rounded-lg p-3">
+          <div className="border border-red-200 bg-red-50/80 backdrop-blur-sm text-red-700 rounded-xl p-4">
             {error}
           </div>
         )}
@@ -263,8 +253,8 @@ function List({ category }: { category?: Announcement['category'] }) {
             to={`/announcement/${a._id}`}
             key={a._id}
             className={
-              `block bg-white p-4 rounded-lg shadow-sm border border-slate-100 transition-all duration-300 font-medium duration-300 group relative overflow-hidden ` +
-              `hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-50/30 hover:to-emerald-50/30 hover:shadow-xl hover:-translate-y-1`
+              `block bg-white p-4 rounded-xl shadow-sm border border-gray-100 transition-[transform,box-shadow] duration-300 group relative overflow-hidden ` +
+              `hover:border-emerald-400 hover:shadow-lg hover:-translate-y-1`
             }
           >
             <div className="card-body">
@@ -296,53 +286,31 @@ function List({ category }: { category?: Announcement['category'] }) {
         ))}
         {!loading && !error && items.length === 0 ? <div className="text-gray-500 text-center py-8">ไม่พบประกาศ</div> : null}
 
-        {!loading && !error && totalCount > 0 ? (
-          <div className="flex items-center justify-between pt-4 border-t border-white/30">
-            <div className="text-sm text-gray-600">
-              แสดง {((page - 1) * pageSize) + 1}-{Math.min(page * pageSize, totalCount)} จาก {totalCount} รายการ (หน้า {page} จาก {totalPages})
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="btn btn-outline"
-                onClick={() => gotoPage(page - 1)}
-                disabled={page <= 1}
-                aria-label="หน้าก่อนหน้า"
-              >
-                ก่อนหน้า
-              </button>
-              <button
-                className="btn btn-outline"
-                onClick={() => gotoPage(page + 1)}
-                disabled={page >= totalPages}
-                aria-label="หน้าถัดไป"
-              >
-                ถัดไป
-              </button>
-            </div>
-          </div>
-        ) : null}
+        {/* Pagination */}
+        {!loading && !error && totalCount > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            pageSize={pageSize}
+            onPageChange={gotoPage}
+          />
+        )}
       </div>
     </div>
   )
 }
 
 export default function AnnouncementsPage() {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
   return (
-    <div className="relative min-h-screen">
+    <div className="page-wrapper">
       {/* SEO meta tags สำหรับหน้าข่าวสาร/ประกาศ */}
       <SEO
         title="ข่าวสาร/ประกาศ"
         description="ข่าวสาร ประกาศรับสมัครงาน ประชาสัมพันธ์ และประกาศจัดซื้อจัดจ้างของโรงพยาบาลปง จังหวัดพะเยา อัปเดตล่าสุด"
       />
-      <div
-        className={`container-narrow py-8 transform transition-all duration-300 font-medium duration-500 ease-out will-change-auto ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-          }`}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">ประกาศ</h1>
-        </div>
+      <div className="container-narrow py-8">
+        <PageHeader title="ประกาศ" />
         <div className="mb-6">
           <div className="relative rounded-2xl border border-emerald-100 bg-white/90 backdrop-blur-md shadow-md shadow-emerald-500/5">
             <div className="grid grid-cols-2 gap-2 px-3 py-3 text-sm sm:flex sm:flex-nowrap sm:gap-2">

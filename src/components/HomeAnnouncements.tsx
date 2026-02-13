@@ -153,8 +153,8 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                     to={`/announcement/${a._id}`}
                     key={a._id}
                     className={
-                      `block glass-fresh p-5 rounded-2xl transition-all duration-500 group relative overflow-hidden stagger-item stagger-delay-${Math.min(i, 11)} ` +
-                      `hover:shadow-2xl hover:-translate-y-2`
+                      `block bg-white/90 shadow-sm border border-gray-100 p-5 rounded-2xl transition-[transform,box-shadow] duration-300 group relative overflow-hidden stagger-item stagger-delay-${Math.min(i, 11)} ` +
+                      `hover:shadow-lg hover:-translate-y-1`
                     }
                   >
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -225,7 +225,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
         </div>
 
         <div className="mb-6" role="tablist" aria-label="แถบกรองประกาศ">
-          <div className="relative z-10 rounded-3xl glass-fresh">
+          <div className="relative z-10 rounded-3xl bg-white/90 shadow-sm border border-gray-100">
             <div className="grid grid-cols-2 gap-2 px-3 py-3 sm:flex sm:flex-nowrap sm:gap-2">
               {tabs.map(t => (
                 <button

@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { shareItem } from '../utils/share'
 import { fastFetch } from '../utils/fastFetch'
 import SEO from '../components/SEO'
+import PageHeader from '../components/PageHeader'
 
 type Attachment = { url: string; publicId?: string; kind?: 'image' | 'pdf' | 'file'; name?: string; bytes?: number }
 type Announcement = {
@@ -117,133 +118,137 @@ export default function AnnouncementDetailPage() {
   }, [id])
 
   return (
-    <div className="container-narrow py-8">
-      {/* SEO meta tags แบบ dynamic — ใช้ชื่อประกาศเป็น title */}
-      <SEO
-        title={item?.title || 'รายละเอียดประกาศ'}
-        description={item?.title ? `${item.title} - ข่าวสาร/ประกาศจากโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดข่าวสารและประกาศจากโรงพยาบาลปง จังหวัดพะเยา'}
-      />
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">รายละเอียดประกาศ</h1>
-        <div className="flex items-center gap-3">
-          <Link to="/announcements" className="text-sm text-green-700 hover:underline">กลับไปดูประกาศทั้งหมด</Link>
-          <button
-            type="button"
-            className="text-slate-600 hover:underline inline-flex items-center gap-1 text-sm"
-            onClick={() => {
-              // Try to find a sensible image attachment (if any)
-              const img = item?.attachments?.find(att => {
-                if (!att?.url) return false
-                return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(att.url) || att.kind === 'image'
-              })?.url
-              const idVal = id || item?._id
-              const previewUrl = `${window.location.origin}/announcement/${idVal}`
-              shareItem({ title: item?.title, url: previewUrl, image: img })
-            }}
-          >
-            <i className="fa-solid fa-share-nodes mr-1" /> แชร์
-          </button>
-        </div>
-      </div>
+    <div className="page-wrapper">
+      <div className="container-narrow py-8">
+        {/* SEO meta tags แบบ dynamic — ใช้ชื่อประกาศเป็น title */}
+        <SEO
+          title={item?.title || 'รายละเอียดประกาศ'}
+          description={item?.title ? `${item.title} - ข่าวสาร/ประกาศจากโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดข่าวสารและประกาศจากโรงพยาบาลปง จังหวัดพะเยา'}
+        />
+        <PageHeader
+          title="รายละเอียดประกาศ"
+          actions={
+            <>
+              <Link to="/announcements" className="text-sm text-emerald-700 hover:underline">กลับไปดูประกาศทั้งหมด</Link>
+              <button
+                type="button"
+                className="text-slate-600 hover:underline inline-flex items-center gap-1 text-sm"
+                onClick={() => {
+                  // Try to find a sensible image attachment (if any)
+                  const img = item?.attachments?.find(att => {
+                    if (!att?.url) return false
+                    return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(att.url) || att.kind === 'image'
+                  })?.url
+                  const idVal = id || item?._id
+                  const previewUrl = `${window.location.origin}/announcement/${idVal}`
+                  shareItem({ title: item?.title, url: previewUrl, image: img })
+                }}
+              >
+                <i className="fa-solid fa-share-nodes mr-1" /> แชร์
+              </button>
+            </>
+          }
+        />
 
-      {!item && !error && (
-        <div className="space-y-3">
-          <div className="h-8 w-2/3 bg-gray-200 animate-pulse rounded" />
-          <div className="h-4 w-1/3 bg-gray-200 animate-pulse rounded" />
-          <div className="h-24 w-full bg-gray-200 animate-pulse rounded" />
-        </div>
-      )}
-
-      {error && (
-        <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3">{error}</div>
-      )}
-
-      {item && (
-        <article className="space-y-4">
-          <div className="text-sm text-gray-500 flex items-center gap-2">
-            <span className="badge blue">{item.category}</span>
-            <span>{item.publishedAt ?
-              new Date(item.publishedAt).toLocaleDateString('th-TH', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-              }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
-            </span>
-            {item.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs" aria-hidden="true"></i> {item.viewCount} ครั้ง</span>}
+        {!item && !error && (
+          <div className="space-y-3">
+            <div className="h-8 w-2/3 bg-gray-200 animate-pulse rounded" />
+            <div className="h-4 w-1/3 bg-gray-200 animate-pulse rounded" />
+            <div className="h-24 w-full bg-gray-200 animate-pulse rounded" />
           </div>
-          <h2 className="text-xl font-semibold">{item.title}</h2>
-          {item.content && (
-            <div className="prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
-          )}
-          {item.attachments && item.attachments.length > 0 && (
-            <div>
-              <div className="font-semibold mb-2">ไฟล์แนบ</div>
-              <div className="space-y-4">
-                {item.attachments.map((att, idx) => {
-                  const url = att.url
-                  const name = att.name || `ไฟล์แนบ ${idx + 1}`
-                  const extImage = /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i
-                  const extPdf = /\.pdf(\?.*)?$/i
-                  const isImage = (att.kind === 'image') || extImage.test(url) || (att.name ? extImage.test(att.name) : false)
-                  const nameLooksPdf = att.name ? extPdf.test(att.name) : false
-                  // Consider only explicit PDFs to avoid rendering errors for other 'raw' files (e.g., .docx)
-                  const isPdf = (att.kind === 'pdf') || extPdf.test(url) || nameLooksPdf
+        )}
 
-                  if (isImage) {
-                    return (
-                      <figure key={idx} className="w-full">
-                        <a href={url} target="_blank" rel="noopener noreferrer">
-                          <img
-                            src={url}
-                            alt={name}
-                            className="w-full max-w-full h-auto rounded shadow-sm object-contain bg-gray-50"
-                          />
-                        </a>
-                        {att.name && (
-                          <figcaption className="text-xs text-gray-500 mt-1">{att.name}</figcaption>
-                        )}
-                      </figure>
-                    )
-                  }
+        {error && (
+          <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3">{error}</div>
+        )}
 
-                  if (isPdf) {
-                    return (
-                      <div key={idx} className="w-full">
-                        <PdfViewer
-                          url={url}
-                          className="w-full rounded overflow-hidden border"
-                          onError={() => {
-                            // noop: rendering will show error message; parent also has generic fallback below
-                          }}
-                        />
-                        <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                          {(att.name || att.bytes) && (
-                            <div className="text-xs text-gray-500 truncate" title={att.name || ''}>
-                              {att.name || 'ไฟล์'}{att.bytes ? ` · ${(att.bytes / 1024 / 1024).toFixed(att.bytes > 5 * 1024 * 1024 ? 1 : 2)} MB` : ''}
-                            </div>
-                          )}
-                          <button
-                            type="button"
-                            className="btn btn-outline"
-                            onClick={() => downloadFile(url, att.name || undefined, true)}
-                          >
-                            ดาวน์โหลด PDF
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  }
-
-                  // Try render as PDF first (for cases like Cloudinary raw without .pdf), then fallback to download if it fails
-                  return (
-                    <TryPdfThenDownload key={idx} url={url} name={name} />
-                  )
-                })}
-              </div>
+        {item && (
+          <article className="space-y-4">
+            <div className="text-sm text-gray-500 flex items-center gap-2">
+              <span className="badge blue">{item.category}</span>
+              <span>{item.publishedAt ?
+                new Date(item.publishedAt).toLocaleDateString('th-TH', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
+              </span>
+              {item.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs" aria-hidden="true"></i> {item.viewCount} ครั้ง</span>}
             </div>
-          )}
-        </article>
-      )}
+            <h2 className="text-xl font-semibold">{item.title}</h2>
+            {item.content && (
+              <div className="prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
+            )}
+            {item.attachments && item.attachments.length > 0 && (
+              <div>
+                <div className="font-semibold mb-2">ไฟล์แนบ</div>
+                <div className="space-y-4">
+                  {item.attachments.map((att, idx) => {
+                    const url = att.url
+                    const name = att.name || `ไฟล์แนบ ${idx + 1}`
+                    const extImage = /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i
+                    const extPdf = /\.pdf(\?.*)?$/i
+                    const isImage = (att.kind === 'image') || extImage.test(url) || (att.name ? extImage.test(att.name) : false)
+                    const nameLooksPdf = att.name ? extPdf.test(att.name) : false
+                    // Consider only explicit PDFs to avoid rendering errors for other 'raw' files (e.g., .docx)
+                    const isPdf = (att.kind === 'pdf') || extPdf.test(url) || nameLooksPdf
+
+                    if (isImage) {
+                      return (
+                        <figure key={idx} className="w-full">
+                          <a href={url} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={url}
+                              alt={name}
+                              className="w-full max-w-full h-auto rounded shadow-sm object-contain bg-gray-50"
+                            />
+                          </a>
+                          {att.name && (
+                            <figcaption className="text-xs text-gray-500 mt-1">{att.name}</figcaption>
+                          )}
+                        </figure>
+                      )
+                    }
+
+                    if (isPdf) {
+                      return (
+                        <div key={idx} className="w-full">
+                          <PdfViewer
+                            url={url}
+                            className="w-full rounded overflow-hidden border"
+                            onError={() => {
+                              // noop: rendering will show error message; parent also has generic fallback below
+                            }}
+                          />
+                          <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                            {(att.name || att.bytes) && (
+                              <div className="text-xs text-gray-500 truncate" title={att.name || ''}>
+                                {att.name || 'ไฟล์'}{att.bytes ? ` · ${(att.bytes / 1024 / 1024).toFixed(att.bytes > 5 * 1024 * 1024 ? 1 : 2)} MB` : ''}
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              className="btn btn-outline"
+                              onClick={() => downloadFile(url, att.name || undefined, true)}
+                            >
+                              ดาวน์โหลด PDF
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    // Try render as PDF first (for cases like Cloudinary raw without .pdf), then fallback to download if it fails
+                    return (
+                      <TryPdfThenDownload key={idx} url={url} name={name} />
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </article>
+        )}
+      </div>
     </div>
   )
 }

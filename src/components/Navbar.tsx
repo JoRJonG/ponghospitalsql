@@ -126,7 +126,7 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <header className="border-b border-gray-100 bg-white/90 backdrop-blur-lg sticky top-0 z-40 shadow-md transition-all duration-300">
+      <header className="border-b border-gray-100 bg-white/95 sticky top-0 z-40 shadow-md will-change-[transform]">
         <div className="container-narrow flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3">
             <img
