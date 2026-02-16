@@ -47,17 +47,14 @@ export const InfographicController = {
                 params
             )
 
-            const list = rows.map(row => ({
+            const { toPublicDTO } = await import('../dto/InfographicDTO.js')
+            const list = rows.map(row => toPublicDTO({
                 _id: row.id,
                 title: row.title,
-                imageUrl: `/api/images/infographics/${row.id}`,
-                imageSize: row.image_size,
-                mimeType: row.mime_type,
-                displayOrder: row.display_order,
-                isPublished: Boolean(row.is_published),
-                createdAt: row.created_at,
-                updatedAt: row.updated_at
-            }))
+                description: '', // description not in DB query yet, passing empty
+                image: { url: `/api/images/infographics/${row.id}` }, // map URL correctly
+                order: row.display_order
+            })).filter(Boolean)
 
             res.json(list)
         } catch (e) {
