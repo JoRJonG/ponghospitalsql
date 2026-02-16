@@ -330,18 +330,20 @@ function AboutContent() {
         >
           <div className="flex items-center gap-3 mb-6">
             <i className="fa-solid fa-chess-knight text-teal-600 text-xl"></i>
-            <h2 className="text-xl font-bold text-gray-900">ยุทธศาสตร์</h2>
+            <h2 className="text-xl font-bold text-gray-900">วัตถุประสงค์เชิงกลยุทธ์<br />(Strategic Objectives)</h2>
           </div>
           <ul className="space-y-4">
             {[
-              "เป็นเลิศด้านส่งเสริมสุขภาพและป้องกันโรค",
-              "บริการสุขภาพคุณภาพมาตรฐาน",
-              "จัดการกำลังคนอย่างมีประสิทธิภาพ",
-              "ธรรมาภิบาลเป็นเลิศ"
-            ].map((text, i) => (
+              { text: "เพื่อให้ประชาชนมีสุขภาพดีและเข้าถึงบริการได้ (P&P Excellence)", icon: "fa-heart-pulse" },
+              { text: "เพื่อให้เป็นโรงพยาบาลที่มีคุณภาพ ได้มาตรฐาน (Service Excellence)", icon: "fa-hospital" },
+              { text: "เพื่อให้บุคลากรมีความสุขและผูกพันต่อองค์กร (People Excellence)", icon: "fa-users-gear" },
+              { text: "เพื่อให้ระบบบริหารจัดการมีประสิทธิภาพ ยึดหลักธรรมาภิบาล (Governance Excellence)", icon: "fa-scale-balanced" }
+            ].map((item, i) => (
               <li key={i} className="flex items-start gap-3">
-                <i className="fa-solid fa-diamond text-teal-500 mt-1 text-xs py-1.5"></i>
-                <span className="text-gray-600">{text}</span>
+                <div className="mt-1 w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 shrink-0 text-xs">
+                  <i className={`fa-solid ${item.icon}`}></i>
+                </div>
+                <span className="text-gray-600 text-sm md:text-base">{item.text}</span>
               </li>
             ))}
           </ul>
