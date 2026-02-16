@@ -20,7 +20,6 @@ export function toPublicDTO(doc) {
         downloadCount: doc.download_count,
         displayOrder: doc.display_order,
         createdAt: doc.created_at,
-        updatedAt: doc.updated_at
     }
 }
 

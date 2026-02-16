@@ -1,6 +1,7 @@
 
 import { query } from '../database.js'
 import { userHasPermission } from '../middleware/auth.js'
+import { toPublicDTOList, toAdminDTOList } from '../dto/InfographicDTO.js'
 
 export const InfographicController = {
     async index(req, res) {
@@ -47,14 +48,23 @@ export const InfographicController = {
                 params
             )
 
-            const { toPublicDTO } = await import('../dto/InfographicDTO.js')
-            const list = rows.map(row => toPublicDTO({
+            // Select DTO based on permission (allowAll = true implies admin/permission)
+            const dtoList = allowAll ? toAdminDTOList : toPublicDTOList
+
+            // Map rows to interim object structure expected by DTOs
+            const rawObjects = rows.map(row => ({
                 _id: row.id,
                 title: row.title,
-                description: '', // description not in DB query yet, passing empty
-                image: { url: `/api/images/infographics/${row.id}` }, // map URL correctly
-                order: row.display_order
-            })).filter(Boolean)
+                description: '', // Infographics table doesn't have description yet, but DTO expects it
+                image: { url: `/api/images/infographics/${row.id}` },
+                displayOrder: row.display_order, // Needed for AdminDTO
+                order: row.display_order,       // Needed for PublicDTO
+                isPublished: Boolean(row.is_published),
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            }))
+
+            const list = dtoList(rawObjects)
 
             res.json(list)
         } catch (e) {
