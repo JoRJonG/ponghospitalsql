@@ -64,37 +64,37 @@ Redirect 301 /sitemap.xml /sitemap.php
     # ============================================================
     # Redirect sitemap.xml → sitemap.php ก่อนที่ Passenger/Node.js จะจับ request
     # ถ้าไม่ redirect ก่อน Node.js จะส่ง SPA HTML กลับแทน XML จริง
-    RewriteRule ^sitemap\.xml$ /sitemap.php [R=301,L]
+    RewriteRule "^sitemap\.xml$" /sitemap.php [R=301,L]
 
     # ============================================================
     # 3.1 KILL SWITCH: BLOCK PHP ON NODE.JS (CRITICAL)
     # ============================================================
     # กฎนี้จะทำงานก่อนส่ง Request ไป Node.js แก้ปัญหา 200 OK หลอกๆ
     # ยกเว้น sitemap.php ไว้ตัวเดียว นอกนั้นบล็อกหมด
-    RewriteCond %{REQUEST_URI} !^/sitemap\.php$ [NC]
-    RewriteCond %{REQUEST_URI} (\.php$|\.php/|\.php\?|\.pHp|\.PHP) [NC]
+    RewriteCond %{REQUEST_URI} "!^/sitemap\.php$" [NC]
+    RewriteCond %{REQUEST_URI} "(\.php$|\.php/|\.php\?|\.pHp|\.PHP)" [NC]
     RewriteRule .* - [F,L]
 
     # ============================================================
     # 3.2 BLOCK EXPLOITS & VULNERABILITIES
     # ============================================================
     # Block Log4Shell
-    RewriteCond %{QUERY_STRING} jndi:(ldap|rmi|dns|nis|iiop|corba|nds|http) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} \$\{jndi: [NC]
+    RewriteCond %{QUERY_STRING} "jndi:(ldap|rmi|dns|nis|iiop|corba|nds|http)" [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} "\$\{jndi:" [NC]
     RewriteRule .* - [F,L]
 
     # Block Common SQL Injection & RCE patterns
-    RewriteCond %{QUERY_STRING} (union.*select|insert.*into|update.*set|delete.*from) [NC,OR]
-    RewriteCond %{QUERY_STRING} (base64_decode|eval\(|passwd|boot\.ini|/etc/shadow|/proc/self) [NC,OR]
-    RewriteCond %{QUERY_STRING} (<script>|javascript:|vbscript:|onload=|onerror=) [NC,OR]
-    RewriteCond %{QUERY_STRING} (\.\./|\.\.\\) [NC]
+    RewriteCond %{QUERY_STRING} "(union.*select|insert.*into|update.*set|delete.*from)" [NC,OR]
+    RewriteCond %{QUERY_STRING} "(base64_decode|eval\(|passwd|boot\.ini|/etc/shadow|/proc/self)" [NC,OR]
+    RewriteCond %{QUERY_STRING} "(<script>|javascript:|vbscript:|onload=|onerror=)" [NC,OR]
+    RewriteCond %{QUERY_STRING} "(\.\./|\.\.\\)" [NC]
     RewriteRule .* - [F,L]
 
     # ============================================================
     # 3.3 BLOCK BAD BOTS & SCANNERS
     # ============================================================
-    RewriteCond %{HTTP_USER_AGENT} ^(sqlmap|nikto|wpscan|python-requests|libwww-perl|masscan) [NC,OR]
-    RewriteCond %{HTTP_USER_AGENT} (havij|absinthe|netsparker|appscan|burp|acunetix|hydra|zgrab|fuzz|scanne) [NC]
+    RewriteCond %{HTTP_USER_AGENT} "^(sqlmap|nikto|wpscan|python-requests|libwww-perl|masscan)" [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} "(havij|absinthe|netsparker|appscan|burp|acunetix|hydra|zgrab|fuzz|scanne)" [NC]
     RewriteRule .* - [F,L]
 </IfModule>
 
