@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment, useMemo, useRef } from 'react'
-import Select, { type StylesConfig, type CSSObjectWithLabel, type ControlProps, type OptionProps } from 'react-select'
+import Select, { type SelectInstance, type StylesConfig, type CSSObjectWithLabel, type ControlProps, type OptionProps } from 'react-select'
 import DOMPurify from 'dompurify'
 import Swal from 'sweetalert2'
 
@@ -556,7 +556,7 @@ const S11Page = () => {
   const [generated, setGenerated] = useState(false)
 
   // Ref for Position Select
-  const positionSelectRef = useRef<any>(null)
+  const positionSelectRef = useRef<SelectInstance<PositionOption> | null>(null)
 
   const totalMonthsOfExperience = useMemo(() => {
     const { years: currentYears, months: currentMonths } =
@@ -630,7 +630,7 @@ const S11Page = () => {
     const { name, value } = e.target
 
     // Sanitize input
-    let sanitizedValue = sanitizeInput(value)
+    const sanitizedValue = sanitizeInput(value)
 
     // Length check
     if (sanitizedValue.length > MAX_INPUT_LENGTH) {
@@ -730,7 +730,7 @@ const S11Page = () => {
     }
 
     // Sanitize input
-    let sanitizedValue = sanitizeInput(value)
+    const sanitizedValue = sanitizeInput(value)
 
     // Length Validation
     if (sanitizedValue.length > MAX_INPUT_LENGTH && !numericFieldNames.has(fieldName)) { // Allow numeric fields to handle their own parsing, but text fields abide by max length
