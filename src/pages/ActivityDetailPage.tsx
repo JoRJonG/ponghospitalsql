@@ -85,6 +85,7 @@ export default function ActivityDetailPage() {
         <SEO
           title={item?.title || 'รายละเอียดกิจกรรม'}
           description={item?.title ? `${item.title} - กิจกรรมของโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดกิจกรรมของโรงพยาบาลปง อำเภอปง จังหวัดพะเยา'}
+          image={item?.images?.[0] ? (typeof item.images[0] === 'string' ? item.images[0] : item.images[0].url) : undefined}
         />
         <PageHeader
           title="รายละเอียดกิจกรรม"
@@ -126,7 +127,7 @@ export default function ActivityDetailPage() {
 
         {item && (
           <article className="space-y-4">
-            <h2 className="text-xl font-semibold">{item.title}</h2>
+            <h1 className="text-xl font-semibold">{item.title}</h1>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               {item.date && <div>{new Date(item.date).toLocaleDateString()}</div>}
               {item.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye"></i> {item.viewCount} ครั้ง</div>}

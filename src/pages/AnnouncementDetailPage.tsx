@@ -124,6 +124,10 @@ export default function AnnouncementDetailPage() {
         <SEO
           title={item?.title || 'รายละเอียดประกาศ'}
           description={item?.title ? `${item.title} - ข่าวสาร/ประกาศจากโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดข่าวสารและประกาศจากโรงพยาบาลปง จังหวัดพะเยา'}
+          image={item?.attachments?.find(att => {
+            if (!att?.url) return false
+            return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(att.url) || att.kind === 'image'
+          })?.url}
         />
         <PageHeader
           title="รายละเอียดประกาศ"
@@ -175,7 +179,7 @@ export default function AnnouncementDetailPage() {
               </span>
               {item.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs" aria-hidden="true"></i> {item.viewCount} ครั้ง</span>}
             </div>
-            <h2 className="text-xl font-semibold">{item.title}</h2>
+            <h1 className="text-xl font-semibold">{item.title}</h1>
             {item.content && (
               <div className="prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
             )}
