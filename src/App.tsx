@@ -34,6 +34,8 @@ const RateLimitError = lazy(() => import('./pages/RateLimitError'))
 const DocumentsPage = lazy(() => import('./pages/DocumentsPage'))
 const PRPostersPage = lazy(() => import('./pages/PRPostersPage'))
 const LoginSuccessPage = lazy(() => import('./pages/LoginSuccessPage'))
+// Lazy load S11
+const S11PageComponent = lazy(() => import('./pages/S11Page.tsx'))
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth()
@@ -93,11 +95,14 @@ function App() {
             <BrowserRouter>
               <ScrollToTopWrapper />
               <VisitorTrackingBeacon />
+
               <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50 overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
                 <div className="flex flex-col min-h-screen">
-                  <Navbar />
+                  <div className="print:hidden">
+                    <Navbar />
+                  </div>
                   <main className="flex-1">
-                    <div className="app-container py-0">
+                    <div className="app-container py-0 print:p-0">
                       <Suspense fallback={<LoadingFallback />}>
                         <Routes>
                           <Route path="/" element={<HomePage />} />
@@ -120,6 +125,7 @@ function App() {
                           <Route path="/403" element={<ForbiddenPage />} />
                           <Route path="/blocked" element={<BlockedPage />} />
                           <Route path="/rate-limit" element={<RateLimitError />} />
+                          <Route path="/S11" element={<S11PageComponent />} />
                           <Route path="*" element={<NotFoundPage />} />
                         </Routes>
                       </Suspense>
@@ -127,7 +133,7 @@ function App() {
                   </main>
                   <HomepagePopupOverlay />
                   <CookieConsent />
-                  <div className="app-container w-full">
+                  <div className="app-container w-full print:hidden">
                     <Footer />
                   </div>
                   <ToastContainer />
