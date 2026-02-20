@@ -3,6 +3,7 @@ import HeroSlider from '../components/HeroSlider'
 import HomeAnnouncements from '../components/HomeAnnouncements'
 import LatestActivities from '../components/LatestActivities'
 import PRPoster from '../components/PRPoster'
+import AirQualityWidget from '../components/AirQualityWidget'
 import UnitLinks from '../components/UnitLinks'
 import { useRef } from 'react'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
@@ -46,6 +47,7 @@ export default function HomePage() {
   useEffect(() => { setMounted(true) }, [])
 
   /* scroll-reveal refs สำหรับทุก section */
+  const airQualityRef = useReveal<HTMLDivElement>()
   const posterRef = useReveal<HTMLDivElement>()
   const announcementsRef = useReveal<HTMLDivElement>()
   const activitiesRef = useReveal<HTMLDivElement>()
@@ -59,6 +61,13 @@ export default function HomePage() {
         <h1 className="sr-only">โรงพยาบาลปง จังหวัดพะเยา - บริการสุขภาพครบวงจร</h1>
         <HeroSlider />
       </div>
+
+      {/* Air Quality Widget — คุณภาพอากาศ อ.ปง */}
+      <section ref={airQualityRef} className="relative py-4 md:py-6 bg-white overflow-hidden">
+        <div className="container-narrow relative z-10">
+          <AirQualityWidget />
+        </div>
+      </section>
 
       {/* PR Poster — wave top + decorative blob */}
       <section ref={posterRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">

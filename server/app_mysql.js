@@ -26,6 +26,7 @@ import prPostersRouter from './routes/pr_posters.js'
 import prPlansRouter from './routes/pr_plans.js'
 import organizationRouter from './routes/organization.js'
 import thaidAuthRouter from './routes/thaidAuth.js'
+import airqualityRouter from './routes/airquality.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
 import { preventHpp, xssSanitizer, validateOrigin } from './middleware/security.js'
 import { botBlocker } from './middleware/botBlocker.js'
@@ -186,6 +187,7 @@ export async function createServer() {
   app.use('/api/pr-posters', prPostersRouter)
   app.use('/api/pr-plans', prPlansRouter)
   app.use('/api/organization', organizationRouter)
+  app.use('/api/airquality', airqualityRouter)
 
   // Visitor tracking middleware (must be after API routes)
   app.use(trackVisitors)
