@@ -18,6 +18,7 @@ import UserManagement, { type UserManagementHandle } from '../../components/admi
 import DisplayModeSettings from '../../components/admin/DisplayModeSettings'
 import UserSettings from '../../components/admin/UserSettings'
 import Modal from '../../components/admin/Modal'
+import HeroSliderSettings from '../../components/admin/HeroSliderSettings'
 import FeedbackManagement from '../../components/admin/FeedbackManagement'
 import DocumentsManagement, { type DocumentsManagementHandle } from '../../components/DocumentsManagement'
 import PRPosterManagement, { type PRPosterManagementHandle } from '../../components/admin/PRPosterManagement'
@@ -1295,6 +1296,7 @@ export default function AdminPage() {
                   className="space-y-6"
                 >
                   <DisplayModeSettings />
+                  <HeroSliderSettings />
                 </motion.div>
               ) : tab === 'settings-user' ? (
                 <motion.div

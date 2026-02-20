@@ -46,6 +46,45 @@ router.put('/display-mode', requireAuth, requirePermission('system'), async (req
   }
 })
 
+// === Hero Slider Mode ===
+const HERO_SLIDER_MODE_KEY = 'hero_slider_visible'
+const DEFAULT_HERO_SLIDER_MODE = 'show' // Default is to show the slider
+const ALLOWED_HERO_SLIDER_MODES = new Set(['show', 'hide'])
+
+router.get('/hero-slider-mode', async (req, res) => {
+  try {
+    if (!req.app.locals.dbConnected) {
+      return res.json({ success: true, data: { mode: DEFAULT_HERO_SLIDER_MODE } })
+    }
+    const raw = await SiteSetting.get(HERO_SLIDER_MODE_KEY)
+    const mode = ALLOWED_HERO_SLIDER_MODES.has(raw) ? raw : DEFAULT_HERO_SLIDER_MODE
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+    res.setHeader('Pragma', 'no-cache')
+    res.json({ success: true, data: { mode } })
+  } catch (error) {
+    console.error('[system] hero-slider-mode error:', error?.message)
+    res.status(500).json({ success: false, error: 'ไม่สามารถดึงสถานะสไลเดอร์หลักได้' })
+  }
+})
+
+router.put('/hero-slider-mode', requireAuth, requirePermission('system'), async (req, res) => {
+  try {
+    if (!req.app.locals.dbConnected) {
+      return res.status(503).json({ success: false, error: 'ฐานข้อมูลยังไม่พร้อม' })
+    }
+    const mode = typeof req.body?.mode === 'string' ? req.body.mode.trim() : ''
+    if (!ALLOWED_HERO_SLIDER_MODES.has(mode)) {
+      return res.status(400).json({ success: false, error: 'สถานะสไลเดอร์ไม่ถูกต้อง' })
+    }
+    const username = req.user?.username || null
+    await SiteSetting.set(HERO_SLIDER_MODE_KEY, mode, username)
+    res.json({ success: true, data: { mode } })
+  } catch (error) {
+    console.error('[system] update hero-slider-mode error:', error?.message)
+    res.status(500).json({ success: false, error: 'ไม่สามารถบันทึกสถานะสไลเดอร์หลักได้' })
+  }
+})
+
 router.get('/status', requireAuth, async (_req, res) => {
   try {
     const [disk, memory] = await Promise.all([
