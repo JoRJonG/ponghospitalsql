@@ -116,7 +116,7 @@ export default function AirQualityWidget() {
 
             const [res, historyRes] = await Promise.all([
                 fetch(buildApiUrl('/api/airquality')),
-                fetch(buildApiUrl('/api/airquality/history?station=5049'))
+                fetch(buildApiUrl('/api/airquality/history'))
             ])
 
             if (!res.ok) throw new Error('API error')

@@ -102,11 +102,11 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
             return res.status(503).json({ success: false, error: 'DUSTBOY_API_KEY is not configured' })
         }
 
-        const stationId = req.query.station || '5049' // Default to 5049 (Pong Hospital)
+        const stationId = '5049' // รหัสสถานี รพ.ปง (fixed)
 
-        if (cachedHistory && cachedHistory.stationId === stationId && Date.now() < historyCacheExpiry) {
+        if (cachedHistory && Date.now() < historyCacheExpiry) {
             res.setHeader('X-Cache', 'HIT')
-            return res.json({ success: true, data: cachedHistory.data })
+            return res.json({ success: true, data: cachedHistory })
         }
 
         const url = `https://open-api.cmuccdc.org/api/dustboy/data30day/${stationId}?apikey=${apiKey}`
@@ -138,7 +138,7 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
             }))
         }
 
-        cachedHistory = { stationId, data: trimmedData }
+        cachedHistory = trimmedData
         historyCacheExpiry = Date.now() + HISTORY_CACHE_TTL
 
         res.setHeader('X-Cache', 'MISS')
@@ -146,9 +146,9 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
         res.json({ success: true, data: trimmedData })
     } catch (error) {
         console.error('[airquality] History Error:', error?.message)
-        if (cachedHistory && cachedHistory.stationId === req.query.station) {
+        if (cachedHistory) {
             res.setHeader('X-Cache', 'STALE')
-            return res.json({ success: true, data: cachedHistory.data, stale: true })
+            return res.json({ success: true, data: cachedHistory, stale: true })
         }
         res.status(500).json({ success: false, error: 'เกิดข้อผิดพลาดในการดึงข้อมูลประวัติคุณภาพอากาศ' })
     }
