@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { buildApiUrl } from '../utils/api'
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -107,10 +107,16 @@ export default function AirQualityWidget() {
     const [error, setError] = useState(false)
     const [showInfo, setShowInfo] = useState(false)
     const [imgError, setImgError] = useState(false)
+    // เก็บเวลาที่ fetch ครั้งล่าสุด เพื่อ debounce เมื่อกลับมา tab
+    const lastFetchedRef = useRef<number>(0)
 
-    const fetchAirQuality = useCallback(async () => {
+    const fetchAirQuality = useCallback(async (isBackground = false) => {
         try {
-            setLoading(true)
+            // ถ้าเรียกจาก background (visibilitychange) ให้ fetch ใหม่เฉพาะเมื่อ
+            // ผ่านมานานกว่า 55 นาทีจาก fetch ล่าสุด (data อัพเดทรายชั่วโมง)
+            if (isBackground && Date.now() - lastFetchedRef.current < 55 * 60 * 1000) return
+            // แสดง loading เฉพาะตอนที่ยังไม่มีข้อมูลเลย (โหลดครั้งแรก)
+            if (!data) setLoading(true)
             setError(false)
             setImgError(false)
 
@@ -147,9 +153,10 @@ export default function AirQualityWidget() {
         } catch {
             setError(true)
         } finally {
+            lastFetchedRef.current = Date.now()
             setLoading(false)
         }
-    }, [])
+    }, [data])
 
     useEffect(() => {
         fetchAirQuality()
@@ -173,9 +180,9 @@ export default function AirQualityWidget() {
             }, 60 * 60 * 1000)
         }, msUntilNextHour())
 
-        // fetch ทันทีเมื่อ user กลับมาที่ tab
+        // fetch เมื่อ user กลับมาที่ tab แต่ต้องนานกว่า 5 นาทีจาก fetch ล่าสุดก่อน
         const onVisible = () => {
-            if (document.visibilityState === 'visible') fetchAirQuality()
+            if (document.visibilityState === 'visible') fetchAirQuality(true)
         }
         document.addEventListener('visibilitychange', onVisible)
 
@@ -227,7 +234,7 @@ export default function AirQualityWidget() {
                     </div>
                     <p className="text-slate-500 text-sm font-medium">ไม่สามารถโหลดข้อมูลคุณภาพอากาศได้</p>
                     <button
-                        onClick={fetchAirQuality}
+                        onClick={() => fetchAirQuality()}
                         className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-full transition-all duration-300 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                     >
                         <i className="fa-solid fa-rotate-right" /> ลองอีกครั้ง

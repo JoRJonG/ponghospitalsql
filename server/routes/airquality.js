@@ -84,8 +84,9 @@ router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, r
         cachedData = trimmedStation
         cacheExpiry = Date.now() + msUntilNextHour() // หมดอายุตรงต้นชั่วโมงถัดไป
 
+        const maxAgeSeconds = Math.floor(msUntilNextHour() / 1000) // browser cache ตรงกับ server cache
         res.setHeader('X-Cache', 'MISS')
-        res.setHeader('Cache-Control', 'public, max-age=300')
+        res.setHeader('Cache-Control', `public, max-age=${maxAgeSeconds}`)
         res.json({ success: true, data: trimmedStation })
     } catch (error) {
         console.error('[airquality] Error:', error?.message)
