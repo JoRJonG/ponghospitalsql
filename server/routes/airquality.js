@@ -8,8 +8,15 @@ let cachedData = null
 let cacheExpiry = 0
 const CACHE_TTL = 60 * 60 * 1000 // 1 hour
 
-// In-memory cache for history (30 min — รับข้อมูลชั่วโมงใหม่ได้เร็วขึ้น)
-const HISTORY_CACHE_TTL = 30 * 60 * 1000 // 30 minutes
+// In-memory cache for history (หมดอายุตรงต้นชั่วโมงถัดไป ตรงกับที่ DustBoy อัปเดต)
+
+// คำนวณเวลา (ms) ถึงต้นชั่วโมงถัดไป เช่น ตอนนี้ 16:37 → รอ 23 นาที 0 วินาที
+function msUntilNextHour() {
+    const now = new Date()
+    const next = new Date(now)
+    next.setHours(now.getHours() + 1, 0, 0, 0)
+    return next.getTime() - now.getTime()
+}
 
 router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, res) => {
     try {
@@ -75,7 +82,7 @@ router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, r
         }
 
         cachedData = trimmedStation
-        cacheExpiry = Date.now() + CACHE_TTL
+        cacheExpiry = Date.now() + msUntilNextHour() // หมดอายุตรงต้นชั่วโมงถัดไป
 
         res.setHeader('X-Cache', 'MISS')
         res.setHeader('Cache-Control', 'public, max-age=300')
@@ -143,7 +150,7 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
         }
 
         cachedHistory = trimmedData
-        historyCacheExpiry = Date.now() + HISTORY_CACHE_TTL
+        historyCacheExpiry = Date.now() + msUntilNextHour() // หมดอายุตรงต้นชั่วโมงถัดไป
 
         res.setHeader('X-Cache', 'MISS')
         res.setHeader('Cache-Control', 'public, max-age=3600') // 1 hour

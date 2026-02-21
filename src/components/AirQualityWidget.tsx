@@ -153,8 +153,37 @@ export default function AirQualityWidget() {
 
     useEffect(() => {
         fetchAirQuality()
-        const interval = setInterval(fetchAirQuality, 5 * 60 * 1000)
-        return () => clearInterval(interval)
+
+        let intervalId: ReturnType<typeof setInterval> | null = null
+
+        // คำนวณมิลลิวินาทีที่เหลือถึงชั่วโมงถัดไป เช่น เข้า 16:37 → รอ 23 นาที
+        const msUntilNextHour = () => {
+            const now = new Date()
+            const next = new Date(now)
+            next.setHours(now.getHours() + 1, 0, 0, 0) // ชั่วโมงถัดไป นาที:วินาที = 00:00
+            return next.getTime() - now.getTime()
+        }
+
+        // setTimeout แรก: รอถึงชั่วโมงถัดไป แล้วค่อยตั้ง interval ทุก 1 ชม.
+        const timeoutId = setTimeout(() => {
+            if (document.visibilityState === 'visible') fetchAirQuality()
+            // หลังจาก sync แล้ว ตั้ง interval ทุก 60 นาทีพอดี
+            intervalId = setInterval(() => {
+                if (document.visibilityState === 'visible') fetchAirQuality()
+            }, 60 * 60 * 1000)
+        }, msUntilNextHour())
+
+        // fetch ทันทีเมื่อ user กลับมาที่ tab
+        const onVisible = () => {
+            if (document.visibilityState === 'visible') fetchAirQuality()
+        }
+        document.addEventListener('visibilitychange', onVisible)
+
+        return () => {
+            clearTimeout(timeoutId)
+            if (intervalId) clearInterval(intervalId)
+            document.removeEventListener('visibilitychange', onVisible)
+        }
     }, [fetchAirQuality])
 
     /* ── Derived values ── */
