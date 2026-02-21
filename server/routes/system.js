@@ -19,8 +19,18 @@ router.get('/display-mode', async (req, res) => {
     }
     const raw = await SiteSetting.get(DISPLAY_MODE_KEY)
     const mode = ALLOWED_DISPLAY_MODES.has(raw) ? raw : DEFAULT_DISPLAY_MODE
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-    res.setHeader('Pragma', 'no-cache')
+
+    // ตั้งค่า ETag จากตัวอักษรของ mode
+    const eTag = `W/"${mode}"`
+
+    // ถ้า client มีข้อมูลล่าสุดอยู่แล้ว (ETag ตรงกัน) ให้ส่ง 304 Not Modified กลับไปเลย
+    if (req.headers['if-none-match'] === eTag) {
+      return res.status(304).end()
+    }
+
+    // กำหนดให้ cache ฝั่งบราวเซอร์ใช้ได้ แต่ต้องถามเซิร์ฟเวอร์ก่อนใช้เสมอ (Revalidation)
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
+    res.setHeader('ETag', eTag)
     res.json({ success: true, data: { mode } })
   } catch (error) {
     console.error('[system] display-mode error:', error?.message)
@@ -58,8 +68,18 @@ router.get('/hero-slider-mode', async (req, res) => {
     }
     const raw = await SiteSetting.get(HERO_SLIDER_MODE_KEY)
     const mode = ALLOWED_HERO_SLIDER_MODES.has(raw) ? raw : DEFAULT_HERO_SLIDER_MODE
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-    res.setHeader('Pragma', 'no-cache')
+
+    // ตั้งค่า ETag จากตัวอักษรของ mode
+    const eTag = `W/"${mode}"`
+
+    // ถ้า client มีข้อมูลล่าสุดอยู่แล้ว (ETag ตรงกัน) ให้ส่ง 304 Not Modified กลับไปเลย
+    if (req.headers['if-none-match'] === eTag) {
+      return res.status(304).end()
+    }
+
+    // กำหนดให้ cache ฝั่งบราวเซอร์ใช้ได้ แต่ต้องถามเซิร์ฟเวอร์ก่อนใช้เสมอ (Revalidation)
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate')
+    res.setHeader('ETag', eTag)
     res.json({ success: true, data: { mode } })
   } catch (error) {
     console.error('[system] hero-slider-mode error:', error?.message)

@@ -141,28 +141,30 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
 
         const data = await response.json()
 
-        // ดึงเฉพาะข้อมูล 24 ชั่วโมงที่ผ่านมา นับจาก record ล่าสุด
-        const trimmedData = data
-        if (trimmedData && Array.isArray(trimmedData.value) && trimmedData.value.length > 0) {
-            // หาเวลาของ record ล่าสุด (index 0 = ใหม่ที่สุด)
-            const latestTime = new Date(trimmedData.value[0].log_datetime.replace(' ', 'T'))
-            const cutoffTime = new Date(latestTime.getTime() - 24 * 60 * 60 * 1000) // ย้อนหลัง 24 ชม.
+        // สร้าง Object ใหม่เพื่อทิ้งข้อมูลที่ไม่จำเป็นไปทั้งหมด (Metadata อื่นๆ ของ DustBoy)
+        let parsedData = { value: [] }
 
-            // กรองเฉพาะ record ที่อยู่ภายใน 24 ชั่วโมงที่ผ่านมา
-            const last24hRecords = trimmedData.value.filter(item => {
-                const itemTime = new Date(item.log_datetime.replace(' ', 'T'))
-                return itemTime >= cutoffTime
+        if (data && Array.isArray(data.value) && data.value.length > 0) {
+            // หาเวลาของ record ล่าสุด (index 0 = ใหม่ที่สุด)
+            const latestTimeStr = data.value[0].log_datetime.replace(' ', 'T') + '+07:00'
+            const latestTimeMs = new Date(latestTimeStr).getTime()
+            const cutoffTimeMs = latestTimeMs - 24 * 60 * 60 * 1000 // ย้อนหลัง 24 ชม.
+
+            // กรองและเลือกเฉพาะ 2 ฟิลด์ที่ใช้ใน Frontend
+            const last24hRecords = data.value.filter(item => {
+                const itemTimeMs = new Date(item.log_datetime.replace(' ', 'T') + '+07:00').getTime()
+                return itemTimeMs >= cutoffTimeMs
             })
 
-            trimmedData.value = last24hRecords.map(item => ({
+            parsedData.value = last24hRecords.map(item => ({
                 log_datetime: item.log_datetime,
                 pm25: item.pm25
             }))
         }
 
         let cacheDuration = msUntilNextHour()
-        if (trimmedData && Array.isArray(trimmedData.value) && trimmedData.value.length > 0) {
-            const latestTimeStr = trimmedData.value[0].log_datetime.replace(' ', 'T') + '+07:00'
+        if (parsedData.value.length > 0) {
+            const latestTimeStr = parsedData.value[0].log_datetime.replace(' ', 'T') + '+07:00'
             const latestTimeMs = new Date(latestTimeStr).getTime()
             const ageMs = Date.now() - latestTimeMs
             // ตรวจสอบข้อมูลเก่าเหมือนกับ station เพื่อไม่ให้แคชข้อมูลเก่าจนข้ามชั่วโมง
@@ -172,13 +174,13 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
         }
         cacheDuration = Math.min(Math.max(cacheDuration, 60 * 1000), msUntilNextHour())
 
-        cachedHistory = trimmedData
+        cachedHistory = parsedData
         historyCacheExpiry = Date.now() + cacheDuration
 
         const maxAgeSeconds = Math.floor(cacheDuration / 1000)
         res.setHeader('X-Cache', 'MISS')
         res.setHeader('Cache-Control', `public, max-age=${maxAgeSeconds}`)
-        res.json({ success: true, data: trimmedData })
+        res.json({ success: true, data: parsedData })
     } catch (error) {
         console.error('[airquality] History Error:', error?.message)
         if (cachedHistory) {

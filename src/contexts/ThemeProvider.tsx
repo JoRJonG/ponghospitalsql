@@ -50,9 +50,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 	const refreshDisplayMode = useCallback(async () => {
 		try {
-			const response = await fetch(buildApiUrl('/api/system/display-mode'), {
-				cache: 'no-store',
-			})
+			const response = await fetch(buildApiUrl('/api/system/display-mode'))
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}`)
 			}
