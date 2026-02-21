@@ -165,26 +165,31 @@ export default function AirQualityWidget() {
     useEffect(() => {
         fetchAirQuality()
 
-        let intervalId: ReturnType<typeof setInterval> | null = null
+        let timeoutId: ReturnType<typeof setTimeout>
 
-        // คำนวณมิลลิวินาทีที่เหลือถึงชั่วโมงถัดไป เช่น เข้า 16:37 → รอ 23 นาที
-        const msUntilNextHour = () => {
+        // คำนวณเวลาและดึงข้อมูลตอน "นาทีที่ 5" ของแต่ละชั่วโมง 
+        // (ให้รอ DustBoy ประมวลผลก่อน ค่อยดึงข้อมูล เพื่อไม่ให้ได้ข้อมูลของชั่วโมงที่แล้ว)
+        const scheduleNextFetch = () => {
             const now = new Date()
             const next = new Date(now)
-            next.setHours(now.getHours() + 1, 0, 0, 0) // ชั่วโมงถัดไป นาที:วินาที = 00:00
-            return next.getTime() - now.getTime()
+            // ถ้านาทีปัจจุบันเลยนาทีที่ 5 ไปแล้ว ให้ไปดึงตอนนาทีที่ 5 ของชั่วโมงถัดไป
+            if (now.getMinutes() >= 5) {
+                next.setHours(now.getHours() + 1, 5, 0, 0)
+            } else {
+                // ถ้ายังไม่ถึงนาทีที่ 5 (เช่น 19:01) ให้ดึงตอน 19:05 ของชั่วโมงนี้เลย
+                next.setHours(now.getHours(), 5, 0, 0)
+            }
+
+            const delay = next.getTime() - now.getTime()
+            timeoutId = setTimeout(() => {
+                if (document.visibilityState === 'visible') fetchAirQuality(false)
+                scheduleNextFetch() // ตั้งเวลาสำหรับรอบถัดไป
+            }, delay)
         }
 
-        // setTimeout แรก: รอถึงชั่วโมงถัดไป แล้วค่อยตั้ง interval ทุก 1 ชม.
-        const timeoutId = setTimeout(() => {
-            if (document.visibilityState === 'visible') fetchAirQuality()
-            // หลังจาก sync แล้ว ตั้ง interval ทุก 60 นาทีพอดี
-            intervalId = setInterval(() => {
-                if (document.visibilityState === 'visible') fetchAirQuality()
-            }, 60 * 60 * 1000)
-        }, msUntilNextHour())
+        scheduleNextFetch()
 
-        // fetch เมื่อ user กลับมาที่ tab แต่ต้องนานกว่า 5 นาทีจาก fetch ล่าสุดก่อน
+        // fetch เมื่อ user กลับมาที่ tab แต่ต้องนานกว่า 55 นาทีจาก fetch ล่าสุดก่อน
         const onVisible = () => {
             if (document.visibilityState === 'visible') fetchAirQuality(true)
         }
@@ -192,7 +197,6 @@ export default function AirQualityWidget() {
 
         return () => {
             clearTimeout(timeoutId)
-            if (intervalId) clearInterval(intervalId)
             document.removeEventListener('visibilitychange', onVisible)
         }
     }, [fetchAirQuality])

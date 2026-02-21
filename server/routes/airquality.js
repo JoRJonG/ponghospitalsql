@@ -81,10 +81,20 @@ router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, r
             daily_wind_speed: station.daily_wind_speed
         }
 
-        cachedData = trimmedStation
-        cacheExpiry = Date.now() + msUntilNextHour() // หมดอายุตรงต้นชั่วโมงถัดไป
+        const dataTimeStr = station.log_datetime.replace(' ', 'T') + '+07:00'
+        const dataTime = new Date(dataTimeStr).getTime()
+        const ageMs = Date.now() - dataTime
 
-        const maxAgeSeconds = Math.floor(msUntilNextHour() / 1000) // browser cache ตรงกับ server cache
+        // สาเหตุที่ต้องตรวจสอบ ageMs: บางครั้ง DustBoy อัปเดตข้อมูลช้า (เช่น 19:05 เพิ่งปล่อยข้อมูลของ 19:00)
+        // ถ้าเราไปดึงตอน 19:01 ข้อมูลจะยังเป็นของ 18:00 และถ้ารอถึงรอบถัดไป ผู้ใช้จะเห็นข้อมูลเก่าไปจนถึง 20:00
+        // ดังนั้น ถ้าข้อมูลเก่ากว่า 55 นาที ให้แคชแค่ 5 นาทีเพื่อวนกลับมาตรวจสอบใหม่
+        let cacheDuration = ageMs > 55 * 60 * 1000 ? 5 * 60 * 1000 : msUntilNextHour()
+        cacheDuration = Math.min(Math.max(cacheDuration, 60 * 1000), msUntilNextHour())
+
+        cachedData = trimmedStation
+        cacheExpiry = Date.now() + cacheDuration
+
+        const maxAgeSeconds = Math.floor(cacheDuration / 1000) // browser cache ตรงกับ server cache
         res.setHeader('X-Cache', 'MISS')
         res.setHeader('Cache-Control', `public, max-age=${maxAgeSeconds}`)
         res.json({ success: true, data: trimmedStation })
@@ -150,11 +160,24 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
             }))
         }
 
-        cachedHistory = trimmedData
-        historyCacheExpiry = Date.now() + msUntilNextHour() // หมดอายุตรงต้นชั่วโมงถัดไป
+        let cacheDuration = msUntilNextHour()
+        if (trimmedData && Array.isArray(trimmedData.value) && trimmedData.value.length > 0) {
+            const latestTimeStr = trimmedData.value[0].log_datetime.replace(' ', 'T') + '+07:00'
+            const latestTimeMs = new Date(latestTimeStr).getTime()
+            const ageMs = Date.now() - latestTimeMs
+            // ตรวจสอบข้อมูลเก่าเหมือนกับ station เพื่อไม่ให้แคชข้อมูลเก่าจนข้ามชั่วโมง
+            if (ageMs > 55 * 60 * 1000) {
+                cacheDuration = 5 * 60 * 1000
+            }
+        }
+        cacheDuration = Math.min(Math.max(cacheDuration, 60 * 1000), msUntilNextHour())
 
+        cachedHistory = trimmedData
+        historyCacheExpiry = Date.now() + cacheDuration
+
+        const maxAgeSeconds = Math.floor(cacheDuration / 1000)
         res.setHeader('X-Cache', 'MISS')
-        res.setHeader('Cache-Control', 'public, max-age=3600') // 1 hour
+        res.setHeader('Cache-Control', `public, max-age=${maxAgeSeconds}`)
         res.json({ success: true, data: trimmedData })
     } catch (error) {
         console.error('[airquality] History Error:', error?.message)
