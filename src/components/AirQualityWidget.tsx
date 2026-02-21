@@ -109,6 +109,9 @@ export default function AirQualityWidget() {
     const [imgError, setImgError] = useState(false)
     // เก็บเวลาที่ fetch ครั้งล่าสุด เพื่อ debounce เมื่อกลับมา tab
     const lastFetchedRef = useRef<number>(0)
+    // ใช้ ref แทน state เพื่อตรวจสอบว่ามีข้อมูลแล้วหรือยัง
+    // (ถ้าใช้ state `data` โดยตรงใน useCallback จะเกิด infinite loop)
+    const hasDataRef = useRef(false)
 
     const fetchAirQuality = useCallback(async (isBackground = false) => {
         try {
@@ -116,7 +119,7 @@ export default function AirQualityWidget() {
             // ผ่านมานานกว่า 55 นาทีจาก fetch ล่าสุด (data อัพเดทรายชั่วโมง)
             if (isBackground && Date.now() - lastFetchedRef.current < 55 * 60 * 1000) return
             // แสดง loading เฉพาะตอนที่ยังไม่มีข้อมูลเลย (โหลดครั้งแรก)
-            if (!data) setLoading(true)
+            if (!hasDataRef.current) setLoading(true)
             setError(false)
             setImgError(false)
 
@@ -128,6 +131,7 @@ export default function AirQualityWidget() {
             if (!res.ok) throw new Error('API error')
             const json = await res.json()
             if (json.success && json.data) {
+                hasDataRef.current = true // บอกว่ามีข้อมูลแล้ว ไม่ต้องแสดง loading อีก
                 setData(json.data)
             } else {
                 throw new Error('Invalid data')
@@ -156,7 +160,7 @@ export default function AirQualityWidget() {
             lastFetchedRef.current = Date.now()
             setLoading(false)
         }
-    }, [data])
+    }, []) // ไม่มี dependency — ใช้ ref แทน state เพื่อป้องกัน infinite loop
 
     useEffect(() => {
         fetchAirQuality()
