@@ -102,7 +102,7 @@ function getAqiLevel(aqi: number): LevelConfig {
    ────────────────────────────────────────────── */
 export default function AirQualityWidget() {
     const [data, setData] = useState<AirQualityData | null>(null)
-    const [history, setHistory] = useState<{ time: string; pm25: number }[]>([])
+    const [history, setHistory] = useState<{ time: string; datetime: string; pm25: number }[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
     const [showInfo, setShowInfo] = useState(false)
@@ -134,7 +134,10 @@ export default function AirQualityWidget() {
                     // We just reverse it to show chronologically (morning -> current time)
                     const todaysData = [...hJson.data.value].reverse()
                     const chartData = todaysData.map((item: { log_datetime: string; pm25: number }) => ({
+                        // เก็บเวลา HH:MM สำหรับใช้ใน tooltip
                         time: item.log_datetime.split(' ')[1].substring(0, 5),
+                        // เก็บ datetime เต็มสำหรับ label แกน X ที่ข้ามวัน
+                        datetime: item.log_datetime,
                         pm25: item.pm25
                     }))
                     setHistory(chartData)
@@ -357,7 +360,7 @@ export default function AirQualityWidget() {
                                 {history.length > 0 && (
                                     <div className="h-32 sm:h-40 w-full flex flex-col justify-end border-t lg:border-t-0 lg:border-l border-slate-200/50 pt-6 lg:pt-0 lg:pl-8 mt-4 lg:mt-0">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center justify-between">
-                                            <span>แนวโน้มรายชั่วโมงของวันนี้</span>
+                                            <span>24 ชั่วโมงที่ผ่านมา</span>
                                             <i className="fa-solid fa-chart-line text-slate-300"></i>
                                         </div>
                                         <div className="flex-1 w-full min-h-[100px]">
@@ -381,7 +384,17 @@ export default function AirQualityWidget() {
                                                             const c = v <= 15 ? '#00BFF3' : v <= 25 ? '#00A651' : v <= 37.5 ? '#FDC04E' : v <= 75 ? '#F47920' : '#E3000F'
                                                             return [<span style={{ color: c, fontWeight: 900 }}>{v} µg/m³</span>, 'PM 2.5']
                                                         }}
-                                                        labelFormatter={(label) => `เวลา ${label} น.`}
+                                                        labelFormatter={(_label, payload) => {
+                                                            // แสดงวันที่และเวลาใน tooltip เพราะข้อมูลอาจข้ามวัน
+                                                            if (!payload || payload.length === 0) return ''
+                                                            const dt = payload[0]?.payload?.datetime
+                                                            if (!dt) return `เวลา ${_label} น.`
+                                                            const d = new Date(dt.replace(' ', 'T'))
+                                                            return new Intl.DateTimeFormat('th-TH', {
+                                                                day: 'numeric', month: 'short',
+                                                                hour: '2-digit', minute: '2-digit'
+                                                            }).format(d)
+                                                        }}
                                                     />
                                                     <Area
                                                         type="monotone"
@@ -429,8 +442,17 @@ export default function AirQualityWidget() {
                                             </ResponsiveContainer>
                                         </div>
                                         <div className="flex justify-between w-full mt-2 text-[9px] font-semibold text-slate-400/70">
-                                            <span>{history[0]?.time}</span>
-                                            <span>{history[history.length - 1]?.time}</span>
+                                            {/* แสดงวันและเวลาของ data point แรกและสุดท้าย เพราะข้อมูลอาจข้ามวัน */}
+                                            <span>
+                                                {history[0]?.datetime
+                                                    ? new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(history[0].datetime.replace(' ', 'T')))
+                                                    : history[0]?.time}
+                                            </span>
+                                            <span>
+                                                {history[history.length - 1]?.datetime
+                                                    ? new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(history[history.length - 1].datetime.replace(' ', 'T')))
+                                                    : history[history.length - 1]?.time}
+                                            </span>
                                         </div>
                                     </div>
                                 )}

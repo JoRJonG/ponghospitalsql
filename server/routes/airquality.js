@@ -8,8 +8,8 @@ let cachedData = null
 let cacheExpiry = 0
 const CACHE_TTL = 60 * 60 * 1000 // 1 hour
 
-// In-memory cache for history (1 hour — API rate limit per key)
-const HISTORY_CACHE_TTL = 60 * 60 * 1000 // 1 hour
+// In-memory cache for history (30 min — รับข้อมูลชั่วโมงใหม่ได้เร็วขึ้น)
+const HISTORY_CACHE_TTL = 30 * 60 * 1000 // 30 minutes
 
 router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, res) => {
     try {
@@ -123,16 +123,20 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
 
         const data = await response.json()
 
-        // Trim the history data to only include necessary fields for the current day
+        // ดึงเฉพาะข้อมูล 24 ชั่วโมงที่ผ่านมา นับจาก record ล่าสุด
         const trimmedData = data
         if (trimmedData && Array.isArray(trimmedData.value) && trimmedData.value.length > 0) {
-            // Get the date of the most recent record (index 0)
-            const latestDate = trimmedData.value[0].log_datetime.split(' ')[0]
+            // หาเวลาของ record ล่าสุด (index 0 = ใหม่ที่สุด)
+            const latestTime = new Date(trimmedData.value[0].log_datetime.replace(' ', 'T'))
+            const cutoffTime = new Date(latestTime.getTime() - 24 * 60 * 60 * 1000) // ย้อนหลัง 24 ชม.
 
-            // Filter records to only include data from that specific day
-            const todaysRecords = trimmedData.value.filter(item => item.log_datetime.startsWith(latestDate))
+            // กรองเฉพาะ record ที่อยู่ภายใน 24 ชั่วโมงที่ผ่านมา
+            const last24hRecords = trimmedData.value.filter(item => {
+                const itemTime = new Date(item.log_datetime.replace(' ', 'T'))
+                return itemTime >= cutoffTime
+            })
 
-            trimmedData.value = todaysRecords.map(item => ({
+            trimmedData.value = last24hRecords.map(item => ({
                 log_datetime: item.log_datetime,
                 pm25: item.pm25
             }))
