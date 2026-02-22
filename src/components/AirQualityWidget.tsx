@@ -342,51 +342,58 @@ export default function AirQualityWidget() {
                 {/* ── Bento Grid Layout ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10 w-full h-full">
 
-                    {/* Bento Box 1: Avatar (Spans Left 4 cols on large screens) */}
-                    <div className="lg:col-span-4 bg-white/60 backdrop-blur-2xl rounded-[2rem] border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden group/box hover:bg-white/70 transition-colors">
+                    {/* Bento Box 1: Avatar (Spans Left 4 cols on large screens, increasing to 5 for larger image) */}
+                    <div className="lg:col-span-5 bg-white/60 backdrop-blur-2xl rounded-[2rem] border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden group/box hover:bg-white/70 transition-colors">
                         {/* Dynamic background glow inside box */}
                         <div
-                            className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-20 transition-opacity duration-700 group-hover/box:opacity-40"
+                            className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20 transition-opacity duration-700 group-hover/box:opacity-40"
                             style={{ background: level.accentColor }}
                         ></div>
 
                         {/* Avatar */}
-                        <div className="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center mb-6 transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/box:-translate-y-2">
+                        <div className="relative w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 mx-auto flex items-center justify-center mb-8 md:mb-12 transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/box:-translate-y-3 group-hover/box:scale-105">
+                            {/* Inner Glow to make the image pop if it's over a light background */}
                             <div
-                                className="absolute -bottom-2 w-2/3 h-6 rounded-[100%] blur-xl opacity-60 transition-all duration-700 group-hover/box:scale-75"
+                                className="absolute inset-x-0 -bottom-8 h-12 w-[120%] -ml-[10%] rounded-[100%] blur-[40px] opacity-60 transition-all duration-700 group-hover/box:opacity-80 group-hover/box:scale-110"
                                 style={{ background: level.accentColor }}
                             ></div>
                             <div
-                                className="absolute inset-0 rounded-full blur-2xl opacity-40 group-hover/box:opacity-70 transition-opacity duration-700"
+                                className="absolute inset-0 rounded-full blur-[60px] opacity-40 group-hover/box:opacity-60 transition-opacity duration-700"
                                 style={{ background: level.gradient }}
                             ></div>
 
-                            <div className="relative w-full h-full rounded-[2rem] rotate-3 group-hover/box:rotate-0 transition-transform duration-700 bg-white/90 backdrop-blur-xl border-2 border-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col items-center justify-center">
-                                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/60 to-transparent pointer-events-none" />
+                            <div className="relative w-full h-full flex flex-col items-center justify-center z-10">
                                 {data.th_dustboy_icon && !imgError ? (
                                     <img
-                                        src={`https://www.cmuccdc.org/template/image/${data.th_dustboy_icon}.svg`}
+                                        src={buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=800`)}
+                                        srcSet={`
+                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=480`)} 480w,
+                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=640`)} 640w,
+                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=800`)} 800w,
+                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=1080`)} 1080w
+                                        `}
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 500px, 800px"
                                         alt={level.label}
-                                        className="w-[85%] h-[85%] object-contain drop-shadow-md transition-transform duration-700 ease-out group-hover/box:scale-110"
+                                        className="w-[110%] h-[110%] md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-all duration-700 ease-out z-20 group-hover/box:drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)]"
                                         onError={() => setImgError(true)}
                                     />
                                 ) : (
-                                    <i className={`fa-solid ${level.icon} text-[4rem] drop-shadow-sm`} style={{ color: level.accentColor }}></i>
+                                    <i className={`fa-solid ${level.icon} text-[8rem] sm:text-[10rem] drop-shadow-2xl`} style={{ color: level.accentColor }}></i>
                                 )}
                             </div>
                         </div>
 
                         {/* Status Badge */}
                         <div
-                            className="px-5 py-2.5 rounded-xl text-[13px] font-black shadow-sm tracking-widest border border-white/60 backdrop-blur-md relative z-10 w-full text-center"
-                            style={{ backgroundColor: level.badgeBg, color: level.badgeText }}
+                            className="px-6 py-3 rounded-xl text-sm md:text-base font-black shadow-md tracking-widest border border-white/60 backdrop-blur-md relative z-10 w-full text-center transform-gpu"
+                            style={{ backgroundColor: level.badgeBg, color: level.badgeText, WebkitTransform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
                         >
                             {data.th_title || level.label}
                         </div>
                     </div>
 
                     {/* Bento Box 2 & 3 wrapper for layout flow */}
-                    <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 w-full">
+                    <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 w-full">
 
                         {/* Bento Box 2: Giant Data Display & Hourly Chart */}
                         <div className="md:col-span-2 bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-2xl rounded-[2rem] border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 sm:p-8 flex flex-col justify-center relative overflow-hidden group/box hover:shadow-[0_8px_32px_rgba(0,0,0,0.05)] transition-shadow">

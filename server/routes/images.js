@@ -372,5 +372,49 @@ router.get('/organization/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch image' })
   }
 })
+// ดึงรูปภาพจาก AirQuality
+router.get('/airquality/:filename', async (req, res) => {
+  try {
+    const filename = req.params.filename;
+
+    // Basic validation to prevent directory traversal
+    if (!/^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp|gif)$/.test(filename)) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+
+    const ext = path.extname(filename).toLowerCase()
+    let mimeType = 'image/png'
+    if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg'
+    else if (ext === '.webp') mimeType = 'image/webp'
+    else if (ext === '.gif') mimeType = 'image/gif'
+
+    const fullPath = path.join(process.cwd(), 'uploads', 'AirQuality', filename);
+
+    // Check if file exists
+    try {
+      await fs.access(fullPath)
+    } catch {
+      return res.status(404).json({ error: 'Image file missing' })
+    }
+
+    // Read file to buffer for resizing
+    const fileBuffer = await fs.readFile(fullPath)
+
+    // Resize using helper
+    const processed = await resizeImage(
+      fileBuffer,
+      req.query.w,
+      mimeType
+    )
+
+    res.setHeader('Content-Type', processed.mimeType)
+    res.setHeader('Content-Disposition', contentDisposition('inline', filename))
+    applyPublicCache(res)
+    res.send(processed.buffer)
+  } catch (error) {
+    console.error('Error fetching air quality image:', error)
+    res.status(500).json({ error: 'Failed to fetch image' })
+  }
+})
 
 export default router
