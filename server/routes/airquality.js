@@ -146,13 +146,15 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (r
 
         if (data && Array.isArray(data.value) && data.value.length > 0) {
             // หาเวลาของ record ล่าสุด (index 0 = ใหม่ที่สุด)
+            // บวกเวลาเพิ่มไปอีก 1 ชั่วโมงให้ตรงกับการแสดงผลจริงบนหน้าเว็บ
             const latestTimeStr = data.value[0].log_datetime.replace(' ', 'T') + '+07:00'
-            const latestTimeMs = new Date(latestTimeStr).getTime()
-            const cutoffTimeMs = latestTimeMs - 24 * 60 * 60 * 1000 // ย้อนหลัง 24 ชม.
+            const latestTimeMs = new Date(latestTimeStr).getTime() + (60 * 60 * 1000)
+            const cutoffTimeMs = latestTimeMs - 24 * 60 * 60 * 1000 // ย้อนหลัง 24 ชม. จากเวลาที่บวกแล้ว
 
             // กรองและเลือกเฉพาะ 2 ฟิลด์ที่ใช้ใน Frontend
             const last24hRecords = data.value.filter(item => {
-                const itemTimeMs = new Date(item.log_datetime.replace(' ', 'T') + '+07:00').getTime()
+                // บวกเวลาของแต่ละ item ที่จะ filter ด้วยเช่นกัน (1 ชั่วโมง)
+                const itemTimeMs = new Date(item.log_datetime.replace(' ', 'T') + '+07:00').getTime() + (60 * 60 * 1000)
                 return itemTimeMs >= cutoffTimeMs
             })
 

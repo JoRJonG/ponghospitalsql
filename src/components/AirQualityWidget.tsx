@@ -143,13 +143,33 @@ export default function AirQualityWidget() {
                     // The backend now filters and sends only today's data. 
                     // We just reverse it to show chronologically (morning -> current time)
                     const todaysData = [...hJson.data.value].reverse()
-                    const chartData = todaysData.map((item: { log_datetime: string; pm25: number }) => ({
-                        // เก็บเวลา HH:MM สำหรับใช้ใน tooltip
-                        time: item.log_datetime.split(' ')[1].substring(0, 5),
-                        // เก็บ datetime เต็มสำหรับ label แกน X ที่ข้ามวัน
-                        datetime: item.log_datetime,
-                        pm25: item.pm25
-                    }))
+                    let chartData = todaysData.map((item: { log_datetime: string; pm25: number }) => {
+                        // นำเวลาเดิมมาแปลงเป็น Date Object
+                        const d = new Date(item.log_datetime.replace(' ', 'T'))
+                        // ทำการบวกเพิ่ม 1 ชั่วโมง เพื่อชดเชยเวลาให้ตรงกับข้อมูลจาก API หลัก
+                        d.setHours(d.getHours() + 1)
+
+                        const pad = (n: number) => n.toString().padStart(2, '0')
+                        const newDatetime = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+
+                        return {
+                            // เก็บเวลา HH:mm สำหรับใช้ใน tooltip
+                            time: newDatetime.split(' ')[1].substring(0, 5),
+                            // เก็บ datetime เต็มสำหรับ label แกน X ที่ข้ามวัน
+                            datetime: newDatetime,
+                            pm25: item.pm25
+                        }
+                    })
+
+                    // กรองข้อมูลไม่ให้เวลาเกินเวลาของข้อมูลหลัก (เพื่อให้กราฟสิ้นสุดที่เวลาเดียวกับตัวเลขใหญ่)
+                    if (json.data && json.data.log_datetime) {
+                        const mainTimeMs = new Date(json.data.log_datetime.replace(' ', 'T')).getTime()
+                        chartData = chartData.filter(item => {
+                            const itemTimeMs = new Date(item.datetime.replace(' ', 'T')).getTime()
+                            return itemTimeMs <= mainTimeMs
+                        })
+                    }
+
                     setHistory(chartData)
                 }
             }
