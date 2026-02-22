@@ -385,7 +385,7 @@ export default function AirQualityWidget() {
 
                         {/* Status Badge */}
                         <div
-                            className="px-6 py-3 rounded-xl text-sm md:text-base font-black shadow-md tracking-widest border border-white/60 backdrop-blur-md relative z-10 w-full text-center transform-gpu"
+                            className="px-6 py-3 rounded-xl text-sm md:text-base font-bold shadow-md border border-white/60 backdrop-blur-md relative z-10 w-full text-center transform-gpu"
                             style={{ backgroundColor: level.badgeBg, color: level.badgeText, WebkitTransform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
                         >
                             {data.th_title || level.label}
