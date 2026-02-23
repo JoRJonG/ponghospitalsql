@@ -344,31 +344,37 @@ export default function AirQualityWidget() {
                 <div className="flex flex-col gap-4 relative z-10 w-full h-full">
 
                     {/* Main Card: Big Number + Avatar + Chart */}
-                    <div className="bg-white/40 backdrop-blur-xl rounded-3xl border border-slate-100/60 shadow-sm p-4 sm:p-5 lg:p-6 flex flex-col justify-center relative overflow-hidden group/box">
+                    <div
+                        className="backdrop-blur-xl rounded-3xl border shadow-sm p-4 sm:p-5 lg:p-6 flex flex-col justify-center relative overflow-hidden group/box"
+                        style={{
+                            background: `linear-gradient(135deg, ${level.badgeBg}95 0%, ${level.badgeBg}40 100%)`,
+                            borderColor: `${level.accentColor}30`
+                        }}
+                    >
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 lg:gap-6 items-center w-full relative z-10">
 
                             {/* Column 1: Big Number */}
-                            <div className="flex flex-col justify-center order-2 md:order-1 border-t md:border-t-0 border-slate-200/50 pt-4 md:pt-0">
+                            <div className="flex flex-col justify-center order-2 md:order-1 border-t md:border-t-0 border-white/40 pt-4 md:pt-0">
                                 <div className="inline-flex items-center gap-1.5 mb-2">
                                     <span className="w-1.5 h-1.5 rounded-full shadow-sm" style={{ backgroundColor: level.accentColor }}></span>
-                                    <h3 className="text-[10px] sm:text-xs font-extrabold text-slate-500 tracking-[0.2em] uppercase">
+                                    <h3 className="text-[10px] sm:text-xs font-extrabold tracking-[0.2em] uppercase text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
                                         ปริมาณฝุ่นละออง PM 2.5
                                     </h3>
                                 </div>
 
                                 <div className="flex flex-wrap items-baseline gap-2 group/number cursor-default mt-2">
                                     <span
-                                        className="text-7xl sm:text-8xl lg:text-[7.5rem] font-bold tabular-nums leading-[0.8] tracking-tight drop-shadow-sm transition-transform duration-500 group-hover/number:scale-[1.02] origin-left"
+                                        className="text-7xl sm:text-8xl lg:text-[7.5rem] font-bold tabular-nums leading-[0.8] tracking-tight transition-transform duration-500 group-hover/number:scale-[1.02] origin-left drop-shadow-[0_4px_8px_rgba(255,255,255,0.6)]"
                                         style={{ color: level.accentColor }}
                                     >
                                         {pm25Raw}
                                     </span>
                                     <div className="flex flex-col items-start justify-end pb-1 lg:pb-3 ml-1">
-                                        <span className="text-xl lg:text-2xl font-bold text-slate-400">
+                                        <span className="text-xl lg:text-2xl font-bold text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
                                             µg/m³
                                         </span>
-                                        <span className="text-[10px] sm:text-xs font-bold text-slate-400/80 tracking-wide mt-1">
+                                        <span className="text-[10px] sm:text-xs font-bold tracking-wide mt-1 text-slate-700 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
                                             (รายชั่วโมง)
                                         </span>
                                     </div>
@@ -377,7 +383,7 @@ export default function AirQualityWidget() {
 
                             {/* Column 2: Center Avatar */}
                             <div className="flex flex-col items-center justify-center order-1 md:order-2 px-2">
-                                <div className="relative w-32 h-32 sm:w-36 sm:h-36 lg:w-44 lg:h-44 mx-auto flex items-center justify-center mb-6 transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/box:-translate-y-2 group-hover/box:scale-[1.02]">
+                                <div className="relative w-32 h-32 sm:w-36 sm:h-36 lg:w-44 lg:h-44 mx-auto flex items-center justify-center mb-6">
 
                                     {/* Minimalist Backdrop */}
                                     <div className="absolute inset-4 rounded-full bg-gradient-to-b from-white to-slate-50/50 shadow-sm border border-slate-100/50"></div>
@@ -393,11 +399,11 @@ export default function AirQualityWidget() {
                                                 `}
                                                 sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
                                                 alt={level.label}
-                                                className="w-[110%] h-[110%] object-contain drop-shadow-2xl transition-all duration-700 ease-out z-20 group-hover/box:drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)]"
+                                                className="w-[110%] h-[110%] object-contain drop-shadow-2xl z-20 group-hover/box:drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] transition-[filter] duration-700"
                                                 onError={() => setImgError(true)}
                                             />
                                         ) : (
-                                            <i className={`fa-solid ${level.icon} text-[5rem] drop-shadow-2xl`} style={{ color: level.accentColor }}></i>
+                                            <i className={`fa-solid ${level.icon} text-[5rem] drop-shadow-2xl z-20`} style={{ color: level.accentColor }}></i>
                                         )}
                                     </div>
                                 </div>
@@ -418,10 +424,10 @@ export default function AirQualityWidget() {
 
                             {/* Column 3: Hourly Chart */}
                             {history.length > 0 && (
-                                <div className="h-28 sm:h-32 lg:h-36 w-full flex flex-col justify-end pt-4 md:pt-0 pl-1 md:pl-2 order-3">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center justify-between">
+                                <div className="h-28 sm:h-32 lg:h-36 w-full flex flex-col justify-end pt-4 md:pt-0 pl-1 md:pl-2 order-3 border-t md:border-t-0 border-white/40">
+                                    <div className="text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center justify-between text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
                                         <span>กราฟ 24 ชั่วโมง</span>
-                                        <i className="fa-solid fa-chart-line text-slate-300"></i>
+                                        <i className="fa-solid fa-chart-line opacity-70"></i>
                                     </div>
                                     <div className="flex-1 w-full min-h-[100px]">
                                         <ResponsiveContainer width="100%" height="100%">
@@ -501,7 +507,7 @@ export default function AirQualityWidget() {
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
-                                    <div className="flex justify-between w-full mt-2 text-[9px] font-semibold text-slate-400/70">
+                                    <div className="flex justify-between w-full mt-2 text-[10px] font-bold text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
                                         {/* แสดงวันและเวลาของ data point แรกและสุดท้าย เพราะข้อมูลอาจข้ามวัน */}
                                         <span>
                                             {history[0]?.datetime
