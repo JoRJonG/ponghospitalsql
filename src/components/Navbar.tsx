@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import logo from '../assets/logo-150x150.png'
+import NavbarAirQuality from './NavbarAirQuality'
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
   `px-4 py-2 text-base font-medium transition-colors ${isActive ? 'text-emerald-600 bg-emerald-50 rounded-md' : 'text-slate-600 hover:text-emerald-500 hover:bg-emerald-50/50 rounded-md'}`
@@ -218,6 +219,11 @@ export default function Navbar() {
             </div>
             <NavLink to="/documents" className={navItemClass}>ดาวน์โหลดเอกสาร</NavLink>
             <NavLink to="/contact" className={navItemClass}>ติดต่อเรา</NavLink>
+
+            <div className="hidden lg:block ml-2">
+              <NavbarAirQuality />
+            </div>
+
             {isAuthenticated ? (
               <>
                 <span className="mx-1 text-slate-300">|</span>
@@ -331,6 +337,9 @@ export default function Navbar() {
                   ) : null}
                 </div>
                 <NavLink to="/contact" className={navItemClass} onClick={() => setOpen(false)}>ติดต่อเรา</NavLink>
+                <div className="py-2 px-4 mt-2 mb-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50 shadow-sm">
+                  <NavbarAirQuality />
+                </div>
                 {isAuthenticated ? (
                   <>
                     <div className="border-t border-gray-200 my-2"></div>

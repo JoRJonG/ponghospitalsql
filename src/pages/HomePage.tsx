@@ -3,7 +3,6 @@ import HeroSlider from '../components/HeroSlider'
 import HomeAnnouncements from '../components/HomeAnnouncements'
 import LatestActivities from '../components/LatestActivities'
 import PRPoster from '../components/PRPoster'
-import AirQualityWidget from '../components/AirQualityWidget'
 import UnitLinks from '../components/UnitLinks'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 import SEO from '../components/SEO'
@@ -63,7 +62,6 @@ export default function HomePage() {
 
   /* scroll-reveal refs สำหรับทุก section */
   const heroSliderRef = useReveal<HTMLDivElement>()
-  const airQualityRef = useReveal<HTMLDivElement>()
   const posterRef = useReveal<HTMLDivElement>()
   const announcementsRef = useReveal<HTMLDivElement>()
   const activitiesRef = useReveal<HTMLDivElement>()
@@ -80,13 +78,6 @@ export default function HomePage() {
           <HeroSlider />
         </div>
       )}
-
-      {/* Air Quality Widget — คุณภาพอากาศ อ.ปง */}
-      <section ref={airQualityRef} className={`relative py-4 md:py-8 bg-slate-50 overflow-hidden bg-noise border-t border-gray-100/50 ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
-        <div className="container-narrow relative z-10">
-          <AirQualityWidget />
-        </div>
-      </section>
 
       {/* PR Poster — ย้ายจากบนลงมาล่าง Widget อากาศ */}
       <section ref={posterRef} className="relative py-6 md:py-12 bg-white overflow-hidden border-t border-gray-100/50">
