@@ -152,10 +152,10 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
             {slides.map((_, i) => (
               <button
                 key={i}
+                type="button"
                 aria-label={`slide ${i + 1}`}
                 onClick={() => setIdx(i)}
-                className={`h-3 w-3 rounded-full transition-all duration-300 ${i === idx ? 'bg-white scale-110 shadow-md' : 'bg-white/50 hover:bg-white/80'}`}
-                style={{ outline: 'none' }}
+                className={`h-3 w-3 rounded-full transition-[background-color,transform,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none ${i === idx ? 'bg-white scale-110 shadow-md' : 'bg-white/50 hover:bg-white/80'}`}
                 onFocus={() => { /* keep to allow focus-visible CSS to show */ }}
               />
             ))}

@@ -89,7 +89,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">ข่าวประชาสัมพันธ์ และประกาศจัดซื้อ</h2>
+            <h2 className="text-2xl font-bold text-slate-800 text-balance">ข่าวประชาสัมพันธ์ และประกาศจัดซื้อ</h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
               ติดตามข้อมูลข่าวสารการจัดซื้อจัดจ้าง การรับสมัครงาน และประกาศสำคัญต่างๆ จากโรงพยาบาลได้ที่นี่
             </p>
@@ -105,10 +105,11 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
             {tabs.map(t => (
               <button
                 key={t.key}
+                type="button"
                 role="tab"
                 aria-selected={activeTab === t.key}
                 onClick={() => setActiveTab(t.key)}
-                className={`text-left px-4 py-3 border-l-4 transition rounded-r ${activeTab === t.key
+                className={`text-left px-4 py-3 border-l-4 transition-colors rounded-r focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none ${activeTab === t.key
                   ? 'bg-white border-emerald-500 shadow-sm font-semibold text-emerald-800'
                   : 'border-transparent hover:bg-emerald-50 hover:border-emerald-200 text-slate-500 hover:text-emerald-500'
                   }`}
@@ -168,11 +169,11 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                             {colors.label}
                           </span>
                           <span className="text-slate-400 text-xs">
-                            {a.publishedAt ? new Date(a.publishedAt).toLocaleDateString('th-TH', {
+                            {a.publishedAt ? new Intl.DateTimeFormat('th-TH', {
                               day: 'numeric',
                               month: 'short',
                               year: 'numeric'
-                            }).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
+                            }).format(new Date(a.publishedAt)).replace(/\./g, '').replace('พ.ย', 'พ.ย.') : ''}
                           </span>
                           {a.viewCount !== undefined && a.viewCount > 0 ? (
                             <>
@@ -216,7 +217,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
       <div className={embedded ? "" : "container-narrow"}>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">ประกาศล่าสุด</h2>
+            <h2 className="text-2xl font-bold text-slate-800 text-balance">ประกาศล่าสุด</h2>
             <p className="text-gray-600 text-sm">ติดตามข่าวสารและประกาศสำคัญจากโรงพยาบาล</p>
           </div>
           <Link
@@ -234,11 +235,12 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
               {tabs.map(t => (
                 <button
                   key={t.key}
+                  type="button"
                   role="tab"
                   aria-selected={activeTab === t.key}
                   aria-controls={`panel-${t.key}`}
                   onClick={() => setActiveTab(t.key)}
-                  className={`inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === t.key
+                  className={`inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none ${activeTab === t.key
                     ? 'bg-green-600 text-white shadow'
                     : 'bg-transparent text-gray-600 hover:text-emerald-500 hover:bg-emerald-50'
                     }`}
@@ -306,7 +308,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                         ) : null}
                         <span className="text-gray-400 text-xs">
                           <i className="fa-regular fa-calendar mr-1" />
-                          {a.publishedAt ? new Date(a.publishedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                          {a.publishedAt ? new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(a.publishedAt)) : ''}
                         </span>
                         {a.viewCount !== undefined && a.viewCount > 0 ? (
                           <span className="text-gray-400 text-xs flex items-center gap-1">

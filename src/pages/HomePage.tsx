@@ -82,7 +82,7 @@ export default function HomePage() {
       <SEO description="โรงพยาบาลปง จังหวัดพะเยา ให้บริการด้านสุขภาพครบวงจร ตรวจรักษาทั่วไป ฉุกเฉิน 24 ชม. ข่าวสาร กิจกรรม และประกาศจัดซื้อจัดจ้าง" />
 
       {isHeroSliderVisible && (
-        <div ref={heroSliderRef} className={`transform transition-all duration-700 ease-out bg-white`}>
+        <div ref={heroSliderRef} className={`transform transition-[opacity,transform] duration-700 ease-out bg-white`}>
           <h1 className="sr-only">โรงพยาบาลปง จังหวัดพะเยา - บริการสุขภาพครบวงจร</h1>
           <HeroSlider />
         </div>

@@ -53,7 +53,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">ภาพกิจกรรม</h2>
+          <h2 className="text-2xl font-bold text-slate-800 text-balance">ภาพกิจกรรม</h2>
           <p className="text-gray-600 text-sm">รวมภาพกิจกรรมและโครงการต่างๆ ของโรงพยาบาล</p>
         </div>
         <Link
@@ -100,6 +100,8 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                     <img
                       loading="lazy"
                       decoding="async"
+                      width={400}
+                      height={300}
                       src={src}
                       srcSet={srcSet}
                       sizes={sizes}
@@ -115,7 +117,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                   <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
                     {a.date ? (
                       <>
-                        <span><i className="far fa-calendar mr-1"></i> {new Date(a.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
+                        <span><i className="far fa-calendar mr-1"></i> {new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }).format(new Date(a.date))}</span>
                         <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                       </>
                     ) : null}
@@ -150,7 +152,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
       <div className="container-narrow">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h3 className="text-2xl font-bold">กิจกรรมล่าสุด</h3>
+            <h3 className="text-2xl font-bold text-balance">กิจกรรมล่าสุด</h3>
             <p className="text-gray-600 text-sm">ติดตามกิจกรรมและการบริการต่างๆ ของโรงพยาบาล</p>
           </div>
           <Link
@@ -187,6 +189,8 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                     <img
                       loading="lazy"
                       decoding="async"
+                      width={400}
+                      height={300}
                       src={src}
                       srcSet={srcSet}
                       sizes={sizes}
@@ -196,7 +200,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
                       <div className="font-semibold line-clamp-2 text-sm leading-tight mb-1">{a.title}</div>
-                      {a.date ? <div className="text-xs opacity-90">{new Date(a.date).toLocaleDateString('th-TH')}</div> : null}
+                      {a.date ? <div className="text-xs opacity-90">{new Intl.DateTimeFormat('th-TH').format(new Date(a.date))}</div> : null}
                     </div>
                   </div>
                 </Link>

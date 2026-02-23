@@ -40,7 +40,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
     <>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">ระบบสารสนเทศภายใน</h2>
+          <h2 className="text-2xl font-bold text-slate-800 text-balance">ระบบสารสนเทศภายใน</h2>
           <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงานและระบบสารสนเทศต่างๆ ภายในโรงพยาบาล</p>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
             </div>
           )
           return u.href ? (
-            <a key={u._id} href={u.href} target={/^https?:\/\//i.test(u.href) ? '_blank' : undefined} rel={/^https?:\/\//i.test(u.href) ? 'noopener noreferrer' : undefined} className="block">
+            <a key={u._id} href={u.href} target={/^https?:\/\//i.test(u.href) ? '_blank' : undefined} rel={/^https?:\/\//i.test(u.href) ? 'noopener noreferrer' : undefined} className="block focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none rounded-xl">
               {card}
             </a>
           ) : (
@@ -99,7 +99,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
       <div className="container-narrow">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h3 className="text-2xl font-bold">ลิงก์หน่วยงาน</h3>
+            <h3 className="text-2xl font-bold text-balance">ลิงก์หน่วยงาน</h3>
             <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงาน/กลุ่มงานภายในที่เกี่ยวข้อง</p>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
               </div>
             )
             return u.href ? (
-              <a key={u._id} href={u.href} target={/^https?:\/\//i.test(u.href) ? '_blank' : undefined} rel={/^https?:\/\//i.test(u.href) ? 'noopener noreferrer' : undefined} className="block">
+              <a key={u._id} href={u.href} target={/^https?:\/\//i.test(u.href) ? '_blank' : undefined} rel={/^https?:\/\//i.test(u.href) ? 'noopener noreferrer' : undefined} className="block focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none rounded-xl">
                 {card}
               </a>
             ) : (
