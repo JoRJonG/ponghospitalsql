@@ -57,8 +57,24 @@ export default function NavbarAirQuality() {
     const [data, setData] = useState<AirQualityData | null>(null)
     const [loading, setLoading] = useState(true)
     const [imgError, setImgError] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
     const lastFetchedRef = useRef<number>(0)
     const hasDataRef = useRef(false)
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent | TouchEvent) {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('touchstart', handleClickOutside)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener('touchstart', handleClickOutside)
+        }
+    }, [])
 
     const fetchAirQuality = async (isBackground = false) => {
         try {
@@ -117,13 +133,12 @@ export default function NavbarAirQuality() {
 
     if (loading && !data) {
         return (
-            <div className="flex items-stretch gap-3 lg:pl-4 lg:border-l border-slate-200 group relative h-[42px] w-[150px] shrink-0">
-                {/* Absolute overlay for loading state to perfectly replace exact pixels without flex calculation shifts */}
-                <div className="absolute inset-0 flex items-stretch gap-3 lg:pl-4">
-                    <div className="w-[42px] h-[42px] rounded-full bg-slate-100 animate-pulse shrink-0 border border-slate-200"></div>
-                    <div className="flex flex-col justify-center animate-pulse gap-1 w-[86px] shrink-0">
-                        <div className="h-3 w-16 bg-slate-200 rounded"></div>
-                        <div className="h-5 w-20 bg-slate-200 rounded mt-0.5"></div>
+            <div className="flex items-center lg:pl-4 lg:border-l border-slate-200 group relative h-[42px] w-[170px] shrink-0">
+                <div className="flex items-center gap-2.5 h-[40px] w-full rounded-full pl-1 pr-3 border border-slate-100 bg-slate-50">
+                    <div className="w-[32px] h-[32px] rounded-full bg-slate-200 animate-pulse shrink-0"></div>
+                    <div className="flex flex-col justify-center animate-pulse gap-1.5 w-full pr-2">
+                        <div className="h-2 w-16 bg-slate-200 rounded"></div>
+                        <div className="h-3.5 w-[50px] bg-slate-200 rounded"></div>
                     </div>
                 </div>
             </div>
@@ -131,55 +146,74 @@ export default function NavbarAirQuality() {
     }
 
     if (!data) return (
-        <div className="flex items-center gap-3 lg:pl-4 lg:border-l border-slate-200 group relative invisible h-[42px] w-[150px] shrink-0">
+        <div className="flex items-center lg:pl-4 lg:border-l border-slate-200 group relative invisible h-[42px] w-[170px] shrink-0">
         </div>
     )
 
     // Inline Desktop/Mobile Widget based on the design request
     return (
         <div
-            className="flex items-stretch gap-3 lg:pl-4 lg:border-l border-slate-200 group relative h-[42px] w-[150px] shrink-0"
+            ref={containerRef}
+            className="flex items-center lg:pl-4 lg:border-l border-slate-200 relative h-[42px] w-[170px] shrink-0 cursor-pointer"
+            onClick={() => setIsOpen(!isOpen)}
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
         >
-            {/* Mascot Avatar with Subtle Effect */}
-            <div className="relative w-[42px] min-w-[42px] max-w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100 shadow-inner overflow-hidden">
-                {data.th_dustboy_icon && !imgError ? (
-                    <img
-                        src={buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=100`)}
-                        alt={level.label}
-                        className="w-[120%] h-[120%] object-contain"
-                        onError={() => setImgError(true)}
-                    />
-                ) : (
-                    <div className="w-full h-full" style={{ backgroundColor: level.accentColor }}></div>
-                )}
-            </div>
-
-            <div className="flex flex-col justify-center w-[86px] shrink-0">
-                {/* Status Dot and Label */}
-                <div className="flex items-center gap-1.5 mb-0.5">
-                    <span
-                        className="w-1.5 h-1.5 rounded-full shadow-sm"
-                        style={{ backgroundColor: level.accentColor }}
-                    ></span>
-                    <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest leading-none mt-0.5">
-                        PM 2.5 รพ.ปง
-                    </span>
+            {/* Colored Glow Pill Container */}
+            <div
+                className="flex items-center gap-2.5 h-[40px] w-full rounded-full pl-1 pr-3 cursor-pointer transition-all duration-300 hover:scale-105 border overflow-visible"
+                style={{
+                    backgroundColor: `${level.accentColor}1A`, // 10% opacity wash
+                    borderColor: `${level.accentColor}4D`,     // 30% opacity border
+                    boxShadow: `0 4px 12px ${level.accentColor}1A` // subtle glowing shadow
+                }}
+            >
+                {/* Mascot Avatar - Slightly protruding */}
+                <div className="relative w-[34px] min-w-[34px] max-w-[34px] h-[34px] shrink-0 flex items-center justify-center rounded-full bg-white shadow-sm border border-white/80">
+                    {data.th_dustboy_icon && !imgError ? (
+                        <img
+                            src={buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=100`)}
+                            alt={level.label}
+                            className="w-[110%] h-[110%] object-contain drop-shadow-sm scale-105"
+                            onError={() => setImgError(true)}
+                        />
+                    ) : (
+                        <div className="w-full h-full rounded-full" style={{ backgroundColor: level.accentColor }}></div>
+                    )}
                 </div>
 
-                {/* Numeric Value */}
-                <div className="flex items-baseline gap-1" style={{ color: level.accentColor }}>
-                    <span className="text-xl sm:text-[22px] font-black tabular-nums leading-none tracking-tight leading-none drop-shadow-sm">
-                        {pm25Raw}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-500 ml-0.5">
-                        µg/m<sup>3</sup>
-                    </span>
+                <div className="flex flex-col justify-center w-full">
+                    {/* Status Dot and Label (Live Indicator) */}
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: level.accentColor }}></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: level.accentColor }}></span>
+                        </span>
+                        <span className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wide leading-none">
+                            PM 2.5 รพ.ปง
+                        </span>
+                    </div>
+
+                    {/* Numeric Value */}
+                    <div className="flex items-baseline gap-1" style={{ color: level.accentColor }}>
+                        <span className="text-xl font-black tabular-nums leading-none tracking-tight drop-shadow-sm">
+                            {pm25Raw}
+                        </span>
+                        <span className="text-[10px] font-bold opacity-90" style={{ color: level.accentColor }}>
+                            µg/m<sup className="font-semibold text-[8px]">3</sup>
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {/* Popover detail on hover */}
-            <div className="absolute right-0 top-full mt-2 w-max px-3 py-2 bg-white rounded-lg shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top pointer-events-none translate-y-2 group-hover:translate-y-0 text-left">
-                <div className="text-xs font-bold text-slate-700 mb-1">{data.th_title || level.label}</div>
+            {/* Popover detail on hover / tap */}
+            <div className={`absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-max max-w-[90vw] px-3 py-2 bg-white rounded-lg shadow-xl border border-slate-100 transition-all duration-200 z-[100] transform origin-top pointer-events-none text-left ${isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
+                <div
+                    className="text-xs font-bold mb-1 truncate"
+                    style={{ color: level.accentColor }}
+                >
+                    {data.th_title || level.label}
+                </div>
                 <div className="text-[10px] text-slate-500 flex items-center gap-1.5">
                     <i className="fa-solid fa-location-dot text-emerald-500 w-3 text-center"></i>
                     <span>จุดตรวจวัด: <strong className="text-slate-600">{data.dustboy_name || 'โรงพยาบาลปง'}</strong></span>
