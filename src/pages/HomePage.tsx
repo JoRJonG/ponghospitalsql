@@ -79,10 +79,10 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* PR Poster — ย้ายจากบนลงมาล่าง Widget อากาศ */}
-      <section ref={posterRef} className="relative py-6 md:py-12 bg-white overflow-hidden border-t border-gray-100/50">
+      {/* PR Poster — เปลี่ยนพื้นหลังเพื่อให้เกิด Contrast ตัดกับ HeroSlider ด้านบนและ Announcements ด้านล่าง */}
+      <section ref={posterRef} className={`relative py-8 md:py-16 bg-slate-50 overflow-hidden border-t border-gray-100/50 bg-noise ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
         {/* Decorative blob สร้าง atmosphere — เบลอหนักจนแทบไม่เห็น */}
-        <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20" />
+        <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20 opacity-30" />
         <div className="container-narrow relative z-10">
           {/* Header section for posters */}
 
