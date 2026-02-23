@@ -117,25 +117,31 @@ export default function NavbarAirQuality() {
 
     if (loading && !data) {
         return (
-            <div className="flex items-center gap-3 bg-slate-50 border border-slate-100/60 rounded-full py-1.5 px-3 animate-pulse">
-                <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0"></div>
-                <div className="flex flex-col gap-1">
-                    <div className="w-16 h-2 rounded bg-slate-200"></div>
-                    <div className="w-12 h-4 rounded bg-slate-200"></div>
+            <div className="flex items-stretch gap-3 lg:pl-4 lg:border-l border-slate-200 group relative h-[42px] w-[150px] shrink-0">
+                {/* Absolute overlay for loading state to perfectly replace exact pixels without flex calculation shifts */}
+                <div className="absolute inset-0 flex items-stretch gap-3 lg:pl-4">
+                    <div className="w-[42px] h-[42px] rounded-full bg-slate-100 animate-pulse shrink-0 border border-slate-200"></div>
+                    <div className="flex flex-col justify-center animate-pulse gap-1 w-[86px] shrink-0">
+                        <div className="h-3 w-16 bg-slate-200 rounded"></div>
+                        <div className="h-5 w-20 bg-slate-200 rounded mt-0.5"></div>
+                    </div>
                 </div>
             </div>
         )
     }
 
-    if (!data) return null
+    if (!data) return (
+        <div className="flex items-center gap-3 lg:pl-4 lg:border-l border-slate-200 group relative invisible h-[42px] w-[150px] shrink-0">
+        </div>
+    )
 
     // Inline Desktop/Mobile Widget based on the design request
     return (
         <div
-            className="flex items-center gap-3 lg:pl-4 lg:border-l border-slate-200 group relative"
+            className="flex items-stretch gap-3 lg:pl-4 lg:border-l border-slate-200 group relative h-[42px] w-[150px] shrink-0"
         >
             {/* Mascot Avatar with Subtle Effect */}
-            <div className="relative w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100 shadow-inner overflow-hidden transition-transform duration-300 group-hover:scale-105">
+            <div className="relative w-[42px] min-w-[42px] max-w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100 shadow-inner overflow-hidden">
                 {data.th_dustboy_icon && !imgError ? (
                     <img
                         src={buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=100`)}
@@ -148,7 +154,7 @@ export default function NavbarAirQuality() {
                 )}
             </div>
 
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center w-[86px] shrink-0">
                 {/* Status Dot and Label */}
                 <div className="flex items-center gap-1.5 mb-0.5">
                     <span

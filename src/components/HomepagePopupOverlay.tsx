@@ -46,10 +46,16 @@ function saveDismissMap(map: DismissMap) {
 function useBodyLock(locked: boolean) {
   useEffect(() => {
     if (!locked) return
-    const previous = document.body.style.overflow
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    const previousOverflow = document.body.style.overflow
+    const previousPaddingRight = document.body.style.paddingRight
     document.body.style.overflow = 'hidden'
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+    }
     return () => {
-      document.body.style.overflow = previous
+      document.body.style.overflow = previousOverflow
+      document.body.style.paddingRight = previousPaddingRight
     }
   }, [locked])
 }
@@ -184,30 +190,50 @@ export function HomepagePopupOverlay() {
         // Debug: log candidate parsing results
 
         if (mounted) {
-          setPopup(candidateWithImage)
-          // Clear previous expiry timer
-          if (expiryTimer) { clearTimeout(expiryTimer); expiryTimer = null }
-          // If popup has an endAt, schedule auto-dismiss when it expires
-          if (candidateWithImage && candidateWithImage.endAt) {
-            const endDate = parseLocal(candidateWithImage.endAt)
-            if (endDate) {
-              const ms = endDate.getTime() - Date.now()
-              if (ms > 0) {
-                // clear previous expiryTimer then set a new one
-                if (expiryTimer) { clearTimeout(expiryTimer); expiryTimer = null }
-                expiryTimer = setTimeout(() => {
-                  // re-run load to refresh state and bypass caches so we
-                  // immediately pick up the DB change when endAt passes
-                  load(true).catch(() => { })
-                }, ms + 1000) // add 1s buffer
+          const applyPopup = (finalPopup: typeof candidateWithImage) => {
+            setPopup(finalPopup)
+            // Clear previous expiry timer
+            if (expiryTimer) { clearTimeout(expiryTimer); expiryTimer = null }
+            // If popup has an endAt, schedule auto-dismiss when it expires
+            if (finalPopup && finalPopup.endAt) {
+              const endDate = parseLocal(finalPopup.endAt)
+              if (endDate) {
+                const ms = endDate.getTime() - Date.now()
+                if (ms > 0) {
+                  // clear previous expiryTimer then set a new one
+                  if (expiryTimer) { clearTimeout(expiryTimer); expiryTimer = null }
+                  expiryTimer = setTimeout(() => {
+                    // re-run load to refresh state and bypass caches so we
+                    // immediately pick up the DB change when endAt passes
+                    load(true).catch(() => { })
+                  }, ms + 1000) // add 1s buffer
+                } else {
+                  // already past end — hide immediately
+                  setPopup(null)
+                }
               } else {
-                // already past end — hide immediately
+                // unparseable end date — hide to be safe
                 setPopup(null)
               }
-            } else {
-              // unparseable end date — hide to be safe
-              setPopup(null)
             }
+          }
+
+          if (candidateWithImage) {
+            const src = (candidateWithImage.image?.url || candidateWithImage.imageUrl || '').trim()
+            if (src) {
+              const img = new window.Image()
+              img.onload = () => {
+                if (mounted) applyPopup(candidateWithImage)
+              }
+              img.onerror = () => {
+                if (mounted) applyPopup(null)
+              }
+              img.src = `${src}${src.includes('?') ? '&' : '?'}w=1000`
+            } else {
+              applyPopup(null)
+            }
+          } else {
+            applyPopup(null)
           }
         }
       } catch (error) {
@@ -294,8 +320,8 @@ export function HomepagePopupOverlay() {
   const imageIsClickable = Boolean(popup.ctaUrl)
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm">
-      <div className="relative inline-flex max-h-[90vh] max-w-[90vw]">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm animate-fade-in">
+      <div className="relative inline-flex items-center justify-center">
         <button
           aria-label="ปิดป๊อปอัป"
           onClick={handleDismiss}

@@ -75,16 +75,24 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
     if (isLoading) {
         return (
             <section className={`${embedded ? '' : 'py-8 bg-white'}`} ref={revealRef}>
-                <div className="w-full relative">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div className="relative">
-                            <h2 className="text-xl md:text-2xl font-bold text-slate-700 relative z-10">โปสเตอร์ประชาสัมพันธ์</h2>
-                            <div className="absolute -bottom-2 left-0 w-full h-1 bg-slate-400 rounded-full"></div>
+                <div className={embedded ? "" : "app-container relative"}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-800">โปสเตอร์ประชาสัมพันธ์</h2>
+                            <p className="text-transparent bg-slate-200 rounded animate-pulse text-sm select-none w-64 mt-1">กำลังโหลดข้อมูลโปสเตอร์ประชาสัมพันธ์...</p>
+                        </div>
+                        <div className="btn btn-outline inline-flex items-center gap-1 invisible">
+                            ดูทั้งหมด <span aria-hidden>→</span>
                         </div>
                     </div>
-                    <div className="flex gap-4 overflow-hidden">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-4 lg:gap-5 xl:gap-6 overflow-hidden">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="min-w-[280px] aspect-square bg-slate-100 rounded-lg animate-pulse" />
+                            <div key={i} className={`w-full bg-white rounded-xl shadow-sm border border-slate-100 p-2 shrink-0 ${i === 1 ? 'flex flex-col' :
+                                    i === 2 ? 'hidden sm:flex flex-col' :
+                                        'hidden lg:flex flex-col'
+                                }`}>
+                                <div className="relative aspect-square rounded-lg mb-3 bg-slate-100 animate-pulse"></div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -99,7 +107,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
         >
             <div className={embedded ? "" : "app-container relative"}>
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-800">โปสเตอร์ประชาสัมพันธ์</h2>
                         <p className="text-gray-600 text-sm">รวมป้ายประชาสัมพันธ์ข่าวสารและกิจกรรมต่างๆ ของโรงพยาบาล</p>
@@ -107,7 +115,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
 
                     <Link
                         to="/pr-posters"
-                        className="btn btn-outline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5"
+                        className="btn btn-outline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5 shrink-0 self-start sm:self-auto"
                     >
                         ดูทั้งหมด <span aria-hidden>→</span>
                     </Link>
@@ -128,62 +136,64 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
 
                         {/* Swiper Carousel */}
                         {items && items.length > 0 ? (
-                            <Swiper
-                                modules={[Autoplay, Navigation]}
-                                spaceBetween={16}
-                                slidesPerView={1}
-                                loop={true}
-                                speed={2500} // Custom slow transition speed
-                                autoplay={{
-                                    delay: 2000,
-                                    disableOnInteraction: false,
-                                    pauseOnMouseEnter: true
-                                }}
-                                navigation={{
-                                    prevEl: '.swiper-button-prev-custom',
-                                    nextEl: '.swiper-button-next-custom'
-                                }}
-                                breakpoints={{
-                                    640: {
-                                        slidesPerView: 2,
-                                        spaceBetween: 16
-                                    },
-                                    1024: {
-                                        slidesPerView: 4,
-                                        spaceBetween: 20
-                                    },
-                                    1280: {
-                                        slidesPerView: 4,
-                                        spaceBetween: 24
-                                    }
-                                }}
-                                className="pr-poster-swiper"
-                            >
-                                {items.map((poster) => (
-                                    <SwiperSlide key={poster._id}>
-                                        <div
-                                            className="w-full bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 p-2 flex flex-col cursor-pointer"
-                                            onClick={() => setSelectedPoster(poster)}
-                                        >
-                                            <div className="relative aspect-square overflow-hidden rounded-lg mb-3 bg-slate-100">
-                                                {(() => {
-                                                    const { src, srcSet } = responsiveImageProps(buildApiUrl(poster.imageUrl), { widths: [320, 480, 640], sizes: '(max-width: 768px) 100vw, 320px' })
-                                                    return (
-                                                        <img
-                                                            src={src}
-                                                            srcSet={srcSet}
-                                                            alt={poster.title}
-                                                            className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
-                                                            loading="lazy"
-                                                            draggable="false"
-                                                        />
-                                                    )
-                                                })()}
+                            <div className="relative min-h-[306px]"> {/* STRICT MIN-HEIGHT: Prevents Swiper from collapsing to 0 height during init reflow, stopping 0.33+ CLS */}
+                                <Swiper
+                                    modules={[Autoplay, Navigation]}
+                                    spaceBetween={16}
+                                    slidesPerView={1}
+                                    loop={true}
+                                    speed={2500} // Custom slow transition speed
+                                    autoplay={{
+                                        delay: 2000,
+                                        disableOnInteraction: false,
+                                        pauseOnMouseEnter: true
+                                    }}
+                                    navigation={{
+                                        prevEl: '.swiper-button-prev-custom',
+                                        nextEl: '.swiper-button-next-custom'
+                                    }}
+                                    breakpoints={{
+                                        640: {
+                                            slidesPerView: 2,
+                                            spaceBetween: 16
+                                        },
+                                        1024: {
+                                            slidesPerView: 4,
+                                            spaceBetween: 20
+                                        },
+                                        1280: {
+                                            slidesPerView: 4,
+                                            spaceBetween: 24
+                                        }
+                                    }}
+                                    className="pr-poster-swiper"
+                                >
+                                    {items.map((poster) => (
+                                        <SwiperSlide key={poster._id}>
+                                            <div
+                                                className="w-full bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 p-2 flex flex-col cursor-pointer"
+                                                onClick={() => setSelectedPoster(poster)}
+                                            >
+                                                <div className="relative aspect-square overflow-hidden rounded-lg mb-3 bg-slate-100">
+                                                    {(() => {
+                                                        const { src, srcSet } = responsiveImageProps(buildApiUrl(poster.imageUrl), { widths: [320, 480, 640], sizes: '(max-width: 768px) 100vw, 320px' })
+                                                        return (
+                                                            <img
+                                                                src={src}
+                                                                srcSet={srcSet}
+                                                                alt={poster.title}
+                                                                className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
+                                                                loading="lazy"
+                                                                draggable="false"
+                                                            />
+                                                        )
+                                                    })()}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </SwiperSlide>
-                                ))}
-                            </Swiper>
+                                        </SwiperSlide>
+                                    ))}
+                                </Swiper>
+                            </div>
                         ) : null}
                     </div>
                 )}

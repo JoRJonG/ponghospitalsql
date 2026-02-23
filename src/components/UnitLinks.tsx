@@ -44,9 +44,19 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
           <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงานและระบบสารสนเทศต่างๆ ภายในโรงพยาบาล</p>
         </div>
       </div>
-      {error && (
+      {fetchError && (
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
       )}
+      {!items && !fetchError ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[138px]">
+              <div className="w-14 h-14 mb-3 rounded-full bg-slate-100"></div>
+              <div className="h-4 w-20 bg-slate-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {Array.isArray(items) && items.map(u => {
           const src = u.image?.url
@@ -93,9 +103,19 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
             <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงาน/กลุ่มงานภายในที่เกี่ยวข้อง</p>
           </div>
         </div>
-        {error && (
+        {fetchError && (
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
         )}
+        {!items && !fetchError ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[138px]">
+                <div className="w-14 h-14 mb-3 rounded-full bg-slate-100"></div>
+                <div className="h-4 w-20 bg-slate-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : null}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {Array.isArray(items) && items.map(u => {
             const src = u.image?.url

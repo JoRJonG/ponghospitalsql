@@ -42,7 +42,7 @@ function useReveal<T extends HTMLElement>() {
 
 export default function HomePage() {
   const { refreshKey } = useHomepageRefresh()
-  const [isHeroSliderVisible, setIsHeroSliderVisible] = useState(true)
+  const [isHeroSliderVisible, setIsHeroSliderVisible] = useState<boolean | null>(null)
 
   useEffect(() => {
     // Fetch hero slider visibility mode
@@ -52,9 +52,12 @@ export default function HomePage() {
         const result = await response.json()
         if (result?.success && result?.data?.mode) {
           setIsHeroSliderVisible(result.data.mode === 'show')
+        } else {
+          setIsHeroSliderVisible(true) // fallback
         }
       } catch (error) {
         console.error('Failed to loading hero slider mode', error)
+        setIsHeroSliderVisible(true) // fallback
       }
     }
     fetchSliderMode()
@@ -67,8 +70,14 @@ export default function HomePage() {
   const activitiesRef = useReveal<HTMLDivElement>()
   const unitsRef = useReveal<HTMLDivElement>()
 
+  // Deflect rendering entirely until we know the top-level layout state
+  // to prevent any possibility of a structural CLS (Layout Shift)
+  if (isHeroSliderVisible === null) {
+    return <div className="min-h-screen bg-slate-50"></div>
+  }
+
   return (
-    <div className="relative min-h-screen bg-slate-50">
+    <div className="relative min-h-screen bg-slate-50 animate-fade-in">
       {/* SEO meta tags สำหรับหน้าแรก — ใช้ชื่อ site เป็น title หลัก */}
       <SEO description="โรงพยาบาลปง จังหวัดพะเยา ให้บริการด้านสุขภาพครบวงจร ตรวจรักษาทั่วไป ฉุกเฉิน 24 ชม. ข่าวสาร กิจกรรม และประกาศจัดซื้อจัดจ้าง" />
 

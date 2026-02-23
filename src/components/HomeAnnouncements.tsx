@@ -123,11 +123,15 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
 
           {isLoading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="block bg-white p-4 rounded-lg shadow-sm border border-slate-100 animate-pulse">
-                  <div className="h-3 w-24 bg-slate-200 rounded mb-3" />
-                  <div className="h-5 w-3/4 bg-slate-200 rounded mb-2" />
+              {Array.from({ length: limit }).map((_, i) => (
+                <div key={i} className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 animate-pulse">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-6 w-24 bg-slate-200 rounded-full" />
+                    <div className="h-4 w-16 bg-slate-200 rounded" />
+                  </div>
+                  <div className="h-6 w-3/4 bg-slate-200 rounded mb-1" />
                   <div className="h-4 w-1/2 bg-slate-200 rounded" />
+                  <div className="mt-2 h-6">&nbsp;</div>
                 </div>
               ))}
             </div>
@@ -249,12 +253,16 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
 
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="card">
-                <div className="card-body animate-pulse">
-                  <div className="h-3 w-24 bg-gray-200 rounded mb-2" />
-                  <div className="h-4 w-3/4 bg-gray-200 rounded mb-1" />
-                  <div className="h-4 w-1/2 bg-gray-200 rounded" />
+            {Array.from({ length: limit }).map((_, i) => (
+              <div key={i} className="block w-full bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 md:py-4 md:px-6 animate-pulse">
+                <div className="flex items-start gap-3 md:gap-5">
+                  <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-gray-100" />
+                  <div className="flex-1">
+                    <div className="h-6 w-32 bg-gray-200 rounded-full mb-1" />
+                    <div className="h-6 w-3/4 bg-gray-200 rounded" />
+                    <div className="h-4 w-1/2 bg-gray-200 rounded mt-1" />
+                    <div className="mt-2 h-6">&nbsp;</div>
+                  </div>
                 </div>
               </div>
             ))}

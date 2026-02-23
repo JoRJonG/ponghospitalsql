@@ -57,22 +57,52 @@ const VisitorCounter: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center space-x-2 text-gray-600">
-        <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
-        <span>กำลังโหลด...</span>
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 opacity-50 pointer-events-none">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-white/20 rounded flex items-center justify-center border border-white/30 backdrop-blur-sm animate-pulse">
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="h-4 w-32 bg-white/20 rounded animate-pulse"></div>
+            <div className="h-3 w-40 bg-white/20 rounded animate-pulse"></div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-8 md:gap-12">
+          <div className="text-center flex flex-col items-center gap-1.5">
+            <div className="h-8 w-20 bg-white/20 rounded-md animate-pulse"></div>
+            <div className="h-3 w-24 bg-white/20 rounded animate-pulse"></div>
+          </div>
+          <div className="h-8 w-px bg-teal-400/50"></div>
+          <div className="text-center flex flex-col items-center gap-1.5">
+            <div className="h-8 w-20 bg-white/20 rounded-md animate-pulse"></div>
+            <div className="h-3 w-24 bg-white/20 rounded animate-pulse"></div>
+          </div>
+        </div>
+
+        <div className="hidden md:block">
+          <div className="h-3 w-32 bg-white/20 rounded animate-pulse"></div>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="text-sm text-gray-500">
-        <span className="flex items-center">
-          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          ไม่สามารถโหลดข้อมูลได้
-        </span>
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 opacity-70">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center border border-white/20 text-white/50 backdrop-blur-sm">
+            <i className="fa-solid fa-triangle-exclamation text-xl"></i>
+          </div>
+          <div>
+            <h4 className="text-white/80 font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h4>
+            <span className="flex items-center text-xs text-red-200">
+              ไม่สามารถโหลดข้อมูลได้
+            </span>
+          </div>
+        </div>
+        <div className="hidden md:block text-teal-100/50 text-xs">
+          Offline
+        </div>
       </div>
     )
   }

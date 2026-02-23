@@ -101,7 +101,7 @@ function App() {
                   <div className="print:hidden">
                     <Navbar />
                   </div>
-                  <main className="flex-1">
+                  <main className="flex-1 min-h-screen">
                     <div className="app-container py-0 print:p-0">
                       <Suspense fallback={<LoadingFallback />}>
                         <Routes>
@@ -133,7 +133,7 @@ function App() {
                   </main>
                   <HomepagePopupOverlay />
                   <CookieConsent />
-                  <div className="app-container w-full print:hidden">
+                  <div className="w-full print:hidden">
                     <Footer />
                   </div>
                   <ToastContainer />
