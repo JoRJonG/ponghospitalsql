@@ -36,11 +36,11 @@ function useReveal<T extends HTMLElement>() {
             entries.forEach(e => {
                 if (e.isIntersecting) {
                     el.classList.add('animate-fade-in')
-                    el.classList.remove('opacity-0', 'translate-y-4')
+                    el.classList.remove('opacity-0')
                 }
             })
         }, { threshold: 0.1 })
-        el.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-700', 'ease-out')
+        el.classList.add('opacity-0', 'transition-opacity', 'duration-700', 'ease-out')
         obs.observe(el)
 
         return () => obs.disconnect()

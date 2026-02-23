@@ -246,7 +246,8 @@ export default function AirQualityWidget() {
                             <div className="h-3 bg-slate-100 rounded-lg w-60" />
                         </div>
                     </div>
-                    <div className="h-32 bg-slate-50 rounded-[2rem]" />
+                    {/* Increased the skeleton height dramatically to prevent CLS when Bento box loads */}
+                    <div className="h-[280px] md:h-[350px] lg:h-[420px] bg-slate-50 rounded-[2rem]" />
                 </div>
             </div>
         )

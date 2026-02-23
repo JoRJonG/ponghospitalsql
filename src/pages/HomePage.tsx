@@ -18,18 +18,18 @@ function useReveal<T extends HTMLElement>() {
       entries.forEach(e => {
         if (e.isIntersecting) {
           el.classList.add('animate-fade-in')
-          el.classList.remove('opacity-0', 'translate-y-4')
+          el.classList.remove('opacity-0')
         }
       })
     }, { threshold: 0.1 })
-    el.classList.add('opacity-0', 'translate-y-4', 'transition-[opacity,transform]', 'duration-700', 'ease-out')
+    el.classList.add('opacity-0', 'transition-opacity', 'duration-700', 'ease-out')
     obs.observe(el)
 
     // Fallback: show element after 1 second if not yet revealed
     const timer = setTimeout(() => {
       if (el && el.classList.contains('opacity-0')) {
         el.classList.add('animate-fade-in')
-        el.classList.remove('opacity-0', 'translate-y-4')
+        el.classList.remove('opacity-0')
       }
     }, 1000)
 
