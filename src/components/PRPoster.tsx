@@ -74,7 +74,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
     // Loading skeleton
     if (isLoading) {
         return (
-            <section className="py-8 bg-white" ref={revealRef}>
+            <section className={`${embedded ? '' : 'py-8 bg-white'}`} ref={revealRef}>
                 <div className="w-full relative">
                     <div className="mb-6 flex items-center justify-between">
                         <div className="relative">
@@ -94,7 +94,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
 
     return (
         <section
-            className={`${embedded ? '' : 'py-8'} bg-white group/section`}
+            className={`${embedded ? '' : 'py-8 bg-white'} group/section`}
             ref={revealRef}
         >
             <div className={embedded ? "" : "app-container relative"}>
