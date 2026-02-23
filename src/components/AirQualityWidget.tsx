@@ -247,7 +247,7 @@ export default function AirQualityWidget() {
                         </div>
                     </div>
                     {/* Increased the skeleton height dramatically to prevent CLS when Bento box loads */}
-                    <div className="h-[280px] md:h-[350px] lg:h-[420px] bg-slate-50 rounded-[2rem]" />
+                    <div className="h-[180px] md:h-[220px] lg:h-[260px] bg-slate-50 rounded-[2rem]" />
                 </div>
             </div>
         )
@@ -285,11 +285,11 @@ export default function AirQualityWidget() {
             />
 
             {/* ── Main Bento Container ── */}
-            <div className="relative rounded-[2.5rem] bg-white/50 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-white/60 overflow-hidden flex flex-col transition-all duration-700 p-4 sm:p-6 lg:p-8">
+            <div className="relative rounded-[2rem] bg-white/95 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col transition-all duration-700 p-4 lg:p-5">
 
                 {/* Top Control Bar */}
-                <div className="flex justify-between items-center w-full mb-6 relative z-20">
-                    <div className="inline-flex items-center gap-2.5 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-white/80 shrink-0">
+                <div className="flex justify-between items-center w-full mb-4 relative z-20">
+                    <div className="inline-flex items-center gap-2 bg-slate-50/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-slate-100/50 shrink-0">
                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
                             <i className="fa-solid fa-location-dot text-slate-600 text-[10px]"></i>
                         </div>
@@ -297,7 +297,7 @@ export default function AirQualityWidget() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="hidden sm:flex items-center gap-2 text-slate-500 bg-white/40 px-3 py-1.5 rounded-full border border-white/40">
+                        <div className="hidden sm:flex items-center gap-2 text-slate-500 bg-slate-50/80 px-3 py-1.5 rounded-full border border-slate-100/50">
                             <i className="fa-regular fa-clock text-[10px]"></i>
                             <span className="text-[10px] font-bold tracking-wide">
                                 {data.log_datetime ? new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }).format(new Date(data.log_datetime)) : '-'}
@@ -340,245 +340,232 @@ export default function AirQualityWidget() {
                     </div>
                 </div>
 
-                {/* ── Bento Grid Layout ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10 w-full h-full">
+                {/* ── Dashboard Layout ── */}
+                <div className="flex flex-col gap-4 relative z-10 w-full h-full">
 
-                    {/* Bento Box 1: Avatar (Spans Left 4 cols on large screens, increasing to 5 for larger image) */}
-                    <div className="lg:col-span-5 bg-white/60 backdrop-blur-2xl rounded-[2rem] border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden group/box hover:bg-white/70 transition-colors">
-                        {/* Dynamic background glow inside box */}
-                        <div
-                            className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20 transition-opacity duration-700 group-hover/box:opacity-40"
-                            style={{ background: level.accentColor }}
-                        ></div>
+                    {/* Main Card: Big Number + Avatar + Chart */}
+                    <div className="bg-white/40 backdrop-blur-xl rounded-3xl border border-slate-100/60 shadow-sm p-4 sm:p-5 lg:p-6 flex flex-col justify-center relative overflow-hidden group/box">
 
-                        {/* Avatar */}
-                        <div className="relative w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 mx-auto flex items-center justify-center mb-8 md:mb-12 transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/box:-translate-y-3 group-hover/box:scale-105">
-                            {/* Inner Glow to make the image pop if it's over a light background */}
-                            <div
-                                className="absolute inset-x-0 -bottom-8 h-12 w-[120%] -ml-[10%] rounded-[100%] blur-[40px] opacity-60 transition-all duration-700 group-hover/box:opacity-80 group-hover/box:scale-110"
-                                style={{ background: level.accentColor }}
-                            ></div>
-                            <div
-                                className="absolute inset-0 rounded-full blur-[60px] opacity-40 group-hover/box:opacity-60 transition-opacity duration-700"
-                                style={{ background: level.gradient }}
-                            ></div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 lg:gap-6 items-center w-full relative z-10">
 
-                            <div className="relative w-full h-full flex flex-col items-center justify-center z-10">
-                                {data.th_dustboy_icon && !imgError ? (
-                                    <img
-                                        src={buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=800`)}
-                                        srcSet={`
-                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=480`)} 480w,
-                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=640`)} 640w,
-                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=800`)} 800w,
-                                            ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=1080`)} 1080w
-                                        `}
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 500px, 800px"
-                                        alt={level.label}
-                                        className="w-[110%] h-[110%] md:w-[110%] md:h-[110%] object-contain drop-shadow-2xl transition-all duration-700 ease-out z-20 group-hover/box:drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)]"
-                                        onError={() => setImgError(true)}
-                                    />
-                                ) : (
-                                    <i className={`fa-solid ${level.icon} text-[8rem] sm:text-[10rem] drop-shadow-2xl`} style={{ color: level.accentColor }}></i>
-                                )}
+                            {/* Column 1: Big Number */}
+                            <div className="flex flex-col justify-center order-2 md:order-1 border-t md:border-t-0 border-slate-200/50 pt-4 md:pt-0">
+                                <div className="inline-flex items-center gap-1.5 mb-2">
+                                    <span className="w-1.5 h-1.5 rounded-full shadow-sm" style={{ backgroundColor: level.accentColor }}></span>
+                                    <h3 className="text-[10px] sm:text-xs font-extrabold text-slate-500 tracking-[0.2em] uppercase">
+                                        ปริมาณฝุ่นละออง PM 2.5
+                                    </h3>
+                                </div>
+
+                                <div className="flex flex-wrap items-baseline gap-2 group/number cursor-default mt-2">
+                                    <span
+                                        className="text-7xl sm:text-8xl lg:text-[7.5rem] font-bold tabular-nums leading-[0.8] tracking-tight drop-shadow-sm transition-transform duration-500 group-hover/number:scale-[1.02] origin-left"
+                                        style={{ color: level.accentColor }}
+                                    >
+                                        {pm25Raw}
+                                    </span>
+                                    <div className="flex flex-col items-start justify-end pb-1 lg:pb-3 ml-1">
+                                        <span className="text-xl lg:text-2xl font-bold text-slate-400">
+                                            µg/m³
+                                        </span>
+                                        <span className="text-[10px] sm:text-xs font-bold text-slate-400/80 tracking-wide mt-1">
+                                            (รายชั่วโมง)
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Status Badge */}
-                        <div
-                            className="px-6 py-3 rounded-xl text-sm md:text-base font-bold shadow-md border border-white/60 backdrop-blur-md relative z-10 w-full text-center transform-gpu"
-                            style={{ backgroundColor: level.badgeBg, color: level.badgeText, WebkitTransform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
-                        >
-                            {data.th_title || level.label}
+                            {/* Column 2: Center Avatar */}
+                            <div className="flex flex-col items-center justify-center order-1 md:order-2 px-2">
+                                <div className="relative w-32 h-32 sm:w-36 sm:h-36 lg:w-44 lg:h-44 mx-auto flex items-center justify-center mb-6 transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/box:-translate-y-2 group-hover/box:scale-[1.02]">
+
+                                    {/* Minimalist Backdrop */}
+                                    <div className="absolute inset-4 rounded-full bg-gradient-to-b from-white to-slate-50/50 shadow-sm border border-slate-100/50"></div>
+
+                                    <div className="relative w-full h-full flex flex-col items-center justify-center z-10">
+                                        {data.th_dustboy_icon && !imgError ? (
+                                            <img
+                                                src={buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=640`)}
+                                                srcSet={`
+                                                    ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=320`)} 320w,
+                                                    ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=480`)} 480w,
+                                                    ${buildApiUrl(`/api/images/airquality/${data.th_dustboy_icon}.png?w=640`)} 640w
+                                                `}
+                                                sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                                                alt={level.label}
+                                                className="w-[110%] h-[110%] object-contain drop-shadow-2xl transition-all duration-700 ease-out z-20 group-hover/box:drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)]"
+                                                onError={() => setImgError(true)}
+                                            />
+                                        ) : (
+                                            <i className={`fa-solid ${level.icon} text-[5rem] drop-shadow-2xl`} style={{ color: level.accentColor }}></i>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Status Badge inside center column - Styled as a sharp pill */}
+                                <div
+                                    className="px-6 py-2 rounded-full text-xs lg:text-sm font-semibold shadow-sm border relative z-10 text-center transform-gpu max-w-[95%] backdrop-blur-md"
+                                    style={{
+                                        backgroundColor: level.badgeBg || '#ffffff',
+                                        color: level.badgeText || level.accentColor,
+                                        borderColor: level.badgeText !== '#ffffff' ? level.badgeBg : 'rgba(255,255,255,0.4)',
+                                        WebkitTransform: 'translateZ(0)', backfaceVisibility: 'hidden'
+                                    }}
+                                >
+                                    {data.th_title || level.label}
+                                </div>
+                            </div>
+
+                            {/* Column 3: Hourly Chart */}
+                            {history.length > 0 && (
+                                <div className="h-28 sm:h-32 lg:h-36 w-full flex flex-col justify-end pt-4 md:pt-0 pl-1 md:pl-2 order-3">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center justify-between">
+                                        <span>กราฟ 24 ชั่วโมง</span>
+                                        <i className="fa-solid fa-chart-line text-slate-300"></i>
+                                    </div>
+                                    <div className="flex-1 w-full min-h-[100px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            {/* Import YAxis, ReferenceLine, Cell, ComposedChart */}
+                                            <AreaChart data={history} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                                                <defs>
+                                                    {/* Fill gradient ใช้สีจากระดับ AQI ปัจจุบัน */}
+                                                    <linearGradient id="colorPm25" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor={level.accentColor} stopOpacity={0.3} />
+                                                        <stop offset="95%" stopColor={level.accentColor} stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <Tooltip
+                                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                                                    labelStyle={{ fontWeight: 'bold', color: '#64748b', fontSize: '11px', marginBottom: '4px' }}
+                                                    itemStyle={{ fontWeight: '900', fontSize: '14px' }}
+                                                    formatter={(value: number | undefined) => {
+                                                        const v = value ?? 0
+                                                        // ไฮไลต์เลข PM ด้วยสีตามเขต
+                                                        const c = v <= 15 ? '#00BFF3' : v <= 25 ? '#00A651' : v <= 37.5 ? '#FDC04E' : v <= 75 ? '#F47920' : '#E3000F'
+                                                        return [<span style={{ color: c, fontWeight: 900 }}>{v} µg/m³</span>, 'PM 2.5']
+                                                    }}
+                                                    labelFormatter={(_label, payload) => {
+                                                        // แสดงวันที่และเวลาใน tooltip เพราะข้อมูลอาจข้ามวัน
+                                                        if (!payload || payload.length === 0) return ''
+                                                        const dt = payload[0]?.payload?.datetime
+                                                        if (!dt) return `เวลา ${_label} น.`
+                                                        const d = new Date(dt.replace(' ', 'T'))
+                                                        return new Intl.DateTimeFormat('th-TH', {
+                                                            day: 'numeric', month: 'short',
+                                                            hour: '2-digit', minute: '2-digit'
+                                                        }).format(d)
+                                                    }}
+                                                />
+                                                <Area
+                                                    type="monotone"
+                                                    dataKey="pm25"
+                                                    stroke={level.accentColor}
+                                                    strokeWidth={2}
+                                                    fillOpacity={1}
+                                                    fill="url(#colorPm25)"
+                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                    dot={(props: any) => {
+                                                        const { cx, cy, payload } = props
+                                                        if (cx == null || cy == null) return <g />
+                                                        const pm = payload?.pm25 ?? 0
+                                                        const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
+                                                        return (
+                                                            <circle
+                                                                key={`dot-${cx}-${cy}`}
+                                                                cx={cx} cy={cy} r={3}
+                                                                fill={dotColor}
+                                                                stroke="white"
+                                                                strokeWidth={1.5}
+                                                            />
+                                                        )
+                                                    }}
+                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                    activeDot={(props: any) => {
+                                                        const { cx, cy, payload } = props
+                                                        if (cx == null || cy == null) return <g />
+                                                        const pm = payload?.pm25 ?? 0
+                                                        // สีวงกลม activeDot ตามค่า PM ของชั่วโมงที่ hover
+                                                        const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
+                                                        return (
+                                                            <circle
+                                                                key={`active-${cx}-${cy}`}
+                                                                cx={cx} cy={cy} r={6}
+                                                                fill={dotColor}
+                                                                stroke="white"
+                                                                strokeWidth={2.5}
+                                                                style={{ filter: `drop-shadow(0 0 6px ${dotColor}80)` }}
+                                                            />
+                                                        )
+                                                    }}
+                                                />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="flex justify-between w-full mt-2 text-[9px] font-semibold text-slate-400/70">
+                                        {/* แสดงวันและเวลาของ data point แรกและสุดท้าย เพราะข้อมูลอาจข้ามวัน */}
+                                        <span>
+                                            {history[0]?.datetime
+                                                ? new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(history[0].datetime.replace(' ', 'T')))
+                                                : history[0]?.time}
+                                        </span>
+                                        <span>
+                                            {history[history.length - 1]?.datetime
+                                                ? new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(history[history.length - 1].datetime.replace(' ', 'T')))
+                                                : history[history.length - 1]?.time}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Bento Box 2 & 3 wrapper for layout flow */}
-                    <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 w-full">
-
-                        {/* Bento Box 2: Giant Data Display & Hourly Chart */}
-                        <div className="md:col-span-2 bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-2xl rounded-[2rem] border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 sm:p-8 flex flex-col justify-center relative overflow-hidden group/box hover:shadow-[0_8px_32px_rgba(0,0,0,0.05)] transition-shadow">
-                            <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: level.accentColor }}></div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center w-full relative z-10">
-                                {/* Left: Big Number */}
-                                <div className="flex flex-col">
-                                    <div className="inline-flex items-center gap-2 mb-4">
-                                        <span className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: level.accentColor }}></span>
-                                        <h3 className="text-xs font-extrabold text-slate-500 tracking-[0.2em] uppercase">
-                                            ปริมาณฝุ่นละออง PM 2.5
-                                        </h3>
-                                    </div>
-
-                                    <div className="flex flex-wrap items-baseline gap-3 group/number cursor-default">
-                                        <span
-                                            className="text-8xl lg:text-[7.5rem] font-black tabular-nums leading-none tracking-tighter drop-shadow-sm transition-transform duration-500 group-hover/number:scale-105 origin-left"
-                                            style={{ color: level.accentColor }}
-                                        >
-                                            {pm25Raw}
-                                        </span>
-                                        <div className="flex flex-col items-start justify-end pb-2 lg:pb-4">
-                                            <span className="text-2xl lg:text-3xl font-extrabold text-slate-400">
-                                                µg/m³
-                                            </span>
-                                            <span className="text-xs font-bold text-slate-400/80 tracking-wide mt-1">
-                                                (ค่าเฉลี่ยรายชั่วโมง)
-                                            </span>
-                                        </div>
-                                    </div>
+                    {/* Bento Box 3: Weather (Only show if available) */}
+                    {hasWeather && (
+                        <div className="grid grid-cols-3 gap-3">
+                            {(data.temp !== "" && data.temp != null) && (
+                                <div className="col-span-1 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-2 sm:p-3 flex flex-col items-center justify-center text-center group/stat hover:bg-white/80 transition-colors">
+                                    <i className="fa-solid fa-temperature-three-quarters text-orange-400 text-base sm:text-xl mb-1 transition-transform duration-300 group-hover/stat:scale-110"></i>
+                                    <span className="text-xs sm:text-sm font-black text-slate-700 tabular-nums">{data.temp}°C</span>
+                                    <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">อุณหภูมิ</span>
                                 </div>
+                            )}
+                            {(data.humid !== "" && data.humid != null) && (
+                                <div className="col-span-1 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-2 sm:p-3 flex flex-col items-center justify-center text-center group/stat hover:bg-white/80 transition-colors">
+                                    <i className="fa-solid fa-droplet text-sky-400 text-base sm:text-xl mb-1 transition-transform duration-300 group-hover/stat:scale-110"></i>
+                                    <span className="text-xs sm:text-sm font-black text-slate-700 tabular-nums">{data.humid}%</span>
+                                    <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">ความชื้น</span>
+                                </div>
+                            )}
+                            {((data.wind_speed !== "" && data.wind_speed != null) || (data.daily_wind_speed !== "" && data.daily_wind_speed != null)) && (
+                                <div className="col-span-1 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-2 sm:p-3 flex flex-col items-center justify-center text-center group/stat hover:bg-white/80 transition-colors">
+                                    <i className="fa-solid fa-wind text-slate-400 text-base sm:text-xl mb-1 transition-transform duration-300 group-hover/stat:scale-110"></i>
+                                    <span className="text-xs sm:text-sm font-black text-slate-700 tabular-nums">
+                                        {data.wind_speed !== "" && data.wind_speed != null ? data.wind_speed : data.daily_wind_speed} <span className="text-[10px] font-bold">กม./ชม.</span>
+                                    </span>
+                                    <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">ลม</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
-                                {/* Right: Hourly Chart */}
-                                {history.length > 0 && (
-                                    <div className="h-32 sm:h-40 w-full flex flex-col justify-end border-t lg:border-t-0 lg:border-l border-slate-200/50 pt-6 lg:pt-0 lg:pl-8 mt-4 lg:mt-0">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center justify-between">
-                                            <span>24 ชั่วโมงที่ผ่านมา</span>
-                                            <i className="fa-solid fa-chart-line text-slate-300"></i>
-                                        </div>
-                                        <div className="flex-1 w-full min-h-[100px]">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                {/* Import YAxis, ReferenceLine, Cell, ComposedChart */}
-                                                <AreaChart data={history} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                                                    <defs>
-                                                        {/* Fill gradient ใช้สีจากระดับ AQI ปัจจุบัน */}
-                                                        <linearGradient id="colorPm25" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor={level.accentColor} stopOpacity={0.3} />
-                                                            <stop offset="95%" stopColor={level.accentColor} stopOpacity={0} />
-                                                        </linearGradient>
-                                                    </defs>
-                                                    <Tooltip
-                                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                                                        labelStyle={{ fontWeight: 'bold', color: '#64748b', fontSize: '11px', marginBottom: '4px' }}
-                                                        itemStyle={{ fontWeight: '900', fontSize: '14px' }}
-                                                        formatter={(value: number | undefined) => {
-                                                            const v = value ?? 0
-                                                            // ไฮไลต์เลข PM ด้วยสีตามเขต
-                                                            const c = v <= 15 ? '#00BFF3' : v <= 25 ? '#00A651' : v <= 37.5 ? '#FDC04E' : v <= 75 ? '#F47920' : '#E3000F'
-                                                            return [<span style={{ color: c, fontWeight: 900 }}>{v} µg/m³</span>, 'PM 2.5']
-                                                        }}
-                                                        labelFormatter={(_label, payload) => {
-                                                            // แสดงวันที่และเวลาใน tooltip เพราะข้อมูลอาจข้ามวัน
-                                                            if (!payload || payload.length === 0) return ''
-                                                            const dt = payload[0]?.payload?.datetime
-                                                            if (!dt) return `เวลา ${_label} น.`
-                                                            const d = new Date(dt.replace(' ', 'T'))
-                                                            return new Intl.DateTimeFormat('th-TH', {
-                                                                day: 'numeric', month: 'short',
-                                                                hour: '2-digit', minute: '2-digit'
-                                                            }).format(d)
-                                                        }}
-                                                    />
-                                                    <Area
-                                                        type="monotone"
-                                                        dataKey="pm25"
-                                                        stroke={level.accentColor}
-                                                        strokeWidth={2}
-                                                        fillOpacity={1}
-                                                        fill="url(#colorPm25)"
-                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                        dot={(props: any) => {
-                                                            const { cx, cy, payload } = props
-                                                            if (cx == null || cy == null) return <g />
-                                                            const pm = payload?.pm25 ?? 0
-                                                            const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
-                                                            return (
-                                                                <circle
-                                                                    key={`dot-${cx}-${cy}`}
-                                                                    cx={cx} cy={cy} r={3}
-                                                                    fill={dotColor}
-                                                                    stroke="white"
-                                                                    strokeWidth={1.5}
-                                                                />
-                                                            )
-                                                        }}
-                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                        activeDot={(props: any) => {
-                                                            const { cx, cy, payload } = props
-                                                            if (cx == null || cy == null) return <g />
-                                                            const pm = payload?.pm25 ?? 0
-                                                            // สีวงกลม activeDot ตามค่า PM ของชั่วโมงที่ hover
-                                                            const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
-                                                            return (
-                                                                <circle
-                                                                    key={`active-${cx}-${cy}`}
-                                                                    cx={cx} cy={cy} r={6}
-                                                                    fill={dotColor}
-                                                                    stroke="white"
-                                                                    strokeWidth={2.5}
-                                                                    style={{ filter: `drop-shadow(0 0 6px ${dotColor}80)` }}
-                                                                />
-                                                            )
-                                                        }}
-                                                    />
-                                                </AreaChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                        <div className="flex justify-between w-full mt-2 text-[9px] font-semibold text-slate-400/70">
-                                            {/* แสดงวันและเวลาของ data point แรกและสุดท้าย เพราะข้อมูลอาจข้ามวัน */}
-                                            <span>
-                                                {history[0]?.datetime
-                                                    ? new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(history[0].datetime.replace(' ', 'T')))
-                                                    : history[0]?.time}
-                                            </span>
-                                            <span>
-                                                {history[history.length - 1]?.datetime
-                                                    ? new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(history[history.length - 1].datetime.replace(' ', 'T')))
-                                                    : history[history.length - 1]?.time}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
+                    {/* Bento Box 4: Health Tips */}
+                    {(!hasWeather || data.th_caption) && (
+                        <div className="bg-gradient-to-r from-emerald-50/80 to-teal-50/50 backdrop-blur-xl rounded-2xl border border-emerald-100/60 shadow-[0_4px_16px_rgba(16,185,129,0.04)] p-4 w-full flex items-center gap-3 transition-colors hover:from-emerald-50 hover:to-teal-50">
+                            <div className="flex-shrink-0">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-100/80 border border-emerald-200 shadow-sm flex items-center justify-center">
+                                    <i className="fa-solid fa-leaf text-emerald-600 text-base"></i>
+                                </div>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-[11px] font-black text-emerald-700 uppercase tracking-widest mb-0.5">คำแนะนำสุขภาพ</h4>
+                                <p className="text-xs font-semibold text-emerald-950/80 leading-relaxed max-h-16 overflow-y-auto pr-1 custom-scrollbar">
+                                    {data.th_caption || 'ยังไม่มีข้อแนะนำเพิ่มเติมในขณะนี้'}
+                                </p>
                             </div>
                         </div>
-
-                        {/* Bento Box 3: Weather (Only show if available) */}
-                        {hasWeather && (
-                            <div className="md:col-span-2 grid grid-cols-3 gap-4">
-                                {(data.temp !== "" && data.temp != null) && (
-                                    <div className="col-span-1 bg-white/60 backdrop-blur-xl rounded-[1.5rem] border border-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-4 sm:p-5 flex flex-col items-center justify-center text-center group/stat hover:bg-white/80 transition-colors">
-                                        <i className="fa-solid fa-temperature-three-quarters text-orange-400 text-lg sm:text-2xl mb-2 transition-transform duration-300 group-hover/stat:scale-110"></i>
-                                        <span className="text-sm sm:text-base font-black text-slate-700 tabular-nums">{data.temp}°C</span>
-                                        <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-1">อุณหภูมิ</span>
-                                    </div>
-                                )}
-                                {(data.humid !== "" && data.humid != null) && (
-                                    <div className="col-span-1 bg-white/60 backdrop-blur-xl rounded-[1.5rem] border border-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-4 sm:p-5 flex flex-col items-center justify-center text-center group/stat hover:bg-white/80 transition-colors">
-                                        <i className="fa-solid fa-droplet text-sky-400 text-lg sm:text-2xl mb-2 transition-transform duration-300 group-hover/stat:scale-110"></i>
-                                        <span className="text-sm sm:text-base font-black text-slate-700 tabular-nums">{data.humid}%</span>
-                                        <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-1">ความชื้น</span>
-                                    </div>
-                                )}
-                                {((data.wind_speed !== "" && data.wind_speed != null) || (data.daily_wind_speed !== "" && data.daily_wind_speed != null)) && (
-                                    <div className="col-span-1 bg-white/60 backdrop-blur-xl rounded-[1.5rem] border border-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-4 sm:p-5 flex flex-col items-center justify-center text-center group/stat hover:bg-white/80 transition-colors">
-                                        <i className="fa-solid fa-wind text-slate-400 text-lg sm:text-2xl mb-2 transition-transform duration-300 group-hover/stat:scale-110"></i>
-                                        <span className="text-sm sm:text-base font-black text-slate-700 tabular-nums">
-                                            {data.wind_speed !== "" && data.wind_speed != null ? data.wind_speed : data.daily_wind_speed} <span className="text-xs font-bold">กม./ชม.</span>
-                                        </span>
-                                        <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-1">ความเร็วลม</span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Bento Box 4: Health Tips */}
-                        {(!hasWeather || data.th_caption) && (
-                            <div className="md:col-span-2 bg-gradient-to-r from-emerald-50/80 to-teal-50/50 backdrop-blur-xl rounded-[1.5rem] border border-emerald-100/60 shadow-[0_4px_16px_rgba(16,185,129,0.04)] p-5 sm:p-6 w-full flex items-center lg:items-start gap-4 transition-colors hover:from-emerald-50 hover:to-teal-50">
-                                <div className="flex-shrink-0">
-                                    <div className="w-12 h-12 rounded-[1rem] bg-emerald-100/80 border border-emerald-200 shadow-sm flex items-center justify-center">
-                                        <i className="fa-solid fa-leaf text-emerald-600 text-lg"></i>
-                                    </div>
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className="text-xs sm:text-[13px] font-black text-emerald-700 uppercase tracking-widest mb-1">คำแนะนำดูแลสุขภาพ</h4>
-                                    <p className="text-[13px] sm:text-sm font-semibold text-emerald-950/80 leading-relaxed">
-                                        {data.th_caption || 'ยังไม่มีข้อแนะนำเพิ่มเติมในขณะนี้'}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
+                    )}
                 </div>
+
             </div>
         </div>
     )

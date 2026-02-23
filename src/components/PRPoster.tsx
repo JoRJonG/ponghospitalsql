@@ -213,7 +213,9 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                         <img
                             src={buildApiUrl(selectedPoster.imageUrl)}
                             alt={selectedPoster.title}
-                            className="max-w-[95vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                            width={selectedPoster.imageSize ? Math.sqrt(selectedPoster.imageSize) : 800} // Estimate aspect ratio purely for initial layout reflow prevention
+                            height={selectedPoster.imageSize ? Math.sqrt(selectedPoster.imageSize) : 800}
+                            className="max-w-[95vw] max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
                             onClick={e => e.stopPropagation()}
                         />
                     </div>
