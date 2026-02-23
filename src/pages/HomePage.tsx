@@ -81,8 +81,15 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* PR Poster — ย้ายขึ้นมาแสดงเหนือ Widget อากาศ */}
-      <section ref={posterRef} className={`relative py-6 md:py-12 bg-white overflow-hidden ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
+      {/* Air Quality Widget — คุณภาพอากาศ อ.ปง */}
+      <section ref={airQualityRef} className={`relative py-4 md:py-8 bg-slate-50 overflow-hidden bg-noise border-t border-gray-100/50 ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
+        <div className="container-narrow relative z-10">
+          <AirQualityWidget />
+        </div>
+      </section>
+
+      {/* PR Poster — ย้ายจากบนลงมาล่าง Widget อากาศ */}
+      <section ref={posterRef} className="relative py-6 md:py-12 bg-white overflow-hidden border-t border-gray-100/50">
         {/* Decorative blob สร้าง atmosphere — เบลอหนักจนแทบไม่เห็น */}
         <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20" />
         <div className="container-narrow relative z-10">
@@ -91,15 +98,6 @@ export default function HomePage() {
           <PRPoster embedded={true} />
         </div>
       </section>
-
-      {/* Air Quality Widget — คุณภาพอากาศ อ.ปง */}
-      <section ref={airQualityRef} className="relative py-4 md:py-8 bg-slate-50 overflow-hidden bg-noise border-t border-gray-100/50">
-        <div className="container-narrow relative z-10">
-          <AirQualityWidget />
-        </div>
-      </section>
-
-
 
       {/* ประกาศข่าวสาร — wave top + clean bg */}
       <section ref={announcementsRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">

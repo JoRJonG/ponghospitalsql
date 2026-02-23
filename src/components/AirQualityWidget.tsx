@@ -112,6 +112,7 @@ export default function AirQualityWidget() {
     // ใช้ ref แทน state เพื่อตรวจสอบว่ามีข้อมูลแล้วหรือยัง
     // (ถ้าใช้ state `data` โดยตรงใน useCallback จะเกิด infinite loop)
     const hasDataRef = useRef(false)
+    const [isMounted, setIsMounted] = useState(false)
 
     const fetchAirQuality = useCallback(async (isBackground = false) => {
         try {
@@ -183,6 +184,7 @@ export default function AirQualityWidget() {
     }, []) // ไม่มี dependency — ใช้ ref แทน state เพื่อป้องกัน infinite loop
 
     useEffect(() => {
+        setIsMounted(true)
         fetchAirQuality()
 
         let timeoutId: ReturnType<typeof setTimeout>
@@ -429,83 +431,87 @@ export default function AirQualityWidget() {
                                         <span>กราฟ 24 ชั่วโมง</span>
                                         <i className="fa-solid fa-chart-line opacity-70"></i>
                                     </div>
-                                    <div className="flex-1 w-full min-h-[100px]">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            {/* Import YAxis, ReferenceLine, Cell, ComposedChart */}
-                                            <AreaChart data={history} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                                                <defs>
-                                                    {/* Fill gradient ใช้สีจากระดับ AQI ปัจจุบัน */}
-                                                    <linearGradient id="colorPm25" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor={level.accentColor} stopOpacity={0.3} />
-                                                        <stop offset="95%" stopColor={level.accentColor} stopOpacity={0} />
-                                                    </linearGradient>
-                                                </defs>
-                                                <Tooltip
-                                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                                                    labelStyle={{ fontWeight: 'bold', color: '#64748b', fontSize: '11px', marginBottom: '4px' }}
-                                                    itemStyle={{ fontWeight: '900', fontSize: '14px' }}
-                                                    formatter={(value: number | undefined) => {
-                                                        const v = value ?? 0
-                                                        // ไฮไลต์เลข PM ด้วยสีตามเขต
-                                                        const c = v <= 15 ? '#00BFF3' : v <= 25 ? '#00A651' : v <= 37.5 ? '#FDC04E' : v <= 75 ? '#F47920' : '#E3000F'
-                                                        return [<span style={{ color: c, fontWeight: 900 }}>{v} µg/m³</span>, 'PM 2.5']
-                                                    }}
-                                                    labelFormatter={(_label, payload) => {
-                                                        // แสดงวันที่และเวลาใน tooltip เพราะข้อมูลอาจข้ามวัน
-                                                        if (!payload || payload.length === 0) return ''
-                                                        const dt = payload[0]?.payload?.datetime
-                                                        if (!dt) return `เวลา ${_label} น.`
-                                                        const d = new Date(dt.replace(' ', 'T'))
-                                                        return new Intl.DateTimeFormat('th-TH', {
-                                                            day: 'numeric', month: 'short',
-                                                            hour: '2-digit', minute: '2-digit'
-                                                        }).format(d)
-                                                    }}
-                                                />
-                                                <Area
-                                                    type="monotone"
-                                                    dataKey="pm25"
-                                                    stroke={level.accentColor}
-                                                    strokeWidth={2}
-                                                    fillOpacity={1}
-                                                    fill="url(#colorPm25)"
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    dot={(props: any) => {
-                                                        const { cx, cy, payload } = props
-                                                        if (cx == null || cy == null) return <g />
-                                                        const pm = payload?.pm25 ?? 0
-                                                        const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
-                                                        return (
-                                                            <circle
-                                                                key={`dot-${cx}-${cy}`}
-                                                                cx={cx} cy={cy} r={3}
-                                                                fill={dotColor}
-                                                                stroke="white"
-                                                                strokeWidth={1.5}
-                                                            />
-                                                        )
-                                                    }}
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    activeDot={(props: any) => {
-                                                        const { cx, cy, payload } = props
-                                                        if (cx == null || cy == null) return <g />
-                                                        const pm = payload?.pm25 ?? 0
-                                                        // สีวงกลม activeDot ตามค่า PM ของชั่วโมงที่ hover
-                                                        const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
-                                                        return (
-                                                            <circle
-                                                                key={`active-${cx}-${cy}`}
-                                                                cx={cx} cy={cy} r={6}
-                                                                fill={dotColor}
-                                                                stroke="white"
-                                                                strokeWidth={2.5}
-                                                                style={{ filter: `drop-shadow(0 0 6px ${dotColor}80)` }}
-                                                            />
-                                                        )
-                                                    }}
-                                                />
-                                            </AreaChart>
-                                        </ResponsiveContainer>
+                                    <div className="flex-1 w-full h-[60px] sm:h-[80px] lg:h-[90px] relative">
+                                        <div className="absolute inset-0">
+                                            {isMounted && (
+                                                <ResponsiveContainer width="99%" height="100%">
+                                                    {/* Import YAxis, ReferenceLine, Cell, ComposedChart */}
+                                                    <AreaChart data={history} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                                                        <defs>
+                                                            {/* Fill gradient ใช้สีจากระดับ AQI ปัจจุบัน */}
+                                                            <linearGradient id="colorPm25" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor={level.accentColor} stopOpacity={0.3} />
+                                                                <stop offset="95%" stopColor={level.accentColor} stopOpacity={0} />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <Tooltip
+                                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                                                            labelStyle={{ fontWeight: 'bold', color: '#64748b', fontSize: '11px', marginBottom: '4px' }}
+                                                            itemStyle={{ fontWeight: '900', fontSize: '14px' }}
+                                                            formatter={(value: number | undefined) => {
+                                                                const v = value ?? 0
+                                                                // ไฮไลต์เลข PM ด้วยสีตามเขต
+                                                                const c = v <= 15 ? '#00BFF3' : v <= 25 ? '#00A651' : v <= 37.5 ? '#FDC04E' : v <= 75 ? '#F47920' : '#E3000F'
+                                                                return [<span style={{ color: c, fontWeight: 900 }}>{v} µg/m³</span>, 'PM 2.5']
+                                                            }}
+                                                            labelFormatter={(_label, payload) => {
+                                                                // แสดงวันที่และเวลาใน tooltip เพราะข้อมูลอาจข้ามวัน
+                                                                if (!payload || payload.length === 0) return ''
+                                                                const dt = payload[0]?.payload?.datetime
+                                                                if (!dt) return `เวลา ${_label} น.`
+                                                                const d = new Date(dt.replace(' ', 'T'))
+                                                                return new Intl.DateTimeFormat('th-TH', {
+                                                                    day: 'numeric', month: 'short',
+                                                                    hour: '2-digit', minute: '2-digit'
+                                                                }).format(d)
+                                                            }}
+                                                        />
+                                                        <Area
+                                                            type="monotone"
+                                                            dataKey="pm25"
+                                                            stroke={level.accentColor}
+                                                            strokeWidth={2}
+                                                            fillOpacity={1}
+                                                            fill="url(#colorPm25)"
+                                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                            dot={(props: any) => {
+                                                                const { cx, cy, payload } = props
+                                                                if (cx == null || cy == null) return <g />
+                                                                const pm = payload?.pm25 ?? 0
+                                                                const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
+                                                                return (
+                                                                    <circle
+                                                                        key={`dot-${cx}-${cy}`}
+                                                                        cx={cx} cy={cy} r={3}
+                                                                        fill={dotColor}
+                                                                        stroke="white"
+                                                                        strokeWidth={1.5}
+                                                                    />
+                                                                )
+                                                            }}
+                                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                            activeDot={(props: any) => {
+                                                                const { cx, cy, payload } = props
+                                                                if (cx == null || cy == null) return <g />
+                                                                const pm = payload?.pm25 ?? 0
+                                                                // สีวงกลม activeDot ตามค่า PM ของชั่วโมงที่ hover
+                                                                const dotColor = pm <= 15 ? '#00BFF3' : pm <= 25 ? '#00A651' : pm <= 37.5 ? '#FDC04E' : pm <= 75 ? '#F47920' : '#E3000F'
+                                                                return (
+                                                                    <circle
+                                                                        key={`active-${cx}-${cy}`}
+                                                                        cx={cx} cy={cy} r={6}
+                                                                        fill={dotColor}
+                                                                        stroke="white"
+                                                                        strokeWidth={2.5}
+                                                                        style={{ filter: `drop-shadow(0 0 6px ${dotColor}80)` }}
+                                                                    />
+                                                                )
+                                                            }}
+                                                        />
+                                                    </AreaChart>
+                                                </ResponsiveContainer>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="flex justify-between w-full mt-2 text-[10px] font-bold text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
                                         {/* แสดงวันและเวลาของ data point แรกและสุดท้าย เพราะข้อมูลอาจข้ามวัน */}
