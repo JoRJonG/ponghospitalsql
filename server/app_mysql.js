@@ -30,7 +30,6 @@ import airqualityRouter from './routes/airquality.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
 import { preventHpp, xssSanitizer, validateOrigin } from './middleware/security.js'
 import { botBlocker } from './middleware/botBlocker.js'
-import { trackVisitors } from './middleware/visitorTracker.js'
 import { logger } from './utils/logger.js'
 import { testConnection } from './database.js'
 import fs from 'fs/promises'
@@ -189,8 +188,8 @@ export async function createServer() {
   app.use('/api/organization', organizationRouter)
   app.use('/api/airquality', airqualityRouter)
 
-  // Visitor tracking middleware (must be after API routes)
-  app.use(trackVisitors)
+  // Visitor tracking middleware (REMOVED: Now handled exclusively by frontend POST /api/visitors/track to prevent non-JS bots from inflating counts)
+  // app.use(trackVisitors)
 
   // Helper to inject meta tags
   const injectMetaTags = (html, { title, description, image, url }) => {

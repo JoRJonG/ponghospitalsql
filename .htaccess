@@ -219,3 +219,12 @@ RedirectMatch 403 ^/(?:src|server|database|scripts|node_modules|\.git|\.svn|\.hg
     AddOutputFilterByType DEFLATE text/plain
     AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>
+
+# ----------------------------------------------------------------------
+# | 7. HONEYPOT & SCANNER TRAPS (Block Fake Paths)
+# ----------------------------------------------------------------------
+# ดักทาง Botnet ไม่ให้โหลดหน้า 200 OK ปลอมๆ เพื่อประหยัด CPU 
+RedirectMatch 403 (?i)^/(jasperserver|jasperserver-pro|users/sign_in)
+RedirectMatch 403 (?i)^/(doesntexist|error\.json|webpack/manifest\.json)
+RedirectMatch 403 (?i)^/(swagger|api-docs|apidocs|graphql|rest)
+RedirectMatch 403 (?i)^/(mcp|bonita|phpmyadmin|adminLogin|serverlogin|version|install)
