@@ -89,7 +89,7 @@ export default function HomePage() {
       )}
 
       {/* PR Poster — เปลี่ยนพื้นหลังเพื่อให้เกิด Contrast ตัดกับ HeroSlider ด้านบนและ Announcements ด้านล่าง */}
-      <section ref={posterRef} className={`relative py-8 md:py-16 bg-slate-50 overflow-hidden border-t border-gray-100/50 bg-noise ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
+      <section ref={posterRef} className={`relative py-8 md:py-16 bg-gray-100 overflow-hidden border-t border-gray-100/50 ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
         {/* Decorative blob สร้าง atmosphere — เบลอหนักจนแทบไม่เห็น */}
         <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20 opacity-30" />
         <div className="container-narrow relative z-10">
@@ -107,8 +107,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ภาพกิจกรรม — noise overlay + blob */}
-      <section ref={activitiesRef} className="relative py-6 md:py-12 bg-slate-50 bg-noise overflow-hidden border-t border-gray-100/50">
+      {/* ภาพกิจกรรม — bg-gray-100 + blob */}
+      <section ref={activitiesRef} className="relative py-6 md:py-12 bg-gray-100 overflow-hidden border-t border-gray-100/50">
         <div className="decorative-blob decorative-blob-emerald w-64 h-64 top-10 -left-16" />
         <div className="container-narrow relative z-10">
           <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
