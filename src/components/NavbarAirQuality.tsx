@@ -62,6 +62,9 @@ export default function NavbarAirQuality() {
     const lastFetchedRef = useRef<number>(0)
     const hasDataRef = useRef(false)
 
+    // เก็บข้อมูลเวลาของข้อมูลล่าสุดที่ได้จาก API
+    const latestLogRef = useRef<Date | null>(null)
+
     useEffect(() => {
         function handleClickOutside(event: MouseEvent | TouchEvent) {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -76,18 +79,20 @@ export default function NavbarAirQuality() {
         }
     }, [])
 
-    const fetchAirQuality = async (isBackground = false) => {
+    const fetchAirQuality = async () => {
         try {
-            if (isBackground && Date.now() - lastFetchedRef.current < 55 * 60 * 1000) return
             if (!hasDataRef.current) setLoading(true)
             setImgError(false)
 
-            const res = await fetch(buildApiUrl('/api/airquality'))
+            const res = await fetch(buildApiUrl(`/api/airquality`))
             if (!res.ok) throw new Error('API error')
             const json = await res.json()
             if (json.success && json.data) {
                 hasDataRef.current = true
                 setData(json.data)
+                if (json.data.log_datetime) {
+                    latestLogRef.current = new Date(json.data.log_datetime.replace(' ', 'T') + '+07:00')
+                }
             }
         } catch (e) {
             console.warn('Failed to fetch navbar air quality', e)
@@ -98,31 +103,73 @@ export default function NavbarAirQuality() {
     }
 
     useEffect(() => {
-        fetchAirQuality()
-
+        let isMounted = true
         let timeoutId: ReturnType<typeof setTimeout>
-        const scheduleNextFetch = () => {
+
+        const runPoller = async () => {
+            if (!isMounted) return
+            if (document.visibilityState === 'visible') {
+                await fetchAirQuality()
+            }
+            if (!isMounted) return
+            scheduleNext()
+        }
+
+        const scheduleNext = () => {
             const now = new Date()
-            const next = new Date(now)
-            if (now.getMinutes() >= 5) {
-                next.setHours(now.getHours() + 1, 5, 0, 0)
+            const currentHour = now.getHours()
+            const logDate = latestLogRef.current
+
+            const startOfCurrentHour = new Date(now)
+            startOfCurrentHour.setMinutes(0, 0, 0)
+
+            const hasCurrentHourData = logDate ? logDate.getTime() >= startOfCurrentHour.getTime() : false
+
+            let delay: number
+
+            if (hasCurrentHourData) {
+                // ทันทีที่ได้ข้อมูลของชั่วโมงปัจจุบันมาแล้ว ให้หลับยาวไปจนกว่า "นาทีที่ 7 ของชั่วโมงถัดไป"
+                const nextHour = new Date(now)
+                nextHour.setHours(currentHour + 1, 7, 0, 0)
+                delay = nextHour.getTime() - now.getTime()
             } else {
-                next.setHours(now.getHours(), 5, 0, 0)
+                // ถ้ายังไม่ได้ข้อมูลของชั่วโมงปัจจุบัน หรือเซิร์ฟเวอร์ยังส่งของเก่ามาให้
+                if (now.getMinutes() < 7) {
+                    // ถ้ายังไม่ถึงนาทีที่ 7 ของชั่วโมงปัจจุบัน ให้รอไปเช็คครัังแรกตอนนาทีที่ 7 เป๊ะๆ
+                    const target = new Date(now)
+                    target.setHours(currentHour, 7, 0, 0)
+                    delay = target.getTime() - now.getTime()
+                } else {
+                    // ถ้าเลยนาทีที่ 7 มาแล้ว แต่ข้อมูลยังไม่อัพเดท ให้รีเฟรชถามอีกทีใน 3 นาที
+                    delay = 3 * 60 * 1000
+                }
             }
 
-            const delay = next.getTime() - now.getTime()
-            timeoutId = setTimeout(() => {
-                if (document.visibilityState === 'visible') fetchAirQuality(false)
-                scheduleNextFetch()
-            }, delay)
+            timeoutId = setTimeout(runPoller, Math.max(delay, 5000))
         }
-        scheduleNextFetch()
+
+        // เริ่มต้น
+        runPoller()
 
         const onVisible = () => {
-            if (document.visibilityState === 'visible') fetchAirQuality(true)
+            if (document.visibilityState === 'visible') {
+                const now = new Date()
+                const logDate = latestLogRef.current
+
+                const startOfCurrentHour = new Date(now)
+                startOfCurrentHour.setMinutes(0, 0, 0)
+                const hasCurrentHourData = logDate ? logDate.getTime() >= startOfCurrentHour.getTime() : false
+
+                if (!hasCurrentHourData && Date.now() - lastFetchedRef.current >= 60 * 1000) {
+                    clearTimeout(timeoutId)
+                    runPoller()
+                }
+            }
         }
+
         document.addEventListener('visibilitychange', onVisible)
         return () => {
+            isMounted = false
             clearTimeout(timeoutId)
             document.removeEventListener('visibilitychange', onVisible)
         }
@@ -154,10 +201,8 @@ export default function NavbarAirQuality() {
     return (
         <div
             ref={containerRef}
-            className="flex items-center lg:pl-4 lg:border-l border-slate-200 relative h-[42px] w-[170px] shrink-0 cursor-pointer"
+            className="flex items-center lg:pl-4 lg:border-l border-slate-200 relative h-[42px] w-[170px] shrink-0 cursor-pointer group"
             onClick={() => setIsOpen(!isOpen)}
-            onMouseEnter={() => setIsOpen(true)}
-            onMouseLeave={() => setIsOpen(false)}
         >
             {/* Colored Glow Pill Container */}
             <div
@@ -207,7 +252,7 @@ export default function NavbarAirQuality() {
             </div>
 
             {/* Popover detail on hover / tap */}
-            <div className={`absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-max max-w-[90vw] px-3 py-2 bg-white rounded-lg shadow-xl border border-slate-100 transition-all duration-200 z-[100] transform origin-top pointer-events-none text-left ${isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
+            <div className={`absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-max max-w-[90vw] px-3 py-2 bg-white rounded-lg shadow-xl border border-slate-100 transition-all duration-200 z-[100] transform origin-top pointer-events-none text-left ${isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2 lg:group-hover:opacity-100 lg:group-hover:visible lg:group-hover:translate-y-0'}`}>
                 <div
                     className="text-xs font-bold mb-1 truncate"
                     style={{ color: level.accentColor }}
