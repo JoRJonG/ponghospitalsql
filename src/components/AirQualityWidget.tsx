@@ -144,17 +144,17 @@ export default function AirQualityWidget() {
 
         let timeoutId: ReturnType<typeof setTimeout>
 
-        // คำนวณเวลาและดึงข้อมูลตอน "นาทีที่ 5" ของแต่ละชั่วโมง 
+        // คำนวณเวลาและดึงข้อมูลตอน "นาทีที่ 7" ของแต่ละชั่วโมง 
         // (ให้รอ DustBoy ประมวลผลก่อน ค่อยดึงข้อมูล เพื่อไม่ให้ได้ข้อมูลของชั่วโมงที่แล้ว)
         const scheduleNextFetch = () => {
             const now = new Date()
             const next = new Date(now)
-            // ถ้านาทีปัจจุบันเลยนาทีที่ 5 ไปแล้ว ให้ไปดึงตอนนาทีที่ 5 ของชั่วโมงถัดไป
-            if (now.getMinutes() >= 5) {
-                next.setHours(now.getHours() + 1, 5, 0, 0)
+            // ถ้านาทีปัจจุบันเลยนาทีที่ 7 ไปแล้ว ให้ไปดึงตอนนาทีที่ 7 ของชั่วโมงถัดไป
+            if (now.getMinutes() >= 7) {
+                next.setHours(now.getHours() + 1, 7, 0, 0)
             } else {
-                // ถ้ายังไม่ถึงนาทีที่ 5 (เช่น 19:01) ให้ดึงตอน 19:05 ของชั่วโมงนี้เลย
-                next.setHours(now.getHours(), 5, 0, 0)
+                // ถ้ายังไม่ถึงนาทีที่ 7 (เช่น 19:01) ให้ดึงตอน 19:07 ของชั่วโมงนี้เลย
+                next.setHours(now.getHours(), 7, 0, 0)
             }
 
             const delay = next.getTime() - now.getTime()
