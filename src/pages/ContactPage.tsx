@@ -114,7 +114,6 @@ export default function ContactPage() {
 
   // Easily editable contact details
   const phoneMain = '054-497030'
-  const phoneFax = '054-497289'
   const phoneEmergency = '054-497030' // 24/7 ER line
   const emailMain = 'ponghospital@gmail.com'
   const address = '395 ม.9 ต.นาปรัง อ.ปง จ.พะเยา 56140'
@@ -194,13 +193,6 @@ export default function ContactPage() {
                   <div>
                     <div className="font-medium">โทรศัพท์</div>
                     <a href={`tel:${phoneMain}`} className="text-gray-900 hover:underline">{phoneMain}</a>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <i className="fa-solid fa-fax mt-1.5 text-indigo-500" aria-hidden />
-                  <div>
-                    <div className="font-medium">โทรสาร</div>
-                    <a href={`tel:${phoneFax}`} className="text-gray-900">{phoneFax}</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

@@ -61,7 +61,7 @@ export default function Footer() {
                 </li>
                 <li className="flex gap-3">
                   <i className="fa-solid fa-phone text-emerald-500 mt-1"></i>
-                  <span>โทรศัพท์: 054-497030 <br />แฟกซ์: 054-497289</span>
+                  <span>โทรศัพท์: 054-497030</span>
                 </li>
                 <li className="flex gap-3">
                   <i className="fa-solid fa-envelope text-blue-500 mt-1"></i>
