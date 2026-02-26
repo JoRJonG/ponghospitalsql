@@ -1,12 +1,14 @@
-import { useEffect, useState, useRef } from 'react'
-import HeroSlider from '../components/HeroSlider'
-import HomeAnnouncements from '../components/HomeAnnouncements'
-import LatestActivities from '../components/LatestActivities'
-import PRPoster from '../components/PRPoster'
-import UnitLinks from '../components/UnitLinks'
-import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
+import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import SEO from '../components/SEO'
+import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 import { buildApiUrl } from '../utils/api'
+
+// Lazy load heavy sections — ลด initial JS parse time
+const HeroSlider = lazy(() => import('../components/HeroSlider'))
+const HomeAnnouncements = lazy(() => import('../components/HomeAnnouncements'))
+const LatestActivities = lazy(() => import('../components/LatestActivities'))
+const PRPoster = lazy(() => import('../components/PRPoster'))
+const UnitLinks = lazy(() => import('../components/UnitLinks'))
 
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)
@@ -84,7 +86,9 @@ export default function HomePage() {
       {isHeroSliderVisible && (
         <div ref={heroSliderRef} className={`transform transition-[opacity,transform] duration-700 ease-out bg-white`}>
           <h1 className="sr-only">โรงพยาบาลปง จังหวัดพะเยา - บริการสุขภาพครบวงจร</h1>
-          <HeroSlider />
+          <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse" />}>
+            <HeroSlider />
+          </Suspense>
         </div>
       )}
 
@@ -93,9 +97,9 @@ export default function HomePage() {
         {/* Decorative blob สร้าง atmosphere — เบลอหนักจนแทบไม่เห็น */}
         <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20 opacity-30" />
         <div className="container-narrow relative z-10">
-          {/* Header section for posters */}
-
-          <PRPoster embedded={true} />
+          <Suspense fallback={<div className="h-48 bg-gray-200 animate-pulse rounded-lg" />}>
+            <PRPoster embedded={true} />
+          </Suspense>
         </div>
       </section>
 
@@ -103,7 +107,9 @@ export default function HomePage() {
       <section ref={announcementsRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">
         <div className="decorative-blob decorative-blob-amber w-80 h-80 -bottom-24 -left-24" />
         <div className="container-narrow relative z-10">
-          <HomeAnnouncements key={`announcements-${refreshKey}`} limit={6} embedded={true} />
+          <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}>
+            <HomeAnnouncements key={`announcements-${refreshKey}`} limit={6} embedded={true} />
+          </Suspense>
         </div>
       </section>
 
@@ -111,14 +117,18 @@ export default function HomePage() {
       <section ref={activitiesRef} className="relative py-6 md:py-12 bg-gray-100 overflow-hidden border-t border-gray-100/50">
         <div className="decorative-blob decorative-blob-emerald w-64 h-64 top-10 -left-16" />
         <div className="container-narrow relative z-10">
-          <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
+          <Suspense fallback={<div className="h-64 bg-gray-200 animate-pulse rounded-lg" />}>
+            <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
+          </Suspense>
         </div>
       </section>
 
       {/* ลิงก์หน่วยงาน */}
       <section ref={unitsRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">
         <div className="container-narrow relative z-10">
-          <UnitLinks embedded={true} />
+          <Suspense fallback={<div className="h-32 bg-gray-100 animate-pulse rounded-lg" />}>
+            <UnitLinks embedded={true} />
+          </Suspense>
         </div>
       </section>
     </div>

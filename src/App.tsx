@@ -1,19 +1,21 @@
 import React, { useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
-import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { HomepageRefreshProvider } from './contexts/HomepageRefreshContext'
 
-import HomepagePopupOverlay from './components/HomepagePopupOverlay'
 import { ToastContainer } from './components/ToastContainer'
 import { useScrollToTop } from './utils/scrollToTop'
 import CookieConsent from './components/CookieConsent'
 import { buildApiUrl } from './utils/api'
 import LoadingFallback from './components/LoadingFallback'
+
+// Lazy load components ที่ไม่จำเป็นต้องโหลดทันที
+const HomepagePopupOverlay = lazy(() => import('./components/HomepagePopupOverlay'))
+const Footer = lazy(() => import('./components/Footer'))
 
 // Lazy load pages ที่ไม่ได้ใช้ในหน้าแรก เพื่อลด initial bundle size
 const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'))
@@ -133,9 +135,11 @@ function App() {
                   </main>
                   <HomepagePopupOverlay />
                   <CookieConsent />
-                  <div className="w-full print:hidden">
-                    <Footer />
-                  </div>
+                  <Suspense fallback={null}>
+                    <div className="w-full print:hidden">
+                      <Footer />
+                    </div>
+                  </Suspense>
                   <ToastContainer />
                 </div>
               </div>

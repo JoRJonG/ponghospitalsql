@@ -1,10 +1,11 @@
 import { defineConfig, loadEnv } from 'vite'
+import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   return {
-    plugins: [tailwindcss()],
+    plugins: [react(), tailwindcss()],
     base: env.VITE_BASE_URL || '/',
     server: {
       proxy: {
@@ -31,11 +32,11 @@ export default defineConfig(({ mode }) => {
             // แยก vendor chunks ให้ละเอียดขึ้นเพื่อ better caching
             if (id.includes('node_modules')) {
               // React core - ไม่ค่อยเปลี่ยน
-              if (id.includes('react') || id.includes('react-dom')) {
+              if (id.includes('/react/') || id.includes('/react-dom/')) {
                 return 'react-vendor'
               }
               // Router - แยกออกมาเพราะใช้ในทุกหน้า
-              if (id.includes('react-router-dom')) {
+              if (id.includes('react-router-dom') || id.includes('react-router')) {
                 return 'router'
               }
               // PDF libraries - ใหญ่มาก แยกออกมาเพื่อ lazy load
@@ -49,6 +50,14 @@ export default defineConfig(({ mode }) => {
               // Animation library - แยกออกมา
               if (id.includes('framer-motion')) {
                 return 'animations'
+              }
+              // Chart library
+              if (id.includes('recharts') || id.includes('d3-')) {
+                return 'charts'
+              }
+              // Slider/Swiper
+              if (id.includes('swiper')) {
+                return 'swiper'
               }
               // UI libraries
               if (id.includes('sweetalert2') || id.includes('dompurify')) {
@@ -64,8 +73,8 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       // เพิ่ม chunk size warning limit
       chunkSizeWarningLimit: 800,
-      // ใช้ default minifier ของ rolldown (เร็วกว่า esbuild)
-      target: 'es2015',
+      // esnext: browser สมัยใหม่ได้ code เล็กกว่า (ไม่ต้อง transpile)
+      target: 'esnext',
     },
   }
 })
