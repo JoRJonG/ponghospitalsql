@@ -176,7 +176,10 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                                             >
                                                 <div className="relative aspect-square overflow-hidden rounded-lg mb-3 bg-slate-100">
                                                     {(() => {
-                                                        const { src, srcSet } = responsiveImageProps(buildApiUrl(poster.imageUrl), { widths: [320, 480, 640], sizes: '(max-width: 768px) 100vw, 320px' })
+                                                        const { src, srcSet } = responsiveImageProps(buildApiUrl(poster.imageUrl), {
+                                                            widths: [200, 320, 480],
+                                                            sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw'
+                                                        })
                                                         return (
                                                             <img
                                                                 src={src}

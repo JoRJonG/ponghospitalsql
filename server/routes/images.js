@@ -7,22 +7,53 @@ import sharp from 'sharp'
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import crypto from 'crypto'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const UPLOAD_DIR = path.resolve(__dirname, '../../uploads/announcements')
 
 const router = Router()
 
-function applyPublicCache(res) {
-  res.setHeader('Cache-Control', 'public, max-age=86400, immutable')
+/**
+ * applyPublicCache — ตั้ง Cache-Control ที่ถูกต้องสำหรับ image endpoints
+ * - ถ้า URL มี ?t= (timestamp / version fingerprint) → immutable 1 ปี
+ * - ทั่วไป → public, stale-while-revalidate 30 วัน
+ * พร้อมส่ง ETag จาก hash ของ buffer เพื่อให้ browser ทำ 304 Not Modified ได้
+ */
+function applyPublicCache(req, res, buffer) {
+  // Generate ETag from content hash (supports 304 Not Modified)
+  if (buffer && buffer.length > 0) {
+    const etag = `"${crypto.createHash('sha1').update(buffer).digest('hex').slice(0, 16)}"`
+    res.setHeader('ETag', etag)
+    // Check If-None-Match
+    const ifNoneMatch = req.headers['if-none-match']
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      res.status(304).end()
+      return true // caller should stop
+    }
+  }
+
+  // ถ้า URL มี timestamp fingerprint → cache ได้นาน 1 ปี (immutable)
+  const hasTimestamp = req.query.t || req.query.v
+  if (hasTimestamp) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+  } else {
+    // ไม่มี fingerprint → cache 30 วัน แต่ revalidate ด้วย ETag
+    res.setHeader('Cache-Control', 'public, max-age=2592000, stale-while-revalidate=86400')
+  }
+  return false // continue sending response
 }
 
+
 // Helper to resize image on the fly if 'w' query param is present
-const resizeImage = async (buffer, widthQuery, mimeType) => {
+const resizeImage = async (buffer, widthQuery, mimeType, qualityQuery) => {
   if (!widthQuery) return { buffer, mimeType }
 
   const width = parseInt(widthQuery)
   if (isNaN(width) || width <= 0 || width > 2000) return { buffer, mimeType }
+
+  // Allow client to specify quality (default 75 for better compression per Lighthouse)
+  const quality = Math.min(90, Math.max(40, parseInt(qualityQuery) || 75))
 
   try {
     const pipeline = sharp(buffer)
@@ -33,7 +64,7 @@ const resizeImage = async (buffer, widthQuery, mimeType) => {
 
     const resizedBuffer = await pipeline
       .resize(width, null, { withoutEnlargement: true })
-      .webp({ quality: 80 }) // Always convert to WebP for better performance
+      .webp({ quality }) // Convert to WebP with specified quality
       .toBuffer()
 
     return { buffer: resizedBuffer, mimeType: 'image/webp' }
@@ -51,12 +82,12 @@ router.get('/slides/:id', async (req, res) => {
       return res.status(404).json({ error: 'Image not found' })
     }
 
-    const processed = await resizeImage(imageData.image_data, req.query.w, imageData.mime_type)
+    const processed = await resizeImage(imageData.image_data, req.query.w, imageData.mime_type, req.query.q)
 
     res.setHeader('Content-Type', processed.mimeType)
-    res.setHeader('Content-Length', processed.buffer.length)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
+    res.setHeader('Content-Length', processed.buffer.length)
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching slide image:', error)
@@ -106,7 +137,7 @@ router.get('/activities/:activityId/:imageId', async (req, res) => {
 
     res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', row.file_name))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching activity image:', error)
@@ -138,7 +169,7 @@ router.get('/executives/:id', async (req, res) => {
 
     res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching executive image:', error)
@@ -168,7 +199,7 @@ router.get('/infographics/:id', async (req, res) => {
 
     res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.title || 'infographic'))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching infographic image:', error)
@@ -212,7 +243,7 @@ router.get('/pr-posters/:id', async (req, res) => {
 
     res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', row.title || 'poster'))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching PR poster image:', error)
@@ -231,9 +262,8 @@ router.get('/popups/:id', async (req, res) => {
     const processed = await resizeImage(data.image_data, req.query.w, data.image_mime || 'image/webp')
 
     res.setHeader('Content-Type', processed.mimeType)
-    // Content-Length will change after resize, let Express handle it or calculate from buffer
     res.setHeader('Content-Disposition', contentDisposition('inline', data.image_name || 'popup-image'))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching popup image:', error)
@@ -256,7 +286,7 @@ router.get('/units/:id', async (req, res) => {
     const imageData = rows[0]
     res.setHeader('Content-Type', imageData.mime_type)
     res.setHeader('Content-Disposition', contentDisposition('inline', imageData.file_name))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, imageData.image_data)) return
     res.send(imageData.image_data)
   } catch (error) {
     console.error('Error fetching unit image:', error)
@@ -314,8 +344,7 @@ router.get('/announcements/:announcementId/:attachmentId', async (req, res) => {
       ? 'inline'
       : (kind === 'image' || mime.startsWith('image/') ? 'inline' : 'attachment')
     res.setHeader('Content-Disposition', contentDisposition(dispositionType, row.file_name || 'file'))
-
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, fileData)) return
     res.send(fileData)
   } catch (error) {
     console.error('Error fetching announcement attachment:', error)
@@ -365,7 +394,7 @@ router.get('/organization/:id', async (req, res) => {
 
     res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', row.title || 'org-chart'))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching organization chart image:', error)
@@ -409,7 +438,7 @@ router.get('/airquality/:filename', async (req, res) => {
 
     res.setHeader('Content-Type', processed.mimeType)
     res.setHeader('Content-Disposition', contentDisposition('inline', filename))
-    applyPublicCache(res)
+    if (applyPublicCache(req, res, processed.buffer)) return
     res.send(processed.buffer)
   } catch (error) {
     console.error('Error fetching air quality image:', error)
