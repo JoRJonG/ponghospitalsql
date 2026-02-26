@@ -318,7 +318,7 @@ export default function AnnouncementsPage() {
                 to="/announcements"
                 end
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
@@ -330,7 +330,7 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/jobs"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
@@ -342,7 +342,7 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/news"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
@@ -354,7 +354,7 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/notices"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
@@ -366,7 +366,7 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/procurement"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-center sm:w-auto sm:flex-none sm:justify-start px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`

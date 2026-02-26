@@ -101,7 +101,7 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
   return (
     <div className="w-full">
       <div>
-        <div className="relative w-full h-[25vh] md:h-[60vh] overflow-hidden bg-slate-50">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-auto md:h-[60vh] overflow-hidden bg-slate-50">
           {slides.map((s, i) => {
             const props = responsiveImageProps(s.src, { widths: [480, 768, 1024, 1440], crop: 'fit', sizes: '100vw' })
             const bg = bgUrls[i]

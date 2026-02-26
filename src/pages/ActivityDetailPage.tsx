@@ -88,7 +88,7 @@ export default function ActivityDetailPage() {
           image={item?.images?.[0] ? (typeof item.images[0] === 'string' ? item.images[0] : item.images[0].url) : undefined}
         />
         <PageHeader
-          title="รายละเอียดกิจกรรม"
+          title={item?.title || 'รายละเอียดกิจกรรม'}
           actions={
             <>
               <Link to="/activities" className="text-sm text-emerald-700 hover:underline">กลับไปดูกิจกรรมทั้งหมด</Link>
@@ -127,7 +127,7 @@ export default function ActivityDetailPage() {
 
         {item && (
           <article className="space-y-4">
-            <h1 className="text-xl font-semibold">{item.title}</h1>
+            <span className="sr-only">{item.title}</span>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               {item.date && <div>{new Date(item.date).toLocaleDateString()}</div>}
               {item.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye"></i> {item.viewCount} ครั้ง</div>}

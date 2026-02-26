@@ -81,12 +81,17 @@ export default function InfographicPage() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="card overflow-hidden"
             >
-              <div className="card-body p-0">
+              <div className="card-body p-0 bg-slate-50 aspect-[1/1.414] w-full relative sm:aspect-auto sm:min-h-[600px] flex items-center justify-center">
+                {/* Fallback spinner while loading */}
+                <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                  <i className="fa-solid fa-image fa-2x animate-pulse"></i>
+                </div>
                 <img
                   src={`${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}w=1200`}
                   alt={item.title}
-                  className="w-full h-auto"
+                  className="w-full h-full object-contain sm:h-auto sm:object-cover relative z-10 bg-white"
                   loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
                     target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="400"%3E%3Crect fill="%23eee" width="800" height="400"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-family="sans-serif" font-size="20"%3EImage not available%3C/text%3E%3C/svg%3E'

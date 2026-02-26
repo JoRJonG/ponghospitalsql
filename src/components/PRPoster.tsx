@@ -88,8 +88,8 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-4 lg:gap-5 xl:gap-6 overflow-hidden">
                         {[1, 2, 3, 4].map(i => (
                             <div key={i} className={`w-full bg-white rounded-xl shadow-sm border border-slate-100 p-2 shrink-0 ${i === 1 ? 'flex flex-col' :
-                                    i === 2 ? 'hidden sm:flex flex-col' :
-                                        'hidden lg:flex flex-col'
+                                i === 2 ? 'hidden sm:flex flex-col' :
+                                    'hidden lg:flex flex-col'
                                 }`}>
                                 <div className="relative aspect-square rounded-lg mb-3 bg-slate-100 animate-pulse"></div>
                             </div>
@@ -136,7 +136,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
 
                         {/* Swiper Carousel */}
                         {items && items.length > 0 ? (
-                            <div className="relative min-h-[306px]"> {/* STRICT MIN-HEIGHT: Prevents Swiper from collapsing to 0 height during init reflow, stopping 0.33+ CLS */}
+                            <div className="relative w-full aspect-square sm:aspect-auto sm:min-h-[350px]"> {/* STRICT MIN-HEIGHT/ASPECT-RATIO: Prevents Swiper from collapsing to 0 height during init reflow, stopping CLS */}
                                 <Swiper
                                     modules={[Autoplay, Navigation]}
                                     spaceBetween={16}

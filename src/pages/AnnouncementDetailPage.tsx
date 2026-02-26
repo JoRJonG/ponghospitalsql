@@ -130,7 +130,7 @@ export default function AnnouncementDetailPage() {
           })?.url}
         />
         <PageHeader
-          title="รายละเอียดประกาศ"
+          title={item?.title || 'รายละเอียดประกาศ'}
           actions={
             <>
               <Link to="/announcements" className="text-sm text-emerald-700 hover:underline">กลับไปดูประกาศทั้งหมด</Link>
@@ -179,7 +179,7 @@ export default function AnnouncementDetailPage() {
               </span>
               {item.viewCount !== undefined && <span className="flex items-center gap-1"><i className="fas fa-eye text-xs" aria-hidden="true"></i> {item.viewCount} ครั้ง</span>}
             </div>
-            <h1 className="text-xl font-semibold">{item.title}</h1>
+            <span className="sr-only">{item.title}</span>
             {item.content && (
               <div className="prose prose-sm md:prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
             )}
