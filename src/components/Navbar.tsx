@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
-
+import '@fortawesome/fontawesome-free/css/all.min.css'
 import logo from '../assets/logo-150x150.png'
 import NavbarAirQuality from './NavbarAirQuality'
 
@@ -135,8 +135,6 @@ export default function Navbar() {
               alt="Pong Hospital logo"
               className="h-12 w-12 md:h-14 md:w-14 rounded navbar-logo"
               loading="eager"
-              width={56}
-              height={56}
             />
             <div className="flex flex-col">
               <span className="font-bold text-xl text-emerald-800">โรงพยาบาลปง</span>

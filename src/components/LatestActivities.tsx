@@ -82,7 +82,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
             const first = a.images && a.images.length ? a.images[0] : undefined
             const img = typeof first === 'string' ? first : first?.url
               || logo
-            const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [240, 320, 480], sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw', crop: 'fill' })
+            const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
 
             const categoryColors: Record<string, { bg: string; text: string }> = {
               'HEALTH CARE': { bg: 'bg-teal-500', text: 'text-white' },
@@ -182,7 +182,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
               const first = a.images && a.images.length ? a.images[0] : undefined
               const img = typeof first === 'string' ? first : first?.url
                 || logo
-              const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [240, 320, 480], sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw', crop: 'fill' })
+              const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill', sizes: '(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw' })
               return (
                 <Link to={`/activities/${a._id}`} key={a._id} className="card overflow-hidden group transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 border-0 shadow-lg">
                   <div className="relative">

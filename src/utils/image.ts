@@ -80,11 +80,9 @@ export function nonCdnResponsiveUrl(url: string, w?: number): string {
         // If relative, we just append query. If absolute, we reconstruct.
         if (url.startsWith('/')) {
           const separator = url.includes('?') ? '&' : '?'
-          return `${url}${separator}w=${w}&f=webp&q=75`
+          return `${url}${separator}w=${w}`
         }
         u.searchParams.set('w', String(w))
-        u.searchParams.set('f', 'webp')
-        u.searchParams.set('q', '75')
         return u.toString()
       }
 

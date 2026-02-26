@@ -119,9 +119,7 @@ export async function createServer() {
   app.use(botBlocker)
 
   // Force browser to revalidate API responses (304 support)
-  // ยกเว้น /api/images เพราะ route นั้นจัดการ Cache-Control เองด้วย ETag + long TTL
   app.use('/api', (req, res, next) => {
-    if (req.path.startsWith('/images/')) return next()
     res.setHeader('Cache-Control', 'no-cache')
     next()
   })
