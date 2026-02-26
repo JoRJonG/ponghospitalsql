@@ -1,7 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
-import '@fortawesome/fontawesome-free/css/all.min.css'
 import logo from '../assets/logo-150x150.png'
 import NavbarAirQuality from './NavbarAirQuality'
 

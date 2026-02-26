@@ -64,7 +64,7 @@ export async function createServer() {
   const cspDirectives = {
     defaultSrc: ["'self'"],
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-    fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "data:"],
     imgSrc: ["'self'", "data:", "https:", "blob:"],
     scriptSrc: ["'self'"],
     connectSrc: ["'self'", "http:", "https:", "ws:", "wss:"],
