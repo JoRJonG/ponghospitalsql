@@ -111,6 +111,8 @@ export function HomepagePopupOverlay() {
   const location = useLocation()
   const [popup, setPopup] = useState<PopupRecord | null>(null)
   const [loading, setLoading] = useState(false)
+  // เก็บขนาดจริงของรูปภาพที่ preload ไว้ เพื่อกำหนด width/height บน <img> และลด CLS
+  const [imgSize, setImgSize] = useState<{ w: number; h: number } | null>(null)
 
   const shouldSuppress = useMemo(() => {
     const path = location.pathname || ''
@@ -223,7 +225,11 @@ export function HomepagePopupOverlay() {
             if (src) {
               const img = new window.Image()
               img.onload = () => {
-                if (mounted) applyPopup(candidateWithImage)
+                if (mounted) {
+                  // บันทึก naturalWidth/naturalHeight เพื่อกำหนด width+height attribute บน <img>
+                  setImgSize({ w: img.naturalWidth, h: img.naturalHeight })
+                  applyPopup(candidateWithImage)
+                }
               }
               img.onerror = () => {
                 if (mounted) applyPopup(null)
@@ -332,6 +338,10 @@ export function HomepagePopupOverlay() {
         <img
           src={`${imageSrc}${imageSrc.includes('?') ? '&' : '?'}w=1000`}
           alt="ป๊อปอัปหน้าหลัก"
+          // กำหนด width/height จาก naturalWidth/naturalHeight ที่เก็บไว้ตอน preload
+          // เพื่อให้ browser จอง space ล่วงหน้าและลด Cumulative Layout Shift (CLS)
+          width={imgSize?.w}
+          height={imgSize?.h}
           className={`block max-h-[90vh] max-w-[90vw] rounded-3xl object-contain shadow-2xl ${imageIsClickable ? 'cursor-pointer' : ''}`}
           onClick={imageIsClickable ? handleOpenCta : undefined}
           onError={handleImageError}
