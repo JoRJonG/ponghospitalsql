@@ -37,7 +37,7 @@ export default function Footer() {
 
             {/* Site Map */}
             <div>
-              <h4 className="font-bold text-slate-800 mb-6">แผนผังเว็บไซต์</h4>
+              <h2 className="font-bold text-slate-800 mb-6">แผนผังเว็บไซต์</h2>
               <ul className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm text-slate-600 font-medium">
                 <li><Link to="/" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> หน้าหลัก</Link></li>
                 <li><Link to="/about" className="hover:text-emerald-500 transition flex items-center gap-2"><i className="fa-solid fa-angle-right text-xs text-emerald-500"></i> เกี่ยวกับเรา</Link></li>
@@ -53,7 +53,7 @@ export default function Footer() {
 
             {/* Contact Info */}
             <div>
-              <h4 className="font-bold text-slate-800 mb-6">ข้อมูลติดต่อ</h4>
+              <h2 className="font-bold text-slate-800 mb-6">ข้อมูลติดต่อ</h2>
               <ul className="space-y-4 text-sm text-slate-600 font-medium">
                 <li className="flex gap-3">
                   <i className="fa-solid fa-location-dot text-red-500 mt-1"></i>

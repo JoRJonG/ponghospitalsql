@@ -94,7 +94,7 @@ const VisitorCounter: React.FC = () => {
             <i className="fa-solid fa-triangle-exclamation text-xl"></i>
           </div>
           <div>
-            <h4 className="text-white/80 font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h4>
+            <h2 className="text-white/80 font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h2>
             <span className="flex items-center text-xs text-red-200">
               ไม่สามารถโหลดข้อมูลได้
             </span>
@@ -115,7 +115,7 @@ const VisitorCounter: React.FC = () => {
           <i className="fa-solid fa-chart-pie text-xl"></i>
         </div>
         <div>
-          <h4 className="text-white font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h4>
+          <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h2>
           <p className="text-teal-100/90 text-xs font-medium">ข้อมูลสถิติการเข้าชมเว็บไซต์</p>
         </div>
       </div>
