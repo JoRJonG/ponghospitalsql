@@ -74,15 +74,17 @@ export function nonCdnResponsiveUrl(url: string, w?: number): string {
         return url
       }
 
-      const isLocalApi = u.pathname.startsWith('/api/images/')
+      const isLocalApi = u.pathname.startsWith('/api/images/') || u.pathname.startsWith('/api/')
 
       if (isLocalApi && w) {
         // If relative, we just append query. If absolute, we reconstruct.
         if (url.startsWith('/')) {
           const separator = url.includes('?') ? '&' : '?'
-          return `${url}${separator}w=${w}`
+          return `${url}${separator}w=${w}&f=webp&q=80`
         }
         u.searchParams.set('w', String(w))
+        u.searchParams.set('f', 'webp')
+        u.searchParams.set('q', '80')
         return u.toString()
       }
 
@@ -103,18 +105,22 @@ export function nonCdnResponsiveUrl(url: string, w?: number): string {
 type ResponsiveImageOptions = { widths?: number[]; sizes?: string; h?: number; crop?: TransformOpts['crop'] }
 
 export function responsiveImageProps(url?: string, opts?: ResponsiveImageOptions) {
-  const widths = opts?.widths ?? [320, 480, 640, 800, 1024, 1280]
+  // Use more efficient default steps and sizes for a typical grid
+  const widths = opts?.widths ?? [320, 640, 800, 1024, 1280]
   const sizes = opts?.sizes ?? '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw'
   if (!url) return { src: undefined, srcSet: undefined, sizes: undefined as string | undefined }
 
   if (isCloudinaryUrl(url)) {
-    const src = cloudinaryTransform(url, { w: Math.max(...widths), h: opts?.h, crop: opts?.crop })
-    const srcSet = cloudinarySrcSet(url, widths, { h: opts?.h, crop: opts?.crop })
+    const src = cloudinaryTransform(url, { w: Math.max(...widths), h: opts?.h, crop: opts?.crop, format: 'auto', quality: 'auto:good' })
+    const srcSet = cloudinarySrcSet(url, widths, { h: opts?.h, crop: opts?.crop, format: 'auto', quality: 'auto:good' })
     return { src, srcSet, sizes }
   }
 
   // Non-Cloudinary: best effort using query parameters
-  const src = nonCdnResponsiveUrl(url, Math.max(...widths))
+  // Ensure the fallback src isn't unnecessarily large on mobile
+  // Since Lighthouse complained about 800w on mobile, let's make the fallback src the medium size instead of the max width. Wait, `src` is usually the fallback for old browsers, so 800 is okay, but `sizes` is what modern browsers use.
+  const fallbackWidth = widths.length > 2 ? widths[Math.floor(widths.length / 2)] : Math.max(...widths)
+  const src = nonCdnResponsiveUrl(url, fallbackWidth)
   const srcSet = nonCdnSrcSet(url, widths)
   return { src, srcSet, sizes }
 }

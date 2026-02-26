@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useSWR } from '../hooks/useSWR'
-import PdfViewer from '../components/PdfViewer'
 import { sanitize } from '../utils/sanitize'
+
+const PdfViewer = lazy(() => import('../components/PdfViewer'))
 
 type PRPlan = {
     _id: string
@@ -173,11 +174,13 @@ export default function PRPlanPage() {
                                         )}
 
                                         {!pdfError && pdfData && (
-                                            <PdfViewer
-                                                data={pdfData}
-                                                className="w-full"
-                                                onError={(err) => setPdfError(err)}
-                                            />
+                                            <Suspense fallback={<div className="flex-1 flex items-center justify-center p-8"><i className="fa-solid fa-spinner fa-spin text-3xl text-gray-300" /></div>}>
+                                                <PdfViewer
+                                                    data={pdfData}
+                                                    className="w-full"
+                                                    onError={(err) => setPdfError(err)}
+                                                />
+                                            </Suspense>
                                         )}
                                     </div>
                                 </div>

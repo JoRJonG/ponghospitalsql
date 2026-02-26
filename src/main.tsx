@@ -1,9 +1,13 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
-import '@fortawesome/fontawesome-free/css/all.min.css'
 import { installRefreshGuard } from './utils/refreshGuard'
 import { HelmetProvider } from 'react-helmet-async'
+
+// Defer non-critical CSS (FontAwesome) to avoid render blocking
+setTimeout(() => {
+    import('@fortawesome/fontawesome-free/css/all.min.css')
+}, 0)
 
 installRefreshGuard({ cooldownMs: 4000, revalidateAfterMs: 60_000 })
 

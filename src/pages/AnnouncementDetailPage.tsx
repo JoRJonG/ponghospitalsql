@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { sanitize } from '../utils/sanitize'
-import PdfViewer from '../components/PdfViewer'
 import { Link, useParams } from 'react-router-dom'
+
+const PdfViewer = lazy(() => import('../components/PdfViewer'))
 import { shareItem } from '../utils/share'
 import { fastFetch } from '../utils/fastFetch'
 import SEO from '../components/SEO'
@@ -217,13 +218,15 @@ export default function AnnouncementDetailPage() {
                     if (isPdf) {
                       return (
                         <div key={idx} className="w-full">
-                          <PdfViewer
-                            url={url}
-                            className="w-full rounded overflow-hidden border"
-                            onError={() => {
-                              // noop: rendering will show error message; parent also has generic fallback below
-                            }}
-                          />
+                          <Suspense fallback={<div className="flex justify-center p-4"><i className="fa-solid fa-spinner fa-spin text-gray-400" /></div>}>
+                            <PdfViewer
+                              url={url}
+                              className="w-full rounded overflow-hidden border"
+                              onError={() => {
+                                // noop
+                              }}
+                            />
+                          </Suspense>
                           <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                             {(att.name || att.bytes) && (
                               <div className="text-xs text-gray-500 truncate" title={att.name || ''}>
@@ -262,7 +265,9 @@ function TryPdfThenDownload({ url, name }: { url: string; name: string }) {
   if (!failed) {
     return (
       <div className="w-full">
-        <PdfViewer url={url} className="w-full rounded overflow-hidden border" onError={() => setFailed(true)} />
+        <Suspense fallback={<div className="flex justify-center p-4"><i className="fa-solid fa-spinner fa-spin text-gray-400" /></div>}>
+          <PdfViewer url={url} className="w-full rounded overflow-hidden border" onError={() => setFailed(true)} />
+        </Suspense>
         {name && <div className="mt-2 text-xs text-gray-500">{name}</div>}
         <div className="mt-2 flex justify-end">
           <button type="button" className="btn btn-outline" onClick={() => downloadFile(url, name, true)}>ดาวน์โหลด PDF</button>
