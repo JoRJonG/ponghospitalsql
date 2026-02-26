@@ -279,8 +279,8 @@ function List({ category }: { category?: Announcement['category'] }) {
                   </span>
                 ) : null}
               </div>
-              <div className="font-semibold text-gray-800 text-base mb-1 group-hover:text-emerald-500 transition-colors duration-200">{a.title}</div>
-              {a.content ? <p className="text-xs text-gray-500 line-clamp-2">{stripHtml(a.content)}</p> : null}
+              <div className="font-semibold text-gray-800 text-sm md:text-base mb-1 group-hover:text-emerald-500 transition-colors duration-200">{a.title}</div>
+              {a.content ? <p className="text-xs text-gray-500 line-clamp-2 mt-1">{stripHtml(a.content)}</p> : null}
             </div>
           </Link>
         ))}

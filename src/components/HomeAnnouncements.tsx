@@ -189,7 +189,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                             </span>
                           ) : null}
                         </div>
-                        <h3 className="text-base font-semibold text-slate-800 transition">
+                        <h3 className="text-sm md:text-base font-semibold text-slate-800 transition">
                           <span className="group-hover:text-emerald-500 transition-colors duration-200">{a.title}</span>
                         </h3>
                         {a.content ? (

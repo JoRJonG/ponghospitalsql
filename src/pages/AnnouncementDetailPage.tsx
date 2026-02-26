@@ -181,7 +181,7 @@ export default function AnnouncementDetailPage() {
             </div>
             <h1 className="text-xl font-semibold">{item.title}</h1>
             {item.content && (
-              <div className="prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
+              <div className="prose prose-sm md:prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
             )}
             {item.attachments && item.attachments.length > 0 && (
               <div>

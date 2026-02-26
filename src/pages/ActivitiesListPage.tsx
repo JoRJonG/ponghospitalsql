@@ -247,7 +247,7 @@ export default function ActivitiesListPage() {
                           <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
                         )}
                       </div>
-                      <h3 className="text-base md:text-lg font-semibold text-slate-800 leading-snug group-hover:text-emerald-500 transition-colors duration-200 mb-2">
+                      <h3 className="text-sm md:text-base font-semibold text-slate-800 leading-snug group-hover:text-emerald-500 transition-colors duration-200 mb-2">
                         {a.title}
                       </h3>
                       {a.description && (

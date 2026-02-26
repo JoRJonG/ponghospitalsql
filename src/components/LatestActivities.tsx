@@ -125,7 +125,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
                     ) : null}
                   </div>
-                  <h3 className="text-base md:text-lg font-semibold text-slate-800 leading-snug group-hover:text-emerald-500 transition mb-2">
+                  <h3 className="text-sm md:text-base font-semibold text-slate-800 leading-snug group-hover:text-emerald-500 transition mb-2">
                     {a.title}
                   </h3>
                   {a.description ? (
@@ -199,8 +199,8 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
-                      <div className="font-semibold line-clamp-2 text-sm leading-tight mb-1">{a.title}</div>
-                      {a.date ? <div className="text-xs opacity-90">{new Intl.DateTimeFormat('th-TH').format(new Date(a.date))}</div> : null}
+                      <div className="font-semibold line-clamp-2 text-xs md:text-sm leading-tight mb-1">{a.title}</div>
+                      {a.date ? <div className="text-[10px] md:text-xs opacity-90">{new Intl.DateTimeFormat('th-TH').format(new Date(a.date))}</div> : null}
                     </div>
                   </div>
                 </Link>

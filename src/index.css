@@ -214,6 +214,18 @@
   --hospital-text-muted: #94a3b8;
 }
 
+html {
+  font-size: 16.5px;
+  /* Larger base size for mobile for better readability (K2D font) */
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 15px;
+    /* Slightly scaled down on desktop to compensate for K2D */
+  }
+}
+
 html,
 body,
 #root {
@@ -223,8 +235,11 @@ body,
 body {
   background-color: var(--hospital-bg-primary);
   color: var(--hospital-text-primary);
-  font-family: "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.6;
+  font-family: "K2D", "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.65;
+  letter-spacing: 0.015em;
+  word-spacing: 0.05em;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: var(--hospital-font-size-base);
@@ -242,8 +257,8 @@ h6,
 b,
 strong,
 th {
-  font-family: "Prompt", "Noto Sans Thai", sans-serif !important;
-  letter-spacing: 0em;
+  font-family: "K2D", "Prompt", "Noto Sans Thai", sans-serif !important;
+  letter-spacing: 0.025em;
 }
 
 /* ปรับน้ำหนัก headings ให้พอดีกับ Prompt */

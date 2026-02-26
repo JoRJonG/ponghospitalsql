@@ -6,7 +6,7 @@ import logo from '../assets/logo-150x150.png'
 import NavbarAirQuality from './NavbarAirQuality'
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
-  `px-4 py-2 text-base font-medium transition-colors ${isActive ? 'text-emerald-600 bg-emerald-50 rounded-md' : 'text-slate-600 hover:text-emerald-500 hover:bg-emerald-50/50 rounded-md'}`
+  `inline-flex items-center px-4 pt-2.5 pb-1.5 text-base font-medium transition-colors ${isActive ? 'text-emerald-600 bg-emerald-50 rounded-md' : 'text-slate-600 hover:text-emerald-500 hover:bg-emerald-50/50 rounded-md'}`
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
@@ -228,7 +228,7 @@ export default function Navbar() {
               <>
                 <span className="mx-1 text-slate-300">|</span>
                 <NavLink to="/admin" className={navItemClass} end><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
-                <button onClick={doLogout} className="px-3 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm" aria-label="ออกจากระบบ">
+                <button onClick={doLogout} className="inline-flex items-center px-3 pt-2.5 pb-1.5 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm transition-colors" aria-label="ออกจากระบบ">
                   <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
                 </button>
               </>
@@ -344,8 +344,8 @@ export default function Navbar() {
                   <>
                     <div className="border-t border-gray-200 my-2"></div>
                     <NavLink to="/admin" className={navItemClass} end onClick={() => setOpen(false)}><i className="fa-solid fa-user-tie mr-1" />ระบบจัดการ</NavLink>
-                    <button className="text-left px-4 py-2 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm" onClick={doLogout}>
-                      <i className="fa-solid fa-right-from-bracket mr-1" /> ออกจากระบบ
+                    <button className="flex items-center w-full text-left px-4 pt-2.5 pb-1.5 rounded text-gray-700 hover:bg-red-50 hover:text-red-700 text-sm transition-colors" onClick={doLogout}>
+                      <i className="fa-solid fa-right-from-bracket mr-2" /> ออกจากระบบ
                     </button>
                   </>
                 ) : null}
