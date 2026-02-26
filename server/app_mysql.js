@@ -63,7 +63,7 @@ export async function createServer() {
   const httpsEnabled = String(process.env.USE_HTTPS).toLowerCase() === 'true'
   const cspDirectives = {
     defaultSrc: ["'self'"],
-    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
     imgSrc: ["'self'", "data:", "https:", "blob:"],
     scriptSrc: ["'self'"],
