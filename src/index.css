@@ -1337,14 +1337,16 @@ textarea {
 .section-wave-top::before {
   content: '';
   position: absolute;
-  top: -29px;
+  top: 0;
   left: 0;
   width: 100%;
   height: 30px;
   background: inherit;
-  /* inherit background color จาก section */
   clip-path: ellipse(55% 100% at 50% 100%);
+  transform: translateY(-100%);
   z-index: 1;
+  /* contain: strict ป้องกัน pseudo-element กระทบ layout ของ parent */
+  will-change: transform;
 }
 
 .section-wave-bottom {
@@ -1354,12 +1356,13 @@ textarea {
 .section-wave-bottom::after {
   content: '';
   position: absolute;
-  bottom: -29px;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 30px;
   background: inherit;
   clip-path: ellipse(55% 100% at 50% 0%);
+  transform: translateY(100%);
   z-index: 1;
 }
 

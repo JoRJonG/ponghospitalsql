@@ -86,47 +86,46 @@ export default function HomePage() {
       {isHeroSliderVisible && (
         <div ref={heroSliderRef} className={`transform transition-[opacity,transform] duration-700 ease-out bg-white`}>
           <h1 className="sr-only">โรงพยาบาลปง จังหวัดพะเยา - บริการสุขภาพครบวงจร</h1>
-          <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse" />}>
+          <Suspense fallback={<div className="min-h-[300px] bg-gray-100 animate-pulse" />}>
             <HeroSlider />
           </Suspense>
         </div>
       )}
 
-      {/* PR Poster — เปลี่ยนพื้นหลังเพื่อให้เกิด Contrast ตัดกับ HeroSlider ด้านบนและ Announcements ด้านล่าง */}
-      <section ref={posterRef} className={`relative py-8 md:py-16 bg-gray-100 overflow-hidden border-t border-gray-100/50 ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
-        {/* Decorative blob สร้าง atmosphere — เบลอหนักจนแทบไม่เห็น */}
+      {/* PR Poster */}
+      <section ref={posterRef} className={`relative py-8 md:py-16 bg-gray-100 overflow-x-hidden border-t border-gray-100/50 ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
         <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20 opacity-30" />
         <div className="container-narrow relative z-10">
-          <Suspense fallback={<div className="h-48 bg-gray-200 animate-pulse rounded-lg" />}>
+          <Suspense fallback={<div className="min-h-[200px] bg-gray-200 animate-pulse rounded-lg" />}>
             <PRPoster embedded={true} />
           </Suspense>
         </div>
       </section>
 
-      {/* ประกาศข่าวสาร — wave top + clean bg */}
-      <section ref={announcementsRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">
+      {/* ประกาศข่าวสาร — ลบ section-wave-top ออก เพราะ overflow-hidden clip wave อยู่แล้ว ทำให้ CLS */}
+      <section ref={announcementsRef} className="relative py-6 md:py-12 bg-white overflow-x-hidden">
         <div className="decorative-blob decorative-blob-amber w-80 h-80 -bottom-24 -left-24" />
         <div className="container-narrow relative z-10">
-          <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}>
+          <Suspense fallback={<div className="min-h-[300px] bg-gray-100 animate-pulse rounded-lg" />}>
             <HomeAnnouncements key={`announcements-${refreshKey}`} limit={6} embedded={true} />
           </Suspense>
         </div>
       </section>
 
-      {/* ภาพกิจกรรม — bg-gray-100 + blob */}
-      <section ref={activitiesRef} className="relative py-6 md:py-12 bg-gray-100 overflow-hidden border-t border-gray-100/50">
+      {/* ภาพกิจกรรม */}
+      <section ref={activitiesRef} className="relative py-6 md:py-12 bg-gray-100 overflow-x-hidden border-t border-gray-100/50">
         <div className="decorative-blob decorative-blob-emerald w-64 h-64 top-10 -left-16" />
         <div className="container-narrow relative z-10">
-          <Suspense fallback={<div className="h-64 bg-gray-200 animate-pulse rounded-lg" />}>
+          <Suspense fallback={<div className="min-h-[300px] bg-gray-200 animate-pulse rounded-lg" />}>
             <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
           </Suspense>
         </div>
       </section>
 
-      {/* ลิงก์หน่วยงาน */}
-      <section ref={unitsRef} className="relative py-6 md:py-12 bg-white section-wave-top overflow-hidden">
+      {/* ลิงก์หน่วยงาน — ลบ section-wave-top ออก เพราะ overflow-hidden clip wave อยู่แล้ว */}
+      <section ref={unitsRef} className="relative py-6 md:py-12 bg-white overflow-x-hidden">
         <div className="container-narrow relative z-10">
-          <Suspense fallback={<div className="h-32 bg-gray-100 animate-pulse rounded-lg" />}>
+          <Suspense fallback={<div className="min-h-[160px] bg-gray-100 animate-pulse rounded-lg" />}>
             <UnitLinks embedded={true} />
           </Suspense>
         </div>

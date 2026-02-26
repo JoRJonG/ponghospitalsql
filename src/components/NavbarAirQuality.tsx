@@ -182,7 +182,7 @@ export default function NavbarAirQuality() {
         return (
             <div className="flex items-center lg:pl-4 lg:border-l border-slate-200 group relative h-[42px] w-[170px] shrink-0">
                 <div className="flex items-center gap-2.5 h-[40px] w-full rounded-full pl-1 pr-3 border border-slate-100 bg-slate-50">
-                    <div className="w-[32px] h-[32px] rounded-full bg-slate-200 animate-pulse shrink-0"></div>
+                    <div className="w-[34px] min-w-[34px] h-[34px] rounded-full bg-slate-200 animate-pulse shrink-0"></div>
                     <div className="flex flex-col justify-center animate-pulse gap-1.5 w-full pr-2">
                         <div className="h-2 w-16 bg-slate-200 rounded"></div>
                         <div className="h-3.5 w-[50px] bg-slate-200 rounded"></div>
