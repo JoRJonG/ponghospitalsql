@@ -50,10 +50,6 @@ export default defineConfig(({ mode }) => {
               if (id.includes('framer-motion')) {
                 return 'animations'
               }
-              // Icons - แยกออกมา
-              if (id.includes('@fortawesome')) {
-                return 'icons'
-              }
               // UI libraries
               if (id.includes('sweetalert2') || id.includes('dompurify')) {
                 return 'ui-libs'

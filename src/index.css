@@ -1,36 +1,5 @@
 @import "tailwindcss";
 
-/* 
- * Override FontAwesome @font-face to include font-display: swap 
- * This satisfies Lighthouse recommendations for font loading performance
- */
-@font-face {
-  font-family: 'Font Awesome 6 Free';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2') format('woff2'),
-    url('/node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Font Awesome 6 Free';
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src: url('/node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2') format('woff2'),
-    url('/node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Font Awesome 6 Brands';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2') format('woff2'),
-    url('/node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf') format('truetype');
-}
-
 @layer utilities {
   .card-hover {
     @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg;
