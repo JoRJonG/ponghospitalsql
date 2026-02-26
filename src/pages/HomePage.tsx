@@ -95,8 +95,8 @@ export default function HomePage() {
       {/* PR Poster */}
       <section ref={posterRef} className={`relative py-8 md:py-16 bg-gray-100 overflow-hidden border-t border-gray-100/50 ${isHeroSliderVisible ? 'section-wave-top mt-2' : ''}`}>
         <div className="decorative-blob decorative-blob-emerald w-72 h-72 -top-20 -right-20 opacity-30" />
-        <div className="container-narrow relative z-10">
-          <Suspense fallback={<div className="min-h-[200px] bg-gray-200 animate-pulse rounded-lg" />}>
+        <div className="container-narrow relative z-10 min-h-[400px]">
+          <Suspense fallback={<div className="h-[400px] bg-gray-200 animate-pulse rounded-2xl w-full" />}>
             <PRPoster embedded={true} />
           </Suspense>
         </div>
@@ -105,8 +105,8 @@ export default function HomePage() {
       {/* ประกาศข่าวสาร — ลบ section-wave-top ออก เพราะ overflow-hidden clip wave อยู่แล้ว ทำให้ CLS */}
       <section ref={announcementsRef} className="relative py-6 md:py-12 bg-white overflow-hidden">
         <div className="decorative-blob decorative-blob-amber w-80 h-80 -bottom-24 -left-24" />
-        <div className="container-narrow relative z-10">
-          <Suspense fallback={<div className="min-h-[300px] bg-gray-100 animate-pulse rounded-lg" />}>
+        <div className="container-narrow relative z-10 min-h-[500px] lg:min-h-[700px]">
+          <Suspense fallback={<div className="h-[500px] lg:h-[700px] bg-gray-100 animate-pulse rounded-2xl w-full" />}>
             <HomeAnnouncements key={`announcements-${refreshKey}`} limit={6} embedded={true} />
           </Suspense>
         </div>
@@ -115,8 +115,8 @@ export default function HomePage() {
       {/* ภาพกิจกรรม */}
       <section ref={activitiesRef} className="relative py-6 md:py-12 bg-gray-100 overflow-hidden border-t border-gray-100/50">
         <div className="decorative-blob decorative-blob-emerald w-64 h-64 top-10 -left-16" />
-        <div className="container-narrow relative z-10">
-          <Suspense fallback={<div className="min-h-[300px] bg-gray-200 animate-pulse rounded-lg" />}>
+        <div className="container-narrow relative z-10 min-h-[500px]">
+          <Suspense fallback={<div className="h-[500px] bg-gray-200 animate-pulse rounded-2xl w-full" />}>
             <LatestActivities key={`activities-${refreshKey}`} limit={8} embedded={true} />
           </Suspense>
         </div>

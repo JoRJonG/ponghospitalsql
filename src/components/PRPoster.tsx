@@ -66,10 +66,9 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
         }
     )
 
-    // Don't render anything if no items and embedded (Home Page)
-    if (!isLoading && (!items || items.length === 0) && embedded) {
-        return null
-    }
+    // Let it render normally to show the section and an empty state message
+    // even if it's embedded on the Home Page
+
 
     // Loading skeleton
     if (isLoading) {
@@ -194,7 +193,12 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                                     ))}
                                 </Swiper>
                             </div>
-                        ) : null}
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-12 md:py-20 text-center text-slate-500 bg-white/50 rounded-2xl border border-slate-100 border-dashed">
+                                <i className="fa-regular fa-image text-4xl mb-3 text-slate-300"></i>
+                                <p>ยังไม่มีโปสเตอร์ประชาสัมพันธ์ในขณะนี้</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
