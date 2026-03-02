@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { formatFileSize, getFileIcon, downloadDocument } from '../utils/documentHelpers'
+import { useSWR } from '../hooks/useSWR'
 import Swal from 'sweetalert2'
 import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
@@ -33,10 +34,6 @@ export default function DocumentsPage() {
     const [totalItems, setTotalItems] = useState(0)
     const [itemsPerPage] = useState(20)
 
-    useEffect(() => {
-        fetchCategories()
-    }, [])
-
     // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -46,55 +43,64 @@ export default function DocumentsPage() {
         return () => clearTimeout(timer)
     }, [searchQuery])
 
+    const docParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+        category: selectedCategory === 'ทั้งหมด' ? '' : selectedCategory,
+        search: debouncedSearch,
+        isPublished: 'true'
+    })
+    const docUrl = `/api/documents?${docParams.toString()}`
 
+    const { data: fetchResult, isLoading: isFetchingDocs } = useSWR<{
+        data: Document[];
+        pagination?: { totalPages: number; total: number; page: number; limit: number };
+        length?: number;
+    }>(
+        docUrl,
+        async () => {
+            const response = await fetch(docUrl)
+            if (!response.ok) throw new Error('Failed to fetch documents')
+            return response.json()
+        },
+        { cacheTime: 300000, staleTime: 60000 }
+    )
 
-    const fetchDocuments = useCallback(async () => {
-        setLoading(true)
-        try {
-            const params = new URLSearchParams({
-                page: currentPage.toString(),
-                limit: itemsPerPage.toString(),
-                category: selectedCategory === 'ทั้งหมด' ? '' : selectedCategory,
-                search: debouncedSearch,
-                isPublished: 'true' // Force published only for public view
-            })
-
-            const response = await fetch(`/api/documents?${params.toString()}`)
-            if (response.ok) {
-                const result = await response.json()
-                if (result.pagination) {
-                    setDocuments(result.data)
-                    setTotalPages(result.pagination.totalPages)
-                    setTotalItems(result.pagination.total)
-                } else {
-                    // Fallback
-                    setDocuments(result)
-                    setTotalItems(result.length)
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching documents:', error)
-        } finally {
-            setLoading(false)
-        }
-    }, [currentPage, itemsPerPage, selectedCategory, debouncedSearch])
-
-    // Fetch documents when params change
     useEffect(() => {
-        fetchDocuments()
-    }, [fetchDocuments])
-
-    const fetchCategories = async () => {
-        try {
-            const response = await fetch('/api/documents/categories')
-            if (response.ok) {
-                const data = await response.json()
-                setCategories(['ทั้งหมด', ...data])
+        if (fetchResult) {
+            if (fetchResult.pagination) {
+                setDocuments(fetchResult.data || [])
+                setTotalPages(fetchResult.pagination.totalPages || 1)
+                setTotalItems(fetchResult.pagination.total || 0)
+            } else if (Array.isArray(fetchResult)) {
+                // If it returns an array directly
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setDocuments(fetchResult as any)
+                setTotalPages(1)
+                setTotalItems((fetchResult as Document[]).length || 0)
             }
-        } catch (error) {
-            console.error('Error fetching categories:', error)
         }
-    }
+    }, [fetchResult])
+
+    useEffect(() => {
+        setLoading(isFetchingDocs)
+    }, [isFetchingDocs])
+
+    const { data: categoryData } = useSWR<string[]>(
+        '/api/documents/categories',
+        async () => {
+            const response = await fetch('/api/documents/categories')
+            if (!response.ok) throw new Error('Failed to fetch categories')
+            return response.json()
+        },
+        { cacheTime: 3600000, staleTime: 300000 }
+    )
+
+    useEffect(() => {
+        if (categoryData) {
+            setCategories(['ทั้งหมด', ...categoryData])
+        }
+    }, [categoryData])
 
     const handleDownload = async (doc: Document) => {
         setDownloading(doc.id)
@@ -179,11 +185,11 @@ export default function DocumentsPage() {
                                             <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-1" title={doc.title}>
                                                 {doc.title}
                                             </h3>
-                                            {doc.description && (
+                                            {doc.description ? (
                                                 <p className="text-gray-600 text-sm mb-2 line-clamp-2">
                                                     {doc.description}
                                                 </p>
-                                            )}
+                                            ) : null}
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
                                                 <span className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded">
                                                     <i className="fa-regular fa-folder text-xs"></i>
@@ -223,7 +229,7 @@ export default function DocumentsPage() {
                 )}
 
                 {/* Pagination */}
-                {!loading && totalItems > 0 && (
+                {!loading && totalItems > 0 ? (
                     <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}
@@ -232,7 +238,7 @@ export default function DocumentsPage() {
                         onPageChange={setCurrentPage}
                         itemLabel="เอกสาร"
                     />
-                )}
+                ) : null}
             </div>
         </div>
     )

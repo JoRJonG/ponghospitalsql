@@ -87,7 +87,7 @@ export default function RichTextEditor({ value, onChange, placeholder, className
   return (
     <div className={className} ref={containerRef}>
       {/* Inject styles to force height constraints if the specific class is used */}
-      {className?.includes('rich-text-editor-constrained') && (
+      {className?.includes('rich-text-editor-constrained') ? (
         <style>{`
           .rich-text-editor-constrained .ql-container {
             height: auto !important;
@@ -105,7 +105,7 @@ export default function RichTextEditor({ value, onChange, placeholder, className
             display: flex !important;
           }
         `}</style>
-      )}
+      ) : null}
     </div>
   )
 }

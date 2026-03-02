@@ -283,7 +283,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
         return (
             <div className="space-y-6">
                 {/* Form Modal */}
-                {showForm && (
+                {showForm ? (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 animate-fade-in-up">
                             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -306,7 +306,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                             />
                         </div>
                     </div>
-                )}
+                ) : null}
 
                 {/* Toolbar */}
                 <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -493,7 +493,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                     </div>
 
                     {/* Pagination Controls */}
-                    {totalPages > 1 && (
+                    {totalPages > 1 ? (
                         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                             <div className="text-sm text-gray-500">
                                 แสดงรายการที่ <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> ถึง <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> จาก <span className="font-medium">{totalItems}</span> รายการ
@@ -545,7 +545,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                                 </button>
                             </div>
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </div>
         )

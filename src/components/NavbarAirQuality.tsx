@@ -1,14 +1,8 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { buildApiUrl } from '../utils/api'
+import { useAirQualitySSE } from '../hooks/useAirQualitySSE'
 
-interface AirQualityData {
-    dustboy_name: string
-    pm25: number | null
-    th_aqi: number
-    th_title: string
-    th_dustboy_icon: string
-    log_datetime: string
-}
+// AirQualityData type imported from useAirQualitySSE hook
 
 /* ──────────────────────────────────────────────
    Level configs — semantic colors
@@ -54,17 +48,12 @@ function getAqiLevel(aqi: number): LevelConfig {
 }
 
 export default function NavbarAirQuality() {
-    const [data, setData] = useState<AirQualityData | null>(null)
-    const [loading, setLoading] = useState(true)
+    const { data, loading } = useAirQualitySSE()
     const [imgError, setImgError] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
-    const lastFetchedRef = useRef<number>(0)
-    const hasDataRef = useRef(false)
 
-    // เก็บข้อมูลเวลาของข้อมูลล่าสุดที่ได้จาก API
-    const latestLogRef = useRef<Date | null>(null)
-
+    // ปิด popover เมื่อ click นอก component
     useEffect(() => {
         function handleClickOutside(event: MouseEvent | TouchEvent) {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -76,102 +65,6 @@ export default function NavbarAirQuality() {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside)
             document.removeEventListener('touchstart', handleClickOutside)
-        }
-    }, [])
-
-    const fetchAirQuality = async () => {
-        try {
-            if (!hasDataRef.current) setLoading(true)
-            setImgError(false)
-
-            const res = await fetch(buildApiUrl(`/api/airquality`))
-            if (!res.ok) throw new Error('API error')
-            const json = await res.json()
-            if (json.success && json.data) {
-                hasDataRef.current = true
-                setData(json.data)
-                if (json.data.log_datetime) {
-                    latestLogRef.current = new Date(json.data.log_datetime.replace(' ', 'T') + '+07:00')
-                }
-            }
-        } catch (e) {
-            console.warn('Failed to fetch navbar air quality', e)
-        } finally {
-            lastFetchedRef.current = Date.now()
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        let isMounted = true
-        let timeoutId: ReturnType<typeof setTimeout>
-
-        const runPoller = async () => {
-            if (!isMounted) return
-            if (document.visibilityState === 'visible') {
-                await fetchAirQuality()
-            }
-            if (!isMounted) return
-            scheduleNext()
-        }
-
-        const scheduleNext = () => {
-            const now = new Date()
-            const currentHour = now.getHours()
-            const logDate = latestLogRef.current
-
-            const startOfCurrentHour = new Date(now)
-            startOfCurrentHour.setMinutes(0, 0, 0)
-
-            const hasCurrentHourData = logDate ? logDate.getTime() >= startOfCurrentHour.getTime() : false
-
-            let delay: number
-
-            if (hasCurrentHourData) {
-                // ทันทีที่ได้ข้อมูลของชั่วโมงปัจจุบันมาแล้ว ให้หลับยาวไปจนกว่า "นาทีที่ 7 ของชั่วโมงถัดไป"
-                const nextHour = new Date(now)
-                nextHour.setHours(currentHour + 1, 7, 0, 0)
-                delay = nextHour.getTime() - now.getTime()
-            } else {
-                // ถ้ายังไม่ได้ข้อมูลของชั่วโมงปัจจุบัน หรือเซิร์ฟเวอร์ยังส่งของเก่ามาให้
-                if (now.getMinutes() < 7) {
-                    // ถ้ายังไม่ถึงนาทีที่ 7 ของชั่วโมงปัจจุบัน ให้รอไปเช็คครัังแรกตอนนาทีที่ 7 เป๊ะๆ
-                    const target = new Date(now)
-                    target.setHours(currentHour, 7, 0, 0)
-                    delay = target.getTime() - now.getTime()
-                } else {
-                    // ถ้าเลยนาทีที่ 7 มาแล้ว แต่ข้อมูลยังไม่อัพเดท ให้รีเฟรชถามอีกทีใน 3 นาที
-                    delay = 3 * 60 * 1000
-                }
-            }
-
-            timeoutId = setTimeout(runPoller, Math.max(delay, 5000))
-        }
-
-        // เริ่มต้น
-        runPoller()
-
-        const onVisible = () => {
-            if (document.visibilityState === 'visible') {
-                const now = new Date()
-                const logDate = latestLogRef.current
-
-                const startOfCurrentHour = new Date(now)
-                startOfCurrentHour.setMinutes(0, 0, 0)
-                const hasCurrentHourData = logDate ? logDate.getTime() >= startOfCurrentHour.getTime() : false
-
-                if (!hasCurrentHourData && Date.now() - lastFetchedRef.current >= 60 * 1000) {
-                    clearTimeout(timeoutId)
-                    runPoller()
-                }
-            }
-        }
-
-        document.addEventListener('visibilitychange', onVisible)
-        return () => {
-            isMounted = false
-            clearTimeout(timeoutId)
-            document.removeEventListener('visibilitychange', onVisible)
         }
     }, [])
 
@@ -231,8 +124,14 @@ export default function NavbarAirQuality() {
                     {/* Status Dot and Label (Live Indicator) */}
                     <div className="flex items-center gap-1.5 mb-0.5">
                         <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: level.accentColor }}></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: level.accentColor }}></span>
+                            <span
+                                className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                                style={{ backgroundColor: level.accentColor }}
+                            />
+                            <span
+                                className="relative inline-flex rounded-full h-1.5 w-1.5"
+                                style={{ backgroundColor: level.accentColor }}
+                            />
                         </span>
                         <span className="text-[10px] font-extrabold text-slate-800 uppercase tracking-wide leading-none">
                             PM 2.5 รพ.ปง

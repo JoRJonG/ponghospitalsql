@@ -30,3 +30,6 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Persistent API cache (auto-generated, not for version control)
+server/.cache/

@@ -12,6 +12,7 @@ import unitsRouter from './routes/units.js'
 import authRouter from './routes/auth.js'
 import systemRouter from './routes/system.js'
 import previewRouter from './routes/preview.js'
+import airqualityRouter from './routes/airquality.js'
 import { optionalAuth } from './middleware/auth.js'
 import geoBlockingMiddleware from './middleware/geoBlocking.js'
 
@@ -23,7 +24,15 @@ export async function createServer() {
   app.set('trust proxy', 1)
 
   app.use(cors({ origin: true, credentials: true }))
-  app.use(compression())
+  app.use(compression({
+    filter: (req, res) => {
+      // ปิด compression สำหรับ SSE เพราะมันจะ buffer data เอาไว้ทำให้ client ไม่ได้รับ event ทันที
+      if (req.headers.accept === 'text/event-stream' || req.path === '/api/airquality/stream') {
+        return false
+      }
+      return compression.filter(req, res)
+    }
+  }))
   app.use(express.json({ limit: '5mb' }))
   app.use(geoBlockingMiddleware) // Apply geo-blocking to all routes
   app.use(optionalAuth)
@@ -57,7 +66,7 @@ export async function createServer() {
         "script-src 'self'",
       ].join('; ')
       res.setHeader('Content-Security-Policy', csp)
-    } catch {}
+    } catch { }
     next()
   })
 
@@ -104,6 +113,7 @@ export async function createServer() {
   app.use('/api/units', unitsRouter)
   app.use('/api/auth', authRouter)
   app.use('/api/system', systemRouter)
+  app.use('/api/airquality', airqualityRouter)
 
   // PDF proxy stays the same
   app.get('/api/proxy/pdf', async (req, res) => {
@@ -136,7 +146,7 @@ export async function createServer() {
           res.setHeader('Cache-Control', 'public, max-age=300')
           const ab = await r.arrayBuffer()
           return res.send(Buffer.from(ab))
-        } catch (e) {}
+        } catch (e) { }
       }
       return res.status(lastStatus || 502).json({ error: `Upstream error ${lastStatus || 'unknown'}` })
     } catch (e) {
@@ -145,7 +155,7 @@ export async function createServer() {
   })
 
   // Prepare DB connect function
-    // ...removed MongoDB connectDb logic...
+  // ...removed MongoDB connectDb logic...
 
   return { app, connectDb }
 }

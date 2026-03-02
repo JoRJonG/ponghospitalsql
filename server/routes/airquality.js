@@ -1,18 +1,47 @@
 import { Router } from 'express'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { airQualityService } from '../services/airQualityService.js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 const router = Router()
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// In-memory cache for station data (1 hour — ค่าฝุ่น PM 2.5 เป็นค่าเฉลี่ยรายชั่วโมง)
-let cachedStationData = null
-let cacheStationExpiry = 0
+// ─── Disk Cache ────────────────────────────────────────────────────────────────
+const CACHE_DIR = path.resolve(__dirname, '../.cache')
+const STATION_CACHE_FILE = path.join(CACHE_DIR, 'airquality_station.json')
+const HISTORY_CACHE_FILE = path.join(CACHE_DIR, 'airquality_history.json')
 
-// In-memory cache for history (หมดอายุตรงต้นชั่วโมงถัดไป ตรงกับที่ DustBoy อัปเดต)
-let cachedHistoryData = null
-let historyCacheExpiry = 0
+function readDiskCache(filePath) {
+    try {
+        return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+    } catch { return null }
+}
 
-// คำนวณเวลา (ms) ถึงต้นชั่วโมงถัดไป เช่น ตอนนี้ 16:37 → รอ 23 นาที 0 วินาที
+function writeDiskCache(filePath, data) {
+    try {
+        if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true })
+        fs.writeFileSync(filePath, JSON.stringify(data), 'utf-8')
+    } catch (e) {
+        console.warn('[airquality] Could not write disk cache:', e?.message)
+    }
+}
+
+// ─── In-memory cache (pre-warmed from disk ทันทีที่ module load) ───────────────
+const stationCache = { data: null, expiry: 0 }
+const historyCache = { data: null, expiry: 0 }
+
+    ; (() => {
+        const disk = readDiskCache(STATION_CACHE_FILE)
+        if (disk) {
+            stationCache.data = disk
+            stationCache.expiry = 0  // หมดอายุ → request แรก fetch ใหม่ แต่ SSE/client ได้ data ทันที
+            console.log('[airquality] Pre-warmed station cache from disk.')
+        }
+    })()
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function msUntilNextHour() {
     const now = new Date()
     const next = new Date(now)
@@ -20,171 +49,108 @@ function msUntilNextHour() {
     return next.getTime() - now.getTime()
 }
 
-// Safe Throttle: Max 10 requests / hour = 1 request every 6 minutes
-// We use 6.5 minutes (390,000 ms) as our absolute minimum cache lifetime to ensure we NEVER breach the rate limit.
-const ABSOLUTE_MIN_TTL = 6.5 * 60 * 1000
-
-// Promise caching (In-flight request deduplication) to prevent Cache Stampedes
-const inflightPromises = {
-    station: null,
-    history: null
-}
-
+// ─── Exports สำหรับ cronJobs.js ────────────────────────────────────────────────
 /**
- * Advanced Helper: Stale-While-Revalidate with Promise Deduplication
+ * cronJobs.js เรียกทุกครั้งที่ดึงข้อมูลสำเร็จ
+ * อัปเดต in-memory + เขียน disk cache
  */
-async function getWithStaleFallbackAndDeduplication(fetcherFn, cacheRef, expiryRef, calculateExpiryFn, promiseRefKey, promiseRegistry) {
-    const now = Date.now()
-    const isCacheValid = cacheRef.data && now < expiryRef.time
-
-    // 1. Cache HIT
-    if (isCacheValid) {
-        return { data: cacheRef.data, isStale: false, source: 'cache' }
-    }
-
-    // 2. Cache MISS / EXPIRED - but someone else is already fetching (Deduplication!)
-    if (promiseRegistry[promiseRefKey]) {
-        try {
-            // Wait for the ongoing request to finish and ride its success
-            const freshData = await promiseRegistry[promiseRefKey]
-            return { data: freshData, isStale: false, source: 'network-dedup' }
-        } catch (error) {
-            // If the inflight request falls over, gracefully degrade
-            if (cacheRef.data) return { data: cacheRef.data, isStale: true, source: 'stale-cache' }
-            throw error
-        }
-    }
-
-    // 3. Cache MISS / EXPIRED - We are the first to notice. Let's fetch!
-    // Create the promise and store it in our registry so others can wait on it
-    promiseRegistry[promiseRefKey] = fetcherFn()
-
-    try {
-        const freshData = await promiseRegistry[promiseRefKey]
-
-        // Success: Update cache and set expiry
-        cacheRef.data = freshData
-        // We ensure that calculated expiry NEVER violates our absolute minimum limit of 6.5 minutes
-        const calculatedDuration = calculateExpiryFn(freshData)
-        expiryRef.time = now + Math.max(calculatedDuration, ABSOLUTE_MIN_TTL)
-
-        return { data: freshData, isStale: false, source: 'network' }
-    } catch (error) {
-        console.error(`[airquality] Fetch failed, attempting graceful degradation:`, error?.message)
-
-        // Hard failure on Auth Errors: Do NOT return stale cache if the API key is expired or invalid (401/403)
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            console.error(`[airquality] Critical API Authentication Error (${error.response.status}). Clearing cache.`)
-            cacheRef.data = null // Purge stale data
-            throw error // Force hard crash for the UI
-        }
-
-        // Stale-While-Revalidate pattern fallback
-        if (cacheRef.data) {
-            // Give the stale cache another 6.5 minutes of life to stop hammering the API during an outage
-            expiryRef.time = now + ABSOLUTE_MIN_TTL
-            return { data: cacheRef.data, isStale: true, source: 'stale-cache' }
-        }
-        // No cache available, throw it forward
-        throw error
-    } finally {
-        // Cleanup the promise so future misses will trigger a new fetch
-        promiseRegistry[promiseRefKey] = null
-    }
+export function updateStationCache(data) {
+    stationCache.data = data
+    stationCache.expiry = Date.now() + msUntilNextHour()
+    writeDiskCache(STATION_CACHE_FILE, data)
 }
 
+// ─── Route: GET /api/airquality ────────────────────────────────────────────────
+// Logic: cache-first — ถ้า in-memory ยังสด → ส่งทันที (ไม่ดึง DustBoy)
+//         ถ้า expire → ดึง DustBoy ใหม่ → อัปเดต cache
+//         ถ้า DustBoy fail → ส่งข้อมูลเก่าจาก cache (stale) แทน 502
 router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, res) => {
+    const now = Date.now()
+
+    // 1. Cache hit
+    if (stationCache.data && now < stationCache.expiry) {
+        return res
+            .setHeader('X-Cache', 'HIT')
+            .json({ success: true, data: stationCache.data, stale: false })
+    }
+
+    // 2. Cache miss / expired → ดึง DustBoy
     try {
-        const cacheRef = { data: cachedStationData }
-        const expiryRef = { time: cacheStationExpiry }
+        const fresh = await airQualityService.fetchCurrentStationData()
 
-        const calculateExpiry = (stationData) => {
-            const dataTimeStr = stationData.log_datetime.replace(' ', 'T') + '+07:00'
-            const dataTime = new Date(dataTimeStr).getTime()
-            const ageMs = Date.now() - dataTime
+        // คำนวณ expiry ตามอายุข้อมูล
+        const dataTimeMs = new Date(fresh.log_datetime.replace(' ', 'T') + '+07:00').getTime()
+        const ageMs = now - dataTimeMs
+        const ttl = ageMs > 55 * 60 * 1000
+            ? 6.5 * 60 * 1000      // ข้อมูลเก่ามาก → retry เร็ว
+            : msUntilNextHour()    // ข้อมูลสด → รอถึงชั่วโมงหน้า
 
-            // กรณี DustBoy ค้าง ส่งข้อมูลของชั่วโมงก่อนเก่าเกิน 55 นาที
-            // เราอยากกลับมาเช็คใหม่ไวๆ แต่ต้องติดเพดาน ABSOLUTE_MIN_TTL (6.5m) เพื่อขัดขวางการโดนแบน
-            let cacheDuration = ageMs > 55 * 60 * 1000 ? ABSOLUTE_MIN_TTL : msUntilNextHour()
-            return cacheDuration
+        stationCache.data = fresh
+        stationCache.expiry = now + ttl
+        writeDiskCache(STATION_CACHE_FILE, fresh)
+
+        return res
+            .setHeader('X-Cache', 'MISS')
+            .json({ success: true, data: fresh, stale: false })
+
+    } catch (err) {
+        console.warn('[airquality] DustBoy fetch failed:', err?.message)
+
+        // 3. Fallback → stale cache (ดีกว่า error)
+        const fallback = stationCache.data || readDiskCache(STATION_CACHE_FILE)
+        if (fallback) {
+            stationCache.data = fallback
+            stationCache.expiry = now + 6.5 * 60 * 1000  // retry ใน ~6.5 นาที
+            return res
+                .setHeader('X-Cache', 'STALE')
+                .json({ success: true, data: fallback, stale: true })
         }
 
-        const result = await getWithStaleFallbackAndDeduplication(
-            () => airQualityService.fetchCurrentStationData(),
-            cacheRef,
-            expiryRef,
-            calculateExpiry,
-            'station',
-            inflightPromises
-        )
-
-        // Sync local module state
-        cachedStationData = cacheRef.data
-        cacheStationExpiry = expiryRef.time
-
-        // Translate complex source types to standard cache headers
-        let cacheHeader = 'MISS'
-        if (result.source === 'cache') cacheHeader = 'HIT'
-        if (result.isStale) cacheHeader = 'STALE'
-        if (result.source === 'network-dedup') cacheHeader = 'HIT-DEDUP'
-
-        res.setHeader('X-Cache', cacheHeader)
-        res.json({ success: true, data: result.data, stale: result.isStale })
-
-    } catch (error) {
-        console.error('[airquality] Hard failure:', error?.message)
-        res.status(502).json({ success: false, error: 'ไม่สามารถดึงข้อมูลคุณภาพอากาศได้ในขณะนี้' })
+        return res.status(502).json({ success: false, error: 'ไม่สามารถดึงข้อมูลคุณภาพอากาศได้ในขณะนี้' })
     }
 })
 
-router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (req, res) => {
+// ─── Route: GET /api/airquality/history ───────────────────────────────────────
+router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (_req, res) => {
+    const now = Date.now()
+    const stationId = '5049'
+
+    // Cache hit
+    if (historyCache.data && now < historyCache.expiry) {
+        return res
+            .setHeader('X-Cache', 'HIT')
+            .json({ success: true, data: historyCache.data, stale: false })
+    }
+
     try {
-        const cacheRef = { data: cachedHistoryData }
-        const expiryRef = { time: historyCacheExpiry }
-        const stationId = '5049'
+        const fresh = await airQualityService.fetchHistoryData(stationId)
 
-        const calculateExpiry = (parsedData) => {
-            let cacheDuration = msUntilNextHour()
-            if (parsedData.value && parsedData.value.length > 0) {
-                const latestTimeStr = parsedData.value[0].log_datetime.replace(' ', 'T') + '+07:00'
-                const latestTimeMs = new Date(latestTimeStr).getTime()
-                const ageMs = Date.now() - latestTimeMs
-                if (ageMs > 55 * 60 * 1000) {
-                    cacheDuration = ABSOLUTE_MIN_TTL
-                }
-            }
-            return cacheDuration
+        let ttl = msUntilNextHour()
+        if (fresh.value?.length > 0) {
+            const latestMs = new Date(fresh.value[0].log_datetime.replace(' ', 'T') + '+07:00').getTime()
+            if (now - latestMs > 55 * 60 * 1000) ttl = 6.5 * 60 * 1000
         }
 
-        const result = await getWithStaleFallbackAndDeduplication(
-            () => airQualityService.fetchHistoryData(stationId),
-            cacheRef,
-            expiryRef,
-            calculateExpiry,
-            'history',
-            inflightPromises
-        )
+        historyCache.data = fresh
+        historyCache.expiry = now + ttl
+        writeDiskCache(HISTORY_CACHE_FILE, fresh)
 
-        // Sync local module state
-        cachedHistoryData = cacheRef.data
-        historyCacheExpiry = expiryRef.time
+        return res
+            .setHeader('X-Cache', 'MISS')
+            .setHeader('Cache-Control', `public, max-age=${Math.floor(ttl / 1000)}`)
+            .json({ success: true, data: fresh, stale: false })
 
-        const maxAgeSeconds = Math.max(0, Math.floor((expiryRef.time - Date.now()) / 1000))
-
-        let cacheHeader = 'MISS'
-        if (result.source === 'cache') cacheHeader = 'HIT'
-        if (result.isStale) cacheHeader = 'STALE'
-        if (result.source === 'network-dedup') cacheHeader = 'HIT-DEDUP'
-
-        res.setHeader('X-Cache', cacheHeader)
-        if (!result.isStale) {
-            res.setHeader('Cache-Control', `public, max-age=${maxAgeSeconds}`)
+    } catch (err) {
+        console.warn('[airquality] History fetch failed:', err?.message)
+        const fallback = historyCache.data || readDiskCache(HISTORY_CACHE_FILE)
+        if (fallback) {
+            historyCache.data = fallback
+            historyCache.expiry = now + 6.5 * 60 * 1000
+            return res
+                .setHeader('X-Cache', 'STALE')
+                .json({ success: true, data: fallback, stale: true })
         }
-        res.json({ success: true, data: result.data, stale: result.isStale })
-
-    } catch (error) {
-        console.error('[airquality] History hard failure:', error?.message)
-        res.status(502).json({ success: false, error: 'ไม่สามารถดึงข้อมูลประวัติคุณภาพอากาศได้ในขณะนี้' })
+        return res.status(502).json({ success: false, error: 'ไม่สามารถดึงข้อมูลประวัติคุณภาพอากาศได้ในขณะนี้' })
     }
 })
 

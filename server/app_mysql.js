@@ -58,7 +58,17 @@ export async function createServer() {
   }))
   // Global rate limiting to prevent abuse
   app.use(apiLimiter)
-  app.use(compression())
+  // ยกเว้น SSE endpoints จาก compression เพราะ compression จะ buffer data ก่อน flush
+  // ทำให้ EventSource ที่ browser เปิดอยู่ไม่ได้รับข้อมูลเลย (0 bytes ค้าง)
+  app.use(compression({
+    filter: (req, res) => {
+      // ไม่ compress ถ้าเป็น SSE request (text/event-stream)
+      if (req.path.includes('/stream') || req.headers.accept === 'text/event-stream') {
+        return false
+      }
+      return compression.filter(req, res)
+    }
+  }))
   // Security headers with helmet
   const httpsEnabled = String(process.env.USE_HTTPS).toLowerCase() === 'true'
   const cspDirectives = {

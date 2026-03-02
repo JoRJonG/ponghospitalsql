@@ -108,13 +108,13 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
             return (
               <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === idx ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
                 {/* Blurred LQIP background behind the main image */}
-                {bg && (
+                {bg ? (
                   <div
                     aria-hidden="true"
                     className="absolute inset-0 z-0 pointer-events-none"
                     style={{ backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(12px)', transform: 'scale(1.05)' }}
                   />
-                )}
+                ) : null}
                 {/* Single foreground image */}
                 <img
                   src={props.src || s.src}
@@ -125,7 +125,7 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
                   decoding="async"
                   className={`absolute inset-0 z-10 h-full w-full object-contain object-center ${s.href ? 'cursor-pointer' : ''}`}
                 />
-                {s.href && (
+                {s.href ? (
                   <a
                     href={s.href}
                     target={/^https?:\/\//i.test(s.href) ? '_blank' : undefined}
@@ -133,13 +133,13 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
                     className="absolute inset-0 z-20"
                     aria-label={s.alt || s.caption || 'slide link'}
                   />
-                )}
+                ) : null}
               </div>
             )
           })}
           {/* Caption overlay removed per request */}
           {/* Progress bar — แสดง countdown ของ slide ปัจจุบัน */}
-          {slides.length > 1 && (
+          {slides.length > 1 ? (
             <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/20">
               <div
                 key={`progress-${idx}`}
@@ -147,7 +147,7 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
                 style={{ '--slide-duration': `${(slides[idx]?.duration || 5)}s` } as React.CSSProperties}
               />
             </div>
-          )}
+          ) : null}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-20">
             {slides.map((_, i) => (
               <button

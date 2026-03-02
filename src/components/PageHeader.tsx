@@ -24,15 +24,15 @@ export default function PageHeader({ title, subtitle, actions, center }: PageHea
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900 leading-snug">
                     {title}
                 </h1>
-                {subtitle && (
+                {subtitle ? (
                     <p className="mt-1 text-gray-600 text-sm md:text-base">{subtitle}</p>
-                )}
+                ) : null}
             </div>
-            {actions && !center && (
+            {actions && !center ? (
                 <div className="flex items-center gap-3 flex-shrink-0 mt-1 md:mt-0">
                     {actions}
                 </div>
-            )}
+            ) : null}
         </motion.div>
     )
 }

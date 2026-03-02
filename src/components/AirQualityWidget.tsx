@@ -1,33 +1,11 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { buildApiUrl } from '../utils/api'
+import { useAirQualitySSE } from '../hooks/useAirQualitySSE'
 
 /* ──────────────────────────────────────────────
    Types
    ────────────────────────────────────────────── */
-interface AirQualityData {
-    dustboy_name: string
-    pm25: number | null
-    pm10: number | null
-    us_aqi: string
-    us_color: string
-    us_title: string
-    us_dustboy_icon: string
-    th_aqi: number
-    th_color: string
-    th_title: string
-    th_caption: string
-    th_dustboy_icon: string
-    daily_pm25: number | null
-    daily_pm10: number | null
-    daily_th_aqi: number
-    daily_th_title: string
-    daily_th_color: string
-    log_datetime: string
-    temp: string | number | null
-    humid: string | number | null
-    wind_speed: string | number | null
-    daily_wind_speed: string | number | null
-}
+// AirQualityData type imported from useAirQualitySSE hook
 
 /* ──────────────────────────────────────────────
    Level configs — semantic colors + icons
@@ -100,132 +78,8 @@ function getAqiLevel(aqi: number): LevelConfig {
    Component
    ────────────────────────────────────────────── */
 export default function AirQualityWidget() {
-    const [data, setData] = useState<AirQualityData | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
+    const { data, loading, error } = useAirQualitySSE()
     const [imgError, setImgError] = useState(false)
-    // เก็บเวลาที่ fetch ครั้งล่าสุด เพื่อ debounce เมื่อกลับมา tab
-    const lastFetchedRef = useRef<number>(0)
-    // ใช้ ref แทน state เพื่อตรวจสอบว่ามีข้อมูลแล้วหรือยัง
-    // (ถ้าใช้ state `data` โดยตรงใน useCallback จะเกิด infinite loop)
-    const hasDataRef = useRef(false)
-    // เก็บข้อมูลเวลาของข้อมูลล่าสุดที่ได้จาก API
-    const latestLogRef = useRef<Date | null>(null)
-
-    const fetchAirQuality = useCallback(async () => {
-        try {
-            // แสดง loading เฉพาะตอนที่ยังไม่มีข้อมูลเลย (โหลดครั้งแรก)
-            if (!hasDataRef.current) setLoading(true)
-            setError(false)
-            setImgError(false)
-
-            const res = await fetch(buildApiUrl(`/api/airquality`))
-
-            if (!res.ok) throw new Error('API error')
-            const json = await res.json()
-            if (json.success && json.data) {
-                hasDataRef.current = true // บอกว่ามีข้อมูลแล้ว ไม่ต้องแสดง loading อีก
-                setData(json.data)
-                if (json.data.log_datetime) {
-                    // แปลงโดยเพิ่มออฟเซ็ต timezone ไทยเพื่อป้องกันปัญหาในบาง Browser (Safari)
-                    latestLogRef.current = new Date(json.data.log_datetime.replace(' ', 'T') + '+07:00')
-                }
-            } else {
-                throw new Error('Invalid data')
-            }
-
-        } catch {
-            setError(true)
-        } finally {
-            lastFetchedRef.current = Date.now()
-            setLoading(false)
-        }
-    }, []) // ไม่มี dependency — ใช้ ref แทน state เพื่อป้องกัน infinite loop
-
-    useEffect(() => {
-        let isMounted = true
-        let timeoutId: ReturnType<typeof setTimeout>
-
-        // ฟังก์ชันดึงข้อมูลและตั้งเวลาเรียกซ้ำ
-        const runPoller = async () => {
-            if (!isMounted) return
-
-            // ดึงข้อมูลถ้าหน้าเว็บถูกเปิดอยู่
-            if (document.visibilityState === 'visible') {
-                await fetchAirQuality()
-            }
-
-            if (!isMounted) return
-            scheduleNext()
-        }
-
-        const scheduleNext = () => {
-            const now = new Date()
-            const currentHour = now.getHours()
-            const logDate = latestLogRef.current
-
-            // เช็คว่า ข้อมูลล่าสุดอยู่ในชั่วโมงปัจจุบันของเครื่องผู้ใช้ หรือผ่านเข้าชั่วโมงใหม่มาแล้วใช่หรือไม่ 
-            // วิธีชัวร์ที่สุดคือกำหนด "เวลาเริ่มต้นของชั่วโมงปัจจุบัน"
-            const startOfCurrentHour = new Date(now)
-            startOfCurrentHour.setMinutes(0, 0, 0)
-
-            // ถ้าข้อมูลที่ได้มามี timestamp ตั้งแต่นาทีที่ 0 ของชั่วโมงปัจจุบันขึ้นไป = ไดัข้อมูลชั่วโมงนี้มาแล้ว
-            const hasCurrentHourData = logDate ? logDate.getTime() >= startOfCurrentHour.getTime() : false
-
-            let delay: number
-
-            if (hasCurrentHourData) {
-                // ทันทีที่ได้ข้อมูลของชั่วโมงปัจจุบันมาแล้ว ให้หลับยาวไปจนกว่า "นาทีที่ 7 ของชั่วโมงถัดไป"
-                const nextHour = new Date(now)
-                nextHour.setHours(currentHour + 1, 7, 0, 0)
-                delay = nextHour.getTime() - now.getTime()
-            } else {
-                // ถ้ายังไม่ได้ข้อมูลของชั่วโมงปัจจุบัน หรือเซิร์ฟเวอร์ยังส่งของเก่ามาให้
-                if (now.getMinutes() < 7) {
-                    // ถ้ายังไม่ถึงนาทีที่ 7 ของชั่วโมงปัจจุบัน ให้รอไปเช็คครัังแรกตอนนาทีที่ 7 เป๊ะๆ
-                    const target = new Date(now)
-                    target.setHours(currentHour, 7, 0, 0)
-                    delay = target.getTime() - now.getTime()
-                } else {
-                    // ถ้าเลยนาทีที่ 7 มาแล้ว แต่ข้อมูลยังไม่อัพเดท ให้รีเฟรชถามอีกทีใน 3 นาที!
-                    // วนลูปตามจิกทุก 3 นาทีไปเรื่อยๆ จนกว่าจะได้ชั่วโมงปัจจุบัน (hasCurrentHourData = true)
-                    delay = 3 * 60 * 1000
-                }
-            }
-
-            // ตั้งขั้นต่ำไว้ 5 วินาที เผื่อเบราว์เซอร์คำนวณเวลาติดลบ จะได้ไม่เกิดลูปหยุดไม่อยู่
-            timeoutId = setTimeout(runPoller, Math.max(delay, 5000))
-        }
-
-        // เริ่มต้นการดึงข้อมูลครั้งแรก
-        runPoller()
-
-        // fetch ใหม่เมื่อผู้ใช้กลับมาที่ tab
-        const onVisible = () => {
-            if (document.visibilityState === 'visible') {
-                const now = new Date()
-                const logDate = latestLogRef.current
-
-                const startOfCurrentHour = new Date(now)
-                startOfCurrentHour.setMinutes(0, 0, 0)
-                const hasCurrentHourData = logDate ? logDate.getTime() >= startOfCurrentHour.getTime() : false
-
-                // ถ้ากลับมาเปิดแท็บ แล้วปรากฎว่ายังไม่ได้ข้อมูลชั่วโมงนี้ และไม่ได้พึ่งโหลดไปเมื่อ 1 นาทีที่ผ่านมา ให้ดึงใหม่เลย
-                if (!hasCurrentHourData && Date.now() - lastFetchedRef.current >= 60 * 1000) {
-                    clearTimeout(timeoutId)
-                    runPoller()
-                }
-            }
-        }
-
-        document.addEventListener('visibilitychange', onVisible)
-
-        return () => {
-            isMounted = false
-            clearTimeout(timeoutId)
-            document.removeEventListener('visibilitychange', onVisible)
-        }
-    }, [fetchAirQuality])
 
     /* ── Derived values ── */
     const level = useMemo(() => getAqiLevel(data?.th_aqi ?? 0), [data?.th_aqi])
@@ -273,7 +127,7 @@ export default function AirQualityWidget() {
                     <div className="flex flex-col items-start gap-1">
                         <p className="text-slate-600 text-[11px] sm:text-xs font-semibold">ไม่สามารถโหลดข้อมูลคุณภาพอากาศได้</p>
                         <button
-                            onClick={() => fetchAirQuality()}
+                            onClick={() => window.location.reload()}
                             className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
                         >
                             <i className="fa-solid fa-rotate-right mr-1" /> ลองอีกครั้ง
@@ -318,7 +172,7 @@ export default function AirQualityWidget() {
 
                         <div className="flex flex-col">
                             <div className="flex items-center gap-1.5 mb-1 sm:mb-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: level.accentColor }}></span>
+                                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: level.accentColor }} />
                                 <h3 className="text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase text-slate-800">
                                     PM 2.5 รพ.ปง
                                 </h3>
@@ -354,26 +208,25 @@ export default function AirQualityWidget() {
                     </div>
                 </div>
 
-                {/* Bottom Section: Weather, Health Tip */}
-                {(hasWeather || data.th_caption) && (
+                {(hasWeather || data.th_caption) ? (
                     <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-start w-full px-4 sm:px-5 py-2.5 text-[10px] sm:text-[11px] font-bold text-slate-500 border-t border-slate-50 bg-slate-50/50 z-10 bg-inherit">
                         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-                            {(data.temp !== "" && data.temp != null) && (
+                            {(data.temp !== "" && data.temp != null) ? (
                                 <span className="flex items-center gap-1.5"><i className="fa-solid fa-temperature-three-quarters text-orange-400"></i> {data.temp}°</span>
-                            )}
-                            {(data.humid !== "" && data.humid != null) && (
+                            ) : null}
+                            {(data.humid !== "" && data.humid != null) ? (
                                 <span className="flex items-center gap-1.5"><i className="fa-solid fa-droplet text-sky-400"></i> {data.humid}%</span>
-                            )}
+                            ) : null}
                         </div>
 
-                        {data.th_caption && (
+                        {data.th_caption ? (
                             <div className="flex items-center gap-1.5 max-w-full text-emerald-600/90 truncate sm:ml-4 mt-1 sm:mt-0" title={data.th_caption}>
                                 <i className="fa-solid fa-notes-medical shrink-0"></i>
                                 <span className="truncate">{data.th_caption}</span>
                             </div>
-                        )}
+                        ) : null}
                     </div>
-                )}
+                ) : null}
             </div>
         </div>
     )

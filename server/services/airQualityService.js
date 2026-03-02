@@ -39,7 +39,10 @@ class AirQualityService {
     getApiKey() {
         this.apiKey = this.apiKey || process.env.DUSTBOY_API_KEY
         if (!this.apiKey) {
-            throw new Error('DUSTBOY_API_KEY is not configured in environment variables')
+            const err = new Error('DUSTBOY_API_KEY is not configured in environment variables')
+            // ใส่ flag เพื่อให้ router รู้ว่าเป็นปัญหาชั่วคราว/ระดับ API ต้อง fallback ไปใช้ cache
+            err.isDustboyApiError = true
+            throw err
         }
         return this.apiKey
     }
@@ -53,6 +56,14 @@ class AirQualityService {
 
         const response = await apiClient.get(url)
         const data = response.data
+
+        // Handle API-level errors: DustBoy returns HTTP 200 with {status:false, error:"..."}
+        // e.g. rate limit: "This API key has reached the time limit for this method"
+        if (data && typeof data === 'object' && !Array.isArray(data) && data.status === false) {
+            const apiError = new Error(data.error || 'DustBoy API returned status: false')
+            apiError.isDustboyApiError = true
+            throw apiError
+        }
 
         // Handle possible Array response from CMU API
         const station = Array.isArray(data)
@@ -100,6 +111,13 @@ class AirQualityService {
 
         const response = await apiClient.get(url)
         const data = response.data
+
+        // Handle API-level errors: DustBoy returns HTTP 200 with {status:false, error:"..."}
+        if (data && typeof data === 'object' && data.status === false) {
+            const apiError = new Error(data.error || 'DustBoy API returned status: false')
+            apiError.isDustboyApiError = true
+            throw apiError
+        }
 
         if (!data || !Array.isArray(data.value) || data.value.length === 0) {
             return { value: [] }

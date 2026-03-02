@@ -65,5 +65,58 @@ cron.schedule('30 0 * * *', async () => {
   }
 })
 
+// ─── Air Quality Proactive Fetch ──────────────────────────────────────────────
+// ดึงข้อมูล DustBoy ทุกชั่วโมงที่นาทีที่ 7 แล้วเขียนลง disk cache
+// เมื่อ browser poll GET /api/airquality จะได้ข้อมูลใหม่ทันที
+let airQualityRetryTimer = null
 
-export default cron
+async function fetchAndUpdateAirQualityCache() {
+  const { airQualityService } = await import('./services/airQualityService.js')
+  const { updateStationCache } = await import('./routes/airquality.js')
+
+  console.log('[AirQuality Cron] Fetching from DustBoy...')
+
+  try {
+    const data = await airQualityService.fetchCurrentStationData()
+
+    // เช็คว่าได้ข้อมูลชั่วโมงปัจจุบันหรือยัง
+    const dataTimeStr = data.log_datetime.replace(' ', 'T') + '+07:00'
+    const dataTimeMs = new Date(dataTimeStr).getTime()
+    const startOfCurrentHour = new Date()
+    startOfCurrentHour.setMinutes(0, 0, 0)
+    const hasCurrentHourData = dataTimeMs >= startOfCurrentHour.getTime()
+
+    // อัปเดต in-memory + disk cache เสมอ
+    updateStationCache(data)
+    console.log(`[AirQuality Cron] Cache updated. Current hour data: ${hasCurrentHourData}`)
+
+    if (!hasCurrentHourData) {
+      // ยังได้ข้อมูลเก่า → retry อีก 3 นาที
+      const dataHour = new Date(dataTimeStr).getHours()
+      console.warn(`[AirQuality Cron] Got stale data (hour ${dataHour}). Retrying in 3 min...`)
+
+      if (!airQualityRetryTimer) {
+        airQualityRetryTimer = setTimeout(async () => {
+          airQualityRetryTimer = null
+          await fetchAndUpdateAirQualityCache()
+        }, 3 * 60 * 1000)
+      }
+    } else if (airQualityRetryTimer) {
+      clearTimeout(airQualityRetryTimer)
+      airQualityRetryTimer = null
+    }
+
+  } catch (error) {
+    console.error('[AirQuality Cron] Fetch failed:', error?.message)
+    // ไม่ retry — disk cache ยังมีข้อมูลเก่าให้ browser ดึงได้อยู่
+  }
+}
+
+// รันทุกชั่วโมงที่นาทีที่ 7 (00:07, 01:07, 02:07, ...)
+cron.schedule('7 * * * *', () => {
+  fetchAndUpdateAirQualityCache()
+})
+
+console.log('[Cron] Air Quality proactive fetch เริ่มทำงานแล้ว (รันทุกชั่วโมงนาทีที่ 7)')
+
+

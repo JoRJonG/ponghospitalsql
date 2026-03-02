@@ -232,7 +232,7 @@ function List({ category }: { category?: Announcement['category'] }) {
 
       {/* Announcements List */}
       <div className="space-y-3">
-        {loading && (
+        {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
               <div key={i} className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden animate-pulse p-4">
@@ -242,13 +242,13 @@ function List({ category }: { category?: Announcement['category'] }) {
               </div>
             ))}
           </div>
-        )}
-        {!loading && error && (
+        ) : null}
+        {!loading && error ? (
           <div className="border border-red-200 bg-red-50/80 backdrop-blur-sm text-red-700 rounded-xl p-4">
             {error}
           </div>
-        )}
-        {!loading && items.map(a => (
+        ) : null}
+        {!loading ? items.map(a => (
           <Link
             to={`/announcement/${a._id}`}
             key={a._id}
@@ -283,11 +283,11 @@ function List({ category }: { category?: Announcement['category'] }) {
               {a.content ? <p className="text-xs text-gray-500 line-clamp-2 mt-1">{stripHtml(a.content)}</p> : null}
             </div>
           </Link>
-        ))}
+        )) : null}
         {!loading && !error && items.length === 0 ? <div className="text-gray-500 text-center py-8">ไม่พบประกาศ</div> : null}
 
         {/* Pagination */}
-        {!loading && !error && totalCount > 0 && (
+        {!loading && !error && totalCount > 0 ? (
           <Pagination
             currentPage={page}
             totalPages={totalPages}
@@ -295,7 +295,7 @@ function List({ category }: { category?: Announcement['category'] }) {
             pageSize={pageSize}
             onPageChange={gotoPage}
           />
-        )}
+        ) : null}
       </div>
     </div>
   )

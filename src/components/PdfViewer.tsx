@@ -97,21 +97,21 @@ export default function PdfViewer({ url, data, className, onError }: PdfViewerPr
 
       {/* Content */}
       <div className="bg-gray-100 p-4 overflow-auto flex flex-col items-center gap-4" style={{ height: 'calc(100vh - 30px)' }}>
-        {loading && (
+        {loading ? (
           <div className="p-4 text-sm text-gray-600 bg-white rounded shadow">
             <i className="fa-solid fa-spinner fa-spin mr-2" />
             กำลังโหลดเอกสาร...
           </div>
-        )}
+        ) : null}
 
-        {error && (
+        {error ? (
           <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded">
             <i className="fa-solid fa-exclamation-triangle mr-2" />
             {error}
           </div>
-        )}
+        ) : null}
 
-        {!error && fileSource && (
+        {!error && fileSource ? (
           <Document
             file={fileSource}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -120,7 +120,7 @@ export default function PdfViewer({ url, data, className, onError }: PdfViewerPr
             error=""
             className="max-w-full"
           >
-            {numPages && Array.from(new Array(numPages), (_el, index) => (
+            {numPages ? Array.from(new Array(numPages), (_el, index) => (
               <div key={`page_${index + 1}`} className="mb-4 shadow-lg">
                 <Page
                   pageNumber={index + 1}
@@ -131,9 +131,9 @@ export default function PdfViewer({ url, data, className, onError }: PdfViewerPr
                   renderAnnotationLayer={false}
                 />
               </div>
-            ))}
+            )) : null}
           </Document>
-        )}
+        ) : null}
       </div>
     </div>
   )

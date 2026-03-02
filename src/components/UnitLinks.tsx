@@ -44,9 +44,9 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
           <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงานและระบบสารสนเทศต่างๆ ภายในโรงพยาบาล</p>
         </div>
       </div>
-      {fetchError && (
+      {fetchError ? (
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
-      )}
+      ) : null}
       {!items && !fetchError ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(i => (
@@ -89,9 +89,9 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
             <div key={u._id}>{card}</div>
           )
         })}
-        {(!items || items.length === 0) && !error && (
+        {(!items || items.length === 0) && !error ? (
           <div className="text-gray-500">ยังไม่มีลิงก์หน่วยงาน</div>
-        )}
+        ) : null}
       </div>
     </>
   ) : (
@@ -103,9 +103,9 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
             <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงาน/กลุ่มงานภายในที่เกี่ยวข้อง</p>
           </div>
         </div>
-        {fetchError && (
+        {fetchError ? (
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
-        )}
+        ) : null}
         {!items && !fetchError ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
@@ -148,9 +148,9 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
               <div key={u._id}>{card}</div>
             )
           })}
-          {(!items || items.length === 0) && !error && (
+          {(!items || items.length === 0) && !error ? (
             <div className="text-gray-500">ยังไม่มีลิงก์หน่วยงาน</div>
-          )}
+          ) : null}
         </div>
       </div>
     </section>

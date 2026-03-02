@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useSWR } from '../hooks/useSWR'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -16,7 +16,7 @@ type Announcement = {
   publishedAt?: string
 }
 
-type HttpError = Error & { status?: number }
+
 
 const categoryToPath: Record<Announcement['category'], string> = {
   'สมัครงาน': '/announcements/jobs',
@@ -27,43 +27,28 @@ const categoryToPath: Record<Announcement['category'], string> = {
 
 export default function LatestAnnouncements({ limit = 5, embedded = false }: { limit?: number, embedded?: boolean }) {
   const navigate = useNavigate()
-  const [items, setItems] = useState<Announcement[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    if (abortRef.current) abortRef.current.abort()
-    const ac = new AbortController()
-    abortRef.current = ac
-    setError(null)
-    fetch('/api/announcements', { signal: ac.signal })
-      .then(async (r) => {
-        if (!r.ok) {
-          let message = 'ไม่สามารถดึงประกาศล่าสุดได้'
-          try {
-            const data = await r.json() as { error?: string }
-            if (typeof data?.error === 'string') message = data.error
-          } catch (jsonError) {
-            console.error('Failed to parse announcements response', jsonError)
-          }
-          const err: HttpError = new Error(message)
-          err.status = r.status
-          throw err
+  const { data: fetchItems, error: swrError, isLoading } = useSWR<Announcement[]>(
+    '/api/announcements',
+    async () => {
+      const response = await fetch('/api/announcements')
+      if (!response.ok) {
+        let message = 'ไม่สามารถดึงประกาศล่าสุดได้'
+        try {
+          const data = await response.json() as { error?: string }
+          if (typeof data?.error === 'string') message = data.error
+        } catch {
+          // parse error
         }
-        return r.json()
-      })
-      .then((list: Announcement[]) => setItems(list.slice(0, limit)))
-      .catch((thrown: unknown) => {
-        if (thrown instanceof DOMException && thrown.name === 'AbortError') return
-        setItems([])
-        if (thrown instanceof Error) {
-          setError(thrown.message || 'เกิดข้อผิดพลาด')
-          return
-        }
-        setError('เกิดข้อผิดพลาด')
-      })
-    return () => ac.abort()
-  }, [limit])
+        throw new Error(message)
+      }
+      return response.json()
+    },
+    { staleTime: 30000, cacheTime: 300000 } // 30s stale, 5m cache
+  )
+
+  const error = swrError ? swrError.message : null
+  const items = isLoading ? null : fetchItems ? fetchItems.slice(0, limit) : (error ? [] : null)
 
   const isNew = (a: Announcement) => {
     if (!a.publishedAt) return false
@@ -79,9 +64,9 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
         </h2>
         <p className="text-sm text-gray-600">ข่าวสารและประกาศสำคัญจากโรงพยาบาล</p>
       </div>
-      {items === null && (
+      {items === null ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="card">
               <div className="card-body animate-pulse">
                 <div className="h-3 w-24 bg-gray-200 rounded mb-2" />
@@ -91,11 +76,11 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
             </div>
           ))}
         </div>
-      )}
-      {error && (
+      ) : null}
+      {error ? (
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-3">{error}</div>
-      )}
-      {Array.isArray(items) && items.length > 0 && (
+      ) : null}
+      {Array.isArray(items) && items.length > 0 ? (
         <div className="space-y-3">
           {items.map(a => (
             <Link
@@ -107,7 +92,7 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
                 <div className="flex items-center gap-2 text-sm mb-1">
                   <span className="badge blue">{a.category}</span>
                   <span className="text-sm text-gray-500">{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
-                  {isNew(a) && (
+                  {isNew(a) ? (
                     <span className="chip-new">
                       <span className="dot-pulse">
                         <span className="dot-pulse__ping" />
@@ -115,10 +100,10 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
                       </span>
                       ใหม่
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <div className="text-base font-semibold text-gray-800">{a.title}</div>
-                {a.content && <div className="text-sm text-gray-600 line-clamp-2">{stripHtml(a.content)}</div>}
+                {a.content ? <div className="text-sm text-gray-600 line-clamp-2">{stripHtml(a.content)}</div> : null}
                 <div className="mt-3">
                   <button
                     type="button"
@@ -131,16 +116,16 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
                   >
                     ดูหมวดนี้ →
                   </button>
-                  
+
                 </div>
               </div>
             </Link>
           ))}
         </div>
-      )}
-      {Array.isArray(items) && items.length === 0 && !error && (
+      ) : null}
+      {Array.isArray(items) && items.length === 0 && !error ? (
         <div className="text-gray-500">ยังไม่มีประกาศ</div>
-      )}
+      ) : null}
     </>
   ) : (
     <section className="py-8 bg-gray-50">
@@ -158,68 +143,68 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
             ดูทั้งหมด <span aria-hidden>→</span>
           </Link>
         </div>
-      {items === null && (
-        <div className="space-y-3">
-          {[1,2,3].map(i => (
-            <div key={i} className="card">
-              <div className="card-body animate-pulse">
-                <div className="h-3 w-24 bg-gray-200 rounded mb-2" />
-                <div className="h-4 w-3/4 bg-gray-200 rounded mb-1" />
-                <div className="h-4 w-1/2 bg-gray-200 rounded" />
+        {items === null ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="card">
+                <div className="card-body animate-pulse">
+                  <div className="h-3 w-24 bg-gray-200 rounded mb-2" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded mb-1" />
+                  <div className="h-4 w-1/2 bg-gray-200 rounded" />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {error && (
-        <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-3">{error}</div>
-      )}
-      {Array.isArray(items) && items.length > 0 && (
-        <div className="space-y-3">
-          {items.map(a => (
-            <Link
-              to={`/announcement/${a._id}`}
-              key={a._id}
-              className="card block transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className="card-body">
-                <div className="flex items-center gap-2 text-sm mb-1">
-                  <span className="badge blue">{a.category}</span>
-                  <span className="text-gray-500">{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
-                  {isNew(a) && (
-                    <span className="chip-new">
-                      <span className="dot-pulse">
-                        <span className="dot-pulse__ping" />
-                        <span className="dot-pulse__dot" />
+            ))}
+          </div>
+        ) : null}
+        {error ? (
+          <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-3">{error}</div>
+        ) : null}
+        {Array.isArray(items) && items.length > 0 ? (
+          <div className="space-y-3">
+            {items.map(a => (
+              <Link
+                to={`/announcement/${a._id}`}
+                key={a._id}
+                className="card block transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="card-body">
+                  <div className="flex items-center gap-2 text-sm mb-1">
+                    <span className="badge blue">{a.category}</span>
+                    <span className="text-gray-500">{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : ''}</span>
+                    {isNew(a) ? (
+                      <span className="chip-new">
+                        <span className="dot-pulse">
+                          <span className="dot-pulse__ping" />
+                          <span className="dot-pulse__dot" />
+                        </span>
+                        ใหม่
                       </span>
-                      ใหม่
-                    </span>
-                  )}
+                    ) : null}
+                  </div>
+                  <div className="font-semibold text-gray-800">{a.title}</div>
+                  {a.content ? <div className="text-sm text-gray-600 line-clamp-2">{stripHtml(a.content)}</div> : null}
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      className="text-green-700 hover:underline inline-flex items-center gap-1"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        navigate(categoryToPath[a.category])
+                      }}
+                    >
+                      ดูหมวดนี้ →
+                    </button>
+
+                  </div>
                 </div>
-                <div className="font-semibold text-gray-800">{a.title}</div>
-                {a.content && <div className="text-sm text-gray-600 line-clamp-2">{stripHtml(a.content)}</div>}
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    className="text-green-700 hover:underline inline-flex items-center gap-1"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      navigate(categoryToPath[a.category])
-                    }}
-                  >
-                    ดูหมวดนี้ →
-                  </button>
-                  
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-      {Array.isArray(items) && items.length === 0 && !error && (
-        <div className="text-gray-500">ยังไม่มีประกาศ</div>
-      )}
+              </Link>
+            ))}
+          </div>
+        ) : null}
+        {Array.isArray(items) && items.length === 0 && !error ? (
+          <div className="text-gray-500">ยังไม่มีประกาศ</div>
+        ) : null}
       </div>
     </section>
   )

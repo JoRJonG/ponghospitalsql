@@ -15,6 +15,25 @@ export default defineConfig(({ mode }) => {
           secure: false,
           timeout: 0,
           proxyTimeout: 0,
+          configure: (proxy) => {
+            // ป้องกัน Vite Proxy ตัด HTTP Connection ของ SSE
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const p = proxy as any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            p.on('proxyReq', (proxyReq: any, req: any) => {
+              if (req.url?.includes('/stream') || req.headers.accept === 'text/event-stream') {
+                proxyReq.setHeader('Connection', 'keep-alive')
+              }
+            })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            p.on('proxyRes', (proxyRes: any, req: any) => {
+              if (req.url?.includes('/stream') || req.headers.accept === 'text/event-stream') {
+                proxyRes.headers['x-accel-buffering'] = 'no'
+                proxyRes.headers['cache-control'] = 'no-cache'
+                proxyRes.headers['connection'] = 'keep-alive'
+              }
+            })
+          }
         },
       },
       // ตั้งค่า middleware เพื่อส่ง Content-Type ที่ถูกต้องสำหรับ sitemap และ robots.txt

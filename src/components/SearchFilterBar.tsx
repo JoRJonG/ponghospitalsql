@@ -40,9 +40,9 @@ export default function SearchFilterBar({
             </div>
 
             {/* Summary */}
-            {summary && (
+            {summary ? (
                 <div className="text-sm text-gray-500">{summary}</div>
-            )}
+            ) : null}
         </div>
     )
 }
