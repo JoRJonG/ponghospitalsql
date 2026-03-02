@@ -28,6 +28,14 @@ function writeDiskCache(filePath, data) {
     }
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function msUntilNextHour() {
+    const now = new Date()
+    const next = new Date(now)
+    next.setHours(now.getHours() + 1, 0, 0, 0)
+    return next.getTime() - now.getTime()
+}
+
 // ─── In-memory cache (pre-warmed from disk ทันทีที่ module load) ───────────────
 const stationCache = { data: null, expiry: 0 }
 const historyCache = { data: null, expiry: 0 }
@@ -36,18 +44,24 @@ const historyCache = { data: null, expiry: 0 }
         const disk = readDiskCache(STATION_CACHE_FILE)
         if (disk) {
             stationCache.data = disk
-            stationCache.expiry = 0  // หมดอายุ → request แรก fetch ใหม่ แต่ SSE/client ได้ data ทันที
-            console.log('[airquality] Pre-warmed station cache from disk.')
+            try {
+                if (disk.log_datetime) {
+                    const dataTimeMs = new Date(disk.log_datetime.replace(' ', 'T') + '+07:00').getTime()
+                    const startOfCurrentHour = new Date()
+                    startOfCurrentHour.setMinutes(0, 0, 0)
+
+                    if (dataTimeMs >= startOfCurrentHour.getTime()) {
+                        stationCache.expiry = Date.now() + msUntilNextHour()
+                        console.log('[airquality] Pre-warmed from disk (current hour data).')
+                        return
+                    }
+                }
+            } catch (e) { }
+
+            stationCache.expiry = 0  // ข้อมูลเก่า → request แรก fetch ใหม่
+            console.log('[airquality] Pre-warmed station cache from disk (stale data).')
         }
     })()
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function msUntilNextHour() {
-    const now = new Date()
-    const next = new Date(now)
-    next.setHours(now.getHours() + 1, 0, 0, 0)
-    return next.getTime() - now.getTime()
-}
 
 // ─── Exports สำหรับ cronJobs.js ────────────────────────────────────────────────
 /**
@@ -80,10 +94,13 @@ router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, r
 
         // คำนวณ expiry ตามอายุข้อมูล
         const dataTimeMs = new Date(fresh.log_datetime.replace(' ', 'T') + '+07:00').getTime()
-        const ageMs = now - dataTimeMs
-        const ttl = ageMs > 55 * 60 * 1000
-            ? 6.5 * 60 * 1000      // ข้อมูลเก่ามาก → retry เร็ว
-            : msUntilNextHour()    // ข้อมูลสด → รอถึงชั่วโมงหน้า
+
+        const startOfCurrentHour = new Date()
+        startOfCurrentHour.setMinutes(0, 0, 0)
+
+        const ttl = dataTimeMs >= startOfCurrentHour.getTime()
+            ? msUntilNextHour()    // ข้อมูลของรอบชั่วโมงนี้แล้ว → รอถึงชั่วโมงหน้า
+            : 6.5 * 60 * 1000      // ยังเป็นข้อมูลเก่าอยู่ → retry เร็ว
 
         stationCache.data = fresh
         stationCache.expiry = now + ttl
@@ -128,7 +145,13 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (_
         let ttl = msUntilNextHour()
         if (fresh.value?.length > 0) {
             const latestMs = new Date(fresh.value[0].log_datetime.replace(' ', 'T') + '+07:00').getTime()
-            if (now - latestMs > 55 * 60 * 1000) ttl = 6.5 * 60 * 1000
+
+            const startOfCurrentHour = new Date()
+            startOfCurrentHour.setMinutes(0, 0, 0)
+
+            if (latestMs < startOfCurrentHour.getTime()) {
+                ttl = 6.5 * 60 * 1000
+            }
         }
 
         historyCache.data = fresh
