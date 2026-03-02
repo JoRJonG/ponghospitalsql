@@ -48,6 +48,7 @@ export function useAirQualitySSE() {
             if (json.success && json.data) {
                 setData(json.data)
                 setError(false)
+                return json.data // return เอาไปใช้ต่อใน loop ทันที
             } else {
                 throw new Error('Invalid response')
             }
@@ -57,6 +58,7 @@ export function useAirQualitySSE() {
                 if (!prev) setError(true)
                 return prev
             })
+            return null
         } finally {
             setLoading(false)
         }
@@ -66,15 +68,22 @@ export function useAirQualitySSE() {
         let isMounted = true
         let timerId: ReturnType<typeof setTimeout> | null = null
 
-        const scheduleNextFetch = () => {
+        const pollLoop = async () => {
             if (!isMounted) return
 
-            const currentData = dataRef.current
+            // 1. ดึงข้อมูล
+            const fetchedData = await fetchAirQuality()
+            if (!isMounted) return
+
+            // 2. คำนวณเวลารอรอบหน้าจากข้อมูลที่เพิ่งได้มา
             const now = new Date()
             let delayToNextFetch = POLL_INTERVAL_MS // Default 5 mins
 
-            if (currentData?.log_datetime) {
-                const dataTimeMs = new Date(currentData.log_datetime.replace(' ', 'T') + '+07:00').getTime()
+            // ใช้ข้อมูลล่าสุดที่เพิ่งดึงมาเลย ไม่ต้องรอ ref อัปเดตข้าม render
+            const activeData = fetchedData || dataRef.current
+
+            if (activeData?.log_datetime) {
+                const dataTimeMs = new Date(activeData.log_datetime.replace(' ', 'T') + '+07:00').getTime()
                 const startOfCurrentHour = new Date(now)
                 startOfCurrentHour.setMinutes(0, 0, 0)
 
@@ -82,31 +91,24 @@ export function useAirQualitySSE() {
 
                 if (hasLatestHourData) {
                     // ถ้าได้ข้อมูลของชั่วโมงนี้แล้ว → หยุดดึง! 
-                    // ตั้งเวลาให้ตื่นมาดึงอีกที "นาทีที่ 7.5 ของชั่วโมงถัดไป"
+                    // ตั้งเวลาให้ตื่นมาดึงรอบใหม่ใน "นาทีที่ 7.5 ของชั่วโมงถัดไป"
                     const nextTarget = new Date(now)
                     nextTarget.setHours(now.getHours() + 1, 7, 30, 0)
                     delayToNextFetch = nextTarget.getTime() - now.getTime()
                 } else if (now.getMinutes() < 7) {
-                    // ถ้ายัวไม่มีข้อมูลชั่วโมงนี้ แต่ยังไม่ถึงนาทีที่ 7 → รอถึงนาทีที่ 7.5 ค่อยดึงทีเดียว
+                    // ถ้ายังไม่มีข้อมูลชั่วโมงนี้ แต่ยังไม่ถึงนาทีที่ 7 → รอถึงนาทีที่ 7.5 ค่อยดึง
                     const nextTarget = new Date(now)
                     nextTarget.setHours(now.getHours(), 7, 30, 0)
-                    delayToNextFetch = Math.max(nextTarget.getTime() - now.getTime(), 10000) // รออย่างน้อย 10 วิ
+                    delayToNextFetch = Math.max(nextTarget.getTime() - now.getTime(), 10000)
                 }
             }
 
-            // ตั้งเวลา (Scheduling)
+            // 3. ตั้งเวลาสำหรับวงรอบถัดไป
             if (timerId) clearTimeout(timerId)
-            timerId = setTimeout(async () => {
-                if (!isMounted) return
-                await fetchAirQuality() // ไปดึง API
-                scheduleNextFetch() // ดึงเสร็จ ตั้งเวลาดึงรอบถัดไป
-            }, Math.max(delayToNextFetch, 10000))
+            timerId = setTimeout(pollLoop, Math.max(delayToNextFetch, 10000))
         }
 
-        // 1. ครั้งแรกที่เปิดหน้าเว็บ (Mount)
-        fetchAirQuality().then(() => {
-            scheduleNextFetch() // เริ่มลูปหลังดึงครั้งแรกเสร็จ
-        })
+        pollLoop()
 
         return () => {
             isMounted = false
