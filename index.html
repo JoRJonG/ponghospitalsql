@@ -110,7 +110,74 @@
         "@type": "Organization",
         "name": "โรงพยาบาลปง",
         "url": "https://ponghospital.moph.go.th"
-      }
+      },
+      "hasPart": [
+        {
+          "@type": "WebPage",
+          "@id": "https://ponghospital.moph.go.th/about",
+          "name": "ข้อมูลโรงพยาบาล",
+          "url": "https://ponghospital.moph.go.th/about",
+          "description": "ภาพรวม วิสัยทัศน์ พันธกิจ และข้อมูลทั่วไปของโรงพยาบาลปง"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://ponghospital.moph.go.th/contact",
+          "name": "ติดต่อเรา",
+          "url": "https://ponghospital.moph.go.th/contact",
+          "description": "ที่อยู่ เบอร์โทรศัพท์ แผนที่ และช่องทางติดต่อโรงพยาบาลปง"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://ponghospital.moph.go.th/announcements",
+          "name": "ประกาศ/ข่าวสาร",
+          "url": "https://ponghospital.moph.go.th/announcements",
+          "description": "ประกาศจัดซื้อจัดจ้าง ข่าวประชาสัมพันธ์ รับสมัครงาน"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://ponghospital.moph.go.th/management",
+          "name": "ผู้บริหาร",
+          "url": "https://ponghospital.moph.go.th/management",
+          "description": "ข้อมูลผู้บริหารและคณะกรรมการโรงพยาบาลปง"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://ponghospital.moph.go.th/activities",
+          "name": "กิจกรรม",
+          "url": "https://ponghospital.moph.go.th/activities",
+          "description": "ข่าวกิจกรรมและโครงการของโรงพยาบาลปง"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://ponghospital.moph.go.th/ita",
+          "name": "ITA",
+          "url": "https://ponghospital.moph.go.th/ita",
+          "description": "การประเมินคุณธรรมและความโปร่งใสในการดำเนินงานของหน่วยงานภาครัฐ"
+        }
+      ]
+    }
+  </script>
+
+  <!-- Structured Data: SiteNavigationElement — บอก Google ว่าเมนูหลักมีอะไรบ้าง -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "เมนูหลักโรงพยาบาลปง",
+      "itemListElement": [
+        {
+          "@type": "SiteLinksSearchBox",
+          "url": "https://ponghospital.moph.go.th",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://ponghospital.moph.go.th/?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
     }
   </script>
 
