@@ -336,8 +336,11 @@ export default function Navbar() {
                   ) : null}
                 </div>
                 <NavLink to="/contact" className={navItemClass} onClick={() => setOpen(false)}>ติดต่อเรา</NavLink>
-                <div className="py-2 px-4 mt-2 mb-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50 shadow-sm">
-                  <NavbarAirQuality />
+                <div
+                  className="py-2 px-4 mt-2 mb-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50 shadow-sm"
+                  onClick={() => setOpen(false)}
+                >
+                  <NavbarAirQuality onClick={() => setOpen(false)} />
                 </div>
                 {isAuthenticated ? (
                   <>

@@ -46,7 +46,7 @@ function getAqiLevel(aqi: number): LevelConfig {
     }
 }
 
-export default function NavbarAirQuality() {
+export default function NavbarAirQuality({ onClick }: { onClick?: () => void }) {
     const { data, loading } = useAirQualitySSE()
     const [imgError, setImgError] = useState(false)
     const navigate = useNavigate()
@@ -75,7 +75,10 @@ export default function NavbarAirQuality() {
     return (
         <div
             className="flex items-center lg:pl-4 lg:border-l border-slate-200 relative h-[42px] w-[170px] shrink-0 cursor-pointer group"
-            onClick={() => navigate('/air-quality')}
+            onClick={() => {
+                navigate('/air-quality')
+                if (onClick) onClick()
+            }}
             role="button"
             aria-label="ดูรายละเอียดคุณภาพอากาศ PM2.5"
             title="คลิกเพื่อดูรายละเอียด"
