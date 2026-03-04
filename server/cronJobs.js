@@ -74,7 +74,7 @@ async function fetchAndUpdateAirQualityCache() {
   const { airQualityService } = await import('./services/airQualityService.js')
   const { updateStationCache } = await import('./routes/airquality.js')
 
-  console.log('[AirQuality Cron] Fetching from DustBoy...')
+  console.log('[AirQuality Cron] Fetching station from DustBoy...')
 
   try {
     const data = await airQualityService.fetchCurrentStationData()
@@ -88,7 +88,7 @@ async function fetchAndUpdateAirQualityCache() {
 
     // อัปเดต in-memory + disk cache เสมอ
     updateStationCache(data)
-    console.log(`[AirQuality Cron] Cache updated. Current hour data: ${hasCurrentHourData}`)
+    console.log(`[AirQuality Cron] Station cache updated. Current hour data: ${hasCurrentHourData}`)
 
     if (!hasCurrentHourData) {
       // ยังได้ข้อมูลเก่า → retry อีก 3 นาที
@@ -107,16 +107,73 @@ async function fetchAndUpdateAirQualityCache() {
     }
 
   } catch (error) {
-    console.error('[AirQuality Cron] Fetch failed:', error?.message)
+    console.error('[AirQuality Cron] Station fetch failed:', error?.message)
     // ไม่ retry — disk cache ยังมีข้อมูลเก่าให้ browser ดึงได้อยู่
   }
 }
 
-// รันทุกชั่วโมงที่นาทีที่ 7 (00:07, 01:07, 02:07, ...)
+let airQualityHistoryRetryTimer = null
+
+async function fetchAndUpdateAirQualityHistoryCache() {
+  const { airQualityService } = await import('./services/airQualityService.js')
+  const { updateHistoryCache } = await import('./routes/airquality.js')
+
+  console.log('[AirQuality Cron] Fetching history from DustBoy...')
+
+  try {
+    const data = await airQualityService.fetchHistoryData('5049')
+
+    // ตรวจสอบว่า record ล่าสุด (index 0) เป็นของชั่วโมงปัจจุบันหรือยัง
+    let hasCurrentHourData = false
+    if (data && data.value && data.value.length > 0) {
+      const latestTimeStr = data.value[0].log_datetime.replace(' ', 'T') + '+07:00'
+      const latestTimeMs = new Date(latestTimeStr).getTime()
+      const startOfCurrentHour = new Date()
+      startOfCurrentHour.setMinutes(0, 0, 0)
+      hasCurrentHourData = latestTimeMs >= startOfCurrentHour.getTime()
+    }
+
+    updateHistoryCache(data)
+    console.log(`[AirQuality Cron] History cache updated. Current hour data: ${hasCurrentHourData}. Records: ${data.value?.length ?? 0}`)
+
+    if (!hasCurrentHourData) {
+      // ยังได้ข้อมูลเก่า → retry อีก 3 นาที
+      console.warn(`[AirQuality Cron] Got stale history data. Retrying in 3 min...`)
+      if (!airQualityHistoryRetryTimer) {
+        airQualityHistoryRetryTimer = setTimeout(async () => {
+          airQualityHistoryRetryTimer = null
+          await fetchAndUpdateAirQualityHistoryCache()
+        }, 3 * 60 * 1000)
+      }
+    } else if (airQualityHistoryRetryTimer) {
+      clearTimeout(airQualityHistoryRetryTimer)
+      airQualityHistoryRetryTimer = null
+    }
+
+  } catch (error) {
+    console.error('[AirQuality Cron] History fetch failed:', error?.message)
+  }
+}
+
+
+// รันทุกชั่วโมงที่นาทีที่ 7 — station (00:07, 01:07, ...)
 cron.schedule('7 * * * *', () => {
   fetchAndUpdateAirQualityCache()
 })
 
-console.log('[Cron] Air Quality proactive fetch เริ่มทำงานแล้ว (รันทุกชั่วโมงนาทีที่ 7)')
+// รันทุกชั่วโมงที่นาทีที่ 8 — history (หลัง station 1 นาที เพื่อให้ rate limit อยู่ในเกณฑ์)
+cron.schedule('8 * * * *', () => {
+  fetchAndUpdateAirQualityHistoryCache()
+})
+
+console.log('[Cron] Air Quality proactive fetch เริ่มทำงานแล้ว (station: นาทีที่ 7, history: นาทีที่ 8)')
+
+// ─── Initial fetch เมื่อ server เริ่มต้น ─────────────────────────────────────────
+// ดึงข้อมูลทั้ง station และ history ทันทีที่ server start
+// เพื่อให้ cache มีข้อมูลพร้อมใช้โดยไม่ต้องรอ cron รอบถัดไป
+setTimeout(() => {
+  fetchAndUpdateAirQualityCache()
+  fetchAndUpdateAirQualityHistoryCache()
+}, 3000)  // รอ 3 วิให้ server เริ่มต้นเสร็จก่อน
 
 

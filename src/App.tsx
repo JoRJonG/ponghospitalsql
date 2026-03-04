@@ -38,6 +38,7 @@ const PRPostersPage = lazy(() => import('./pages/PRPostersPage'))
 const LoginSuccessPage = lazy(() => import('./pages/LoginSuccessPage'))
 // Lazy load S11
 const S11PageComponent = lazy(() => import('./pages/S11Page.tsx'))
+const AirQualityPage = lazy(() => import('./pages/AirQualityPage'))
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth()
@@ -128,6 +129,7 @@ function App() {
                           <Route path="/blocked" element={<BlockedPage />} />
                           <Route path="/rate-limit" element={<RateLimitError />} />
                           <Route path="/S11" element={<S11PageComponent />} />
+                          <Route path="/air-quality" element={<AirQualityPage />} />
                           <Route path="*" element={<NotFoundPage />} />
                         </Routes>
                       </Suspense>

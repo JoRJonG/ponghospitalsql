@@ -63,6 +63,30 @@ const historyCache = { data: null, expiry: 0 }
         }
     })()
 
+    // Pre-warm historyCache จาก disk
+    ; (() => {
+        const disk = readDiskCache(HISTORY_CACHE_FILE)
+        if (disk) {
+            historyCache.data = disk
+            try {
+                if (disk.value?.length > 0) {
+                    const latestMs = new Date(disk.value[0].log_datetime.replace(' ', 'T') + '+07:00').getTime()
+                    const startOfCurrentHour = new Date()
+                    startOfCurrentHour.setMinutes(0, 0, 0)
+
+                    if (latestMs >= startOfCurrentHour.getTime()) {
+                        historyCache.expiry = Date.now() + msUntilNextHour()
+                        console.log('[airquality] Pre-warmed history cache from disk (current hour data).')
+                        return
+                    }
+                }
+            } catch (e) { }
+
+            historyCache.expiry = 0  // ข้อมูลเก่า → request แรก fetch ใหม่
+            console.log('[airquality] Pre-warmed history cache from disk (stale data).')
+        }
+    })()
+
 // ─── Exports สำหรับ cronJobs.js ────────────────────────────────────────────────
 /**
  * cronJobs.js เรียกทุกครั้งที่ดึงข้อมูลสำเร็จ
@@ -72,6 +96,28 @@ export function updateStationCache(data) {
     stationCache.data = data
     stationCache.expiry = Date.now() + msUntilNextHour()
     writeDiskCache(STATION_CACHE_FILE, data)
+}
+
+/**
+ * cronJobs.js เรียกทุกครั้งที่ดึง history สำเร็จ
+ * อัปเดต in-memory + เขียน disk cache — ตรรกะ TTL เหมือน station
+ */
+export function updateHistoryCache(data) {
+    let ttl = msUntilNextHour()
+    try {
+        if (data.value?.length > 0) {
+            const latestMs = new Date(data.value[0].log_datetime.replace(' ', 'T') + '+07:00').getTime()
+            const startOfCurrentHour = new Date()
+            startOfCurrentHour.setMinutes(0, 0, 0)
+            if (latestMs < startOfCurrentHour.getTime()) {
+                ttl = 6.5 * 60 * 1000  // ข้อมูลเก่า → retry เร็ว
+            }
+        }
+    } catch (e) { }
+
+    historyCache.data = data
+    historyCache.expiry = Date.now() + ttl
+    writeDiskCache(HISTORY_CACHE_FILE, data)
 }
 
 // ─── Route: GET /api/airquality ────────────────────────────────────────────────
@@ -128,15 +174,37 @@ router.get('/', createRateLimiter({ windowMs: 60_000, max: 30 }), async (_req, r
 })
 
 // ─── Route: GET /api/airquality/history ───────────────────────────────────────
-router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (_req, res) => {
+// สร้าง ETag จาก log_datetime ของ record ล่าสุด
+function makeHistoryETag(data) {
+    const latest = data?.value?.[0]?.log_datetime
+    return latest ? `"hist-${latest.replace(/[^0-9]/g, '')}"` : null
+}
+
+router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (req, res) => {
     const now = Date.now()
     const stationId = '5049'
 
-    // Cache hit
-    if (historyCache.data && now < historyCache.expiry) {
+    // ── Helper: ส่ง response พร้อม ETag และตรวจ 304 ──
+    function sendWithETag(data, cacheStatus) {
+        const etag = makeHistoryETag(data)
+
+        // ถ้า client ส่ง If-None-Match มา และ ETag ตรงกัน → 304
+        if (etag && req.headers['if-none-match'] === etag) {
+            return res
+                .setHeader('X-Cache', `${cacheStatus}-304`)
+                .setHeader('ETag', etag)
+                .status(304).end()
+        }
+
         return res
-            .setHeader('X-Cache', 'HIT')
-            .json({ success: true, data: historyCache.data, stale: false })
+            .setHeader('X-Cache', cacheStatus)
+            .setHeader('ETag', etag || '')
+            .json({ success: true, data, stale: cacheStatus === 'STALE' })
+    }
+
+    // 1. Cache hit
+    if (historyCache.data && now < historyCache.expiry) {
+        return sendWithETag(historyCache.data, 'HIT')
     }
 
     try {
@@ -158,10 +226,7 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (_
         historyCache.expiry = now + ttl
         writeDiskCache(HISTORY_CACHE_FILE, fresh)
 
-        return res
-            .setHeader('X-Cache', 'MISS')
-            .setHeader('Cache-Control', `public, max-age=${Math.floor(ttl / 1000)}`)
-            .json({ success: true, data: fresh, stale: false })
+        return sendWithETag(fresh, 'MISS')
 
     } catch (err) {
         console.warn('[airquality] History fetch failed:', err?.message)
@@ -169,9 +234,7 @@ router.get('/history', createRateLimiter({ windowMs: 60_000, max: 5 }), async (_
         if (fallback) {
             historyCache.data = fallback
             historyCache.expiry = now + 6.5 * 60 * 1000
-            return res
-                .setHeader('X-Cache', 'STALE')
-                .json({ success: true, data: fallback, stale: true })
+            return sendWithETag(fallback, 'STALE')
         }
         return res.status(502).json({ success: false, error: 'ไม่สามารถดึงข้อมูลประวัติคุณภาพอากาศได้ในขณะนี้' })
     }

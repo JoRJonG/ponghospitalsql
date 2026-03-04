@@ -1,41 +1,22 @@
 import useSWR from 'swr'
 import { buildApiUrl } from '../utils/api'
-export interface AirQualityData {
-    dustboy_name: string
-    pm25: number | null
-    pm10: number | null
-    us_aqi: string
-    us_color: string
-    us_title: string
-    us_dustboy_icon: string
-    th_aqi: number
-    th_color: string
-    th_title: string
-    th_caption: string
-    th_dustboy_icon: string
-    daily_pm25: number | null
-    daily_pm10: number | null
-    daily_th_aqi: number
-    daily_th_title: string
-    daily_th_color: string
+
+export interface HistoryRecord {
     log_datetime: string
-    temp: string | number | null
-    humid: string | number | null
-    wind_speed: string | number | null
-    daily_wind_speed: string | number | null
+    pm25: number | null
 }
 
-const POLL_INTERVAL_MS = 5 * 60 * 1000 // เช็คใหม่ทุก 5 นาที (Default)
+const POLL_INTERVAL_MS = 60 * 60 * 1000 // เช็คใหม่ทุก 1 ชั่วโมง (Default สำหรับ history)
 
-export function useAirQualitySSE() {
-    const { data, error, isLoading } = useSWR<AirQualityData>(
-        buildApiUrl('/api/airquality'),
+export function useAirQualityHistory() {
+    const { data, error, isLoading } = useSWR<{ success: boolean, data: { value: HistoryRecord[] } }>(
+        buildApiUrl('/api/airquality/history'),
         async (url) => {
             const res = await fetch(url)
             if (!res.ok) throw new Error(`HTTP ${res.status}`)
             const json = await res.json()
-            if (json.success && json.data) {
-                return json.data
+            if (json.success && Array.isArray(json.data?.value)) {
+                return json
             }
             throw new Error('Invalid response')
         },
@@ -47,8 +28,10 @@ export function useAirQualitySSE() {
                 const now = new Date()
                 let delayToNextFetch = POLL_INTERVAL_MS
 
-                if (currentData?.log_datetime) {
-                    const dataTimeMs = new Date(currentData.log_datetime.replace(' ', 'T') + '+07:00').getTime()
+                const activeData = currentData?.data?.value
+                if (activeData && activeData.length > 0) {
+                    const latestRecord = activeData[0]
+                    const dataTimeMs = new Date(latestRecord.log_datetime.replace(' ', 'T') + '+07:00').getTime()
                     const startOfCurrentHour = new Date(now)
                     startOfCurrentHour.setMinutes(0, 0, 0)
 
@@ -69,5 +52,7 @@ export function useAirQualitySSE() {
         }
     )
 
-    return { data: data ?? null, loading: isLoading, error: !!error }
+    const history = data?.success ? (data.data?.value ?? []) : []
+
+    return { data: history, loading: isLoading, error: !!error }
 }
