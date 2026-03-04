@@ -393,7 +393,7 @@ function AQIScaleBar({ currentPm25 }: { currentPm25: number }) {
                     />
                 ))}
             </div>
-            <div className="flex justify-between text-[9px] text-slate-400 font-semibold px-0.5">
+            <div className="flex justify-between text-xs sm:text-sm text-slate-500 font-bold px-0.5 mt-2">
                 {AQI_LEVELS.map((lvl, i) => (
                     <span key={i} style={{ color: currentPm25 >= lvl.thMin && currentPm25 <= (lvl.thMax ?? Infinity) ? lvl.accentColor : undefined }}>
                         {lvl.shortLabel}
@@ -428,13 +428,13 @@ export default function AirQualityPage() {
         : null
 
     return (
-        <>
+        <div className="page-wrapper">
             <SEO
                 title="คุณภาพอากาศ PM2.5 | โรงพยาบาลปง"
                 description={`ข้อมูลคุณภาพอากาศ PM2.5 สถานี รพ.ปง จ.พะเยา · ค่า PM2.5 ปัจจุบัน${pm25 != null ? ` ${pm25} µg/m³` : ''} · กราฟย้อนหลัง 24 ชั่วโมง`}
             />
 
-            <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+            <div className="container-narrow py-6 sm:py-8 space-y-6">
                 <PageHeader title="คุณภาพอากาศ PM2.5" subtitle="สถานีตรวจวัด โรงพยาบาลปง อ.ปง จ.พะเยา" />
 
                 {/* ═══ Hero: Current PM ═══ */}
@@ -589,6 +589,6 @@ export default function AirQualityPage() {
                 </div>
 
             </div>
-        </>
+        </div>
     )
 }
