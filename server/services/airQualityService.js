@@ -52,9 +52,14 @@ class AirQualityService {
      */
     async fetchCurrentStationData() {
         const apiKey = this.getApiKey()
-        const url = `/station?apikey=${apiKey}`
+        const url = '/station'
 
-        const response = await apiClient.get(url)
+        const response = await apiClient.get(url, {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'apikey': apiKey
+            }
+        })
         const data = response.data
 
         // Handle API-level errors: DustBoy returns HTTP 200 with {status:false, error:"..."}
@@ -107,9 +112,14 @@ class AirQualityService {
      */
     async fetchHistoryData(stationId = '5049') {
         const apiKey = this.getApiKey()
-        const url = `/data30day/${stationId}?apikey=${apiKey}`
+        const url = `/data30day/${stationId}`
 
-        const response = await apiClient.get(url)
+        const response = await apiClient.get(url, {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'apikey': apiKey
+            }
+        })
         const data = response.data
 
         // Handle API-level errors: DustBoy returns HTTP 200 with {status:false, error:"..."}
