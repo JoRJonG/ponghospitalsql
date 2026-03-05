@@ -588,6 +588,19 @@ export default function AirQualityPage() {
                     </div>
                 </div>
 
+                {/* ═══ Data Source Reference ═══ */}
+                <div className="pt-2 text-center">
+                    <a
+                        href="https://www.cmuccdc.org/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-400 hover:text-slate-600 transition-colors bg-white/50 px-3 py-1.5 rounded-full border border-slate-100"
+                    >
+                        <i className="fa-solid fa-circle-info opacity-70"></i>
+                        <span>แหล่งที่มาข้อมูล: ศูนย์ข้อมูลการเปลี่ยนแปลงสภาพภูมิอากาศ มหาวิทยาลัยเชียงใหม่ (CMU CCDC) และเครือข่ายเครื่องวัดฝุ่น DustBoy</span>
+                    </a>
+                </div>
+
             </div>
         </div>
     )
