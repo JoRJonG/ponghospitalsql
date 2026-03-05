@@ -393,9 +393,13 @@ function AQIScaleBar({ currentPm25 }: { currentPm25: number }) {
                     />
                 ))}
             </div>
-            <div className="flex justify-between text-xs sm:text-sm text-slate-500 font-bold px-0.5 mt-2">
+            <div className="flex mt-2">
                 {AQI_LEVELS.map((lvl, i) => (
-                    <span key={i} style={{ color: currentPm25 >= lvl.thMin && currentPm25 <= (lvl.thMax ?? Infinity) ? lvl.accentColor : undefined }}>
+                    <span
+                        key={i}
+                        className="flex-1 text-center text-[10px] sm:text-xs font-bold text-slate-500 leading-tight"
+                        style={{ color: currentPm25 >= lvl.thMin && currentPm25 <= (lvl.thMax ?? Infinity) ? lvl.accentColor : undefined }}
+                    >
                         {lvl.shortLabel}
                     </span>
                 ))}
