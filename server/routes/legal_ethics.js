@@ -1,0 +1,301 @@
+import express from 'express'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs/promises'
+import uuidPkg from 'uuid'
+const { v4: uuidv4 } = uuidPkg
+import { requireAuth, requirePermission } from '../middleware/auth.js'
+import { sanitizeText } from '../utils/sanitization.js'
+import LegalEthics from '../models/mysql/LegalEthics.js'
+
+const router = express.Router()
+
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'legal_ethics')
+const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+const ALLOWED_MIME_TYPES = ['application/pdf']
+
+// ตรวจสอบและสร้างโฟลเดอร์สำหรับเก็บไฟล์
+const initSystem = async () => {
+    try {
+        await fs.access(UPLOAD_DIR)
+    } catch {
+        await fs.mkdir(UPLOAD_DIR, { recursive: true })
+        console.log('Created legal ethics upload directory:', UPLOAD_DIR)
+    }
+    // สร้างตารางใน MySQL ถ้ายังไม่มี
+    try {
+        await LegalEthics.initTable()
+        console.log('Initialized legal_ethics_docs table')
+    } catch (error) {
+        console.error('Failed to initialize legal_ethics_docs table:', error)
+    }
+}
+initSystem()
+
+// ตั้งค่า multer สำหรับอัปโหลด
+const storage = multer.diskStorage({
+    destination: async (req, file, cb) => {
+        try {
+            await fs.access(UPLOAD_DIR)
+        } catch {
+            await fs.mkdir(UPLOAD_DIR, { recursive: true })
+        }
+        cb(null, UPLOAD_DIR)
+    },
+    filename: (req, file, cb) => {
+        // ใช้ชื่อไฟล์เดิมแต่เพิ่ม UUID เพื่อป้องกันชื่อซ้ำ
+        const originalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')
+        const uniqueName = `${uuidv4()}-${originalName}`
+        cb(null, uniqueName)
+    }
+})
+
+const fileFilter = (req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+        cb(null, true)
+    } else {
+        cb(new Error('รองรับเฉพาะไฟล์ PDF เท่านั้น'), false)
+    }
+}
+
+const upload = multer({
+    storage,
+    fileFilter,
+    limits: {
+        fileSize: MAX_FILE_SIZE
+    }
+})
+
+// ดึงรายการทั้งหมด (Public)
+router.get('/', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 20
+        const search = req.query.search ? sanitizeText(req.query.search) : ''
+        const category = req.query.category || ''
+
+        // ถ้าเป็นการร้องขอจาก Admin ให้ส่งทั้งหมดกลับไป
+        const isAdmin = req.user?.role === 'ADMIN'
+        const isPublished = isAdmin && req.query.published === 'all' ? undefined : true
+
+        const [items, total] = await Promise.all([
+            LegalEthics.findAll({ category, isPublished, page, limit, search, excludeContent: true }),
+            LegalEthics.count({ category, isPublished, search })
+        ])
+
+        const totalPages = Math.ceil(total / limit)
+
+        res.json({
+            data: items,
+            pagination: {
+                total,
+                page,
+                totalPages,
+                limit
+            }
+        })
+    } catch (error) {
+        console.error('Error fetching legal ethics docs:', error)
+        res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' })
+    }
+})
+
+// ดาวน์โหลดไฟล์ (Public)
+router.get('/download/:id', async (req, res) => {
+    try {
+        const fileData = await LegalEthics.getFilePath(req.params.id)
+        if (!fileData) {
+            return res.status(404).json({ error: 'ไม่พบไฟล์ที่ต้องการ' })
+        }
+
+        const absolutePath = path.resolve(fileData.file_path)
+
+        try {
+            await fs.access(absolutePath)
+        } catch {
+            return res.status(404).json({ error: 'ไม่พบไฟล์ในระบบ' })
+        }
+
+        // เพิ่มยอดดาวน์โหลด
+        await LegalEthics.incrementDownload(req.params.id)
+
+        res.setHeader('Content-Type', fileData.mime_type || 'application/pdf')
+        // บังคับให้ดาวน์โหลดแทนที่จะเปิดในเบราว์เซอร์
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileData.file_name)}"`)
+        return res.sendFile(absolutePath)
+    } catch (error) {
+        console.error('Download error:', error)
+        res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์' })
+    }
+})
+
+// แสดงไฟล์ (Public) - สำหรับพรีวิว
+router.get('/file/:id', async (req, res) => {
+    try {
+        const fileData = await LegalEthics.getFilePath(req.params.id)
+        if (!fileData) {
+            return res.status(404).json({ error: 'ไม่พบไฟล์ที่ต้องการ' })
+        }
+
+        const absolutePath = path.resolve(fileData.file_path)
+
+        try {
+            await fs.access(absolutePath)
+        } catch {
+            return res.status(404).json({ error: 'ไม่พบไฟล์ในระบบ' })
+        }
+
+        res.setHeader('Content-Type', fileData.mime_type || 'application/pdf')
+        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileData.file_name)}"`)
+        return res.sendFile(absolutePath)
+    } catch (error) {
+        console.error('View file error:', error)
+        res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเปิดไฟล์' })
+    }
+})
+
+// ดึงรายละเอียด (Public)
+router.get('/:id', async (req, res) => {
+    try {
+        const item = await LegalEthics.findById(req.params.id)
+        if (!item) {
+            return res.status(404).json({ error: 'ไม่พบข้อมูล' })
+        }
+        res.json(item)
+    } catch (error) {
+        res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' })
+    }
+})
+
+// === Protected Routes (ต้อง Login) ===
+router.use(requireAuth)
+
+// เพิ่มเอกสาร (Admin only)
+router.post('/', requirePermission('system'), upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'กรุณาอัปโหลดไฟล์ PDF' })
+        }
+
+        const title = sanitizeText(req.body.title || req.file.originalname)
+        const description = sanitizeText(req.body.description || '')
+        const category = req.body.category || ''
+        const isPublished = req.body.isPublished !== 'false'
+        const displayOrder = parseInt(req.body.displayOrder) || 0
+        const username = req.user.username || 'admin'
+
+        if (!category) {
+            return res.status(400).json({ error: 'กรุณาระบุหมวดหมู่ย่อย' })
+        }
+
+        const newDoc = await LegalEthics.create({
+            title,
+            description,
+            category,
+            filePath: req.file.path,
+            fileName: req.file.originalname,
+            mimeType: req.file.mimetype,
+            fileSize: req.file.size,
+            isPublished,
+            displayOrder,
+            createdBy: username
+        })
+
+        res.status(201).json({
+            message: 'อัปโหลดสำเร็จ',
+            id: newDoc.id
+        })
+    } catch (error) {
+        console.error('Upload error:', error)
+        // ลบไฟล์ที่อัปโหลดไปแล้วถ้ามี error
+        if (req.file) {
+            await fs.unlink(req.file.path).catch(console.error)
+        }
+        res.status(500).json({ error: error.message || 'ไม่สามารถอัปโหลดไฟล์ได้' })
+    }
+})
+
+// อัปเดตข้อมูล (Admin only)
+router.put('/:id', requirePermission('system'), upload.single('file'), async (req, res) => {
+    try {
+        const id = req.params.id
+        const existingDoc = await LegalEthics.findById(id)
+
+        if (!existingDoc) {
+            if (req.file) await fs.unlink(req.file.path).catch(console.error)
+            return res.status(404).json({ error: 'ไม่พบข้อมูล' })
+        }
+
+        const updates = {
+            title: req.body.title ? sanitizeText(req.body.title) : undefined,
+            description: req.body.description !== undefined ? sanitizeText(req.body.description) : undefined,
+            category: req.body.category !== undefined ? req.body.category : undefined,
+            isPublished: req.body.isPublished !== undefined ? req.body.isPublished === 'true' : undefined,
+            updatedBy: req.user.username || 'admin'
+        }
+
+        // ถ้ามีการอัปโหลดไฟล์ใหม่
+        if (req.file) {
+            updates.filePath = req.file.path
+            updates.fileName = req.file.originalname
+            updates.mimeType = req.file.mimetype
+            updates.fileSize = req.file.size
+
+            // ลบไฟล์เก่า
+            try {
+                const oldPath = await LegalEthics.getFilePath(id)
+                if (oldPath && oldPath.file_path) {
+                    await fs.unlink(path.resolve(oldPath.file_path))
+                }
+            } catch (err) {
+                console.error('Failed to delete old file:', err)
+            }
+        }
+
+        const updatedDoc = await LegalEthics.findByIdAndUpdate(id, updates)
+        res.json({ message: 'อัปเดตข้อมูลสำเร็จ', doc: updatedDoc })
+    } catch (error) {
+        console.error('Update error:', error)
+        if (req.file) await fs.unlink(req.file.path).catch(console.error)
+        res.status(500).json({ error: 'ไม่สามารถอัปเดตข้อมูลได้' })
+    }
+})
+
+// ลบข้อมูล (Admin only)
+router.delete('/:id', requirePermission('system'), async (req, res) => {
+    try {
+        const id = req.params.id
+        const fileData = await LegalEthics.findByIdAndDelete(id)
+
+        if (fileData && fileData.file_path) {
+            try {
+                await fs.unlink(path.resolve(fileData.file_path))
+            } catch (err) {
+                console.error('Failed to delete physical file:', err)
+            }
+        }
+
+        res.json({ message: 'ลบข้อมูลสำเร็จ' })
+    } catch (error) {
+        console.error('Delete error:', error)
+        res.status(500).json({ error: 'ไม่สามารถลบข้อมูลได้' })
+    }
+})
+
+// เรียงลำดับใหม่ (Admin only)
+router.post('/reorder', requirePermission('system'), async (req, res) => {
+    try {
+        const { items } = req.body
+        if (!Array.isArray(items)) {
+            return res.status(400).json({ error: 'รูปแบบข้อมูลไม่ถูกต้อง' })
+        }
+
+        await LegalEthics.reorder(items)
+        res.json({ message: 'เรียงลำดับสำเร็จ' })
+    } catch (error) {
+        console.error('Reorder error:', error)
+        res.status(500).json({ error: 'ไม่สามารถเรียงลำดับได้' })
+    }
+})
+
+export default router

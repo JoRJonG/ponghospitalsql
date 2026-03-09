@@ -3,6 +3,7 @@ import { NavLink, Routes, Route } from 'react-router-dom'
 import InfographicPage from './InfographicPage'
 import OrganizationChartPage from './OrganizationChartPage'
 import PRPlanPage from './PRPlanPage'
+import DocumentCategoryView from '../components/DocumentCategoryView'
 import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
 
@@ -350,6 +351,34 @@ function AboutContent() {
         </motion.section>
       </div>
 
+      {/* Quality Policy */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="bg-white rounded-2xl p-8 shadow-sm border border-blue-100 mt-8"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <i className="fa-solid fa-clipboard-check text-blue-600 text-xl"></i>
+          <h2 className="text-xl font-bold text-gray-900">นโยบายและแผนพัฒนาคุณภาพ</h2>
+        </div>
+        <ul className="space-y-4">
+          {[
+            "กำหนดนโยบายและเป้าหมายด้านคุณภาพ นโยบายการจัดการคุณภาพ นโยบาย 3P safety และนโยบายความปลอดภัยอื่นๆ",
+            "วางแผนพัฒนาคุณภาพครอบคลุมตามมาตรฐาน HA ฉบับที่ 5 และมาตรฐานวิชาชีพอื่นๆ",
+            "จัดทำและปฏิบัติการตามแผนกลยุทธ์ แผนพัฒนาคุณภาพ",
+            "ตรวจสอบและประเมินผลด้านการพัฒนาคุณภาพ ติดตามความก้าวหน้าผ่านระบบการวัดผลในแต่ละระดับขององค์กร",
+            "จัดทำแผนพัฒนาปรับปรุงจากการประเมินผล และโอกาสพัฒนาที่ผ่านการวิเคราะห์ ประมวลผล"
+          ].map((text, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <i className="fa-solid fa-check-circle text-blue-500 mt-1"></i>
+              <span className="text-gray-600">{text}</span>
+            </li>
+          ))}
+        </ul>
+      </motion.section>
+
       {/* Contact CTA */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -441,6 +470,55 @@ export default function AboutPage() {
                 <i className="fa-solid fa-shield-halved" aria-hidden="true" />
                 แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ
               </NavLink>
+
+              <NavLink
+                to="/about/laws"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-scale-balanced" aria-hidden="true" />
+                กฏหมายที่เกี่ยวข้องกับการดำเนินงาน
+              </NavLink>
+              <NavLink
+                to="/about/ethics-act-2562"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-book-open" aria-hidden="true" />
+                พ.ร.บ. มาตรฐานทางจริยธรรม พ.ศ.2562
+              </NavLink>
+              <NavLink
+                to="/about/ethics-civil-service"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-users-viewfinder" aria-hidden="true" />
+                ประมวลจริยธรรมข้าราชการพลเรือน
+              </NavLink>
+              <NavLink
+                to="/about/ethics-moph-2564"
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`
+                }
+              >
+                <i className="fa-solid fa-file-contract" aria-hidden="true" />
+                ข้อกำหนดจริยธรรม สป.สธ. พ.ศ.2564
+              </NavLink>
             </div>
           </div>
         </div>
@@ -451,6 +529,10 @@ export default function AboutPage() {
           <Route path="infographic" element={<InfographicPage />} />
           <Route path="organization" element={<OrganizationChartPage />} />
           <Route path="pr-plan" element={<PRPlanPage />} />
+          <Route path="laws" element={<DocumentCategoryView title="กฏหมายที่เกี่ยวข้องกับการดำเนินงานหรือการปฏิบัติงานของหน่วยงาน" category="กฏหมายที่เกี่ยวข้องกับการดำเนินงานหรือการปฏิบัติงานของหน่วยงาน" apiEndpoint="/api/legal-ethics" />} />
+          <Route path="ethics-act-2562" element={<DocumentCategoryView title="พระราชบัญญัติมาตรฐานทางจริยธรรม พ.ศ.2562" category="พระราชบัญญัติมาตรฐานทางจริยธรรม พ.ศ.2562" apiEndpoint="/api/legal-ethics" />} />
+          <Route path="ethics-civil-service" element={<DocumentCategoryView title="ประมวลจริยธรรมข้าราชการพลเรือน" category="ประมวลจริยธรรมข้าราชการพลเรือน" apiEndpoint="/api/legal-ethics" />} />
+          <Route path="ethics-moph-2564" element={<DocumentCategoryView title="ข้อกำหนดจริยธรรมเจ้าหน้าที่ของรัฐสำนักงานปลัดกระทรวงสาธารณสุข พ.ศ. 2564" category="ข้อกำหนดจริยธรรมเจ้าหน้าที่ของรัฐสำนักงานปลัดกระทรวงสาธารณสุข พ.ศ. 2564" apiEndpoint="/api/legal-ethics" />} />
         </Routes>
       </div>
     </div>

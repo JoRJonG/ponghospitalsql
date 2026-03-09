@@ -139,9 +139,11 @@ export default function DocumentForm({ document, onSubmit, onCancel }: DocumentF
                     <option value="">-- เลือกหมวดหมู่ --</option>
                     <option value="แบบฟอร์ม">แบบฟอร์ม</option>
                     <option value="ประกาศ">ประกาศ</option>
+                    <option value="ประกาศ">ประกาศ</option>
                     <option value="คู่มือ">คู่มือ</option>
                     <option value="ระเบียบ">ระเบียบ</option>
                     <option value="คำสั่ง">คำสั่ง</option>
+                    <option value="กฎหมายและจริยธรรม">กฎหมายและจริยธรรม</option>
                     <option value="อื่นๆ">อื่นๆ</option>
                 </select>
             </div>

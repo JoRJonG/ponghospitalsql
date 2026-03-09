@@ -25,6 +25,7 @@ import PRPosterManagement, { type PRPosterManagementHandle } from '../../compone
 import PRPlanManagement, { type PRPlanManagementHandle } from '../../components/admin/PRPlanManagement'
 import OrganizationChartManagement from '../../components/admin/OrganizationChartManagement'
 import BannedIPsManagement, { type BannedIPsManagementHandle } from '../../components/admin/BannedIPsManagement'
+import LegalEthicsManagement, { type LegalEthicsManagementHandle } from '../../components/admin/LegalEthicsManagement'
 
 // Types
 // ----------------------------------------------------------------------------
@@ -106,10 +107,10 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'pr_plan' | 'ita' | 'users' | 'feedback' | 'documents' | 'settings-display' | 'settings-user' | 'banned_ips'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'pr_plan' | 'ita' | 'users' | 'feedback' | 'documents' | 'legalEthics' | 'settings-display' | 'settings-user' | 'banned_ips'
 
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'pr_plan', 'users', 'ita', 'feedback', 'documents', 'settings-display', 'settings-user', 'banned_ips'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'pr_plan', 'users', 'ita', 'feedback', 'documents', 'legalEthics', 'settings-display', 'settings-user', 'banned_ips'] as const
 const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -229,6 +230,7 @@ export default function AdminPage() {
       users: permissions.users,
       feedback: permissions.feedback,
       documents: permissions.documents,
+      legalEthics: true,
       'settings-display': permissions.system,
       'settings-user': true,
       'banned_ips': permissions.admin || permissions.system,
@@ -280,6 +282,7 @@ export default function AdminPage() {
   const prPosterRef = useRef<PRPosterManagementHandle>(null)
   const prPlanRef = useRef<PRPlanManagementHandle>(null)
   const bannedIpsRef = useRef<BannedIPsManagementHandle>(null)
+  const legalEthicsRef = useRef<LegalEthicsManagementHandle>(null)
 
   const refreshAnn = useCallback(async () => {
     if (!permissions.announcements) {
@@ -747,21 +750,7 @@ export default function AdminPage() {
               </button>
             )}
 
-            {allowedTabs.pr_plan && (
-              <button
-                onClick={() => {
-                  setTab('pr_plan')
-                  if (window.innerWidth < 1024) setSidebarOpen(false)
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'pr_plan'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                  }`}
-              >
-                <span className="text-xl">📋</span>
-                <span>แผนปฏิบัติการ ป้องกัน ปราบปราม</span>
-              </button>
-            )}
+
 
             {allowedTabs.users && (
               <button
@@ -826,6 +815,20 @@ export default function AdminPage() {
                 <span>เอกสาร</span>
               </button>
             )}
+
+            <button
+              onClick={() => {
+                setTab('legalEthics')
+                if (window.innerWidth < 1024) setSidebarOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'legalEthics' || tab === 'pr_plan'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg transform scale-105'
+                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                }`}
+            >
+              <span className="text-xl">⚖️</span>
+              <span>กฎหมาย จริยธรรม &amp; แผนฯ</span>
+            </button>
 
             {/* Settings Section */}
             <div className="pt-2 mt-2 border-t border-gray-200">
@@ -1688,14 +1691,14 @@ export default function AdminPage() {
                 </motion.div>
               ) : tab === 'pr_plan' ? (
                 <motion.div
-                  key="pr_plan"
+                  key="legalEthics"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                   className="space-y-4 lg:space-y-6"
                 >
-                  <PRPlanManagement ref={prPlanRef} />
+                  <LegalEthicsManagement ref={legalEthicsRef} />
                 </motion.div>
               ) : tab === 'organization' ? (
                 <motion.div
@@ -1740,6 +1743,17 @@ export default function AdminPage() {
                   className="space-y-4 lg:space-y-6"
                 >
                   <DocumentsManagement ref={documentsRef} />
+                </motion.div>
+              ) : tab === 'legalEthics' ? (
+                <motion.div
+                  key="legalEthics"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4 lg:space-y-6"
+                >
+                  <LegalEthicsManagement ref={legalEthicsRef} />
                 </motion.div>
               ) : null}
             </AnimatePresence>
