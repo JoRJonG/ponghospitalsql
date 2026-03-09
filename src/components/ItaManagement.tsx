@@ -118,7 +118,24 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
   }
 
   const startNew = (parent: ItaItem | null) => { setParentForNew(parent); setEditing(null); setCreating(true); setForm({ title: '', content: '', isPublished: true, pdfUrl: '' }); setParentSelect(parent ? parent._id : null) }
-  const startEdit = (item: ItaItem) => { setEditing(item); setParentForNew(null); setCreating(false); setForm({ title: item.title, content: item.content, isPublished: item.isPublished, slug: item.slug, pdfUrl: item.pdfUrl || '' }); setParentSelect(item.parentId ?? null) }
+  const startEdit = async (item: ItaItem) => {
+    setEditing(item)
+    setParentForNew(null)
+    setCreating(false)
+    setForm({ title: item.title, content: item.content || 'กำลังโหลดรายละเอียด...', isPublished: item.isPublished, slug: item.slug, pdfUrl: item.pdfUrl || '' })
+    setParentSelect(item.parentId ?? null)
+    try {
+      const r = await fetch(`/api/ita/item/${item._id}`, { headers: authHeaders() })
+      if (r.ok) {
+        const d = await r.json()
+        if (d.item) {
+          setForm(prev => ({ ...prev, content: d.item.content || '' }))
+        }
+      }
+    } catch (e) {
+      console.warn('[ITA] Failed to load full item details', e)
+    }
+  }
   const cancel = () => { setEditing(null); setParentForNew(null); setCreating(false); setForm({ title: '', content: '', isPublished: true, pdfUrl: '' }); setParentSelect(null) }
 
   const submit = async (e: React.FormEvent) => {
