@@ -119,6 +119,17 @@ export default function DocumentCategoryView({ category, apiEndpoint = '/api/doc
 
     return (
         <div className="space-y-6 animate-fade-in relative">
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-teal-100/50 rounded-full blur-3xl"></div>
+
+                <div className="relative z-10">
+                    <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{category}</h2>
+                    <div className="h-1 w-20 bg-emerald-500 rounded-full mb-4"></div>
+                </div>
+            </div>
+
             {loading ? (
                 <div className="p-8 text-center text-gray-500 bg-white rounded-2xl shadow-sm border border-gray-100">
                     <i className="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>

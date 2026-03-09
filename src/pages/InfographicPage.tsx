@@ -57,7 +57,21 @@ export default function InfographicPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-teal-100/50 rounded-full blur-3xl"></div>
+
+        <div className="relative z-10">
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Infographic</h2>
+          <div className="h-1 w-20 bg-emerald-500 rounded-full mb-4"></div>
+          <p className="text-gray-600 max-w-2xl">
+            สื่อประชาสัมพันธ์ในรูปแบบรูปภาพและข้อมูลสถิติต่างๆ ของโรงพยาบาลปง
+          </p>
+        </div>
+      </div>
+
       {/* Infographics List */}
       {infographics.length === 0 ? (
         <motion.div
