@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { NavLink, Routes, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import InfographicPage from './InfographicPage'
 import OrganizationChartPage from './OrganizationChartPage'
 import PRPlanPage from './PRPlanPage'
@@ -417,111 +417,6 @@ export default function AboutPage() {
         />
         <PageHeader title="เกี่ยวกับเรา" />
 
-        {/* Sub Navigation */}
-        <div className="mb-6">
-          <div className="relative rounded-2xl border border-emerald-100 bg-white/90 backdrop-blur-md shadow-md shadow-emerald-500/5">
-            <div className="flex flex-wrap gap-2 px-3 py-3 text-sm">
-              <NavLink
-                to="/about"
-                end
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-info-circle" aria-hidden="true" />
-                ข้อมูลทั่วไป
-              </NavLink>
-              <NavLink
-                to="/about/infographic"
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-chart-bar" aria-hidden="true" />
-                Infographic
-              </NavLink>
-              <NavLink
-                to="/about/organization"
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-sitemap" aria-hidden="true" />
-                โครงสร้างองค์กร
-              </NavLink>
-              <NavLink
-                to="/about/pr-plan"
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-shield-halved" aria-hidden="true" />
-                แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ
-              </NavLink>
-
-              <NavLink
-                to="/about/laws"
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-scale-balanced" aria-hidden="true" />
-                กฏหมายที่เกี่ยวข้องกับการดำเนินงาน
-              </NavLink>
-              <NavLink
-                to="/about/ethics-act-2562"
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-book-open" aria-hidden="true" />
-                พ.ร.บ. มาตรฐานทางจริยธรรม พ.ศ.2562
-              </NavLink>
-              <NavLink
-                to="/about/ethics-civil-service"
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-users-viewfinder" aria-hidden="true" />
-                ประมวลจริยธรรมข้าราชการพลเรือน
-              </NavLink>
-              <NavLink
-                to="/about/ethics-moph-2564"
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
-                  }`
-                }
-              >
-                <i className="fa-solid fa-file-contract" aria-hidden="true" />
-                ข้อกำหนดจริยธรรม สป.สธ. พ.ศ.2564
-              </NavLink>
-            </div>
-          </div>
-        </div>
 
         {/* Routes */}
         <Routes>

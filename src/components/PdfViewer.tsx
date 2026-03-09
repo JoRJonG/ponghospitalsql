@@ -24,7 +24,9 @@ export default function PdfViewer({ url, data, className, onError }: PdfViewerPr
 
   // Determine the file source for React-PDF
   const fileSource = useMemo(() => {
-    if (data) return data
+    // ป้องกัน Error "Cannot perform Construct on a detached ArrayBuffer"
+    // ด้วยการส่ง copy ของ buffer ไปให้ pdf.js แทนที่จะส่งตัวจริง
+    if (data) return data.slice(0)
     if (!url) return null
 
     try {

@@ -13,15 +13,21 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_URL || 'http://localhost:5000',
           changeOrigin: true,
           secure: false,
-          timeout: 0,
-          proxyTimeout: 0,
+          // ตั้ง proxyTimeout เป็น 5 นาที เพื่อรองรับการอัปโหลดไฟล์ขนาดใหญ่
+          // ค่า 0 ใน http-proxy จะใช้ค่า default แทน ดังนั้นต้องระบุเวลาที่ยาวพอ
+          proxyTimeout: 300000,
+          timeout: 300000, // เพิ่ม timeout
           configure: (proxy) => {
-            // ป้องกัน Vite Proxy ตัด HTTP Connection ของ SSE
+            // ป้องกัน Vite Proxy ตัด HTTP Connection ของ SSE และ file upload
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const p = proxy as any
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             p.on('proxyReq', (proxyReq: any, req: any) => {
               if (req.url?.includes('/stream') || req.headers.accept === 'text/event-stream') {
+                proxyReq.setHeader('Connection', 'keep-alive')
+              }
+              // รองรับการส่ง multipart form data ที่ใหญ่
+              if (req.headers['content-type']?.includes('multipart/form-data')) {
                 proxyReq.setHeader('Connection', 'keep-alive')
               }
             })
@@ -31,6 +37,15 @@ export default defineConfig(({ mode }) => {
                 proxyRes.headers['x-accel-buffering'] = 'no'
                 proxyRes.headers['cache-control'] = 'no-cache'
                 proxyRes.headers['connection'] = 'keep-alive'
+              }
+            })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            p.on('error', (err: any, req: any, res: any) => {
+              // @ts-expect-error console is available in Node.js
+              console.error('[Vite Proxy Error]', err.message, req.url)
+              if (!res.headersSent) {
+                res.writeHead(500, { 'Content-Type': 'application/json' })
+                res.end(JSON.stringify({ error: 'Proxy error', details: err.message }))
               }
             })
           }

@@ -2,6 +2,7 @@
 import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react'
 import Swal from 'sweetalert2'
 import { useAuth } from '../../auth/AuthContext'
+import PRPlanUploadModal from './PRPlanUploadModal'
 
 type PRPlan = {
     id: number
@@ -26,6 +27,8 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
     const [loading, setLoading] = useState(true)
     const [uploading, setUploading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+    const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null)
 
     // Pagination
     const [page, setPage] = useState(1)
@@ -75,46 +78,20 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
             return
         }
 
-        // ขอชื่อและคำอธิบาย
-        const { value: formValues } = await Swal.fire({
-            title: 'อัปโหลดแผนปฏิบัติการ',
-            html: `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อแผน</label>
-                        <input id="swal-title" class="swal2-input w-full" placeholder="ระบุชื่อแผน" value="${file.name.replace('.pdf', '')}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย (ไม่บังคับ)</label>
-                        <textarea id="swal-description" class="swal2-textarea w-full" placeholder="ระบุคำอธิบาย"></textarea>
-                    </div>
-                </div>
-            `,
-            focusConfirm: false,
-            showCancelButton: true,
-            confirmButtonText: 'อัปโหลด',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#10b981',
-            preConfirm: () => {
-                const title = (document.getElementById('swal-title') as HTMLInputElement).value
-                const description = (document.getElementById('swal-description') as HTMLTextAreaElement).value
+        // เซ็ตไฟล์ที่เลือกลง state และเปิด modal
+        setSelectedUploadFile(file)
+        setIsUploadModalOpen(true)
 
-                if (!title) {
-                    Swal.showValidationMessage('กรุณาระบุชื่อแผน')
-                    return false
-                }
+        // เคลียร์ input รูปแบบ file กลับเป็นค่าว่างเพื่อให้อัปโหลดไฟล์เดิมซ้ำได้ใหม่
+        e.target.value = ''
+    }
 
-                return { title, description }
-            }
-        })
-
-        if (!formValues) return
-
+    const handleModalUploadSubmit = async (title: string, description: string, file: File) => {
         setUploading(true)
         const formData = new FormData()
         formData.append('file', file)
-        formData.append('title', formValues.title)
-        formData.append('description', formValues.description)
+        formData.append('title', title)
+        formData.append('description', description)
         formData.append('isPublished', 'true')
 
         try {
@@ -131,21 +108,12 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
 
             setPage(1)
             await fetchPlans()
-            e.target.value = ''
             Swal.fire({
                 title: 'สำเร็จ',
                 text: 'อัปโหลดสำเร็จ',
                 icon: 'success',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#10b981'
-            })
-        } catch (err: unknown) {
-            Swal.fire({
-                title: 'ข้อผิดพลาด',
-                text: `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`,
-                icon: 'error',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#d33'
+                timer: 1500,
+                showConfirmButton: false
             })
         } finally {
             setUploading(false)
@@ -501,6 +469,13 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                     </div>
                 )}
             </div>
+
+            <PRPlanUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                onUpload={handleModalUploadSubmit}
+                initialFile={selectedUploadFile}
+            />
         </div>
     )
 })

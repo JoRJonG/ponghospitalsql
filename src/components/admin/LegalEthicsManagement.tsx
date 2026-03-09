@@ -2,6 +2,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle, useCallback, useR
 import { createPortal } from 'react-dom'
 import Swal from 'sweetalert2'
 import PRPlanManagement from './PRPlanManagement'
+import { useAuth } from '../../auth/AuthContext'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 type LegalEthicsDoc = {
@@ -64,6 +65,7 @@ interface DocModalProps {
 }
 
 function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
+    const { getToken } = useAuth()
     const [category, setCategory] = useState(doc?.category ?? '')
     const [title, setTitle] = useState(doc?.title ?? file?.name.replace('.pdf', '') ?? '')
     const [description, setDescription] = useState(doc?.description ?? '')
@@ -96,34 +98,63 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
         e.preventDefault()
         if (!validate()) return
         setSubmitting(true)
+
+        // AbortController สำหรับ timeout 5 นาที (รองรับไฟล์ขนาดใหญ่ถึง 20MB)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000)
+
         try {
             const fd = new FormData()
             fd.append('category', category)
             fd.append('title', title.trim())
             fd.append('description', description)
 
+            // Helper อ่าน server error message จาก response
+            const readError = async (r: Response, fallback: string) => {
+                try {
+                    const data = await r.json()
+                    return data?.error || data?.message || fallback
+                } catch {
+                    return fallback
+                }
+            }
+
             if (mode === 'upload' && file) {
                 fd.append('file', file)
                 fd.append('isPublished', 'true')
                 const r = await fetch('/api/legal-ethics', {
                     method: 'POST',
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                    headers: { Authorization: `Bearer ${getToken()}` },
                     body: fd,
+                    signal: controller.signal,
                 })
-                if (!r.ok) throw new Error('อัปโหลดไม่สำเร็จ')
+                if (!r.ok) {
+                    const msg = await readError(r, `อัปโหลดไม่สำเร็จ (${r.status})`)
+                    throw new Error(msg)
+                }
             } else if (mode === 'edit' && doc) {
                 const r = await fetch(`/api/legal-ethics/${doc.id}`, {
                     method: 'PUT',
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                    headers: { Authorization: `Bearer ${getToken()}` },
                     body: fd,
+                    signal: controller.signal,
                 })
-                if (!r.ok) throw new Error('บันทึกไม่สำเร็จ')
+                if (!r.ok) {
+                    const msg = await readError(r, `บันทึกไม่สำเร็จ (${r.status})`)
+                    throw new Error(msg)
+                }
             }
             onSuccess()
             onClose()
         } catch (err: unknown) {
-            setErrors({ title: err instanceof Error ? err.message : 'เกิดข้อผิดพลาด กรุณาลองใหม่' })
+            // ตรวจสอบกรณี timeout (AbortError)
+            if (err instanceof Error && err.name === 'AbortError') {
+                setErrors({ title: 'การอัปโหลดใช้เวลานานเกินไป กรุณาลองใหม่ด้วยไฟล์ที่เล็กกว่า' })
+            } else {
+                setErrors({ title: err instanceof Error ? err.message : 'เกิดข้อผิดพลาด กรุณาลองใหม่' })
+            }
         } finally {
+            clearTimeout(timeoutId)
             setSubmitting(false)
         }
     }
@@ -297,6 +328,7 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
 
 // ─── Legal Ethics Documents Panel ──────────────────────────────────────────────
 function LegalEthicsDocs() {
+    const { getToken } = useAuth()
     const [docs, setDocs] = useState<LegalEthicsDoc[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -362,7 +394,7 @@ function LegalEthicsDocs() {
         })
         if (!r.isConfirmed) return
         try {
-            const res = await fetch(`/api/legal-ethics/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+            const res = await fetch(`/api/legal-ethics/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` } })
             if (!res.ok) throw new Error()
             await fetchDocs()
         } catch { Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถลบข้อมูลได้', confirmButtonColor: '#059669' }) }
@@ -371,7 +403,7 @@ function LegalEthicsDocs() {
     const togglePublish = async (doc: LegalEthicsDoc) => {
         try {
             const fd = new FormData(); fd.append('isPublished', String(!doc.isPublished))
-            const r = await fetch(`/api/legal-ethics/${doc.id}`, { method: 'PUT', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, body: fd })
+            const r = await fetch(`/api/legal-ethics/${doc.id}`, { method: 'PUT', headers: { Authorization: `Bearer ${getToken()}` }, body: fd })
             if (!r.ok) throw new Error()
             setDocs(prev => prev.map(d => d.id === doc.id ? { ...d, isPublished: !d.isPublished } : d))
         } catch { Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเปลี่ยนสถานะได้', confirmButtonColor: '#059669' }) }
@@ -552,17 +584,17 @@ const LegalEthicsManagement = forwardRef<LegalEthicsManagementHandle>((_, ref) =
     return (
         <div className="space-y-5">
             {/* Hero Header */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-emerald-800 p-6 shadow-xl">
-                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, #10b981 0%, transparent 60%), radial-gradient(circle at 80% 20%, #3b82f6 0%, transparent 60%)' }} />
-                <div className="absolute top-0 right-0 w-64 h-64 opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)', backgroundSize: '12px 12px' }} />
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-teal-50 border border-emerald-100 p-6 shadow-sm">
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, #059669 0%, transparent 60%), radial-gradient(circle at 80% 20%, #0d9488 0%, transparent 60%)' }} />
+                <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.02]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #059669 0, #059669 1px, transparent 0, transparent 50%)', backgroundSize: '12px 12px' }} />
                 <div className="relative flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-emerald-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-2xl">⚖️</span>
                     </div>
                     <div>
-                        <p className="text-emerald-300 text-xs font-semibold uppercase tracking-widest mb-1">ระบบจัดการเอกสาร</p>
-                        <h2 className="text-white text-xl font-bold">กฎหมาย จริยธรรม และแผนปฏิบัติการ</h2>
-                        <p className="text-slate-300 text-sm mt-1.5 leading-relaxed">อัปโหลด แก้ไข และจัดการเอกสารสำหรับการเผยแพร่ข้อมูลบนเว็บไซต์</p>
+                        <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest mb-1">ระบบจัดการเอกสาร</p>
+                        <h2 className="text-gray-900 text-xl font-bold">กฎหมาย จริยธรรม และแผนปฏิบัติการ</h2>
+                        <p className="text-gray-500 text-sm mt-1.5 leading-relaxed font-medium">อัปโหลด แก้ไข และจัดการเอกสารสำหรับการเผยแพร่ข้อมูลบนเว็บไซต์</p>
                     </div>
                 </div>
             </div>

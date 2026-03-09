@@ -22,7 +22,7 @@ import HeroSliderSettings from '../../components/admin/HeroSliderSettings'
 import FeedbackManagement from '../../components/admin/FeedbackManagement'
 import DocumentsManagement, { type DocumentsManagementHandle } from '../../components/DocumentsManagement'
 import PRPosterManagement, { type PRPosterManagementHandle } from '../../components/admin/PRPosterManagement'
-import PRPlanManagement, { type PRPlanManagementHandle } from '../../components/admin/PRPlanManagement'
+
 import OrganizationChartManagement from '../../components/admin/OrganizationChartManagement'
 import BannedIPsManagement, { type BannedIPsManagementHandle } from '../../components/admin/BannedIPsManagement'
 import LegalEthicsManagement, { type LegalEthicsManagementHandle } from '../../components/admin/LegalEthicsManagement'
@@ -201,12 +201,12 @@ export default function AdminPage() {
     executives: hasPermission('executives'),
     infographics: hasPermission('infographics'),
     pr_posters: hasPermission('pr_poster'),
-    pr_plans: hasPermission('pr_plan'),
     organization: hasPermission('organization'),
     ita: hasPermission('ita'),
     users: hasPermission('users'),
     feedback: hasPermission('feedback') || hasPermission('admin'),
     documents: hasPermission('documents') || hasPermission('admin'),
+    legalEthics: hasPermission('legalEthics'),
     dashboard: hasPermission('dashboard'),
     admin: hasPermission('admin'),
     system: hasPermission('system'),
@@ -225,12 +225,12 @@ export default function AdminPage() {
       infographic: permissions.infographics,
       organization: permissions.organization,
       pr_poster: permissions.pr_posters,
-      pr_plan: permissions.pr_plans,
+      pr_plan: permissions.legalEthics,
       ita: permissions.ita,
       users: permissions.users,
       feedback: permissions.feedback,
       documents: permissions.documents,
-      legalEthics: true,
+      legalEthics: permissions.legalEthics,
       'settings-display': permissions.system,
       'settings-user': true,
       'banned_ips': permissions.admin || permissions.system,
@@ -280,7 +280,7 @@ export default function AdminPage() {
   const usersRef = useRef<UserManagementHandle>(null)
   const documentsRef = useRef<DocumentsManagementHandle>(null)
   const prPosterRef = useRef<PRPosterManagementHandle>(null)
-  const prPlanRef = useRef<PRPlanManagementHandle>(null)
+
   const bannedIpsRef = useRef<BannedIPsManagementHandle>(null)
   const legalEthicsRef = useRef<LegalEthicsManagementHandle>(null)
 
@@ -812,23 +812,25 @@ export default function AdminPage() {
                   }`}
               >
                 <span className="text-xl">📄</span>
-                <span>เอกสาร</span>
+                <span>เอกสารดาวน์โหลด</span>
               </button>
             )}
 
-            <button
-              onClick={() => {
-                setTab('legalEthics')
-                if (window.innerWidth < 1024) setSidebarOpen(false)
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'legalEthics' || tab === 'pr_plan'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg transform scale-105'
-                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
-                }`}
-            >
-              <span className="text-xl">⚖️</span>
-              <span>กฎหมาย จริยธรรม &amp; แผนฯ</span>
-            </button>
+            {allowedTabs.legalEthics && (
+              <button
+                onClick={() => {
+                  setTab('legalEthics')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'legalEthics'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
+              >
+                <span className="text-xl">⚖️</span>
+                <span>กฎหมาย จริยธรรม & แผนฯ</span>
+              </button>
+            )}
 
             {/* Settings Section */}
             <div className="pt-2 mt-2 border-t border-gray-200">
