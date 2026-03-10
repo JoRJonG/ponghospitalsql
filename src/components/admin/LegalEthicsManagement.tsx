@@ -326,9 +326,15 @@ function LegalEthicsDocs() {
         if (!r.isConfirmed) return
         try {
             const res = await fetch(`/api/legal-ethics/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` } })
-            if (!res.ok) throw new Error()
+            if (!res.ok) {
+                const data = await res.json()
+                throw new Error(data.error || 'ไม่สามารถลบข้อมูลได้')
+            }
             await fetchDocs()
-        } catch { Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถลบข้อมูลได้', confirmButtonColor: '#059669' }) }
+            Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1400, showConfirmButton: false })
+        } catch (err: unknown) {
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err instanceof Error ? err.message : 'ไม่สามารถลบข้อมูลได้', confirmButtonColor: '#059669' })
+        }
     }
 
     const togglePublish = async (doc: LegalEthicsDoc) => {

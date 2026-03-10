@@ -275,20 +275,27 @@ router.delete('/:id', requireAuth, requirePermission('legal_ethics'), async (req
 
     try {
         const id = req.params.id
+        const existing = await LegalEthics.findById(id)
+        if (!existing) {
+            return res.status(404).json({ error: 'ไม่พบข้อมูลที่ต้องการลบ' })
+        }
+
         const fileData = await LegalEthics.findByIdAndDelete(id)
 
         if (fileData && fileData.file_path) {
             try {
-                await fs.unlink(path.resolve(fileData.file_path))
+                const absolutePath = path.resolve(fileData.file_path)
+                await fs.unlink(absolutePath)
             } catch (err) {
-                console.error('Failed to delete physical file:', err)
+                console.error('Failed to delete physical file during document deletion:', err)
+                // We proceed since the database record is already gone
             }
         }
 
         res.json({ message: 'ลบข้อมูลสำเร็จ' })
     } catch (error) {
-        console.error('Delete error:', error)
-        res.status(500).json({ error: 'ไม่สามารถลบข้อมูลได้' })
+        console.error('Delete error for ID:', req.params.id, error)
+        res.status(500).json({ error: 'ไม่สามารถลบข้อมูลได้เนื่องจากข้อผิดพลาดของระบบ' })
     }
 })
 

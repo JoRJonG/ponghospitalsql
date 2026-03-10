@@ -70,17 +70,29 @@ export default function AboutLawsList() {
         window.open(url, '_blank', 'noopener,noreferrer')
     }
 
+    const SkeletonItem = () => (
+        <div className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse">
+            <div className="flex items-start gap-4 flex-1">
+                <div className="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0" />
+                <div className="flex-1 space-y-2 py-1">
+                    <div className="h-4 bg-gray-100 rounded w-3/4" />
+                    <div className="h-3 bg-gray-50 rounded w-1/4" />
+                </div>
+            </div>
+            <div className="ml-4 w-10 h-10 rounded-full bg-gray-50 flex-shrink-0" />
+        </div>
+    )
+
     return (
-        <div className="space-y-8 min-h-[60vh]">
+        <div className="space-y-8 min-h-[600px]">
             <PageHeader
                 title="กฎหมายที่เกี่ยวข้องกับการดำเนินงาน"
                 subtitle="รวมกฎหมาย มาตรฐานจริยธรรม และแผนปฏิบัติการ"
             />
 
             {loading && page === 1 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
-                    <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4" />
-                    <p className="text-gray-500 font-medium">กำลังค้นหาเอกสาร...</p>
+                <div className="grid gap-4">
+                    {[...Array(6)].map((_, i) => <SkeletonItem key={i} />)}
                 </div>
             ) : error ? (
                 <div className="p-8 text-center bg-red-50 rounded-2xl border border-red-100">

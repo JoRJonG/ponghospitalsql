@@ -9,7 +9,7 @@ import AboutLawsList from '../components/AboutLawsList'
 function AboutContent() {
   return (
     <div className="space-y-12 pb-12">
-      {/* Header Section with Particles/Gradient */}
+      {/* 1. Identity & Header Section */}
       <div
         className="relative rounded-3xl overflow-hidden text-white shadow-xl shadow-emerald-900/20 border border-emerald-500/30"
         style={{ background: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)' }}
@@ -23,7 +23,6 @@ function AboutContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-
             <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-white drop-shadow-sm">
               โรงพยาบาลปง
               <span className="block text-emerald-100 text-xl md:text-2xl font-normal mt-2">
@@ -40,7 +39,7 @@ function AboutContent() {
         </div>
       </div>
 
-      {/* History Timeline */}
+      {/* 2. History Timeline */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -70,7 +69,7 @@ function AboutContent() {
         </div>
       </motion.section>
 
-      {/* Vision & Mission Grid */}
+      {/* 3. Vision & Mission Foundation */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Vision */}
         <motion.section
@@ -127,7 +126,7 @@ function AboutContent() {
         </motion.section>
       </div>
 
-      {/* Core Values */}
+      {/* 4. Core Values */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -197,7 +196,92 @@ function AboutContent() {
         </div>
       </motion.section>
 
-      {/* Service Characteristics (คุณลักษณะของบริการ) */}
+      {/* 5. Hospital Mandate (หน้าที่และอำนาจหลัก) */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="card-premium overflow-hidden border border-emerald-100"
+      >
+        <div className="bg-gradient-to-r from-emerald-50 to-white px-8 py-6 border-b border-emerald-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+              <i className="fa-solid fa-gavel"></i>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">หน้าที่และอำนาจหลักของโรงพยาบาลชุมชน</h2>
+              <p className="text-sm text-gray-500 mt-0.5">ตามกฎกระทรวงแบ่งส่วนราชการสำนักงานปลัดกระทรวงสาธารณสุข</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
+                  <i className="fa-solid fa-map-location-dot"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">การวางแผนและยุทธศาสตร์</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed mt-1">จัดทำแผนยุทธศาสตร์ด้านสุขภาพในเขตพื้นที่อำเภอให้สอดคล้องกับนโยบายของกระทรวง</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
+                  <i className="fa-solid fa-hand-holding-medical"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">การให้บริการสาธารณสุข</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed mt-1">ดำเนินการและให้บริการด้านการแพทย์ การส่งเสริมสุขภาพ การป้องกันโรค การรักษาพยาบาล และการฟื้นฟูสมรรถภาพแก่ประชาชนในเขตพื้นที่</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
+                  <i className="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">การกำกับและสนับสนุน</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed mt-1">กำกับดูแล ประเมินผล และสนับสนุนการปฏิบัติงานของหน่วยงานสาธารณสุขในเครือข่ายระดับอำเภอ เพื่อให้การดำเนินงานเป็นไปตามกฎหมายและมีมาตรฐาน</p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
+                  <i className="fa-solid fa-users-rays"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">การพัฒนาและประสานงาน</h3>
+                  <ul className="mt-2 space-y-2">
+                    {[
+                      "พัฒนาระบบสารสนเทศ งานสุขศึกษา และการสื่อสารสาธารณะด้านสุขภาพในพื้นที่",
+                      "ประสานงานกับหน่วยงานที่เกี่ยวข้อง ภาคีเครือข่าย และองค์กรปกครองส่วนท้องถิ่น เพื่อพัฒนาคุณภาพชีวิตและสุขภาพของประชาชน",
+                      "คุ้มครองผู้บริโภคด้านสุขภาพในพื้นที่"
+                    ].map((text, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                        <i className="fa-solid fa-circle text-[6px] mt-2 text-emerald-400"></i>
+                        <span>{text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
+                  <i className="fa-solid fa-ellipsis"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">การปฏิบัติงานอื่นๆ</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed mt-1">ปฏิบัติงานร่วมกับหรือสนับสนุนการปฏิบัติงานของหน่วยงานอื่นที่เกี่ยวข้อง หรือตามที่ได้รับมอบหมาย</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 6. Service Scope (คุณลักษณะของบริการ) */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -254,45 +338,7 @@ function AboutContent() {
         </div>
       </motion.section>
 
-      {/* Executive Policy */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="card-premium overflow-hidden border border-purple-100"
-      >
-        <div className="bg-gradient-to-r from-purple-50 to-white px-8 py-6 border-b border-purple-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-200">
-              <i className="fa-solid fa-user-tie"></i>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900">นโยบายผู้บริหาร</h2>
-          </div>
-        </div>
-        <div className="p-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              { id: 1, text: "พัฒนาคุณภาพบริการให้ได้มาตรฐาน HA", sub: "เน้นความปลอดภัย 3P Safety" },
-              { id: 2, text: "บริหารงานด้วยความโปร่งใส (ITA)", sub: "ใช้หลักธรรมาภิบาล" },
-              { id: 3, text: "ก้าวสู่ Smart Hospital", sub: "พัฒนาระบบเทคโนโลยีสารสนเทศ" },
-              { id: 4, text: "ยึดหลักเศรษฐกิจพอเพียง", sub: "ใช้ทรัพยากรอย่างคุ้มค่า" }
-            ].map((item) => (
-              <div key={item.id} className="flex gap-4">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm border border-purple-200">
-                  {item.id}
-                </span>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{item.text}</h3>
-                  <p className="text-sm text-gray-500">{item.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Strategic Direction */}
+      {/* 7. Strategic Direction */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -365,7 +411,45 @@ function AboutContent() {
         </div>
       </motion.section>
 
-      {/* Strategic Goals & Department Policy */}
+      {/* 8. Executive Policy */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="card-premium overflow-hidden border border-purple-100"
+      >
+        <div className="bg-gradient-to-r from-purple-50 to-white px-8 py-6 border-b border-purple-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-200">
+              <i className="fa-solid fa-user-tie"></i>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">นโยบายผู้บริหาร</h2>
+          </div>
+        </div>
+        <div className="p-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            {[
+              { id: 1, text: "พัฒนาคุณภาพบริการให้ได้มาตรฐาน HA", sub: "เน้นความปลอดภัย 3P Safety" },
+              { id: 2, text: "บริหารงานด้วยความโปร่งใส (ITA)", sub: "ใช้หลักธรรมาภิบาล" },
+              { id: 3, text: "ก้าวสู่ Smart Hospital", sub: "พัฒนาระบบเทคโนโลยีสารสนเทศ" },
+              { id: 4, text: "ยึดหลักเศรษฐกิจพอเพียง", sub: "ใช้ทรัพยากรอย่างคุ้มค่า" }
+            ].map((item) => (
+              <div key={item.id} className="flex gap-4">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm border border-purple-200">
+                  {item.id}
+                </span>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{item.text}</h3>
+                  <p className="text-sm text-gray-500">{item.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 9. Strategic Goals & Department Policy */}
       <div className="grid md:grid-cols-2 gap-8">
         <motion.section
           initial={{ opacity: 0, y: 30 }}
@@ -423,7 +507,7 @@ function AboutContent() {
         </motion.section>
       </div>
 
-      {/* Quality Policy */}
+      {/* 10. Quality Policy */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -451,7 +535,7 @@ function AboutContent() {
         </ul>
       </motion.section>
 
-      {/* Contact CTA */}
+      {/* 11. Contact CTA */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
@@ -482,15 +566,12 @@ export default function AboutPage() {
   return (
     <div className="page-wrapper">
       <div className="container-narrow py-8">
-        {/* SEO meta tags สำหรับหน้าเกี่ยวกับเรา */}
         <SEO
           title="เกี่ยวกับเรา"
           description="ข้อมูลเกี่ยวกับโรงพยาบาลปง ประวัติ วิสัยทัศน์ พันธกิจ ค่านิยมองค์กร โครงสร้างองค์กร และอินโฟกราฟิก โรงพยาบาลปง อำเภอปง จังหวัดพะเยา"
         />
         <PageHeader title="เกี่ยวกับเรา" />
 
-
-        {/* Routes */}
         <Routes>
           <Route index element={<AboutContent />} />
           <Route path="infographic" element={<InfographicPage />} />
