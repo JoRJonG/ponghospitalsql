@@ -15,7 +15,7 @@ const router = express.Router()
 router.use(createRateLimiter({ windowMs: 10_000, max: 40 }))
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'legal_ethics')
-const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 const ALLOWED_MIME_TYPES = ['application/pdf']
 
 // ตรวจสอบและสร้างโฟลเดอร์สำหรับเก็บไฟล์

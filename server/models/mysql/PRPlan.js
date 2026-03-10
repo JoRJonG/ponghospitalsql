@@ -1,6 +1,6 @@
 import pool from '../../database.js'
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB สำหรับ PDF
+const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB สำหรับ PDF
 
 class PRPlan {
     // สร้าง PR Plan ใหม่

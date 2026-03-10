@@ -75,7 +75,7 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
         if (!validate()) return
         setSubmitting(true)
 
-        // AbortController สำหรับ timeout 5 นาที (รองรับไฟล์ขนาดใหญ่ถึง 20MB)
+        // AbortController สำหรับ timeout 5 นาที (รองรับไฟล์ขนาดใหญ่ถึง 100MB)
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000)
 
@@ -125,7 +125,7 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
         } catch (err: unknown) {
             // ตรวจสอบกรณี timeout (AbortError)
             if (err instanceof Error && err.name === 'AbortError') {
-                setErrors({ title: 'การอัปโหลดใช้เวลานานเกินไป กรุณาลองใหม่ด้วยไฟล์ที่เล็กกว่า' })
+                setErrors({ title: 'การอัปโหลดใช้เวลานานเกินไป กรุณาลองใหม่' })
             } else {
                 setErrors({ title: err instanceof Error ? err.message : 'เกิดข้อผิดพลาด กรุณาลองใหม่' })
             }
@@ -305,8 +305,8 @@ function LegalEthicsDocs() {
             Swal.fire({ icon: 'warning', title: 'ไฟล์ไม่ถูกต้อง', text: 'กรุณาเลือกไฟล์ PDF เท่านั้น', confirmButtonColor: '#059669' })
             return
         }
-        if (file.size > 20 * 1024 * 1024) {
-            Swal.fire({ icon: 'warning', title: 'ไฟล์ใหญ่เกินไป', text: 'ขนาดไฟล์ต้องไม่เกิน 20 MB', confirmButtonColor: '#059669' })
+        if (file.size > 100 * 1024 * 1024) {
+            Swal.fire({ icon: 'warning', title: 'ไฟล์ใหญ่เกินไป', text: 'ขนาดไฟล์ต้องไม่เกิน 100 MB', confirmButtonColor: '#059669' })
             return
         }
         setModal({ mode: 'upload', file })

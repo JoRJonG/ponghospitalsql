@@ -73,9 +73,9 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
             return
         }
 
-        // ตรวจสอบขนาดไฟล์ (20MB)
-        if (file.size > 20 * 1024 * 1024) {
-            Swal.fire('แจ้งเตือน', 'ไฟล์ใหญ่เกิน 20MB', 'warning')
+        // ตรวจสอบขนาดไฟล์ (100MB)
+        if (file.size > 100 * 1024 * 1024) {
+            Swal.fire('แจ้งเตือน', 'ไฟล์ใหญ่เกิน 100MB', 'warning')
             e.target.value = ''
             return
         }
@@ -295,7 +295,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                             <i className="fa-solid fa-shield-halved text-purple-600 mr-2" />
                             จัดการแผนปฏิบัติการ ป้องกัน ปราบปราม
                         </h2>
-                        <p className="text-gray-600">อัปโหลดและจัดการไฟล์ PDF แผนปฏิบัติการ (ขนาดไม่เกิน 20MB)</p>
+                        <p className="text-gray-600">อัปโหลดและจัดการไฟล์ PDF แผนปฏิบัติการ (ขนาดไม่เกิน 100MB)</p>
                     </div>
                 </div>
             </div>
@@ -312,7 +312,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                         <p className="mb-2 text-sm text-gray-700">
                             <span className="font-semibold">คลิกเพื่ออัปโหลด</span> หรือลากไฟล์มาวาง
                         </p>
-                        <p className="text-xs text-gray-500">PDF (ขนาดไม่เกิน 20MB)</p>
+                        <p className="text-xs text-gray-500">PDF (ขนาดไม่เกิน 100MB)</p>
                     </div>
                     <input
                         type="file"

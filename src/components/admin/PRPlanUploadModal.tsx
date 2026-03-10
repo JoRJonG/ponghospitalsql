@@ -46,8 +46,8 @@ export default function PRPlanUploadModal({ isOpen, onClose, onUpload, initialFi
             return
         }
 
-        if (selectedFile.size > 20 * 1024 * 1024) {
-            setError('ไฟล์มีขนาดใหญ่เกิน 20MB')
+        if (selectedFile.size > 100 * 1024 * 1024) {
+            setError('ไฟล์มีขนาดใหญ่เกิน 100MB')
             return
         }
 
@@ -170,7 +170,7 @@ export default function PRPlanUploadModal({ isOpen, onClose, onUpload, initialFi
                                     <p className="mb-1 text-sm text-gray-700 font-medium">
                                         คลิกเพื่อเลือกไฟล์ PDF
                                     </p>
-                                    <p className="text-xs text-gray-500">ขนาดไม่เกิน 20MB</p>
+                                    <p className="text-xs text-gray-500">ขนาดไม่เกิน 100MB</p>
                                 </div>
                                 <input
                                     type="file"
