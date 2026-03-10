@@ -57,6 +57,12 @@ export default function DocumentCategoryView({ category, apiEndpoint = '/api/doc
         fetchDocuments()
     }, [category, apiEndpoint])
 
+    // Reset state when category or endpoint changes
+    useEffect(() => {
+        setDocuments([])
+        setSelectedDoc(null)
+    }, [category, apiEndpoint])
+
     // Load PDF when selected
     useEffect(() => {
         if (!selectedDoc) {

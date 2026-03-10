@@ -39,7 +39,9 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
         try {
             setLoading(true)
             // Admin ควรเห็นทั้งหมด ไม่กรอง isPublished
-            const res = await fetch(`/api/pr-plans?page=${page}&limit=${limit}`)
+            const res = await fetch(`/api/pr-plans?page=${page}&limit=${limit}`, {
+                headers: { 'Authorization': `Bearer ${getToken()}` },
+            })
             if (!res.ok) throw new Error('Failed to fetch PR plans')
 
             const data = await res.json()

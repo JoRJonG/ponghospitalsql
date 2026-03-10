@@ -351,7 +351,9 @@ function LegalEthicsDocs() {
         try {
             setLoading(true)
             const catQ = filterCategory !== 'ทั้งหมด' ? `&category=${encodeURIComponent(filterCategory)}` : ''
-            const res = await fetch(`/api/legal-ethics?page=${page}&limit=${limit}${catQ}`)
+            const res = await fetch(`/api/legal-ethics?page=${page}&limit=${limit}${catQ}&published=all`, {
+                headers: { Authorization: `Bearer ${getToken()}` }
+            })
             if (!res.ok) throw new Error('โหลดข้อมูลไม่สำเร็จ')
             const data = await res.json()
             setDocs(data.data || [])

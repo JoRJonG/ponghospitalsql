@@ -2,11 +2,12 @@ import express from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs/promises'
-import { requireAuth, requirePermission } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
 import { createRateLimiter } from '../middleware/ratelimit.js'
 import { sanitizeText } from '../utils/sanitization.js'
 import { decodeUploadFilename } from '../utils/filename.js'
 import LegalEthics from '../models/mysql/LegalEthics.js'
+import { toAdminDTO, toPublicDTO, toAdminDTOList, toPublicDTOList } from '../dto/DocumentDTO.js'
 
 const router = express.Router()
 
@@ -43,7 +44,7 @@ const upload = multer({
 })
 
 // ดึงรายการทั้งหมด (Public)
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1
         const limit = parseInt(req.query.limit) || 20
@@ -51,7 +52,7 @@ router.get('/', async (req, res) => {
         const category = req.query.category || ''
 
         // ถ้าเป็นการร้องขอจาก Admin ให้ส่งทั้งหมดกลับไป
-        const isAdmin = req.user?.role === 'ADMIN'
+        const isAdmin = userHasPermission(req.user, 'legal_ethics') || userHasPermission(req.user, 'admin')
         const isPublished = isAdmin && req.query.published === 'all' ? undefined : true
 
         const [items, total] = await Promise.all([
@@ -60,9 +61,10 @@ router.get('/', async (req, res) => {
         ])
 
         const totalPages = Math.ceil(total / limit)
+        const result = isAdmin ? toAdminDTOList(items) : toPublicDTOList(items)
 
         res.json({
-            data: items,
+            data: result,
             pagination: {
                 total,
                 page,
@@ -137,7 +139,7 @@ router.get('/:id', async (req, res) => {
         if (!item) {
             return res.status(404).json({ error: 'ไม่พบข้อมูล' })
         }
-        res.json(item)
+        res.json(toPublicDTO(item))
     } catch (error) {
         res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' })
     }
@@ -257,7 +259,7 @@ router.put('/:id', requireAuth, requirePermission('legal_ethics'), upload.single
         }
 
         const updatedDoc = await LegalEthics.findByIdAndUpdate(id, updates)
-        res.json({ message: 'อัปเดตข้อมูลสำเร็จ', doc: updatedDoc })
+        res.json({ message: 'อัปเดตข้อมูลสำเร็จ', doc: toAdminDTO(updatedDoc) })
     } catch (error) {
         console.error('Update error:', error)
         res.status(500).json({ error: 'ไม่สามารถอัปเดตข้อมูลได้' })

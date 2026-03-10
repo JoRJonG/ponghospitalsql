@@ -293,6 +293,79 @@ function AboutContent() {
         </div>
       </motion.section>
 
+      {/* Strategic Direction */}
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="card-premium overflow-hidden border border-orange-100"
+      >
+        <div className="bg-gradient-to-r from-orange-50 to-white px-8 py-6 border-b border-orange-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-200">
+              <i className="fa-solid fa-chess-rook"></i>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">ยุทธศาสตร์ของหน่วยงาน</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Strategic Direction</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-8">
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                id: 1,
+                icon: "fa-shield-heart",
+                text: "พัฒนาความเป็นเลิศด้านการส่งเสริมสุขภาพและป้องกันโรค",
+                label: "P&P Excellence",
+                color: "text-emerald-600",
+                bg: "bg-emerald-50",
+                border: "border-emerald-100"
+              },
+              {
+                id: 2,
+                icon: "fa-hospital",
+                text: "พัฒนาระบบบริการสุขภาพให้มีคุณภาพมาตรฐานและเป็นที่ยอมรับ",
+                label: "Service Excellence",
+                color: "text-blue-600",
+                bg: "bg-blue-50",
+                border: "border-blue-100"
+              },
+              {
+                id: 3,
+                icon: "fa-users-gear",
+                text: "ส่งเสริมความเป็นเลิศในการจัดการกำลังคนที่มีประสิทธิภาพและเสริมสร้างสุขภาวการณ์ทำงานที่เหมาะสม",
+                label: "People Excellence",
+                color: "text-violet-600",
+                bg: "bg-violet-50",
+                border: "border-violet-100"
+              },
+              {
+                id: 4,
+                icon: "fa-scale-balanced",
+                text: "เสริมสร้างความเป็นเลิศด้านธรรมาภิบาลการพัฒนาและสนับสนุนระบบบริการสุขภาพ",
+                label: "Governance Excellence",
+                color: "text-orange-600",
+                bg: "bg-orange-50",
+                border: "border-orange-100"
+              }
+            ].map((item) => (
+              <div key={item.id} className={`flex gap-4 p-5 rounded-xl border ${item.border} bg-white hover:shadow-sm transition-shadow`}>
+                <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center ${item.color}`}>
+                  <i className={`fa-solid ${item.icon} text-xl`}></i>
+                </div>
+                <div className="flex-1">
+                  <span className={`inline-block text-xs font-semibold ${item.color} mb-1`}>{item.label}</span>
+                  <p className="text-gray-700 text-sm leading-relaxed font-medium">{item.id}. {item.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
       {/* Strategic Goals & Department Policy */}
       <div className="grid md:grid-cols-2 gap-8">
         <motion.section
