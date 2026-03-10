@@ -197,9 +197,10 @@ router.post('/', requireAuth, requirePermission('legal_ethics'), upload.single('
             createdBy: username
         })
 
+        const createdDoc = await LegalEthics.findById(newDoc.id)
         res.status(201).json({
             message: 'อัปโหลดสำเร็จ',
-            id: newDoc.id
+            doc: toAdminDTO(createdDoc)
         })
     } catch (error) {
         console.error('Upload error:', error)

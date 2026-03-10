@@ -181,8 +181,8 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
                         <div className="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
                             <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" /></svg>
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-800 truncate">{file.name}</p>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-gray-800 whitespace-normal">{file.name}</p>
                             <p className="text-xs text-gray-400">{formatFileSize(file.size)}</p>
                         </div>
                     </div>
@@ -425,8 +425,8 @@ function LegalEthicsDocs() {
                                                 <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0">
                                                     <svg className="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" /></svg>
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold text-gray-800 truncate max-w-[260px]" title={doc.title}>{doc.title}</p>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-semibold text-gray-800 whitespace-normal" title={doc.title}>{doc.title}</p>
                                                     <p className="text-xs text-gray-400 mt-0.5">{new Date(doc.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                                                 </div>
                                             </div>
@@ -447,7 +447,7 @@ function LegalEthicsDocs() {
                                             </button>
                                         </td>
                                         <td className="px-5 py-3.5">
-                                            <div className="flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-center gap-1.5 transition-opacity">
                                                 <button onClick={() => setModal({ mode: 'edit', doc })} className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all" title="แก้ไข">
                                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                 </button>
