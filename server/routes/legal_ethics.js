@@ -79,7 +79,7 @@ router.get('/', optionalAuth, async (req, res) => {
 })
 
 // ดาวน์โหลดไฟล์ (Public)
-router.get('/download/:id', async (req, res) => {
+router.get(['/download/:id', '/download/:id/:filename'], async (req, res) => {
     try {
         const fileData = await LegalEthics.getFilePath(req.params.id)
         if (!fileData) {
@@ -108,7 +108,7 @@ router.get('/download/:id', async (req, res) => {
 })
 
 // แสดงไฟล์ (Public) - สำหรับพรีวิว
-router.get('/file/:id', async (req, res) => {
+router.get(['/file/:id', '/file/:id/:filename'], async (req, res) => {
     try {
         const fileData = await LegalEthics.getFilePath(req.params.id)
         if (!fileData) {

@@ -207,33 +207,9 @@ export default function Navbar() {
                       </NavLink>
                     </li>
                     <li>
-                      <NavLink to="/about/pr-plan" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
-                        <i className="fa-solid fa-shield-halved text-gray-500" />
-                        <span>แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ</span>
-                      </NavLink>
-                    </li>
-                    <li>
                       <NavLink to="/about/laws" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
                         <i className="fa-solid fa-scale-balanced text-gray-500" />
-                        <span>กฏหมายที่เกี่ยวข้องกับการดำเนินงานหรือการปฏิบัติงานของหน่วยงาน</span>
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink to="/about/ethics-act-2562" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
-                        <i className="fa-solid fa-book-open text-gray-500" />
-                        <span>พระราชบัญญัติมาตรฐานทางจริยธรรม พ.ศ.2562</span>
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink to="/about/ethics-civil-service" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
-                        <i className="fa-solid fa-users-viewfinder text-gray-500" />
-                        <span>ประมวลจริยธรรมข้าราชการพลเรือน</span>
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink to="/about/ethics-moph-2564" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
-                        <i className="fa-solid fa-file-contract text-gray-500" />
-                        <span>ข้อกำหนดจริยธรรมเจ้าหน้าที่ของรัฐสำนักงานปลัดกระทรวงสาธารณสุข พ.ศ. 2564</span>
+                        <span>กฎหมายที่เกี่ยวข้องกับการดำเนินงาน</span>
                       </NavLink>
                     </li>
                   </ul>
@@ -348,52 +324,12 @@ export default function Navbar() {
                       </li>
                       <li>
                         <NavLink
-                          to="/about/pr-plan"
+                          to="/about/laws"
                           onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
                           className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2"
                         >
-                          <i className="fa-solid fa-shield-halved text-gray-500 text-xs" />
-                          <span>แผนปฏิบัติการด้านการป้องกัน ปราบปรามการทุจริตและประพฤติมิชอบ</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/about/laws"
-                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2 line-clamp-2"
-                        >
                           <i className="fa-solid fa-scale-balanced text-gray-500 text-xs" />
-                          <span>กฏหมายที่เกี่ยวข้องกับการดำเนินงาน</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/about/ethics-act-2562"
-                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2 line-clamp-2"
-                        >
-                          <i className="fa-solid fa-book-open text-gray-500 text-xs" />
-                          <span>พ.ร.บ. มาตรฐานทางจริยธรรม พ.ศ.2562</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/about/ethics-civil-service"
-                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2 line-clamp-2"
-                        >
-                          <i className="fa-solid fa-users-viewfinder text-gray-500 text-xs" />
-                          <span>ประมวลจริยธรรมข้าราชการพลเรือน</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/about/ethics-moph-2564"
-                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
-                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2 line-clamp-2"
-                        >
-                          <i className="fa-solid fa-file-contract text-gray-500 text-xs" />
-                          <span>ข้อกำหนดจริยธรรม สป.สธ. พ.ศ.2564</span>
+                          <span>กฎหมายที่เกี่ยวข้องกับการดำเนินงาน</span>
                         </NavLink>
                       </li>
                     </ul>

@@ -1,7 +1,7 @@
 import { useState, useEffect, forwardRef, useImperativeHandle, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Swal from 'sweetalert2'
-import PRPlanManagement from './PRPlanManagement'
+
 import { useAuth } from '../../auth/AuthContext'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -20,31 +20,9 @@ type LegalEthicsDoc = {
 }
 
 export type LegalEthicsManagementHandle = { refresh: () => void }
-type InnerTab = 'legalEthics' | 'prPlan'
+
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-const CATEGORIES = [
-    'กฏหมายที่เกี่ยวข้องกับการดำเนินงานหรือการปฏิบัติงานของหน่วยงาน',
-    'พระราชบัญญัติมาตรฐานทางจริยธรรม พ.ศ.2562',
-    'ประมวลจริยธรรมข้าราชการพลเรือน',
-    'ข้อกำหนดจริยธรรมเจ้าหน้าที่ของรัฐสำนักงานปลัดกระทรวงสาธารณสุข พ.ศ. 2564',
-]
-
-const CATEGORY_META: Record<string, { color: string; short: string; icon: string }> = {
-    'กฏหมายที่เกี่ยวข้องกับการดำเนินงานหรือการปฏิบัติงานของหน่วยงาน':
-        { color: 'bg-blue-50 text-blue-700 border-blue-200', short: 'กฎหมายองค์กร', icon: '🏛️' },
-    'พระราชบัญญัติมาตรฐานทางจริยธรรม พ.ศ.2562':
-        { color: 'bg-violet-50 text-violet-700 border-violet-200', short: 'พ.ร.บ.จริยธรรม', icon: '📜' },
-    'ประมวลจริยธรรมข้าราชการพลเรือน':
-        { color: 'bg-amber-50 text-amber-700 border-amber-200', short: 'ประมวลจริยธรรม', icon: '📋' },
-    'ข้อกำหนดจริยธรรมเจ้าหน้าที่ของรัฐสำนักงานปลัดกระทรวงสาธารณสุข พ.ศ. 2564':
-        { color: 'bg-teal-50 text-teal-700 border-teal-200', short: 'สป.สธ. 2564', icon: '🏥' },
-}
-
-function getCategoryMeta(cat: string) {
-    return CATEGORY_META[cat] ?? { color: 'bg-gray-100 text-gray-600 border-gray-200', short: cat, icon: '📄' }
-}
-
 function formatFileSize(bytes: number) {
     if (bytes === 0) return '0 B'
     const k = 1024; const sz = ['B', 'KB', 'MB', 'GB']
@@ -66,11 +44,10 @@ interface DocModalProps {
 
 function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
     const { getToken } = useAuth()
-    const [category, setCategory] = useState(doc?.category ?? '')
     const [title, setTitle] = useState(doc?.title ?? file?.name.replace('.pdf', '') ?? '')
     const [description, setDescription] = useState(doc?.description ?? '')
     const [submitting, setSubmitting] = useState(false)
-    const [errors, setErrors] = useState<{ category?: string; title?: string }>({})
+    const [errors, setErrors] = useState<{ title?: string }>({})
     const titleRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
@@ -88,7 +65,6 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
 
     const validate = () => {
         const e: typeof errors = {}
-        if (!category) e.category = 'กรุณาเลือกหมวดหมู่'
         if (!title.trim()) e.title = 'กรุณาระบุชื่อเอกสาร'
         setErrors(e)
         return Object.keys(e).length === 0
@@ -105,7 +81,7 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
 
         try {
             const fd = new FormData()
-            fd.append('category', category)
+            fd.append('category', 'กฎหมายที่เกี่ยวข้องกับการดำเนินงาน')
             fd.append('title', title.trim())
             fd.append('description', description)
 
@@ -215,51 +191,6 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="px-6 pb-6 pt-5 space-y-5">
 
-                    {/* Category selector — card-style */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2.5">
-                            หมวดหมู่ <span className="text-red-500">*</span>
-                        </label>
-                        <div className="grid grid-cols-1 gap-2">
-                            {CATEGORIES.map(cat => {
-                                const meta = getCategoryMeta(cat)
-                                const selected = category === cat
-                                return (
-                                    <label
-                                        key={cat}
-                                        className={`relative flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-150
-                                            ${selected
-                                                ? 'border-emerald-400 bg-emerald-50 shadow-sm shadow-emerald-100'
-                                                : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50/80'
-                                            }`}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="category"
-                                            value={cat}
-                                            checked={selected}
-                                            onChange={() => { setCategory(cat); setErrors(p => ({ ...p, category: undefined })) }}
-                                            className="sr-only"
-                                        />
-                                        <span className="text-lg leading-none flex-shrink-0">{meta.icon}</span>
-                                        <span className="text-sm text-gray-700 leading-snug flex-1">{cat}</span>
-                                        {/* Checkmark */}
-                                        <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all
-                                            ${selected ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white'}`}>
-                                            {selected && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                                        </span>
-                                    </label>
-                                )
-                            })}
-                        </div>
-                        {errors.category && (
-                            <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
-                                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                                {errors.category}
-                            </p>
-                        )}
-                    </div>
-
                     {/* Title input */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -332,7 +263,6 @@ function LegalEthicsDocs() {
     const [docs, setDocs] = useState<LegalEthicsDoc[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [filterCategory, setFilterCategory] = useState<string>('ทั้งหมด')
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [totalCount, setTotalCount] = useState(0)
@@ -350,8 +280,7 @@ function LegalEthicsDocs() {
     const fetchDocs = useCallback(async () => {
         try {
             setLoading(true)
-            const catQ = filterCategory !== 'ทั้งหมด' ? `&category=${encodeURIComponent(filterCategory)}` : ''
-            const res = await fetch(`/api/legal-ethics?page=${page}&limit=${limit}${catQ}&published=all`, {
+            const res = await fetch(`/api/legal-ethics?page=${page}&limit=${limit}&published=all`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             })
             if (!res.ok) throw new Error('โหลดข้อมูลไม่สำเร็จ')
@@ -364,7 +293,7 @@ function LegalEthicsDocs() {
         } finally {
             setLoading(false)
         }
-    }, [page, limit, filterCategory, getToken])
+    }, [page, limit, getToken])
 
     useEffect(() => { fetchDocs() }, [fetchDocs])
 
@@ -435,31 +364,12 @@ function LegalEthicsDocs() {
             <input ref={fileInputRef} type="file" accept="application/pdf" className="sr-only" onChange={handleFileSelect} />
 
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">กรอง:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                        {['ทั้งหมด', ...CATEGORIES].map(cat => {
-                            const active = filterCategory === cat
-                            const meta = cat === 'ทั้งหมด'
-                                ? { color: 'bg-gray-200 text-gray-700 border-gray-300', short: 'ทั้งหมด' }
-                                : getCategoryMeta(cat)
-                            return (
-                                <button
-                                    key={cat}
-                                    onClick={() => { setFilterCategory(cat); setPage(1) }}
-                                    title={cat}
-                                    className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition-all duration-150
-                                        ${active
-                                            ? `${meta.color} ring-2 ring-offset-1 ring-emerald-400 scale-105 shadow-sm`
-                                            : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                                        }`}
-                                >
-                                    {meta.short}
-                                </button>
-                            )
-                        })}
-                    </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-medium">
+                <div>
+                    <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                        <i className="fa-solid fa-folder-open text-emerald-600" />
+                        รายการเอกสารทั้งหมด
+                    </h3>
                 </div>
                 <button
                     onClick={() => fileInputRef.current?.click()}
@@ -491,7 +401,6 @@ function LegalEthicsDocs() {
                             <tr className="border-b border-gray-100">
                                 <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest w-10">#</th>
                                 <th className="px-3 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest">ชื่อเอกสาร</th>
-                                <th className="px-3 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest">หมวดหมู่</th>
                                 <th className="px-3 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-widest">ขนาด</th>
                                 <th className="px-3 py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-widest">สถานะ</th>
                                 <th className="px-5 py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-widest">จัดการ</th>
@@ -500,7 +409,7 @@ function LegalEthicsDocs() {
                         <tbody>
                             {docs.length === 0 && !loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-5 py-16 text-center">
+                                    <td colSpan={5} className="px-5 py-16 text-center">
                                         <div className="flex flex-col items-center gap-3 text-gray-300">
                                             <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                             <p className="text-sm text-gray-400">ยังไม่มีเอกสารในหมวดหมู่นี้</p>
@@ -508,7 +417,6 @@ function LegalEthicsDocs() {
                                     </td>
                                 </tr>
                             ) : docs.map((doc, idx) => {
-                                const meta = getCategoryMeta(doc.category)
                                 return (
                                     <tr key={doc.id} className="group border-b border-gray-50 hover:bg-emerald-50/40 transition-colors duration-100">
                                         <td className="px-5 py-3.5 text-xs text-gray-300 tabular-nums font-mono">{(page - 1) * limit + idx + 1}</td>
@@ -523,12 +431,7 @@ function LegalEthicsDocs() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-3 py-3.5">
-                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${meta.color}`} title={doc.category}>
-                                                <span className="text-[10px]">{meta.icon}</span>
-                                                {meta.short}
-                                            </span>
-                                        </td>
+
                                         <td className="px-3 py-3.5 text-right text-xs text-gray-400 tabular-nums font-mono">{formatFileSize(doc.fileSize)}</td>
                                         <td className="px-3 py-3.5 text-center">
                                             <button
@@ -575,13 +478,7 @@ function LegalEthicsDocs() {
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 const LegalEthicsManagement = forwardRef<LegalEthicsManagementHandle>((_, ref) => {
-    const [activeTab, setActiveTab] = useState<InnerTab>('legalEthics')
     useImperativeHandle(ref, () => ({ refresh: () => { } }))
-
-    const TABS: { id: InnerTab; label: string; sublabel: string; icon: string }[] = [
-        { id: 'legalEthics', label: 'กฎหมายและจริยธรรม', sublabel: 'เอกสาร PDF กฎหมาย พรบ. และจริยธรรม', icon: '⚖️' },
-        { id: 'prPlan', label: 'แผนปฏิบัติการ', sublabel: 'ป้องกัน ปราบปราม การทุจริต', icon: '🛡️' },
-    ]
 
     return (
         <div className="space-y-5">
@@ -601,28 +498,9 @@ const LegalEthicsManagement = forwardRef<LegalEthicsManagementHandle>((_, ref) =
                 </div>
             </div>
 
-            {/* Tab Card */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-                <div className="flex border-b border-gray-100">
-                    {TABS.map(t => (
-                        <button
-                            key={t.id}
-                            onClick={() => setActiveTab(t.id)}
-                            className={`flex-1 relative flex flex-col sm:flex-row items-center sm:items-start gap-2 px-5 py-4 text-left transition-all duration-200
-                                ${activeTab === t.id ? 'bg-white text-emerald-700' : 'bg-gray-50/60 text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}
-                        >
-                            <span className="text-xl leading-none flex-shrink-0">{t.icon}</span>
-                            <div>
-                                <p className="text-sm font-bold leading-tight">{t.label}</p>
-                                <p className="text-[11px] text-gray-400 leading-snug hidden sm:block">{t.sublabel}</p>
-                            </div>
-                            {activeTab === t.id && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-t-full" />}
-                        </button>
-                    ))}
-                </div>
-                <div className="p-5 sm:p-6">
-                    {activeTab === 'legalEthics' ? <LegalEthicsDocs /> : <PRPlanManagement />}
-                </div>
+            {/* List Section */}
+            <div className="p-0 sm:p-0">
+                <LegalEthicsDocs />
             </div>
         </div>
     )

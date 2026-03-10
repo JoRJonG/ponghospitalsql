@@ -132,10 +132,10 @@ router.get('/:id', optionalAuth, async (req, res) => {
 })
 
 /**
- * GET /api/pr-plans/:id/view
+ * GET /api/pr-plans/:id/view (และ /:id/view/:filename)
  * ดู PDF แบบ inline (ไม่ดาวน์โหลด)
  */
-router.get('/:id/view', async (req, res) => {
+router.get(['/:id/view', '/:id/view/:filename'], async (req, res) => {
     if (!req.app.locals.dbConnected) {
         return res.status(503).json({ error: 'Database unavailable' })
     }
@@ -178,10 +178,10 @@ router.get('/:id/view', async (req, res) => {
 })
 
 /**
- * GET /api/pr-plans/:id/download
+ * GET /api/pr-plans/:id/download (และ /:id/download/:filename)
  * ดาวน์โหลดไฟล์ PDF
  */
-router.get('/:id/download', async (req, res) => {
+router.get(['/:id/download', '/:id/download/:filename'], async (req, res) => {
     if (!req.app.locals.dbConnected) {
         return res.status(503).json({ error: 'Database unavailable' })
     }

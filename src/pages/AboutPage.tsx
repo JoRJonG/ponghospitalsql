@@ -2,10 +2,9 @@ import { motion } from 'framer-motion'
 import { Routes, Route } from 'react-router-dom'
 import InfographicPage from './InfographicPage'
 import OrganizationChartPage from './OrganizationChartPage'
-import PRPlanPage from './PRPlanPage'
-import DocumentCategoryView from '../components/DocumentCategoryView'
 import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
+import AboutLawsList from '../components/AboutLawsList'
 
 function AboutContent() {
   return (
@@ -496,11 +495,7 @@ export default function AboutPage() {
           <Route index element={<AboutContent />} />
           <Route path="infographic" element={<InfographicPage />} />
           <Route path="organization" element={<OrganizationChartPage />} />
-          <Route path="pr-plan" element={<PRPlanPage />} />
-          <Route path="laws" element={<DocumentCategoryView title="กฏหมายที่เกี่ยวข้องกับการดำเนินงานหรือการปฏิบัติงานของหน่วยงาน" category="กฏหมายที่เกี่ยวข้องกับการดำเนินงานหรือการปฏิบัติงานของหน่วยงาน" apiEndpoint="/api/legal-ethics" />} />
-          <Route path="ethics-act-2562" element={<DocumentCategoryView title="พระราชบัญญัติมาตรฐานทางจริยธรรม พ.ศ.2562" category="พระราชบัญญัติมาตรฐานทางจริยธรรม พ.ศ.2562" apiEndpoint="/api/legal-ethics" />} />
-          <Route path="ethics-civil-service" element={<DocumentCategoryView title="ประมวลจริยธรรมข้าราชการพลเรือน" category="ประมวลจริยธรรมข้าราชการพลเรือน" apiEndpoint="/api/legal-ethics" />} />
-          <Route path="ethics-moph-2564" element={<DocumentCategoryView title="ข้อกำหนดจริยธรรมเจ้าหน้าที่ของรัฐสำนักงานปลัดกระทรวงสาธารณสุข พ.ศ. 2564" category="ข้อกำหนดจริยธรรมเจ้าหน้าที่ของรัฐสำนักงานปลัดกระทรวงสาธารณสุข พ.ศ. 2564" apiEndpoint="/api/legal-ethics" />} />
+          <Route path="laws" element={<AboutLawsList />} />
         </Routes>
       </div>
     </div>
