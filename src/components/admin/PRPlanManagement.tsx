@@ -52,7 +52,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
         } finally {
             setLoading(false)
         }
-    }, [page, limit])
+    }, [page, limit, getToken])
 
     useEffect(() => {
         fetchPlans()

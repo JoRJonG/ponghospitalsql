@@ -364,7 +364,7 @@ function LegalEthicsDocs() {
         } finally {
             setLoading(false)
         }
-    }, [page, limit, filterCategory])
+    }, [page, limit, filterCategory, getToken])
 
     useEffect(() => { fetchDocs() }, [fetchDocs])
 
