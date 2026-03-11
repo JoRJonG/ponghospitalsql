@@ -358,21 +358,21 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <span className="text-3xl">👔</span>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent flex items-center gap-3">
+            <span className="text-3xl filter drop-shadow-sm">👔</span>
             จัดการผู้บริหาร
           </h2>
-          <p className="text-sm text-gray-500 mt-1 ml-11">ลากเพื่อเรียงลำดับการแสดงผล</p>
+          <p className="text-sm text-gray-500 mt-1">ลากเพื่อเรียงลำดับการแสดงผลหน้าเว็บไซต์ (แบบเต็มความกว้าง)</p>
         </div>
         <button
           onClick={() => { setShowForm(true); setEditingId(null) }}
-          className="admin-btn bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-md border-0"
+          className="admin-btn bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-lg shadow-emerald-200/50 border-0 py-2.5 px-6 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
         >
-          <span>➕</span>
-          เพิ่มผู้บริหาร
+          <span className="text-lg">➕</span>
+          <span>เพิ่มผู้บริหาร</span>
         </button>
       </div>
 
@@ -380,7 +380,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
       <Modal
         isOpen={showForm}
         onClose={() => { setShowForm(false); setEditingId(null) }}
-        title={editingId ? 'แก้ไขผู้บริหาร' : 'เพิ่มผู้บริหาร'}
+        title={editingId ? 'แก้ไขข้อมูลผู้บริหาร' : 'เพิ่มผู้บริหารใหม่'}
         maxWidth="max-w-2xl"
       >
         <ExecutiveForm
@@ -391,24 +391,27 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
             setEditingId(null)
             refreshExecutives()
             Swal.fire({
-              title: editingId ? 'แก้ไขผู้บริหารสำเร็จ' : 'เพิ่มผู้บริหารสำเร็จ',
+              title: editingId ? 'อัปเดตข้อมูลสำเร็จ' : 'เพิ่มผู้บริหารสำเร็จ',
               icon: 'success',
               confirmButtonText: 'ตกลง',
-              confirmButtonColor: '#10b981'
+              confirmButtonColor: '#10b981',
+              customClass: {
+                popup: 'rounded-2xl border-0 shadow-2xl'
+              }
             })
           }}
         />
       </Modal>
 
       {executives.length === 0 ? (
-        <div className="card-glass border-dashed border-2 border-gray-300 p-12 text-center">
-          <div className="text-gray-300 text-6xl mb-4">📇</div>
-          <p className="text-lg text-gray-500 font-medium">ยังไม่มีข้อมูลผู้บริหาร</p>
-          <p className="text-sm text-gray-400 mt-2">คลิก "เพิ่มผู้บริหาร" เพื่อเริ่มต้น</p>
+        <div className="bg-white/50 border-2 border-dashed border-gray-200 rounded-3xl p-16 text-center">
+          <div className="text-gray-200 text-7xl mb-6 animate-pulse">📇</div>
+          <p className="text-xl text-gray-500 font-semibold">ไม่พบข้อมูลผู้บริหารในระบบ</p>
+          <p className="text-gray-400 mt-2">เริ่มต้นโดยการคลิกปุ่ม "เพิ่มผู้บริหาร" ที่มุมขวาบน</p>
         </div>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {executives.map((exec, index) => (
           <div
             key={exec._id}
@@ -416,80 +419,80 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
             onDragStart={(e) => handleDragStart(e, exec._id!)}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, exec._id!)}
-            className={`group bg-white rounded-lg border border-gray-200 overflow-hidden cursor-move transition-all duration-200 relative
-                ${draggingId === exec._id ? 'opacity-40 scale-95 ring-2 ring-green-400' : 'hover:shadow-md hover:border-green-300 hover:translate-x-1'}
+            className={`group bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-move transition-all duration-300 relative
+                ${draggingId === exec._id ? 'opacity-30 scale-[0.98] ring-4 ring-emerald-400 shadow-2xl z-20' : 'hover:shadow-xl hover:shadow-gray-200/50 hover:border-emerald-200 hover:-translate-y-1'}
               `}
           >
-            {/* Left Accent Border */}
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-green-500 to-green-600 transition-all group-hover:w-2"></div>
+            {/* Left Accent Gradient */}
+            <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-emerald-500 via-teal-500 to-emerald-600 opacity-80 group-hover:opacity-100 transition-all group-hover:w-3"></div>
 
-            <div className="p-4 pl-6 flex items-center gap-4 sm:gap-6">
-
-              {/* Drag Handle & Index */}
-              <div className="flex flex-col items-center justify-center w-8 shrink-0 text-gray-400 group-hover:text-green-600">
-                <div className="text-xs font-bold bg-gray-100 w-6 h-6 rounded flex items-center justify-center mb-1">
-                  {index + 1}
+            <div className="p-4 pl-8 flex items-center gap-4 sm:gap-8">
+              {/* Index & Drag Handle */}
+              <div className="flex flex-col items-center justify-center w-10 shrink-0 text-gray-400 group-hover:text-emerald-600 transition-colors">
+                <div className="text-xs font-bold bg-gray-100 group-hover:bg-emerald-100 w-8 h-8 rounded-lg flex items-center justify-center mb-1 group-hover:text-emerald-700 transition-all">
+                  #{index + 1}
                 </div>
-                <span className="text-lg opacity-0 group-hover:opacity-100 transition-opacity">⋮⋮</span>
+                <span className="text-xl opacity-0 group-hover:opacity-100 transition-opacity">⋮⋮</span>
               </div>
 
-              {/* Avatar */}
-              <div className="relative shrink-0">
+              {/* Avatar with Glow */}
+              <div className="relative shrink-0 group-hover:scale-105 transition-transform duration-500">
+                <div className={`absolute inset-[-4px] rounded-full opacity-20 group-hover:opacity-40 transition-opacity blur-[2px] ${exec.isPublished ? 'bg-emerald-500' : 'bg-gray-400'}`}></div>
                 {exec.imageUrl ? (
                   <img
-                    src={`${exec.imageUrl}${exec.imageUrl?.includes('?') ? '&' : '?'}w=128&v=${new Date(exec.updatedAt || Date.now()).getTime()}`}
+                    src={`${exec.imageUrl}${exec.imageUrl?.includes('?') ? '&' : '?'}w=150&v=${new Date(exec.updatedAt || Date.now()).getTime()}`}
                     alt={exec.name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 shadow-sm group-hover:border-green-200"
+                    className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md relative z-10"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-xl border-2 border-gray-50 text-gray-400">
+                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-2xl border-4 border-white shadow-md relative z-10 text-gray-300 font-bold">
                     👤
                   </div>
                 )}
-                {/* Status Indicator Dot */}
-                <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white ${exec.isPublished ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                {/* Modern Status Badge */}
+                <div className={`absolute bottom-0 right-0 w-5 h-5 rounded-full border-4 border-white z-20 shadow-sm ${exec.isPublished ? 'bg-emerald-500' : 'bg-gray-400'}`}></div>
               </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0 py-1">
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                  <h3 className="font-bold text-lg text-gray-800 truncate group-hover:text-green-700 transition-colors">
+              {/* Main Content */}
+              <div className="flex-1 min-w-0 py-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mb-1">
+                  <h3 className="font-bold text-xl text-gray-800 truncate group-hover:text-emerald-800 transition-colors">
                     {exec.name}
                   </h3>
                 </div>
-                <p className="text-gray-500 text-sm truncate font-medium">{exec.position}</p>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                <div className="hidden sm:flex flex-col items-end mr-4">
-                  {exec.isPublished ? (
-                    <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
-                      เผยแพร่
-                    </span>
-                  ) : (
-                    <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
-                      ซ่อน
-                    </span>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-gray-500">
+                  <p className="text-sm font-semibold text-emerald-600/70 border-r border-gray-200 pr-4">{exec.position}</p>
+                  {exec.phone && (
+                    <div className="flex items-center gap-1.5 text-sm font-medium">
+                      <span className="text-emerald-500/60">📞</span>
+                      <span>{exec.phone}</span>
+                    </div>
                   )}
                 </div>
+              </div>
 
+              {/* Premium Actions */}
+              <div className="flex items-center gap-3 shrink-0 pr-2">
                 <button
                   onClick={() => { setEditingId(exec._id!); setShowForm(true) }}
-                  className="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                  title="แก้ไข"
+                  className="w-11 h-11 flex items-center justify-center rounded-2xl bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all shadow-sm hover:shadow-blue-200 relative group/btn overflow-hidden"
+                  title="แก้ไขข้อมูล"
                 >
-                  ✏️
+                  <span className="text-lg relative z-10">✏️</span>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 to-indigo-500 opacity-0 group-hover/btn:opacity-0 transition-opacity"></div>
                 </button>
                 <button
                   onClick={() => handleDelete(exec._id!)}
-                  className="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-11 h-11 flex items-center justify-center rounded-2xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-sm hover:shadow-red-200 relative group/btn overflow-hidden"
                   title="ลบ"
                 >
-                  🗑️
+                  <span className="text-lg relative z-10">🗑️</span>
                 </button>
               </div>
             </div>
+
+            {/* Hover Interaction Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/[0.02] pointer-events-none group-hover:to-emerald-500/[0.05] transition-all duration-700"></div>
           </div>
         ))}
       </div>

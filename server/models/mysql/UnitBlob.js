@@ -40,9 +40,16 @@ export class Unit {
 
     let limitClause = ''
     const limitVal = Number.parseInt(options.limit, 10)
+    const skipVal = Number.parseInt(options.skip, 10)
+
     if (Number.isFinite(limitVal) && limitVal > 0) {
-      limitClause = 'LIMIT ?'
-      params.push(limitVal)
+      if (Number.isFinite(skipVal) && skipVal > 0) {
+        limitClause = 'LIMIT ?, ?'
+        params.push(skipVal, limitVal)
+      } else {
+        limitClause = 'LIMIT ?'
+        params.push(limitVal)
+      }
     }
 
     const rows = await query(`

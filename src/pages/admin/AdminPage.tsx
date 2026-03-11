@@ -401,7 +401,7 @@ export default function AdminPage() {
 
     const params = new URLSearchParams()
     params.set('page', String(unitPage))
-    params.set('limit', '10')
+    params.set('limit', '9')
     if (query.unit) params.set('q', query.unit)
     const s = status.unit || 'all'
     params.set('status', s)
