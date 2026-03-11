@@ -122,7 +122,7 @@ export default function AboutLawsList() {
                                         <i className={`fa-solid ${doc.source === 'pr' ? 'fa-shield-halved' : 'fa-scale-balanced'} text-xl`} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-2 md:text-lg">
+                                        <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors md:text-lg">
                                             {doc.title}
                                         </h3>
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
