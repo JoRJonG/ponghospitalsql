@@ -55,6 +55,7 @@ class AirQualityService {
         const url = '/station'
 
         const response = await apiClient.get(url, {
+            params: { apikey: apiKey },
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'apikey': apiKey
@@ -115,6 +116,7 @@ class AirQualityService {
         const url = `/data30day/${stationId}`
 
         const response = await apiClient.get(url, {
+            params: { apikey: apiKey },
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'apikey': apiKey
