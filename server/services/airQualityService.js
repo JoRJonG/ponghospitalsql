@@ -49,29 +49,24 @@ class AirQualityService {
 
     /**
      * Fetch current air quality data for the main Pong Hospital station.
+     * Updated: Now calculates custom daily averages based on records since 00:00 today.
      */
     async fetchCurrentStationData() {
         const apiKey = this.getApiKey()
         const url = '/station'
 
         const response = await apiClient.get(url, {
-            params: { apikey: apiKey },
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'apikey': apiKey
-            }
+            params: { apikey: apiKey }
         })
         const data = response.data
 
-        // Handle API-level errors: DustBoy returns HTTP 200 with {status:false, error:"..."}
-        // e.g. rate limit: "This API key has reached the time limit for this method"
+        // Handle API-level errors
         if (data && typeof data === 'object' && !Array.isArray(data) && data.status === false) {
             const apiError = new Error(data.error || 'DustBoy API returned status: false')
             apiError.isDustboyApiError = true
             throw apiError
         }
 
-        // Handle possible Array response from CMU API
         const station = Array.isArray(data)
             ? data.find(s => s.dustboy_uri === 'ponghos') || data[0]
             : data
@@ -80,7 +75,35 @@ class AirQualityService {
             throw new Error('ไม่พบข้อมูลสถานี รพ.ปง จากระบบ DUSTBOY')
         }
 
-        // Return trimmed payload containing only needed fields for frontend size optimization
+        // Custom Daily Calculation: Calculate average from 00:00 today until now
+        let customDailyPM25 = station.daily_pm25
+        let customDailyPM10 = station.daily_pm10
+
+        try {
+            const history = await this.fetchHistoryData('5049')
+            if (history && history.value && history.value.length > 0) {
+                const now = new Date()
+                // กำหนดเวลา 00:00 ของวันนี้เป็นเขตกั้น (Cutoff)
+                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+
+                // กรองเฉพาะข้อมูลที่เวลาที่บวก 1 ชม. แล้วยังอยู่ในวันนี้
+                const todayRecords = history.value.filter(item => {
+                    const itemTimeMs = new Date(item.log_datetime.replace(' ', 'T') + '+07:00').getTime() + (60 * 60 * 1000)
+                    return itemTimeMs >= startOfToday && itemTimeMs <= now.getTime()
+                })
+
+                if (todayRecords.length > 0) {
+                    const sum25 = todayRecords.reduce((acc, cur) => acc + (cur.pm25 || 0), 0)
+                    customDailyPM25 = Math.round((sum25 / todayRecords.length) * 100) / 100
+
+                    const sum10 = todayRecords.reduce((acc, cur) => acc + (cur.pm10 || 0), 0)
+                    customDailyPM10 = Math.round((sum10 / todayRecords.length) * 100) / 100
+                }
+            }
+        } catch (e) {
+            console.error('[AirQualityService] Custom daily calculation failed, falling back to API values:', e.message)
+        }
+
         return {
             dustboy_name: station.dustboy_name,
             pm25: station.pm25,
@@ -94,8 +117,8 @@ class AirQualityService {
             th_title: station.th_title,
             th_caption: station.th_caption,
             th_dustboy_icon: station.th_dustboy_icon,
-            daily_pm25: station.daily_pm25,
-            daily_pm10: station.daily_pm10,
+            daily_pm25: customDailyPM25, // ใช้ค่าที่คำนวณใหม่
+            daily_pm10: customDailyPM10, // ใช้ค่าที่คำนวณใหม่
             daily_th_aqi: station.daily_th_aqi,
             daily_th_title: station.daily_th_title,
             daily_th_color: station.daily_th_color,
@@ -116,11 +139,7 @@ class AirQualityService {
         const url = `/data30day/${stationId}`
 
         const response = await apiClient.get(url, {
-            params: { apikey: apiKey },
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'apikey': apiKey
-            }
+            params: { apikey: apiKey }
         })
         const data = response.data
 
@@ -148,7 +167,8 @@ class AirQualityService {
 
         const trimmedValues = filteredRecords.map(item => ({
             log_datetime: item.log_datetime,
-            pm25: item.pm25
+            pm25: item.pm25,
+            pm10: item.pm10
         }))
 
         return { value: trimmedValues }
