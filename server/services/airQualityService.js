@@ -93,11 +93,11 @@ class AirQualityService {
                 })
 
                 if (todayRecords.length > 0) {
-                    const sum25 = todayRecords.reduce((acc, cur) => acc + (cur.pm25 || 0), 0)
-                    customDailyPM25 = Math.round((sum25 / todayRecords.length) * 100) / 100
+                    const sum25 = todayRecords.reduce((acc, cur) => acc + (parseFloat(cur.pm25) || 0), 0)
+                    customDailyPM25 = Math.round(sum25 / todayRecords.length)
 
-                    const sum10 = todayRecords.reduce((acc, cur) => acc + (cur.pm10 || 0), 0)
-                    customDailyPM10 = Math.round((sum10 / todayRecords.length) * 100) / 100
+                    const sum10 = todayRecords.reduce((acc, cur) => acc + (parseFloat(cur.pm10) || 0), 0)
+                    customDailyPM10 = Math.round(sum10 / todayRecords.length)
                 }
             }
         } catch (e) {
@@ -106,8 +106,8 @@ class AirQualityService {
 
         return {
             dustboy_name: station.dustboy_name,
-            pm25: station.pm25,
-            pm10: station.pm10,
+            pm25: Math.round(parseFloat(station.pm25) || 0),
+            pm10: Math.round(parseFloat(station.pm10) || 0),
             us_aqi: station.us_aqi,
             us_color: station.us_color,
             us_title: station.us_title,
@@ -117,8 +117,8 @@ class AirQualityService {
             th_title: station.th_title,
             th_caption: station.th_caption,
             th_dustboy_icon: station.th_dustboy_icon,
-            daily_pm25: customDailyPM25, // ใช้ค่าที่คำนวณใหม่
-            daily_pm10: customDailyPM10, // ใช้ค่าที่คำนวณใหม่
+            daily_pm25: Math.round(parseFloat(customDailyPM25) || 0),
+            daily_pm10: Math.round(parseFloat(customDailyPM10) || 0),
             daily_th_aqi: station.daily_th_aqi,
             daily_th_title: station.daily_th_title,
             daily_th_color: station.daily_th_color,
