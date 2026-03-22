@@ -235,7 +235,67 @@ export class ItaItem {
     await ensureTable()
     const item = await this.findById(id)
     if (!item) return null
-    await exec('DELETE FROM ita_items WHERE id = ?', [id])
+
+    // 1. หาเมนูย่อยและลูกหลานทั้งหมดที่จะถูกลบไปด้วย (เพราะ ON DELETE CASCADE)
+    const all = await this.findAll({ includeUnpublished: true, excludeContent: true })
+    const descendants = new Set([id])
+    let added = true
+    while (added) {
+      added = false
+      for (const row of all) {
+        if (row.parentId && descendants.has(row.parentId) && !descendants.has(row._id)) {
+          descendants.add(row._id)
+          added = true
+        }
+      }
+    }
+    const idsToDelete = Array.from(descendants)
+
+    // 2. ลบไฟล์จริงที่ผูกกับเมนูเหล่านี้ผ่าน ita_item_id (Multi-file upload)
+    const placeholders = idsToDelete.map(() => '?').join(',')
+    if (idsToDelete.length > 0) {
+      const files = await query(`SELECT file_path FROM ita_files WHERE ita_item_id IN (${placeholders})`, idsToDelete)
+      // ใช้ Promise.allSettled เพื่อลบไฟล์จำนวนมากพร้อมกัน (ขนาน) ป้องกันเซิร์ฟเวอร์ค้าง
+      const deletePromises = files
+        .filter(f => f.file_path)
+        .map(f => {
+          const fullPath = path.join(UPLOAD_DIR, f.file_path)
+          return fs.unlink(fullPath).catch(e => {
+            console.warn(`[ITA] Failed to delete physical file: ${f.file_path}`, e.message)
+          })
+        })
+      await Promise.allSettled(deletePromises)
+    }
+
+    // 3. จัดการไฟล์แบบ Legacy เดี่ยวๆ ที่เก็บผ่าน pdfUrl (/api/ita/pdf/:fileId)
+    for (const deleteId of idsToDelete) {
+      const it = all.find(x => x._id === deleteId)
+      if (it && it.pdfUrl) {
+        const m = it.pdfUrl.match(/\/api\/ita\/pdf\/(\d+)$/)
+        if (m && m[1]) {
+          const fileId = parseInt(m[1])
+          const fRows = await query('SELECT file_path FROM ita_files WHERE id = ?', [fileId])
+          if (fRows[0] && fRows[0].file_path) {
+            try {
+              const fullPath = path.join(UPLOAD_DIR, fRows[0].file_path)
+              await fs.unlink(fullPath)
+            } catch (e) {
+              console.warn('[ITA] Failed to delete legacy single physical file', e.message)
+            }
+          }
+          // ลบ table row ของไฟล์ legacy ทิ้งด้วย เนื่องจากไม่ได้ผูกกับ item โดยตรง (ไม่มี ON DELETE CASCADE)
+          await exec('DELETE FROM ita_files WHERE id = ?', [fileId])
+        }
+      }
+    }
+
+    // 4. ลบข้อมูลเมนูและเมนูย่อยออกจากฐานข้อมูลโดยตรงผ่าน id เพื่อความชัวร์ที่สุด (ป้องกันกรณีฐานข้อมูลไม่ได้ตั้งค่า CASCADE ไว้แต่แรก)
+    if (idsToDelete.length > 0) {
+      const dbPlaceholders = idsToDelete.map(() => '?').join(',')
+      await exec(`DELETE FROM ita_items WHERE id IN (${dbPlaceholders})`, idsToDelete)
+    } else {
+      await exec('DELETE FROM ita_items WHERE id = ?', [id])
+    }
     return item
   }
   static async reorder(siblingOrders) {
