@@ -60,21 +60,27 @@ export default function ItaItemPage() {
             <span className="text-gray-700 font-medium">{item.title}</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{item.title}</h1>
-          {item.content && (
-            <div ref={contentRef} className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={sanitize(item.content)} />
-          )}
-          {children.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold mb-2">เมนูย่อย</h2>
-              <ul className="list-disc ml-6 space-y-1 text-sm">
-                {children.map(c => (
-                  <li key={c._id}>
-                    <Link to={`/ita/item/${c._id}`} className="text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-200">{c.title}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {(() => {
+            const hasRealContent = item.content && (item.content.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '').trim().length > 0 || item.content.includes('<img') || item.content.includes('<iframe'));
+            return (
+              <>
+                {hasRealContent ? (
+                  <div ref={contentRef} className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={sanitize(item.content)} />
+                ) : null}
+                {children.length > 0 && (
+                  <div className={hasRealContent ? "mt-6" : "mt-2"}>
+                    <ul className="list-disc ml-6 space-y-1 text-sm">
+                      {children.map(c => (
+                        <li key={c._id}>
+                          <Link to={`/ita/item/${c._id}`} className="text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-200">{c.title}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </motion.div>
       )}
     </div>
