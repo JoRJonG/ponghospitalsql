@@ -12,6 +12,7 @@ import { useScrollToTop } from './utils/scrollToTop'
 import CookieConsent from './components/CookieConsent'
 import { buildApiUrl } from './utils/api'
 import LoadingFallback from './components/LoadingFallback'
+import BackToTop from './components/BackToTop'
 
 // Lazy load components ที่ไม่จำเป็นต้องโหลดทันที
 const HomepagePopupOverlay = lazy(() => import('./components/HomepagePopupOverlay'))
@@ -143,6 +144,7 @@ function App() {
                     </div>
                   </Suspense>
                   <ToastContainer />
+                  <BackToTop />
                 </div>
               </div>
             </BrowserRouter>
