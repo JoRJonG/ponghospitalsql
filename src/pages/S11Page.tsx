@@ -106,7 +106,7 @@ type FormDataState = {
 const positions = [
   // แพทย์และทันตแพทย์
   { name: 'ทันตแพทย์', category: 'แพทย์และทันตแพทย์' },
-  { name: 'นายแพทย์', category: 'แพทย์และทันตแพทย์' },
+  { name: 'แพทย์', category: 'แพทย์และทันตแพทย์' },
 
   // เภสัชกร
   { name: 'เภสัชกร', category: 'เภสัชกร' },
