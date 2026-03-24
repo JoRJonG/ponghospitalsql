@@ -171,11 +171,9 @@ export default function AdminPage() {
   const [unitPage, setUnitPage] = useState(1)
   const [unitTotalPages, setUnitTotalPages] = useState(1)
   const [unitCount, setUnitCount] = useState(0)
-  const [prPosterCount, setPrPosterCount] = useState(0)
-  const [organizationCount, setOrganizationCount] = useState(0)
+
+  const [feedbackStats, setFeedbackStats] = useState({ new: 0, read: 0, total: 0 })
   const [documentCount, setDocumentCount] = useState(0)
-
-
 
   const [annList, setAnnList] = useState<Announcement[]>([])
   const [actList, setActList] = useState<Activity[]>([])
@@ -427,9 +425,9 @@ export default function AdminPage() {
     }
   }, [getToken, permissions.units, unitPage, query.unit, status.unit])
 
-  const refreshPRPosters = useCallback(async () => {
-    if (!permissions.pr_posters) {
-      setPrPosterCount(0)
+  const refreshFeedback = useCallback(async () => {
+    if (!permissions.feedback) {
+      setFeedbackStats({ new: 0, read: 0, total: 0 })
       return
     }
     const token = getToken()
@@ -437,33 +435,19 @@ export default function AdminPage() {
     if (token) headers['Authorization'] = `Bearer ${token}`
 
     try {
-      const response = await fetch('/api/pr-posters?limit=5', { headers })
+      const response = await fetch('/api/feedback/stats', { headers })
       if (response.ok) {
-        const totalCount = parseInt(response.headers.get('X-Total-Count') || '0', 10)
-        setPrPosterCount(totalCount)
-        const data = await response.json()
-        if (Array.isArray(data)) { /* prPosterList removed */ }
+        const json = await response.json()
+        if (json.data) {
+          setFeedbackStats({
+            new: json.data.new || 0,
+            read: json.data.read || 0,
+            total: json.data.total || 0
+          })
+        }
       }
     } catch (error) { console.error(error) }
-  }, [getToken, permissions.pr_posters])
-
-  const refreshOrganization = useCallback(async () => {
-    if (!permissions.organization) {
-      setOrganizationCount(0)
-      return
-    }
-    const token = getToken()
-    const headers: Record<string, string> = {}
-    if (token) headers['Authorization'] = `Bearer ${token}`
-
-    try {
-      const response = await fetch('/api/organization', { headers })
-      if (response.ok) {
-        const totalCount = parseInt(response.headers.get('X-Total-Count') || '0', 10)
-        setOrganizationCount(totalCount)
-      }
-    } catch (error) { console.error(error) }
-  }, [getToken, permissions.organization])
+  }, [getToken, permissions.feedback])
 
   const refreshDocuments = useCallback(async () => {
     if (!permissions.documents) {
@@ -501,12 +485,8 @@ export default function AdminPage() {
   }, [refreshUnits, tab])
 
   useEffect(() => {
-    if (tab === 'pr_poster' || tab === 'overview') refreshPRPosters()
-  }, [refreshPRPosters, tab])
-
-  useEffect(() => {
-    if (tab === 'organization' || tab === 'overview') refreshOrganization()
-  }, [refreshOrganization, tab])
+    if (tab === 'feedback' || tab === 'overview') refreshFeedback()
+  }, [refreshFeedback, tab])
 
   useEffect(() => {
     if (tab === 'documents' || tab === 'overview') refreshDocuments()
@@ -916,7 +896,7 @@ export default function AdminPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-0 lg:overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 flex flex-col min-h-0 overflow-x-hidden">
           {/* Top Bar */}
           <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-4 lg:px-6 lg:py-4">
             <div className="flex items-center justify-between">
@@ -1046,7 +1026,7 @@ export default function AdminPage() {
           </div>
 
           {/* Content Area */}
-          <div className="min-h-0 p-4 lg:p-6">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 lg:p-6">
             <AnimatePresence mode="wait">
               {tab === 'intro' ? (
                 <motion.div
@@ -1157,31 +1137,19 @@ export default function AdminPage() {
 
                     )}
 
-                    {canManagePRPosters && (
+                    {permissions.feedback && (
                       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between pointer-events-none">
                           <div>
-                            <div className="text-pink-600 text-sm font-medium mb-1">PR Poster</div>
-                            <div className="text-3xl font-bold text-gray-900">{prPosterCount}</div>
-                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
+                            <div className="text-rose-500 text-sm font-medium mb-1">ความคิดเห็นใหม่</div>
+                            <div className="flex items-baseline gap-2">
+                               <div className="text-3xl font-bold text-gray-900">{feedbackStats.new}</div>
+                               <div className="text-xs text-gray-500">/ {feedbackStats.total}</div>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">รายการที่ยังไม่ได้อ่าน</div>
                           </div>
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-pink-50">
-                            <span className="text-xl">🖼️</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {canManageOrganization && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-indigo-600 text-sm font-medium mb-1">ผังองค์กร</div>
-                            <div className="text-3xl font-bold text-gray-900">{organizationCount}</div>
-                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                          </div>
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50">
-                            <span className="text-xl">🧩</span>
+                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50">
+                            <span className="text-xl">💬</span>
                           </div>
                         </div>
                       </div>
