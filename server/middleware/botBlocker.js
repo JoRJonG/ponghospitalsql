@@ -49,6 +49,31 @@ const saveBans = () => {
 // Initial load
 loadBans()
 
+// ── Auto-cleanup: ล้าง ipViolations + blockedIps ที่หมดอายุทุก 6 ชั่วโมง ──────────
+// ป้องกัน memory leak เมื่อโดน scan จาก IP จำนวนมาก
+setInterval(() => {
+    const now = Date.now()
+
+    // ลบ blockedIps ที่หมดอายุแล้วออกจาก memory
+    for (const [ip, unblockTime] of blockedIps.entries()) {
+        if (unblockTime !== Infinity && now > unblockTime) {
+            blockedIps.delete(ip)
+            ipViolations.delete(ip)
+        }
+    }
+
+    // Cap ipViolations ไม่ให้เกิน 10,000 entries (ล้าง oldest first)
+    if (ipViolations.size > 10_000) {
+        const overflow = ipViolations.size - 10_000
+        let i = 0
+        for (const key of ipViolations.keys()) {
+            if (i++ >= overflow) break
+            ipViolations.delete(key)
+        }
+        logger.warn(`[BotBlocker] ipViolations Map capped — removed ${overflow} old entries`)
+    }
+}, 6 * 60 * 60 * 1000) // ทุก 6 ชั่วโมง
+
 // Export function to manually unban
 export const unbanIp = (ip) => {
     if (blockedIps.has(ip)) {
@@ -186,6 +211,8 @@ export const botBlocker = (req, res, next) => {
         if (count >= BAN_THRESHOLD) {
             const unblockTime = Date.now() + BAN_DURATION
             blockedIps.set(ip, unblockTime)
+            // ลบออกจาก violations เพราะ ban แล้ว ไม่ต้องเก็บต่อ
+            ipViolations.delete(ip)
             saveBans() // Save to file
             logger.warn(`[Security] IP Blocked`, { ip, duration: '24h' })
             return res.status(403).send('Forbidden: Too many suspicious requests. You are banned.')

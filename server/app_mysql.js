@@ -111,9 +111,10 @@ export async function createServer() {
   app.set('trust proxy', 1)
 
   // Body parser for JSON requests
-  app.use(express.json({ limit: '60mb' }))
+  // ใช้ 10mb เพียงพอสำหรับ JSON ปกติ — multipart/file upload ใช้ multer per-route จัดการเอง
+  app.use(express.json({ limit: '10mb' }))
   // Body parser for form data (multipart handled by multer per-route)
-  app.use(express.urlencoded({ extended: true, limit: '250mb' }))
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
   // Cookie parser with secret for signed cookies
   const cookieSecret = process.env.COOKIE_SECRET || 'ph-secure-secret-key-change-in-prod-v1'
@@ -354,8 +355,9 @@ export async function createServer() {
       res.setHeader('Content-Type', ct)
       if (len) res.setHeader('Content-Length', len)
       res.setHeader('Cache-Control', 'public, max-age=300')
-      const ab = await r.arrayBuffer()
-      res.send(Buffer.from(ab))
+      // ใช้ pipe stream แทน arrayBuffer เพื่อไม่โหลดทั้งไฟล์เข้า RAM
+      const { Readable } = await import('stream')
+      Readable.fromWeb(r.body).pipe(res)
     } catch (e) {
       logger.error('[PDF proxy] Error:', e?.message)
       res.status(500).json({ error: 'Proxy failed', details: e?.message })

@@ -132,7 +132,7 @@ router.post('/', requireAuth, requirePermission('announcements'), async (req, re
 })
 
 // Support multipart uploads for attachments (attach to existing announcement)
-const MAX_ATTACHMENT_SIZE = 300 * 1024 * 1024 // 300MB
+const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024 // 50MB
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_ATTACHMENT_SIZE } })
 function uploadMdw(fieldName) {
   return (req, res, next) => {

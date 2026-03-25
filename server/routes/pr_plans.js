@@ -33,7 +33,7 @@ const prepareUploadDir = async () => {
 prepareUploadDir()
 
 // Multer configuration สำหรับอัปโหลดไฟล์
-const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: MAX_FILE_SIZE }
