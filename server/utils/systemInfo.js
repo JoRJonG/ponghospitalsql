@@ -24,25 +24,57 @@ function buildDiskResult(totalBytes, freeBytes, mount = '/') {
 }
 
 async function getUnixDiskUsage() {
+  // ─── 1. Try `quota -s` first (cPanel shared hosting gives real quota here) ──
   try {
-    const { stdout } = await execAsync('df -k /')
-    const lines = stdout.trim().split('\n')
-    if (lines.length < 2) return null
-    const parts = lines[1].trim().split(/\s+/)
-    if (parts.length < 5) return null
-    const totalKb = Number(parts[1])
-    const usedKb = Number(parts[2])
-    const availKb = Number(parts[3])
-    if (!Number.isFinite(totalKb) || !Number.isFinite(availKb)) return null
-    const totalBytes = totalKb * BYTE_UNITS
-    const freeBytes = availKb * BYTE_UNITS
-    const mount = parts[5] || '/'
-    return buildDiskResult(totalBytes, freeBytes, mount)
-  } catch (error) {
-    console.warn('[systemInfo] df command failed:', error?.message)
-    return null
+    const { stdout: qout } = await execAsync('quota -s 2>/dev/null')
+    // quota output: lines like "  Disk quotas for user xxx (uid yyy):"
+    // then header line, then data line:
+    //   /dev/sdX   blocks  quota  limit  ...
+    //   or:  Filesystem  blocks  quota  limit  ...
+    const lines = qout.trim().split('\n').filter(Boolean)
+    // Find the data line that has numbers (skip headers)
+    for (const line of lines) {
+      const parts = line.trim().split(/\s+/)
+      // Typical quota output has at least 5 columns; blocks in KB (possibly with *)
+      if (parts.length >= 5) {
+        const rawUsed = parts[1].replace('*', '')
+        const rawLimit = parts[3]  // hard limit (total allocated)
+        const usedKb = Number(rawUsed)
+        const limitKb = Number(rawLimit)
+        if (Number.isFinite(usedKb) && Number.isFinite(limitKb) && limitKb > 0) {
+          const totalBytes = limitKb * BYTE_UNITS
+          const usedBytes = usedKb * BYTE_UNITS
+          const freeBytes = Math.max(0, totalBytes - usedBytes)
+          return buildDiskResult(totalBytes, freeBytes, 'quota')
+        }
+      }
+    }
+  } catch {
+    // quota command not available or no quota set — fall through
   }
+
+  // ─── 2. Fallback: df for current working dir or home dir ────────────────────
+  for (const target of ['.', '~', '/']) {
+    try {
+      const { stdout } = await execAsync(`df -k ${target}`)
+      const lines = stdout.trim().split('\n')
+      if (lines.length < 2) continue
+      const parts = lines[1].trim().split(/\s+/)
+      if (parts.length < 5) continue
+      const totalKb = Number(parts[1])
+      const availKb = Number(parts[3])
+      if (!Number.isFinite(totalKb) || totalKb <= 0 || !Number.isFinite(availKb)) continue
+      const totalBytes = totalKb * BYTE_UNITS
+      const freeBytes = availKb * BYTE_UNITS
+      const mount = parts[5] || target
+      return buildDiskResult(totalBytes, freeBytes, mount)
+    } catch {
+      // try next target
+    }
+  }
+  return null
 }
+
 
 async function getWindowsDiskUsage() {
   const commands = [
