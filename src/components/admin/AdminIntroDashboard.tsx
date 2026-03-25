@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { apiRequest, buildApiUrl } from '../../utils/api'
+import { buildApiUrl } from '../../utils/api'
 import { fastFetch } from '../../utils/fastFetch'
 
 export type AdminIntroDashboardHandle = {
@@ -41,32 +41,7 @@ type VisitorInsights = {
   }>
 }
 
-type DiskSnapshot = {
-  mount: string
-  totalBytes: number
-  freeBytes: number
-  usedBytes: number
-  percentUsed: number
-  percentFree: number
-}
 
-type SystemStatus = {
-  timestamp: string
-  disk: DiskSnapshot | null
-  memory: DiskSnapshot | null
-  cpu: {
-    one: number
-    five: number
-    fifteen: number
-  }
-  meta: {
-    hostname: string
-    platform: string
-    release: string
-    arch: string
-    uptimeSeconds: number
-  }
-}
 
 type AdminIntroDashboardProps = {
   rangeDays?: number
@@ -135,25 +110,6 @@ function formatDay(value: string) {
   } catch {
     return value
   }
-}
-
-function formatBytes(value?: number | null) {
-  if (value === null || value === undefined || !Number.isFinite(value)) return '-'
-  if (value === 0) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-  let idx = 0
-  let output = value
-  while (output >= 1024 && idx < units.length - 1) {
-    output /= 1024
-    idx += 1
-  }
-  const decimals = output < 10 && idx > 0 ? 1 : 0
-  return `${output.toFixed(decimals)} ${units[idx]}`
-}
-
-function formatPercent(value?: number | null) {
-  if (value === null || value === undefined || !Number.isFinite(value)) return '-'
-  return `${value.toFixed(0)}%`
 }
 
 
@@ -245,54 +201,22 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     const [insights, setInsights] = useState<VisitorInsights | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [system, setSystem] = useState<SystemStatus | null>(null)
     const [recentPage, setRecentPage] = useState(1)
     const [agentPage, setAgentPage] = useState(1)
     const load = useCallback(async () => {
       setLoading(true)
       setError(null)
       try {
-        const [insightsOutcome, systemOutcome] = await Promise.allSettled([
-          fastFetch<{ success: boolean; data?: VisitorInsights; error?: string }>(
-            buildApiUrl(`/api/visitors/insights?range=${rangeDays}`),
-            { ttlMs: 2000 }
-          ),
-          (async () => {
-            try {
-              const response = await apiRequest('/api/system/status')
-              if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`)
-              }
-              const json = await response.json().catch(() => null)
-              if (json?.success && json.data) {
-                return json.data as SystemStatus
-              }
-              throw new Error(json?.error || 'ไม่สามารถโหลดข้อมูลระบบได้')
-            } catch (error) {
-              console.warn('Failed to fetch system status', error)
-              return null
-            }
-          })(),
-        ])
+        const response = await fastFetch<{ success: boolean; data?: VisitorInsights; error?: string }>(
+          buildApiUrl(`/api/visitors/insights?range=${rangeDays}`),
+          { ttlMs: 2000 }
+        )
 
-        const insightsError = insightsOutcome.status === 'rejected'
-          ? (insightsOutcome.reason instanceof Error ? insightsOutcome.reason.message : String(insightsOutcome.reason))
-          : (!insightsOutcome.value?.success || !insightsOutcome.value.data)
-            ? (insightsOutcome.value?.error || 'ไม่สามารถโหลดข้อมูลได้')
-            : null
-
-        if (insightsError) {
-          throw new Error(insightsError)
+        if (!response?.success || !response.data) {
+          throw new Error(response?.error || 'ไม่สามารถโหลดข้อมูลได้')
         }
 
-        if (insightsOutcome.status === 'fulfilled' && insightsOutcome.value?.data) {
-          setInsights(insightsOutcome.value.data)
-        }
-        if (systemOutcome.status === 'fulfilled') {
-          setSystem(systemOutcome.value)
-        } else {
-          setSystem(null)
-        }
+        setInsights(response.data)
       } catch (thrown: unknown) {
         console.error('Failed to fetch visitor insights', thrown)
         if (thrown instanceof Error) {
@@ -373,8 +297,6 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     if (!insights) return null
 
     const { today, range, lifetime, trend } = insights
-    const disk = system?.disk || null
-    const systemStamp = system?.timestamp ? formatDate(system.timestamp) : null
 
     const rangeLabelDays = insights.rangeDays ?? rangeDays
     const recentTotalPages = recentLength ? Math.ceil(recentLength / RECENT_PAGE_SIZE) : 1
@@ -426,14 +348,11 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
     return (
       <div className="space-y-6 lg:space-y-8">
         <section className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-xl">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <div className="grid gap-8">
             <div className="flex flex-col gap-6">
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-3">
                   <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600">Intro</span>
-                  {systemStamp && (
-                    <span className="text-xs text-slate-500">อัปเดตเมื่อ {systemStamp}</span>
-                  )}
                 </div>
                 <h2 className="text-3xl font-semibold text-slate-900 lg:text-4xl">ภาพรวมสถิติหน้าเว็บไซต์หลัก</h2>
                 <p className="max-w-2xl text-sm text-slate-500 lg:text-base">
@@ -457,41 +376,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
               </div>
             </div>
 
-            {/* Storage Status (Disk Only) - Visible to all admins */}
-            <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50 p-6 shadow-inner">
-              <div>
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                  <span className="text-emerald-500">💾</span>
-                  พื้นที่จัดเก็บ
-                </h3>
-                <p className="mt-1 text-xs text-slate-500">ข้อมูลการใช้งานพื้นที่บนเซิร์ฟเวอร์</p>
-              </div>
-              {system ? (
-                <div className="mt-4 space-y-4 text-sm text-slate-600">
-                  {disk ? (
-                    <div className="rounded-xl bg-white p-3 shadow-sm">
-                      <div className="flex items-center justify-between text-xs uppercase tracking-wide text-emerald-600">
-                        <span>Storage</span>
-                        <span>{formatPercent(disk.percentFree)} เหลือ</span>
-                      </div>
-                      <div className="mt-2 text-sm text-slate-600">{formatBytes(disk.freeBytes)} จาก {formatBytes(disk.totalBytes)}</div>
-                      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                        <div
-                          className="h-2 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
-                          style={{ width: `${Math.min(100, Math.max(0, disk.percentUsed))}%` }}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-xs text-slate-400 py-4">ไม่พบข้อมูลดิสก์</div>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white p-4 text-xs text-slate-500">
-                  ไม่สามารถดึงข้อมูลเซิร์ฟเวอร์ได้
-                </div>
-              )}
-            </div>
+
           </div>
         </section >
 
