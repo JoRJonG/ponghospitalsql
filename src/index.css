@@ -1506,3 +1506,922 @@ textarea {
     transform: none !important;
   }
 }
+
+/* ============================================================
+   BedOccupancy v3 — สถิติการใช้เตียงนอน (IPD)
+   Design: Matches main site UI (slate/emerald, clean white cards)
+   ============================================================ */
+
+/* ─── Root wrapper ──────────────────────────────────────────── */
+.bed2-root {
+  width: 100%;
+}
+
+/* ─── Section header — matches HomeAnnouncements style ─────── */
+.bed2-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.bed2-section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.bed2-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.bed2-section-desc {
+  font-size: 0.825rem;
+  color: var(--hospital-gray-500);
+  margin: 0;
+}
+
+.bed2-section-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.25rem;
+}
+
+.bed2-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--hospital-gray-400);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.bed2-stale-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+}
+
+/* ─── Main card ─────────────────────────────────────────────── */
+.bed2-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left-width: 4px;
+  border-radius: 1.25rem;
+  padding: 1.75rem 1.75rem 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.07), 0 1px 2px 0 rgba(0,0,0,0.04);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bed2-card:hover {
+  box-shadow: 0 4px 16px -2px rgba(0,0,0,0.1), 0 2px 8px -2px rgba(0,0,0,0.06);
+}
+
+/* Subtle inner bg accent */
+.bed2-card::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16,185,129,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ─── Body layout ───────────────────────────────────────────── */
+.bed2-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem 2rem;
+  align-items: start;
+}
+
+/* ─── Left: gauge ───────────────────────────────────────────── */
+.bed2-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.bed2-gauge-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.bed2-gauge-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.bed2-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.bed2-gauge-pct {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.bed2-gauge-pct-unit {
+  font-size: 0.9rem;
+  font-weight: 700;
+  vertical-align: super;
+}
+
+.bed2-gauge-label {
+  font-size: 0.63rem;
+  font-weight: 500;
+  color: var(--hospital-gray-500);
+  letter-spacing: 0.03em;
+  margin-top: 0.1rem;
+}
+
+.bed2-status-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.22rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ─── Right column ──────────────────────────────────────────── */
+.bed2-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  min-width: 0;
+}
+
+/* ─── Stat cards ────────────────────────────────────────────── */
+.bed2-stats-row {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.bed2-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex: 1;
+  min-width: 110px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 0.75rem 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bed2-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.bed2-stat-card--accent {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.bed2-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 0.625rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.bed2-stat-card--accent .bed2-stat-icon {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.bed2-stat-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bed2-stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #065f46;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.bed2-stat-label {
+  font-size: 0.68rem;
+  color: var(--hospital-gray-500);
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.05rem;
+}
+
+/* ─── Ward bars ─────────────────────────────────────────────── */
+.bed2-wards {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.bed2-wards-label {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: var(--hospital-gray-500);
+  letter-spacing: 0.02em;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+}
+
+.bed2-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bed2-bar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.bed2-bar-name {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bed2-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.bed2-bar-slash {
+  color: var(--hospital-gray-400);
+}
+
+.bed2-bar-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.bed2-bar-track {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bed2-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Skeleton loading ──────────────────────────────────────── */
+.bed2-skeleton {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.bed2-sk-gauge {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bed2-sk-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bed2-sk-stat {
+  height: 60px;
+  border-radius: 0.875rem;
+}
+
+.bed2-sk-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.25rem;
+}
+
+.bed2-sk-bar {
+  height: 28px;
+  border-radius: 0.5rem;
+}
+
+.bed2-sk-gauge,
+.bed2-sk-stat,
+.bed2-sk-bar {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: bed2-shimmer 1.5s infinite;
+}
+
+@keyframes bed2-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Error state ───────────────────────────────────────────── */
+.bed2-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.875rem;
+  color: #991b1b;
+}
+
+.bed2-error-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.bed2-error-title { font-size: 0.875rem; font-weight: 600; margin: 0; }
+.bed2-error-sub   { font-size: 0.75rem; color: #b91c1c; margin: 0.1rem 0 0; }
+
+/* ─── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .bed2-section-title {
+    font-size: 1.25rem;
+  }
+
+  .bed2-card {
+    padding: 1.25rem 1rem 1.125rem;
+    border-radius: 1rem;
+  }
+
+  .bed2-body {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .bed2-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .bed2-gauge-wrap {
+    width: 96px;
+    height: 96px;
+  }
+
+  .bed2-skeleton {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .bed2-sk-gauge {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+@media (max-width: 420px) {
+  .bed2-stats-row {
+    flex-direction: column;
+  }
+
+  .bed2-stat-card {
+    min-width: 0;
+  }
+}
+
+
+/* ─── Section wrapper — ใช้พื้นขาวเหมือน card อื่นในหน้าแรก ─── */
+.bed-occ {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  background: #ffffff;
+  border: 1px solid var(--hospital-gray-200);
+  box-shadow: var(--hospital-shadow-md);
+  transition: box-shadow 0.3s ease;
+  border-left-width: 4px;            /* ทุก level มี accent border-left */
+}
+
+.bed-occ:hover {
+  box-shadow: var(--hospital-shadow-lg);
+}
+
+/* Level-based accent border-left ─── เป็น indicator สีเท่านั้น */
+.bed-occ--normal   { border-left-color: var(--hospital-primary); }   /* emerald */
+.bed-occ--warning  { border-left-color: var(--hospital-warning); }   /* amber */
+.bed-occ--critical { border-left-color: #f97316; }                   /* orange */
+.bed-occ--over     { border-left-color: #e11d48; }                   /* rose */
+
+/* ─── Decorative blobs — ซ่อน เพราะพื้นขาวไม่ต้องการ decoration ─── */
+
+.bed-occ-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+}
+.bed-occ-bg-blob-1 {
+  width: 180px; height: 180px;
+  top: -60px; right: -40px;
+  background: radial-gradient(circle, rgba(52,211,153,0.18) 0%, transparent 70%);
+}
+.bed-occ-bg-blob-2 {
+  width: 120px; height: 120px;
+  bottom: -40px; left: -20px;
+  background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%);
+}
+
+/* ─── Header ────────────────────────────────────────────────── */
+.bed-occ-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.bed-occ-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bed-occ-header-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #10b981, #0d9488);
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.35);
+}
+
+.bed-occ-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #065f46;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.bed-occ-subtitle {
+  font-size: 0.75rem;
+  color: var(--hospital-gray-500);
+  margin: 0.15rem 0 0;
+  font-weight: 400;
+}
+
+.bed-occ-header-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.bed-occ-updated {
+  font-size: 0.7rem;
+  color: var(--hospital-gray-400);
+  background: rgba(255,255,255,0.75);
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid #d1fae5;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  font-style: normal;
+}
+
+.bed-occ-stale-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+}
+
+/* ─── Body layout ───────────────────────────────────────────── */
+.bed-occ-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem 1.5rem;
+  align-items: start;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Left: gauge ───────────────────────────────────────────── */
+.bed-occ-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.bed-occ-gauge-wrap {
+  position: relative;
+  width: 110px;
+  height: 110px;
+}
+
+.bed-occ-gauge-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(16,185,129,0.15));
+}
+
+.bed-occ-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.bed-occ-gauge-pct {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.bed-occ-gauge-pct-sym {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.bed-occ-gauge-label {
+  font-size: 0.63rem;
+  color: var(--hospital-gray-500);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Status badge under gauge */
+.bed-occ-status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+/* Status badges — ใช้สีที่ blend กับ emerald theme */
+.bed-occ-status--normal {
+  background: #d1fae5;       /* emerald-100 */
+  color: var(--hospital-accent-dark);  /* emerald-800 */
+  border-color: #a7f3d0;     /* emerald-200 */
+}
+.bed-occ-status--warning {
+  background: #fef3c7;       /* amber-100 */
+  color: #78350f;            /* amber-900 */
+  border-color: #fde68a;     /* amber-200 */
+}
+.bed-occ-status--critical {
+  background: #ffedd5;       /* orange-100 */
+  color: #7c2d12;            /* orange-950 */
+  border-color: #fed7aa;     /* orange-200 */
+}
+.bed-occ-status--over {
+  background: #ffe4e6;       /* rose-100 — นุ่มกว่า red-100 */
+  color: #881337;            /* rose-900 */
+  border-color: #fecdd3;     /* rose-200 */
+}
+
+/* ─── Right: chips + bars ──────────────────────────────────── */
+.bed-occ-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* Stat chips */
+.bed-occ-chips {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.bed-occ-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--hospital-gray-50);    /* #f8fafc — เทาอ่อนมาก ให้ distinct จากพื้นขาว */
+  border: 1px solid var(--hospital-gray-200);
+  border-radius: 0.875rem;
+  padding: 0.625rem 1rem;
+  box-shadow: var(--hospital-shadow-sm);
+  flex: 1;
+  min-width: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bed-occ-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--hospital-shadow-md);
+}
+
+.bed-occ-chip--accent {
+  background: #ecfdf5;                    /* emerald-50 */
+  border-color: #a7f3d0;                  /* emerald-200 */
+}
+
+
+.bed-occ-chip-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.bed-occ-chip-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bed-occ-chip-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #065f46;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.bed-occ-chip-label {
+  font-size: 0.68rem;
+  color: var(--hospital-gray-500);
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ward bars */
+.bed-occ-wards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.bed-occ-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bed-occ-bar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.bed-occ-bar-ward {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--hospital-gray-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bed-occ-bar-count {
+  font-size: 0.78rem;
+  color: var(--hospital-gray-500);
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.bed-occ-bar-total {
+  color: var(--hospital-gray-400);
+}
+
+.bed-occ-bar-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.bed-occ-bar-badge--normal   { background: #d1fae5; color: #065f46; }
+.bed-occ-bar-badge--warning  { background: #fef3c7; color: #92400e; }
+.bed-occ-bar-badge--critical { background: #ffedd5; color: #9a3412; }
+.bed-occ-bar-badge--over     { background: #fee2e2; color: #991b1b; }
+
+.bed-occ-bar-track {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bed-occ-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Skeleton loading ──────────────────────────────────────── */
+.bed-occ-skeleton {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.bed-occ-sk-circle {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bed-occ-sk-chips {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bed-occ-sk-chip {
+  height: 52px;
+  border-radius: 0.75rem;
+}
+
+.bed-occ-sk-bar {
+  height: 42px;
+  border-radius: 0.75rem;
+}
+
+.bed-occ-sk-circle,
+.bed-occ-sk-chip,
+.bed-occ-sk-bar {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: bed-occ-shimmer 1.5s infinite;
+}
+
+@keyframes bed-occ-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Error state ───────────────────────────────────────────── */
+.bed-occ-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.875rem;
+  color: #991b1b;
+  position: relative;
+  z-index: 1;
+}
+
+.bed-occ-error-icon { font-size: 1.5rem; line-height: 1; flex-shrink: 0; }
+.bed-occ-error-title { font-size: 0.875rem; font-weight: 600; margin: 0; }
+.bed-occ-error-sub   { font-size: 0.75rem; color: #b91c1c; margin: 0.15rem 0 0; }
+
+/* ─── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .bed-occ {
+    padding: 1.125rem 1rem 1rem;
+    border-radius: 1rem;
+  }
+
+  .bed-occ-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .bed-occ-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .bed-occ-gauge-wrap {
+    width: 88px;
+    height: 88px;
+  }
+
+  .bed-occ-skeleton {
+    flex-direction: column;
+  }
+
+  .bed-occ-sk-circle {
+    width: 88px;
+    height: 88px;
+  }
+
+  .bed-occ-chip-value {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .bed-occ-chips {
+    flex-direction: column;
+  }
+}

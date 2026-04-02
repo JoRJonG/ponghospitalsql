@@ -10,6 +10,7 @@ const HomeAnnouncements = lazy(() => import('../components/HomeAnnouncements'))
 const LatestActivities = lazy(() => import('../components/LatestActivities'))
 const PRPoster = lazy(() => import('../components/PRPoster'))
 const UnitLinks = lazy(() => import('../components/UnitLinks'))
+const BedOccupancy = lazy(() => import('../components/BedOccupancy'))
 
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)
@@ -60,6 +61,7 @@ export default function HomePage() {
   /* scroll-reveal refs สำหรับทุก section */
   const heroSliderRef = useReveal<HTMLDivElement>()
   const posterRef = useReveal<HTMLDivElement>()
+  const bedOccRef = useReveal<HTMLDivElement>()
   const announcementsRef = useReveal<HTMLDivElement>()
   const activitiesRef = useReveal<HTMLDivElement>()
   const unitsRef = useReveal<HTMLDivElement>()
@@ -94,8 +96,18 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* สถิติการใช้เตียงนอน (IPD) */}
+      <section ref={bedOccRef} className="relative py-8 md:py-12 bg-white overflow-hidden border-t border-gray-100">
+        <div className="decorative-blob decorative-blob-emerald w-72 h-72 top-0 -right-16 opacity-10" />
+        <div className="container-narrow relative z-10">
+          <Suspense fallback={<div className="h-[220px] bg-gray-100 animate-pulse rounded-2xl w-full" />}>
+            <BedOccupancy embedded={true} />
+          </Suspense>
+        </div>
+      </section>
+
       {/* ประกาศข่าวสาร — ลบ section-wave-top ออก เพราะ overflow-hidden clip wave อยู่แล้ว ทำให้ CLS */}
-      <section ref={announcementsRef} className="relative py-6 md:py-12 bg-white overflow-hidden">
+      <section ref={announcementsRef} className="relative py-6 md:py-12 bg-slate-50 overflow-hidden border-t border-slate-100/50">
         <div className="decorative-blob decorative-blob-amber w-80 h-80 -bottom-24 -left-24" />
         <div className="container-narrow relative z-10 min-h-[500px] lg:min-h-[700px]">
           <Suspense fallback={<div className="h-[500px] lg:h-[700px] bg-gray-100 animate-pulse rounded-2xl w-full" />}>
@@ -105,7 +117,7 @@ export default function HomePage() {
       </section>
 
       {/* ภาพกิจกรรม */}
-      <section ref={activitiesRef} className="relative py-6 md:py-12 bg-gray-100 overflow-hidden border-t border-gray-100/50">
+      <section ref={activitiesRef} className="relative py-6 md:py-12 bg-white overflow-hidden border-t border-slate-100/50">
         <div className="decorative-blob decorative-blob-emerald w-64 h-64 top-10 -left-16" />
         <div className="container-narrow relative z-10 min-h-[500px]">
           <Suspense fallback={<div className="h-[500px] bg-gray-200 animate-pulse rounded-2xl w-full" />}>
@@ -115,7 +127,7 @@ export default function HomePage() {
       </section>
 
       {/* ลิงก์หน่วยงาน — ลบ section-wave-top ออก เพราะ overflow-hidden clip wave อยู่แล้ว */}
-      <section ref={unitsRef} className="relative py-6 md:py-12 bg-white overflow-hidden">
+      <section ref={unitsRef} className="relative py-6 md:py-12 bg-slate-50 overflow-hidden border-t border-slate-100/50">
         <div className="container-narrow relative z-10">
           <Suspense fallback={<div className="min-h-[160px] bg-gray-100 animate-pulse rounded-lg" />}>
             <UnitLinks embedded={true} />

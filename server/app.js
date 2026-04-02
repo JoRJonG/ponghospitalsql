@@ -13,6 +13,7 @@ import authRouter from './routes/auth.js'
 import systemRouter from './routes/system.js'
 import previewRouter from './routes/preview.js'
 import airqualityRouter from './routes/airquality.js'
+import wardstatRouter from './routes/wardstat.js'
 import { optionalAuth } from './middleware/auth.js'
 import geoBlockingMiddleware from './middleware/geoBlocking.js'
 
@@ -114,6 +115,7 @@ export async function createServer() {
   app.use('/api/auth', authRouter)
   app.use('/api/system', systemRouter)
   app.use('/api/airquality', airqualityRouter)
+  app.use('/api/ward-stat', wardstatRouter)
 
   // PDF proxy stays the same
   app.get('/api/proxy/pdf', async (req, res) => {
