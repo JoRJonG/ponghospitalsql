@@ -24,7 +24,7 @@ export async function compressImage(
         type: 'image/jpeg',
         lastModified: Date.now()
       });
-    } catch (err) {
+    } catch {
       // Failed to convert HEIC, continue with original file
     }
   }

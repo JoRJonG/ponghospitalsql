@@ -2625,8 +2625,8 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
         setFullData(initial)
         setLoading(false)
       })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial._id])
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
       <div className="card max-w-4xl w-full max-h-[90vh] flex flex-col">
