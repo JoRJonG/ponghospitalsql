@@ -260,6 +260,21 @@ th {
   letter-spacing: 0.025em;
 }
 
+/* Fix Tailwind conflict with Quill Dropdowns */
+.ql-snow .ql-picker-options {
+  z-index: 50 !important; /* Ensure dropdown appears above other relative elements */
+}
+
+/* Fallback for existing list items lacking data-list due to old sanitizer config */
+.ql-editor ol > li:not([data-list]) {
+  list-style-type: decimal;
+  list-style-position: inside;
+}
+.ql-editor ul > li:not([data-list]) {
+  list-style-type: disc;
+  list-style-position: inside;
+}
+
 /* ปรับน้ำหนัก headings ให้พอดีกับ Prompt */
 h1,
 h2,

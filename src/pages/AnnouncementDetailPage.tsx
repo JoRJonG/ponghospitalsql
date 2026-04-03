@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 
 const PdfViewer = lazy(() => import('../components/PdfViewer'))
 import { shareItem } from '../utils/share'
+import 'quill/dist/quill.snow.css'
 import { fastFetch } from '../utils/fastFetch'
 import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
@@ -182,7 +183,9 @@ export default function AnnouncementDetailPage() {
             </div>
             <span className="sr-only">{item.title}</span>
             {item.content && (
-              <div className="prose prose-sm md:prose max-w-none text-gray-800" dangerouslySetInnerHTML={sanitize(item.content)} />
+              <div className="ql-snow bg-transparent">
+                <div className="ql-editor max-w-none text-gray-800 p-0" dangerouslySetInnerHTML={sanitize(item.content)} />
+              </div>
             )}
             {item.attachments && item.attachments.length > 0 && (
               <div>

@@ -234,7 +234,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 max-w-full overflow-x-hidden">
+    <form onSubmit={submit} className="space-y-3 max-w-full">
       <div>
         <label className="block text-sm mb-1">ชื่อกิจกรรม</label>
         <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded border px-3 py-2" />

@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { useSWR } from '../hooks/useSWR'
 import { sanitize } from '../utils/sanitize'
+import 'quill/dist/quill.snow.css'
 
 const PdfViewer = lazy(() => import('../components/PdfViewer'))
 
@@ -159,8 +160,8 @@ export default function PRPlanPage() {
                         {selectedPlan && (
                             <article className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                                 {selectedPlan.description && (
-                                    <div className="px-6 py-4 prose max-w-none text-gray-700 bg-gray-50/50 border-b border-gray-100">
-                                        <div dangerouslySetInnerHTML={sanitize(selectedPlan.description)} />
+                                    <div className="px-6 py-4 ql-snow bg-gray-50/50 border-b border-gray-100">
+                                        <div className="ql-editor max-w-none text-gray-700 p-0" dangerouslySetInnerHTML={sanitize(selectedPlan.description)} />
                                     </div>
                                 )}
 

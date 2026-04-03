@@ -4,7 +4,8 @@ import DOMPurify from 'dompurify'
 export function sanitize(html?: string | null): { __html: string } {
   const clean = DOMPurify.sanitize(String(html || ''), {
     USE_PROFILES: { html: true },
-    ALLOWED_ATTR: ['href','src','alt','title','target','rel','class','style'],
+    ALLOWED_ATTR: ['href','src','alt','title','target','rel','class','style','data-list','data-value'],
+    ALLOW_DATA_ATTR: true,
     ALLOWED_URI_REGEXP: /^(?:(?:https?|data):|[^a-z]|[a-z+.-]+(?:[^a-z+.-]|$))/i,
   })
   return { __html: clean }
@@ -18,9 +19,9 @@ export function sanitize(html?: string | null): { __html: string } {
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return input
   return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
-    ALLOW_DATA_ATTR: false
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'span', 'img', 'div', 'blockquote', 'pre', 'code'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style', 'src', 'alt', 'width', 'height', 'data-list', 'data-value'],
+    ALLOW_DATA_ATTR: true
   })
 }
 

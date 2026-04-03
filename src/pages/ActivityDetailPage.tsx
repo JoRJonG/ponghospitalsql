@@ -6,6 +6,7 @@ import { fastFetch } from '../utils/fastFetch'
 import { responsiveImageProps } from '../utils/image'
 import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
+import 'quill/dist/quill.snow.css'
 
 type Activity = {
   _id: string
@@ -133,7 +134,9 @@ export default function ActivityDetailPage() {
               {item.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye"></i> {item.viewCount} ครั้ง</div>}
             </div>
             {item.description && (
-              <div className="prose max-w-none" dangerouslySetInnerHTML={sanitize(item.description)} />
+              <div className="ql-snow">
+                <div className="ql-editor max-w-none p-0 text-gray-800" dangerouslySetInnerHTML={sanitize(item.description)} />
+              </div>
             )}
             {/* Images gallery */}
             {Array.isArray(item.images) && item.images.length > 0 && (
@@ -225,7 +228,6 @@ export default function ActivityDetailPage() {
           </div>
         )}
       </div>
-      )
     </div>
   )
 }
