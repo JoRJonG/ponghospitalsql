@@ -52,7 +52,17 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
     if (initialData?._id) {
       setUploading(true)
       try {
-        for (const file of arr) {
+        const availableSlots = MAX_UPLOAD_IMAGES - currentCount
+        const filesToProcess = arr.slice(0, availableSlots)
+        if (filesToProcess.length < arr.length) {
+          Swal.fire({ title: 'ข้อผิดพลาด', text: `เพิ่มรูปได้อีก ${availableSlots} รูปเท่านั้น (สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม)`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        }
+        for (let file of filesToProcess) {
+          try {
+            file = await compressImage(file, 1200, 0.8)
+          } catch (err) {
+            console.error('Failed to compress/convert image before upload:', err)
+          }
           const fd = new FormData(); fd.append('file', file)
           const r = await fetch('/api/uploads/image', { method: 'POST', headers: { 'Authorization': `Bearer ${getToken()}` }, body: fd })
           if (!r.ok) throw new Error('upload failed')
@@ -253,9 +263,10 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
             {form.images.map((img, i) => {
               const src = typeof img === 'string' ? img : img.url
+              const displaySrc = src.startsWith('data:') || src.startsWith('blob:') ? src : `${src}${src.includes('?') ? '&' : '?'}w=400`
               return (
                 <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
-                  <img src={`${src}${src.includes('?') ? '&' : '?'}w=400`} loading="lazy" decoding="async" width={320} height={240} className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={displaySrc} loading="lazy" decoding="async" width={320} height={240} className="absolute inset-0 h-full w-full object-cover" />
                   <button type="button" onClick={() => removeImageAt(i)} className="absolute top-2 right-2 z-10 bg-black/70 text-white text-xs px-2 py-1 rounded">ลบ</button>
                 </div>
               )

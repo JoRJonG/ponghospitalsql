@@ -30,10 +30,15 @@ export default function RichTextEditor({ value, onChange, placeholder, className
   const editorRef = useRef<HTMLDivElement | null>(null)
   const quillRef = useRef<Quill | null>(null)
   const onChangeRef = useRef(onChange)
+  const valueRef = useRef(value)
 
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
+
+  useEffect(() => {
+    valueRef.current = value
+  }, [value])
 
   const modulesConfig = useMemo<EditorModules>(() => modules ?? defaultModules, [modules])
   const formatsConfig = useMemo(() => formats ?? defaultFormats, [formats])
@@ -55,6 +60,13 @@ export default function RichTextEditor({ value, onChange, placeholder, className
       formats: formatsConfig,
     })
     quillRef.current = q
+
+    // Set initial value immediately after init to avoid race with sync effect
+    const initHtml = valueRef.current
+    if (initHtml) {
+      const delta = q.clipboard.convert({ html: initHtml })
+      q.setContents(delta, 'silent')
+    }
 
     const handler = () => {
       const html = editorRef.current?.querySelector('.ql-editor')?.innerHTML ?? ''

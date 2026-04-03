@@ -10,6 +10,25 @@ export async function compressImage(
   maxWidth: number = 1200,
   quality: number = 0.8
 ): Promise<File> {
+  // รองรับไฟล์ HEIC/HEIF
+  if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
+    try {
+      const { heicTo } = await import('heic-to');
+      const convertedBlob = await heicTo({
+        blob: file,
+        type: 'image/jpeg',
+        quality: quality
+      });
+      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+      file = new File([blob], file.name.replace(/\.heic$/i, '.jpg').replace(/\.heif$/i, '.jpg'), {
+        type: 'image/jpeg',
+        lastModified: Date.now()
+      });
+    } catch (err) {
+      // Failed to convert HEIC, continue with original file
+    }
+  }
+
   return new Promise((resolve, reject) => {
     // ถ้าไฟล์เล็กกว่า 500KB ให้ผ่านไปเลย
     if (file.size < 500 * 1024) {
@@ -61,7 +80,6 @@ export async function compressImage(
               lastModified: Date.now()
             })
             
-            console.log(`[Compress] ${file.name}: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
             resolve(compressedFile)
           },
           'image/jpeg',

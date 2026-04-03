@@ -2560,11 +2560,12 @@ function ActivitiesList({ list, page, totalPages, onPageChange, onEditSaved, onD
         {list.map(a => {
           const first = a.images && a.images[0]
           const src = typeof first === 'string' ? first : first?.url
+          const displaySrc = src ? (src.startsWith('data:') || src.startsWith('blob:') ? src : `${src}${src.includes('?') ? '&' : '?'}w=400`) : '/favicon.png'
           return (
             <div key={a._id} className="card overflow-hidden">
               <div className="card-body flex flex-col gap-3 sm:flex-row">
                 <img
-                  src={src ? `${src}${src.includes('?') ? '&' : '?'}w=400` : '/favicon.png'}
+                  src={displaySrc}
                   loading="lazy"
                   decoding="async"
                   width={288}
@@ -2609,6 +2610,23 @@ function ActivitiesList({ list, page, totalPages, onPageChange, onEditSaved, onD
 }
 
 function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; onClose: () => void; onSaved: () => void }) {
+  const [fullData, setFullData] = useState<Activity | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`/api/activities/${initial._id}`)
+      .then(res => res.json())
+      .then(data => {
+        setFullData(data.error ? initial : data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error('Failed to fetch full activity details:', err)
+        setFullData(initial)
+        setLoading(false)
+      })
+  }, [initial._id])
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
       <div className="card max-w-4xl w-full max-h-[90vh] flex flex-col">
@@ -2616,8 +2634,15 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
           <span>แก้ไขกิจกรรม</span>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
         </div>
-        <div className="p-4 overflow-y-auto">
-          <ActivityForm initialData={initial} onCreated={() => { onSaved(); onClose() }} onCancel={onClose} />
+        <div className="p-4 overflow-y-auto relative min-h-[300px]">
+          {loading ? (
+            <div className="absolute inset-0 flex flex-col space-y-3 items-center justify-center bg-white/80 z-10">
+               <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+               <div className="text-sm text-gray-500">กำลังโหลดรายละเอียด...</div>
+            </div>
+          ) : (
+            <ActivityForm key={fullData?._id || initial._id} initialData={fullData || initial} onCreated={() => { onSaved(); onClose() }} onCancel={onClose} />
+          )}
         </div>
       </div>
     </div>
