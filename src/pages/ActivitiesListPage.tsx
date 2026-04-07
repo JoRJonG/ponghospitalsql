@@ -9,6 +9,7 @@ import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
 import SearchFilterBar from '../components/SearchFilterBar'
 import Pagination from '../components/Pagination'
+import { generateSlug } from '../utils/slugify'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -192,7 +193,7 @@ export default function ActivitiesListPage() {
                   || logo
                 const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill' })
                 return (
-                  <Link to={`/activities/${a._id}`} key={a._id} className="block bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-200">
+                  <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="block bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-200">
                     <div className="flex gap-3 p-3">
                       <img
                         loading="lazy"
@@ -223,7 +224,7 @@ export default function ActivitiesListPage() {
                   || logo
                 const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
                 return (
-                  <Link to={`/activities/${a._id}`} key={a._id} className="group block">
+                  <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="group block">
                     <article className="bg-white/90 shadow-sm border border-gray-100 p-3 rounded-2xl hover:-translate-y-1 hover:shadow-lg transition-[transform,box-shadow] duration-300">
                       <div className="overflow-hidden rounded-xl shadow-inner mb-3">
                         <img

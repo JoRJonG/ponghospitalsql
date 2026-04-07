@@ -4,6 +4,7 @@ import { buildApiUrl } from '../utils/api'
 import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 import { useSWR } from '../hooks/useSWR'
 import logo from '../assets/logo-150x150.png'
+import { generateSlug } from '../utils/slugify'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -93,7 +94,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
             const categoryColor = a.category ? categoryColors[a.category] || { bg: 'bg-slate-500', text: 'text-white' } : null
 
             return (
-              <Link to={`/activities/${a._id}`} key={a._id}>
+              <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id}>
                 {/* stagger-item + delay ให้ cards ปรากฏทีละใบ */}
                 <article className={`group cursor-pointer stagger-item stagger-delay-${Math.min(i, 11)} bg-white/90 shadow-sm border border-gray-100 p-3 rounded-2xl hover:-translate-y-1 hover:shadow-lg transition-[transform,box-shadow] duration-300`}>
                   <div className="overflow-hidden rounded-xl shadow-inner mb-3">
@@ -184,7 +185,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                 || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill', sizes: '(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw' })
               return (
-                <Link to={`/activities/${a._id}`} key={a._id} className="card overflow-hidden group transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 border-0 shadow-lg">
+                <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="card overflow-hidden group transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 border-0 shadow-lg">
                   <div className="relative">
                     <img
                       loading="lazy"

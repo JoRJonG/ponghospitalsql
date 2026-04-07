@@ -4,6 +4,7 @@ import { shareItem } from '../utils/share'
 import { sanitize } from '../utils/sanitize'
 import { fastFetch } from '../utils/fastFetch'
 import { responsiveImageProps } from '../utils/image'
+import { generateSlug } from '../utils/slugify'
 import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
 import 'quill/dist/quill.snow.css'
@@ -19,6 +20,7 @@ type Activity = {
 
 export default function ActivityDetailPage() {
   const { id } = useParams()
+  const realId = id?.split('-')[0]
   const [item, setItem] = useState<Activity | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -32,17 +34,17 @@ export default function ActivityDetailPage() {
   }, [item])
 
   useEffect(() => {
-    if (!id) return
+    if (!realId) return
     setError(null)
     setItem(null)
-    fastFetch<Activity>(`/api/activities/${id}`, { ttlMs: 60_000, retries: 1 })
+    fastFetch<Activity>(`/api/activities/${realId}`, { ttlMs: 60_000, retries: 1 })
       .then((data) => {
         setItem(data)
         // Increment view count
-        fetch(`/api/activities/${id}/view`, { method: 'POST' }).catch(console.error)
+        fetch(`/api/activities/${realId}/view`, { method: 'POST' }).catch(console.error)
       })
       .catch((e) => setError(e?.message || 'เกิดข้อผิดพลาด'))
-  }, [id])
+  }, [realId, id])
 
   // Keyboard navigation when lightbox is open
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function ActivityDetailPage() {
                 onClick={() => {
                   const first = item?.images && item.images.length ? item.images[0] : undefined
                   const img = typeof first === 'string' ? first : first?.url
-                  const idVal = id || item?._id
+                  const idVal = id || (item ? generateSlug(item._id, item.title) : realId)
                   const previewUrl = `${window.location.origin}/activities/${idVal}`
                   shareItem({ title: item?.title, url: previewUrl, image: img })
                 }}
