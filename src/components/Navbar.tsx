@@ -131,7 +131,7 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-3">
             <img
               src={logo}
-              alt="Pong Hospital logo"
+              alt="หน้าหลัก โรงพยาบาลปง"
               className="h-12 w-12 md:h-14 md:w-14 rounded navbar-logo"
               loading="eager"
             />
