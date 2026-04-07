@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { sanitize } from '../utils/sanitize'
 import SEO from '../components/SEO'
+import { generateSlug } from '../utils/slugify'
 
 type ItaNode = {
   _id: number
@@ -27,7 +28,7 @@ export default function ItaPage() {
     return (
       <li key={node._id} id={`ita-${node._id}`} className="mt-2 scroll-mt-28">
         <div className="flex items-start gap-2">
-          <Link to={`/ita/item/${node._id}`} className="font-medium text-gray-800 hover:text-emerald-700 hover:underline transition-colors duration-200" title="เปิดหน้าแยก">{node.title}</Link>
+          <Link to={`/ita/item/${generateSlug(node._id, node.title)}`} className="font-medium text-gray-800 hover:text-emerald-700 hover:underline transition-colors duration-200" title="เปิดหน้าแยก">{node.title}</Link>
         </div>
         {node.content && (
           <div className="prose prose-sm max-w-none text-gray-600 mt-1" dangerouslySetInnerHTML={sanitize(node.content)} />

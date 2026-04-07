@@ -6,6 +6,7 @@ import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
 import SearchFilterBar from '../components/SearchFilterBar'
 import Pagination from '../components/Pagination'
+import { generateSlug } from '../utils/slugify'
 
 
 
@@ -250,7 +251,7 @@ function List({ category }: { category?: Announcement['category'] }) {
         ) : null}
         {!loading ? items.map(a => (
           <Link
-            to={`/announcement/${a._id}`}
+            to={`/announcement/${generateSlug(a._id, a.title)}`}
             key={a._id}
             className={
               `block bg-white p-4 rounded-xl shadow-sm border border-gray-100 transition-[transform,box-shadow] duration-300 group relative overflow-hidden ` +

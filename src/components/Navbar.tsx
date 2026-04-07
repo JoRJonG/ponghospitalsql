@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import logo from '../assets/logo-150x150.png'
 import NavbarAirQuality from './NavbarAirQuality'
+import { generateSlug } from '../utils/slugify'
 
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
   `inline-flex items-center px-4 pt-2.5 pb-1.5 text-base font-medium transition-colors ${isActive ? 'text-emerald-600 bg-emerald-50 rounded-md' : 'text-slate-600 hover:text-emerald-500 hover:bg-emerald-50/50 rounded-md'}`
@@ -89,10 +90,9 @@ export default function Navbar() {
     if (itaTimer.current) clearTimeout(itaTimer.current)
     itaTimer.current = setTimeout(() => setItaOpen(false), 180)
   }
-  const goItaAnchor = (id: number) => {
+  const goItaAnchor = (id: number, title: string) => {
     setItaOpen(false)
-    // เปลี่ยนพฤติกรรม: ทุกเมนูเปิดหน้าเฉพาะของตัวเอง
-    navigate(`/ita/item/${id}`)
+    navigate(`/ita/item/${generateSlug(id, title)}`)
   }
 
   // About menu handlers
@@ -158,7 +158,7 @@ export default function Navbar() {
                   <ul className="space-y-1">
                     {itaRoots.map(r => (
                       <li key={r._id} className="group">
-                        <button onClick={() => goItaAnchor(r._id)} className="w-full text-left px-2 py-1 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center justify-between">
+                        <button onClick={() => goItaAnchor(r._id, r.title)} className="w-full text-left px-2 py-1 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center justify-between">
                           <span className="truncate pr-2">{r.title}</span>
                           {r.children && r.children.length > 0 ? <i className="fa-solid fa-chevron-right text-[10px] text-gray-400 group-hover:text-emerald-600 transition-colors" /> : null}
                         </button>
@@ -166,7 +166,7 @@ export default function Navbar() {
                           <ul className="ml-2 mt-1 border-l border-dashed border-gray-200 pl-2 space-y-1">
                             {r.children.slice(0, 6).map(c => (
                               <li key={c._id}>
-                                <button onClick={() => goItaAnchor(c._id)} className="w-full text-left px-2 py-0.5 rounded hover:bg-emerald-50 hover:text-emerald-700 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
+                                <button onClick={() => goItaAnchor(c._id, c.title)} className="w-full text-left px-2 py-0.5 rounded hover:bg-emerald-50 hover:text-emerald-700 text-[12.5px] text-gray-600 flex items-center gap-1 truncate" title={c.title}>
                                   <i className="fa-regular fa-circle text-[6px] text-gray-400" />
                                   <span className="truncate">{c.title}</span>
                                 </button>
@@ -268,7 +268,7 @@ export default function Navbar() {
                       {itaRoots.map(r => (
                         <li key={r._id}>
                           <button
-                            onClick={() => { navigate(`/ita/item/${r._id}`); setOpen(false); setMobileItaOpen(false) }}
+                            onClick={() => { navigate(`/ita/item/${generateSlug(r._id, r.title)}`); setOpen(false); setMobileItaOpen(false) }}
                             className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 truncate"
                           >{r.title}</button>
                         </li>

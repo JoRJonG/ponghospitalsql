@@ -3,12 +3,14 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { sanitize } from '../utils/sanitize'
 import SEO from '../components/SEO'
+import { generateSlug } from '../utils/slugify'
 
 type ItaItem = { _id: number; title: string; content?: string | null; pdfUrl?: string | null; parentId?: number | null }
 type ItaChild = ItaItem
 
 export default function ItaItemPage() {
   const { id } = useParams<{ id: string }>()
+  const realId = id?.split('-')[0]
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [item, setItem] = useState<ItaItem | null>(null)
@@ -16,9 +18,9 @@ export default function ItaItemPage() {
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!id) return
+    if (!realId) return
     setLoading(true)
-    fetch(`/api/ita/item/${id}`).then(r => {
+    fetch(`/api/ita/item/${realId}`).then(r => {
       if (!r.ok) throw new Error('not ok')
       return r.json()
     }).then(d => {
@@ -26,7 +28,7 @@ export default function ItaItemPage() {
       setChildren(d.children || [])
       setError(null)
     }).catch(() => setError('ไม่พบข้อมูล')).finally(() => setLoading(false))
-  }, [id])
+  }, [realId])
 
   // เพิ่ม target="_blank" ให้กับลิงก์ทั้งหมดใน content
   useEffect(() => {
@@ -72,7 +74,7 @@ export default function ItaItemPage() {
                     <ul className="list-disc ml-6 space-y-1 text-sm">
                       {children.map(c => (
                         <li key={c._id}>
-                          <Link to={`/ita/item/${c._id}`} className="text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-200">{c.title}</Link>
+                          <Link to={`/ita/item/${generateSlug(c._id, c.title)}`} className="text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-200">{c.title}</Link>
                         </li>
                       ))}
                     </ul>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { generateSlug } from '../utils/slugify'
 import { useSWR } from '../hooks/useSWR'
 
 const stripHtml = (html?: string) => {
@@ -155,7 +156,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
 
                 return (
                   <Link
-                    to={`/announcement/${a._id}`}
+                    to={`/announcement/${generateSlug(a._id, a.title)}`}
                     key={a._id}
                     className={
                       `block bg-white/90 shadow-sm border border-gray-100 p-5 rounded-2xl transition-[transform,box-shadow] duration-300 group relative overflow-hidden stagger-item stagger-delay-${Math.min(i, 11)} ` +
@@ -288,7 +289,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
               const style = categoryStyles[a.category] || categoryStyles['ประกาศ']
               return (
                 <Link
-                  to={`/announcement/${a._id}`}
+                  to={`/announcement/${generateSlug(a._id, a.title)}`}
                   key={a._id}
                   className="block w-full bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 px-4 py-3 md:py-4 md:px-6 group hover:-translate-y-1 hover:border-emerald-300"
                 >

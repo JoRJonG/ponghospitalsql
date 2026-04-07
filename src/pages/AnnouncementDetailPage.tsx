@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 
 const PdfViewer = lazy(() => import('../components/PdfViewer'))
 import { shareItem } from '../utils/share'
+import { generateSlug } from '../utils/slugify'
 import 'quill/dist/quill.snow.css'
 import { fastFetch } from '../utils/fastFetch'
 import SEO from '../components/SEO'
@@ -82,16 +83,17 @@ async function downloadFile(url: string, preferredName?: string, forcePdf = fals
 
 export default function AnnouncementDetailPage() {
   const { id } = useParams()
+  const realId = id?.split('-')[0]
   const [item, setItem] = useState<Announcement | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!id) return
+    if (!realId) return
     setItem(null); setError(null)
-    fastFetch<Announcement>(`/api/announcements/${id}`, { ttlMs: 60_000, retries: 1 })
+    fastFetch<Announcement>(`/api/announcements/${realId}`, { ttlMs: 60_000, retries: 1 })
       .then((data) => {
         setItem(data)
-        const url = `/api/announcements/${id}/view`
+        const url = `/api/announcements/${realId}/view`
         const body = ''
 
         if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
@@ -117,7 +119,7 @@ export default function AnnouncementDetailPage() {
           setError('เกิดข้อผิดพลาด')
         }
       })
-  }, [id])
+  }, [realId, id])
 
   return (
     <div className="page-wrapper">
@@ -145,7 +147,7 @@ export default function AnnouncementDetailPage() {
                     if (!att?.url) return false
                     return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(att.url) || att.kind === 'image'
                   })?.url
-                  const idVal = id || item?._id
+                  const idVal = id || (item ? generateSlug(item._id, item.title) : realId)
                   const previewUrl = `${window.location.origin}/announcement/${idVal}`
                   shareItem({ title: item?.title, url: previewUrl, image: img })
                 }}

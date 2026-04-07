@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { generateSlug } from '../utils/slugify'
 import { useSWR } from '../hooks/useSWR'
 
 const stripHtml = (html?: string) => {
@@ -84,7 +85,7 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
         <div className="space-y-3">
           {items.map(a => (
             <Link
-              to={`/announcement/${a._id}`}
+              to={`/announcement/${generateSlug(a._id, a.title)}`}
               key={a._id}
               className="card block transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
             >
@@ -163,7 +164,7 @@ export default function LatestAnnouncements({ limit = 5, embedded = false }: { l
           <div className="space-y-3">
             {items.map(a => (
               <Link
-                to={`/announcement/${a._id}`}
+                to={`/announcement/${generateSlug(a._id, a.title)}`}
                 key={a._id}
                 className="card block transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
