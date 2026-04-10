@@ -61,7 +61,7 @@ export function useSWR<T = unknown>(
                     // ใช้ข้อมูลล่าสุดที่จำไว้ก่อนหน้านี้เพื่อแสดงให้ผู้ใชัเห็นทันที
                     return JSON.parse(stored) as T
                 }
-            } catch (e) {}
+            } catch { /* ignore JSON parse error */ }
         }
         return undefined
     })
@@ -99,7 +99,7 @@ export function useSWR<T = unknown>(
                             if (prev && cached.data && JSON.stringify(prev) === JSON.stringify(cached.data)) {
                                 return prev
                             }
-                        } catch (e) {}
+                        } catch { /* ignore */ }
                         return cached.data as T
                     })
                     setError(cached.error)
@@ -130,7 +130,7 @@ export function useSWR<T = unknown>(
                                 if (prev && result && JSON.stringify(prev) === JSON.stringify(result)) {
                                     return prev
                                 }
-                            } catch (e) {}
+                            } catch { /* ignore */ }
                             return result as T
                         })
                         setError(undefined)
@@ -162,7 +162,7 @@ export function useSWR<T = unknown>(
                 // เก็บลง session storage เผื่อกด F5 รีเฟรช จะได้มีของแสดงเลย ไม่ต้องกระพริบรูปโครงร่าง
                 try {
                     sessionStorage.setItem(`swrv2_${key}`, JSON.stringify(result))
-                } catch (e) {}
+                } catch { /* ignore */ }
 
                 if (mountedRef.current) {
                     setData(prev => {
@@ -171,7 +171,7 @@ export function useSWR<T = unknown>(
                             if (prev && result && JSON.stringify(prev) === JSON.stringify(result)) {
                                 return prev
                             }
-                        } catch (e) {}
+                        } catch { /* ignore */ }
                         return result as T
                     })
                     setError(undefined)
@@ -198,7 +198,7 @@ export function useSWR<T = unknown>(
                 }
             }
         },
-        [key, staleTime, onSuccess, onError]
+        [key, staleTime, onSuccess, onError, keepPreviousData]
     )
 
 

@@ -1,6 +1,6 @@
-import { useEffect, useRef, lazy, Suspense } from 'react'
+import { useEffect, useRef } from 'react'
 import SEO from '../components/SEO'
-import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
+// useHomepageRefresh hook no longer directly used in HomePage rendering
 import { buildApiUrl } from '../utils/api'
 import { useSWR } from '../hooks/useSWR'
 
@@ -43,7 +43,6 @@ function useReveal<T extends HTMLElement>() {
 }
 
 export default function HomePage() {
-  const { refreshKey } = useHomepageRefresh()
 
   const { data: sliderData, error: sliderError } = useSWR<{ success: boolean; data?: { mode: string } }>(
     buildApiUrl('/api/system/hero-slider-mode'),
