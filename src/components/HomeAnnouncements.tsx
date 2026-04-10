@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { generateSlug } from '../utils/slugify'
 import { useSWR } from '../hooks/useSWR'
+import { useHomepageRefresh } from '../contexts/useHomepageRefresh'
 
 const stripHtml = (html?: string) => {
   if (!html) return ''
@@ -34,9 +35,11 @@ type TabKey = (typeof tabs)[number]['key']
 export default function HomeAnnouncements({ limit = 10, embedded = false }: { limit?: number; embedded?: boolean }) {
   const [activeTab, setActiveTab] = useState<TabKey>('ทั้งหมด')
 
+  const { refreshKey } = useHomepageRefresh()
+  
   // สร้าง cache key ที่ unique สำหรับแต่ละ tab
   const categoryQuery = activeTab === 'ทั้งหมด' ? '' : `&category=${encodeURIComponent(activeTab)}`
-  const cacheKey = `/api/announcements?limit=${limit}${categoryQuery}`
+  const cacheKey = `/api/announcements?limit=${limit}${categoryQuery}&_r=${refreshKey}`
 
   // ใช้ useSWR สำหรับ data fetching พร้อม caching
   const { data: items, error: fetchError, isLoading } = useSWR<Announcement[]>(
@@ -62,6 +65,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
       cacheTime: 300000,
       // ไม่ต้อง revalidate เมื่อ focus window
       revalidateOnFocus: false,
+      keepPreviousData: true
     }
   )
 

@@ -62,7 +62,8 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
         },
         {
             revalidateOnFocus: false,
-            staleTime: 60000 // 1 minute
+            staleTime: 60000, // 1 minute
+            keepPreviousData: true
         }
     )
 
@@ -121,7 +122,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                 </div>
 
                 {/* Content */}
-                {error ? (
+                {error && (!items || items.length === 0) ? (
                     <div className="text-center text-red-500 py-4">ไม่สามารถโหลดข้อมูลได้</div>
                 ) : (
                     <div className="relative">

@@ -17,6 +17,7 @@ interface SWROptions {
     cacheTime?: number // milliseconds - เวลาที่เก็บ cache
     onSuccess?: (data: unknown) => void
     onError?: (error: Error) => void
+    keepPreviousData?: boolean
 }
 
 // Global cache สำหรับเก็บข้อมูล
@@ -43,6 +44,7 @@ export function useSWR<T = unknown>(
         cacheTime = 300000, // 5 นาที - เก็บ cache ไว้ 5 นาที
         onSuccess,
         onError,
+        keepPreviousData = false,
     } = options
 
     const [data, setData] = useState<T | undefined>(() => {
@@ -52,6 +54,14 @@ export function useSWR<T = unknown>(
             if (cached && Date.now() - cached.timestamp < cacheTime) {
                 return cached.data as T
             }
+            // Fallback ไป session storage เพื่อป้องกัน UI กระพริบ/โหลดใหม่ ตอนกด F5 ในเว็บบราวเซอร์
+            try {
+                const stored = sessionStorage.getItem(`swrv2_${key}`)
+                if (stored) {
+                    // ใช้ข้อมูลล่าสุดที่จำไว้ก่อนหน้านี้เพื่อแสดงให้ผู้ใชัเห็นทันที
+                    return JSON.parse(stored) as T
+                }
+            } catch (e) {}
         }
         return undefined
     })
@@ -85,16 +95,22 @@ export function useSWR<T = unknown>(
                     setData(prev => {
                         // ถ้าข้อมูลเหมือนเดิม ไม่ต้อง update เพื่อลด re-render
                         if (prev === cached.data) return prev
+                        try {
+                            if (prev && cached.data && JSON.stringify(prev) === JSON.stringify(cached.data)) {
+                                return prev
+                            }
+                        } catch (e) {}
                         return cached.data as T
                     })
                     setError(cached.error)
                 } else {
                     // ถ้าไม่มี cache (เช่น เปลี่ยน key ไปหน้าใหม่ที่ไม่เคยโหลด) 
                     // ให้ clear data เก่าออก เพื่อแสดง loading state
-                    // แต่ต้องระวังกรณีที่เป็นการ revalidate key เดิมที่ไม่มี cache (ไม่ควรเกิดขึ้นถ้า logic ถูกต้อง)
-                    // การ check key change ทำได้ยากใน callback นี้ ดังนั้นการ reset data เมื่อไม่เจอ cache ถือว่าปลอดภัยสุดสำหรับ key switch artifacting
-                    setData(undefined)
-                    setError(undefined)
+                    // ถ้าตั้ง keepPreviousData เป็น true จะแสดงข้อมูลเดิมระหว่างรอโหลด
+                    if (!keepPreviousData) {
+                        setData(undefined)
+                        setError(undefined)
+                    }
                 }
             }
 
@@ -108,7 +124,15 @@ export function useSWR<T = unknown>(
                 try {
                     const result = await ongoingRequests.get(key)
                     if (mountedRef.current) {
-                        setData(result as T)
+                        setData(prev => {
+                            if (prev === result) return prev
+                            try {
+                                if (prev && result && JSON.stringify(prev) === JSON.stringify(result)) {
+                                    return prev
+                                }
+                            } catch (e) {}
+                            return result as T
+                        })
                         setError(undefined)
                     }
                     return
@@ -135,8 +159,21 @@ export function useSWR<T = unknown>(
                     timestamp: Date.now(),
                 })
 
+                // เก็บลง session storage เผื่อกด F5 รีเฟรช จะได้มีของแสดงเลย ไม่ต้องกระพริบรูปโครงร่าง
+                try {
+                    sessionStorage.setItem(`swrv2_${key}`, JSON.stringify(result))
+                } catch (e) {}
+
                 if (mountedRef.current) {
-                    setData(result)
+                    setData(prev => {
+                        if (prev === result) return prev
+                        try {
+                            if (prev && result && JSON.stringify(prev) === JSON.stringify(result)) {
+                                return prev
+                            }
+                        } catch (e) {}
+                        return result as T
+                    })
                     setError(undefined)
                     onSuccess?.(result)
                 }

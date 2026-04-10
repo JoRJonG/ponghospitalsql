@@ -45,6 +45,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
       cacheTime: 300000, // เก็บ cache ไว้ 5 นาที
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
+      keepPreviousData: true
     }
   )
 
