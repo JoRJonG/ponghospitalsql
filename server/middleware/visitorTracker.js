@@ -24,6 +24,12 @@ const TRACKED_PATH_PREFIXES = [
   '/about',
   '/contact',
   '/login',
+  '/documents',
+  '/announcements',
+  '/announcement',
+  '/pr-posters',
+  '/S11',
+  '/air-quality',
 ]
 
 function normalizePath(value) {

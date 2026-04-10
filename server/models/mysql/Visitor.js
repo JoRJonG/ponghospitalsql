@@ -471,18 +471,7 @@ export class Visitor {
     }
   }
 
-  // Remove entries older than the configured retention window
-  static async cleanupOldVisits(retentionDays = DEFAULT_RETENTION_DAYS) {
-    const days = Math.max(1, Math.floor(retentionDays))
-    await exec(`
-      DELETE FROM visitor_sessions
-      WHERE visit_date < DATE_SUB(CURDATE(), INTERVAL ${days} DAY)
-    `)
-    await exec(`
-      DELETE FROM visitors
-      WHERE visit_date < DATE_SUB(CURDATE(), INTERVAL ${days} DAY)
-    `)
-  }
+
 
   // Get visitor statistics for dashboard display
   static async getVisitorStats(rangeDays = DEFAULT_STATS_RANGE_DAYS) {
