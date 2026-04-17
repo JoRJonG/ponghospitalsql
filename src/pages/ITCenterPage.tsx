@@ -15,7 +15,19 @@ interface Document {
     createdAt: string
 }
 
-const IT_SECTIONS = [
+interface ITSection {
+    id: string
+    name: string
+    shortName: string
+    icon: string
+    color: string
+    bg: string
+    border: string
+    fullName: string
+}
+
+// IT Center Sections Metadata - Hoisted outside component
+const IT_SECTIONS: ITSection[] = [
     { id: 'Cybersecurity', name: 'Cybersecurity Data Matrix', shortName: 'Cybersec', icon: 'fa-shield-halved', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200', fullName: 'Cybersecurity Technical Assessment Matrix' },
     { id: 'ระเบียบการใช้งานระบบสารสนเทศ', name: 'ระเบียบการใช้งาน IT', shortName: 'ระเบียบ', icon: 'fa-file-shield', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', fullName: 'ระเบียบการใช้งานระบบสารสนเทศ' },
     { id: 'ระบบประเมินมาตรฐานระบบบริการสุขภาพ', name: 'มาตรฐานบริการสุขภาพ', shortName: 'มาตรฐาน', icon: 'fa-laptop-medical', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', fullName: 'ระบบประเมินมาตรฐานระบบบริการสุขภาพ' },
@@ -225,7 +237,7 @@ export default function ITCenterPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                                        {(IT_SECTIONS.find(s => s.id === activeTab) as any)?.fullName || activeTab}
+                                        {IT_SECTIONS.find(s => s.id === activeTab)?.fullName || activeTab}
                                     </h3>
                                 </div>
                             </motion.div>
