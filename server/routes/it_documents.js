@@ -160,6 +160,7 @@ router.put('/:id', requireAuth, requirePermission('it_docs'), upload.single('fil
             description: req.body.description !== undefined ? sanitizeText(req.body.description) : undefined,
             category: req.body.category !== undefined ? req.body.category : undefined,
             isPublished: req.body.isPublished !== undefined ? req.body.isPublished === 'true' : undefined,
+            displayOrder: req.body.displayOrder !== undefined ? parseInt(req.body.displayOrder) || 0 : undefined,
             updatedBy: req.user.username || 'admin'
         }
 
