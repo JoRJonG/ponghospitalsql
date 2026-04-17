@@ -56,7 +56,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
     const { data: items, error, isLoading } = useSWR<PRPoster[]>(
         `pr-posters-${refreshKey}`,
         async () => {
-            const res = await fetch(buildApiUrl('/api/pr-posters?published=true&limit=10'))
+            const res = await fetch(buildApiUrl('/api/pr-posters?published=true&limit=15'))
             if (!res.ok) throw new Error('Failed to fetch posters')
             return res.json()
         },
