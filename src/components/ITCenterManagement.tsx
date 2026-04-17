@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle, useCallback, lazy, Suspense, useRef } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback, lazy, Suspense } from 'react'
 import { formatFileSize, getFileIcon } from '../utils/documentHelpers'
 import { apiRequest } from '../utils/api'
 
@@ -52,8 +52,7 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
         const [totalItems, setTotalItems] = useState(0)
         const [itemsPerPage] = useState(20)
 
-        // Refs and Specific handlers for the new workflow
-        const fileInputRef = useRef<HTMLInputElement>(null)
+        // Specific handlers for the new workflow
         const [pendingFile, setPendingFile] = useState<File | null>(null)
 
         // Debounce search
@@ -211,36 +210,6 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
             setShowForm(true)
         }
 
-        const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const selectedFile = e.target.files?.[0]
-            if (!selectedFile) return
-            
-            e.target.value = ''
-            
-            if (selectedFile.type !== 'application/pdf') {
-                Swal.fire({ 
-                    icon: 'warning', 
-                    title: 'ไฟล์ไม่ถูกต้อง', 
-                    text: 'กรุณาเลือกไฟล์ PDF เท่านั้น', 
-                    confirmButtonColor: '#059669' 
-                })
-                return
-            }
-
-            if (selectedFile.size > 100 * 1024 * 1024) {
-                Swal.fire({ 
-                    icon: 'warning', 
-                    title: 'ไฟล์ใหญ่เกินไป', 
-                    text: 'ขนาดไฟล์ต้องไม่เกิน 100 MB', 
-                    confirmButtonColor: '#059669' 
-                })
-                return
-            }
-
-            setEditingDocument(null)
-            setPendingFile(selectedFile)
-            setShowForm(true)
-        }
 
         const handleCloseForm = () => {
             setShowForm(false)
@@ -258,14 +227,6 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
 
         return (
             <div className="space-y-6">
-                <input 
-                    ref={fileInputRef} 
-                    type="file" 
-                    accept="application/pdf" 
-                    className="sr-only" 
-                    onChange={handleFileSelect} 
-                />
-
                 {showForm ? (
                     <Suspense fallback={<div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-8 text-white font-medium animate-pulse">กำลังโหลดฟอร์ม...</div>}>
                         <ITDocumentForm
@@ -300,12 +261,18 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
                                 ))}
                             </select>
                         </div>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-6 py-2 rounded-xl font-bold shadow-sm shadow-emerald-100 transition-all flex items-center gap-2 text-sm sm:text-base whitespace-nowrap"
-                        >
-                            <i className="fa-solid fa-cloud-arrow-up" /> อัปโหลดไฟล์ (PDF)
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => {
+                                    setEditingDocument(null)
+                                    setPendingFile(null)
+                                    setShowForm(true)
+                                }}
+                                className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-6 py-2 rounded-xl font-bold shadow-sm shadow-emerald-100 transition-all flex items-center gap-2 text-sm sm:text-base whitespace-nowrap"
+                            >
+                                <i className="fa-solid fa-plus-circle" /> เพิ่มเอกสารใหม่
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -331,7 +298,15 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
                                                     <span className="text-2xl">{getFileIcon(doc.mimeType)}</span>
                                                     <div>
                                                         <div className="font-bold text-gray-800 line-clamp-1">{doc.title}</div>
-                                                        <div className="text-xs text-gray-400">{formatFileSize(doc.fileSize)} • เข้าชม {doc.downloadCount} ครั้ง</div>
+                                                        <div className="text-xs text-gray-400">
+                                                            {doc.fileName ? (
+                                                                <>
+                                                                    {formatFileSize(doc.fileSize)} • เข้าชม {doc.downloadCount} ครั้ง
+                                                                </>
+                                                            ) : (
+                                                                <span className="text-rose-500 font-bold">⚠️ ยังไม่มีการแนบไฟล์</span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

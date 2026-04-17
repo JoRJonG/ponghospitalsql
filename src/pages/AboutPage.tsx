@@ -9,553 +9,311 @@ import ITCenterPage from './ITCenterPage'
 
 function AboutContent() {
   return (
-    <div className="space-y-12 pb-12">
+    <div className="space-y-16 pb-20">
       {/* 1. Identity & Header Section */}
       <div
-        className="relative rounded-3xl overflow-hidden text-white shadow-xl shadow-emerald-900/20 border border-emerald-500/30"
-        style={{ background: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)' }}
+        className="relative flex flex-col justify-end rounded-[2.5rem] overflow-hidden text-white shadow-2xl shadow-emerald-900/20 border border-emerald-500/30 bg-cover bg-center bg-no-repeat min-h-[400px] md:min-h-[500px]"
+        style={{ backgroundImage: 'url("/imgpong.png")' }}
       >
-        <div className="absolute top-0 right-0 p-12 opacity-10">
+        <div className="absolute inset-0 bg-black/10 transition-colors"></div>
+        <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-emerald-950/95 via-emerald-900/70 to-transparent"></div>
+        
+        <div className="absolute top-0 right-0 p-12 opacity-10 hidden md:block">
           <i className="fa-solid fa-hospital text-9xl transform rotate-12 text-white"></i>
         </div>
-        <div className="relative z-10 p-8 md:p-12">
+        
+        <div className="relative z-10 p-8 md:p-14 mt-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-white drop-shadow-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-800/50 backdrop-blur-md border border-emerald-400/30 text-emerald-100 text-sm font-semibold mb-6 shadow-sm">
+              <i className="fa-solid fa-clock-rotate-left"></i>
+              ให้บริการตั้งแต่ พ.ศ. 2502
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-3 tracking-tight text-white drop-shadow-lg">
               โรงพยาบาลปง
-              <span className="block text-emerald-100 text-xl md:text-2xl font-normal mt-2">
+              <span className="block text-emerald-300/90 text-2xl md:text-3xl font-light mt-2 tracking-wide">
                 Pong Hospital
               </span>
             </h1>
-            <div className="prose prose-lg text-emerald-50 max-w-3xl leading-relaxed opacity-95 font-medium">
-              <p>
-                ประวัติความเป็นมาและการเติบโตของโรงพยาบาลปง
-                โรงพยาบาลปงมีการพัฒนาอย่างต่อเนื่องจากสถานีอนามัยเล็ก ๆ จนก้าวสู่การเป็นโรงพยาบาลชุมชนที่ทันสมัย
-              </p>
-            </div>
+            <p className="text-emerald-50 max-w-3xl leading-relaxed opacity-90 text-lg md:text-xl font-light mt-4">
+              จากสถานีอนามัยเล็ก ๆ สู่การเป็น<span className="font-semibold text-white">โรงพยาบาลชุมชนที่ทันสมัย</span> พร้อมดูแลสุขภาพของประชาชนด้วยคุณภาพและมาตรฐาน
+            </p>
           </motion.div>
         </div>
       </div>
 
-      {/* 2. History Timeline */}
+      {/* 2. Vision & Mission (Focal Quote Aesthetic) */}
+      <div className="grid lg:grid-cols-2 gap-8 md:gap-12">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          className="relative bg-gradient-to-br from-emerald-50 to-white p-10 md:p-12 rounded-[2rem] border border-emerald-100/50 shadow-lg shadow-emerald-100/20 overflow-hidden group hover:shadow-xl hover:shadow-emerald-200/30 transition-all duration-500"
+        >
+          <div className="absolute -top-10 -right-10 text-[15rem] text-emerald-500/5 opacity-20 transform -rotate-12 transition-transform duration-700 group-hover:scale-110">
+            <i className="fa-solid fa-quote-right"></i>
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-sm font-black tracking-widest text-emerald-600 uppercase mb-8 flex items-center gap-3">
+              <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>
+              วิสัยทัศน์ (Vision)
+            </h2>
+            <p className="text-2xl md:text-3xl font-bold text-slate-800 leading-snug">
+              "โรงพยาบาลปง จะเป็นโรงพยาบาลที่มี<span className="text-emerald-600">บริการดี</span> มี<span className="text-emerald-600">ผลลัพธ์เป็นเลิศ</span>"
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          className="relative bg-gradient-to-br from-teal-50 to-white p-10 md:p-12 rounded-[2rem] border border-teal-100/50 shadow-lg shadow-teal-100/20 hover:shadow-xl hover:shadow-teal-200/30 transition-all duration-500"
+        >
+            <h2 className="text-sm font-black tracking-widest text-teal-600 uppercase mb-8 flex items-center gap-3">
+              <span className="w-8 h-1 bg-teal-500 rounded-full"></span>
+              พันธกิจ (Mission)
+            </h2>
+            <ul className="space-y-5">
+              {[
+                "ให้บริการด้านสุขภาพแก่ประชาชนอย่างมีคุณภาพ",
+                "พัฒนาบริการสาธารณสุขอย่างเป็นองค์รวม ทั้งในและนอกเครือข่าย",
+                "จัดระบบบริการด้วยเทคโนโลยีสารสนเทศที่ทันสมัยและมีประสิทธิภาพ",
+                "ส่งเสริมให้บุคลากรมีสมรรถนะและสร้างวัฒนธรรมองค์กร เน้นความรักสามัคคี"
+              ].map((item, idx) => (
+                <li key={idx} className="flex items-start gap-4 text-slate-700 font-medium">
+                  <div className="w-6 h-6 mt-0.5 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <i className="fa-solid fa-check text-[10px]"></i>
+                  </div>
+                  <span className="leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+        </motion.div>
+      </div>
+
+      {/* 3. Core Values (Modern 3x2 Grid) */}
       <motion.section
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="max-w-4xl mx-auto px-4"
+        viewport={{ once: true, margin: "-100px" }}
       >
-        <div className="relative border-l-4 border-emerald-200 ml-4 md:ml-6 space-y-8 py-4">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="text-emerald-500 font-black tracking-[0.2em] uppercase text-xs">Core Values</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-3 mb-4 tracking-tight">ค่านิยมองค์กร</h2>
+          <p className="text-slate-500">หลักการทำงานที่ชาวโรงพยาบาลปงยึดถือร่วมกัน เพื่อส่งมอบผลลัพธ์ที่ดีที่สุด</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { year: "พ.ศ. 2502", title: "สถานีอนามัยระดับอำเภอ", desc: "ก่อตั้งครั้งแรก" },
-            { year: "พ.ศ. 2510", title: "สถานีอนามัยชั้น 1", desc: "ยกระดับการให้บริการ" },
-            { year: "พ.ศ. 2517", title: "ศูนย์การแพทย์และอนามัย", desc: "เปลี่ยนสถานะเพื่อรองรับความต้องการ" },
-            { year: "พ.ศ. 2520", title: "โรงพยาบาลขนาด 10 เตียง", desc: "ยกระดับสู่โรงพยาบาลชุมชน" },
-            { year: "พ.ศ. 2536 - ปัจจุบัน", title: "โรงพยาบาลขนาด 30 เตียง", desc: "พัฒนาคุณภาพบริการอย่างต่อเนื่อง" },
-          ].map((item, index) => (
-            <div key={index} className="relative pl-8 md:pl-12">
-              <div className="absolute -left-[10px] md:-left-[14px] top-1 w-6 h-6 rounded-full bg-emerald-500 border-4 border-white shadow-md"></div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-50 hover:shadow-md transition-shadow">
-                <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mb-2">
-                  {item.year}
-                </span>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{item.title}</h3>
-                <p className="text-gray-600">{item.desc}</p>
+            { icon: "fa-eye", title: "Visionary Humility", desc: "ผู้นำมีวิสัยทัศน์ อ่อนน้อมถ่อมตน", color: "text-emerald-500", bg: "bg-emerald-50", border: "hover:border-emerald-300" },
+            { icon: "fa-bullseye", title: "Focus on Result", desc: "มุ่งเน้นผลลัพธ์", color: "text-rose-500", bg: "bg-rose-50", border: "hover:border-rose-300" },
+            { icon: "fa-hospital-user", title: "Patient Focus", desc: "ยึดผู้ป่วยเป็นศูนย์กลาง", color: "text-blue-500", bg: "bg-blue-50", border: "hover:border-blue-300" },
+            { icon: "fa-scale-balanced", title: "Management by Fact", desc: "บริหารจัดการภายใต้ข้อเท็จจริง", color: "text-amber-500", bg: "bg-amber-50", border: "hover:border-amber-300" },
+            { icon: "fa-users-viewfinder", title: "Teamwork", desc: "การทำงานเป็นทีม", color: "text-indigo-500", bg: "bg-indigo-50", border: "hover:border-indigo-300" },
+            { icon: "fa-book-open-reader", title: "Learning & Mastery", desc: "องค์กรแห่งการเรียนรู้ มืออาชีพ", color: "text-purple-500", bg: "bg-purple-50", border: "hover:border-purple-300" }
+          ].map((item, idx) => (
+            <div key={idx} className={`group bg-white rounded-3xl p-8 border border-slate-100 ${item.border} shadow-sm hover:shadow-xl transition-all duration-500 relative overflow-hidden flex flex-col items-center text-center hover:-translate-y-1`}>
+              <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full ${item.bg} opacity-50 blur-3xl transition-transform duration-1000 group-hover:scale-150`}></div>
+              <div className={`w-16 h-16 rounded-2xl ${item.bg} text-2xl ${item.color} flex items-center justify-center mb-6 shadow-sm transform group-hover:rotate-6 transition-transform duration-300`}>
+                <i className={`fa-solid ${item.icon}`}></i>
               </div>
+              <h3 className="font-bold text-slate-800 text-lg mb-2">{item.title}</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
       </motion.section>
 
-      {/* 3. Vision & Mission Foundation */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Vision */}
-        <motion.section
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm hover:shadow-md transition-all border border-emerald-100"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <i className="fa-solid fa-eye text-8xl text-emerald-600"></i>
+      {/* 4. Timeline Redesign */}
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="bg-slate-900 rounded-[3rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20"
+      >
+        <div className="absolute inset-0 bg-[url('/it-center-bg.png')] opacity-5 mix-blend-overlay bg-cover bg-center"></div>
+        <div className="absolute -left-40 top-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px]"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row gap-12 md:gap-20">
+          <div className="md:w-1/3 shrink-0">
+            <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Our Journey</span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">ประวัติ<br/>ความเป็นมา</h2>
+            <p className="text-slate-400 font-light leading-relaxed text-sm md:text-base">ก้าวเดินของโรงพยาบาลปง จากจุดเริ่มต้นเล็กๆ สู่วิสัยทัศน์ระดับโรงพยาบาลชุมชนขนาดใหญ่ที่พร้อมดูแลและรับใช้ประชาชนอย่างเต็มศักยภาพตลอดมา</p>
           </div>
-          <div className="relative z-10">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 transition-transform duration-300">
-              <i className="fa-solid fa-eye text-xl"></i>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">วิสัยทัศน์ (Vision)</h2>
-            <p className="text-gray-600 text-lg leading-relaxed">
-              "โรงพยาบาลปง จะเป็นโรงพยาบาลที่มีบริการดี มีผลลัพธ์เป็นเลิศ"
-            </p>
-          </div>
-        </motion.section>
-
-        {/* Mission */}
-        <motion.section
-          initial={{ opacity: 0, x: 20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm hover:shadow-md transition-all border border-emerald-100"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <i className="fa-solid fa-bullseye text-8xl text-teal-600"></i>
-          </div>
-          <div className="relative z-10">
-            <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center text-teal-600 mb-6 group-hover:scale-110 transition-transform duration-300">
-              <i className="fa-solid fa-bullseye text-xl"></i>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">พันธกิจ (Mission)</h2>
-            <ul className="space-y-3">
+          
+          <div className="md:w-2/3 relative">
+            <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-emerald-400 via-emerald-600/30 to-transparent"></div>
+            <div className="space-y-10">
               {[
-                "ให้บริการด้านสุขภาพแก่ประชาชนอย่างมีคุณภาพ",
-                "พัฒนาบริการสาธารณสุขอย่างเป็นองค์รวมทั้งในและนอกเครือข่ายบริการสุขภาพ",
-                "จัดระบบบริการด้วยเทคโนโลยีสารสนเทศที่ทันสมัยและมีประสิทธิภาพ",
-                "ส่งเสริมให้บุคลากรมีสมรรถนะและสร้างวัฒนธรรมองค์กร เน้นความรัก ความสามัคคี"
+                { year: "2502", title: "สถานีอนามัยอำเภอ", desc: "ก่อตั้งสถานบริการสาธารณสุขครั้งแรก เพื่อรองรับประชาชนเบื้องต้น" },
+                { year: "2510", title: "สถานีอนามัยชั้น 1", desc: "ยกระดับการให้บริการประชาชน ครอบคลุมการรักษาพยาบาลมากขึ้น" },
+                { year: "2517", title: "ศูนย์การแพทย์และอนามัย", desc: "เปลี่ยนสถานะเพื่อรองรับความต้องการและจำนวนผู้ป่วยที่เพิ่มขึ้น" },
+                { year: "2520", title: "โรงพยาบาลขนาด 10 เตียง", desc: "ยกระดับสู่โรงพยาบาลชุมชนอย่างเต็มตัว มีเตียงรองรับผู้ป่วยใน" },
+                { year: "2536 - ปัจจุบัน", title: "โรงพยาบาลขนาด 30 เตียง", desc: "พัฒนาคุณภาพบริการ สถานที่ และอุปกรณ์การแพทย์อย่างต่อเนื่องจนถึงปัจจุบัน", highlight: true },
+              ].map((item, index) => (
+                <div key={index} className="relative pl-10 md:pl-14 group">
+                  <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-slate-900 shadow-md ${item.highlight ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600/50 group-hover:bg-emerald-400 transition-colors'}`}></div>
+                  <div className="flex flex-col gap-1.5">
+                    <span className={`text-xs font-black tracking-wider ${item.highlight ? 'text-emerald-300' : 'text-emerald-500'}`}>พ.ศ. {item.year}</span>
+                    <h3 className="text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{item.title}</h3>
+                    <p className="text-slate-400 text-sm font-light leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 5. Hospital Mandate & Service Scope (Bento Box Layout) */}
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+      >
+        <div className="grid lg:grid-cols-12 gap-6">
+          {/* Service Scope (Takes up more visual space) */}
+          <div className="lg:col-span-7 bg-emerald-600 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden flex flex-col group hover:shadow-2xl hover:shadow-emerald-600/20 transition-shadow">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:bg-white/10 transition-colors duration-1000"></div>
+            
+            <div className="relative z-10 mb-10 max-w-sm">
+              <span className="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/20 text-emerald-100 font-bold tracking-[0.1em] text-[10px] mb-4">Core Scope</span>
+              <h2 className="text-3xl font-bold mb-4">บริการของเรา</h2>
+              <p className="text-emerald-100/90 font-light leading-relaxed">พัฒนาศักยภาพการดูแลสุขภาพ 4 มิติ เพื่อประชาชนเข้าถึงบริการที่ได้มาตรฐาน ปลอดภัย และอุ่นใจในทุกโอกาส</p>
+            </div>
+            
+            <div className="relative z-10 grid sm:grid-cols-2 gap-4 mt-auto">
+              {[
+                { icon: "fa-hand-holding-heart", label: "Promotion", desc: "ส่งเสริมสุขภาพทุกกลุ่มวัย" },
+                { icon: "fa-shield-virus", label: "Prevention", desc: "ป้องกันโรคติดเชื้อและภัยสุขภาพ" },
+                { icon: "fa-stethoscope", label: "Treatment", desc: "รักษาโรคตามมาตรฐานทุติยภูมิ" },
+                { icon: "fa-person-walking-with-cane", label: "Rehabilitation", desc: "ฟื้นฟูสภาพผู้ป่วยแบบองค์รวม" }
+              ].map((cap, idx) => (
+                <div key={idx} className="bg-white/[0.08] backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/[0.15] hover:border-white/20 transition-all cursor-default">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 text-emerald-50">
+                    <i className={`fa-solid ${cap.icon} text-xl shadow-sm`}></i>
+                  </div>
+                  <h4 className="font-bold text-lg mb-1">{cap.label}</h4>
+                  <p className="text-sm text-emerald-100/70 font-light leading-relaxed">{cap.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Hospital Mandate */}
+          <div className="lg:col-span-5 bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-shadow rounded-[2.5rem] p-8 md:p-12 flex flex-col">
+            <div className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-800 flex items-center justify-center mb-6 border border-slate-100 shadow-sm">
+              <i className="fa-solid fa-gavel text-xl"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-8">บทบาทและอำนาจหน้าที่</h2>
+            
+            <ul className="space-y-6 mt-auto">
+              {[
+                { icon: "fa-map-location-dot", title: "การวางแผน / ยุทธศาสตร์", desc: "จัดทำยุทธศาสตร์สุขภาพในระดับอำเภอ" },
+                { icon: "fa-hand-holding-medical", title: "การบริการสุขภาพ", desc: "ดูแลรักษา ส่งเสริม ป้องกัน และฟื้นฟู" },
+                { icon: "fa-clipboard-check", title: "การกำกับและสนับสนุน", desc: "ประเมินและสนับสนุนเครือข่ายบริการ" },
+                { icon: "fa-users-rays", title: "การพัฒนาและประสานงาน", desc: "เชื่อมโยงเครือข่าย ท้องถิ่น และเทคโนโลยี" }
               ].map((item, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-gray-600">
-                  <i className="fa-solid fa-check-circle text-teal-500 mt-1 shrink-0"></i>
-                  <span>{item}</span>
+                <li key={idx} className="flex gap-4 group">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-sm">
+                    <i className={`fa-solid ${item.icon} text-sm`}></i>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">{item.title}</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
-        </motion.section>
-      </div>
-
-      {/* 4. Core Values */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="text-center mb-10">
-          <span className="text-emerald-600 font-semibold tracking-wider uppercase text-sm">Core Values</span>
-          <h2 className="text-3xl font-bold text-gray-900 mt-2">ค่านิยมองค์กร</h2>
-          <div className="w-20 h-1 bg-emerald-500 mx-auto mt-4 rounded-full"></div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            {
-              icon: "fa-eye",
-              title: "Visionary Humility Leadership",
-              desc: "ผู้นำมีวิสัยทัศน์ และอ่อนน้อมถ่อมตน",
-              color: "text-emerald-600",
-              bg: "bg-emerald-50"
-            },
-            {
-              icon: "fa-bullseye",
-              title: "Focus on Result",
-              desc: "มุ่งเน้นผลลัพธ์",
-              color: "text-teal-600",
-              bg: "bg-teal-50"
-            },
-            {
-              icon: "fa-hospital-user",
-              title: "Patient Focus",
-              desc: "ยึดผู้ป่วยเป็นศูนย์กลาง",
-              color: "text-cyan-600",
-              bg: "bg-cyan-50"
-            },
-            {
-              icon: "fa-scale-balanced",
-              title: "Management by Fact",
-              desc: "บริหารจัดการภายใต้ข้อเท็จจริง",
-              color: "text-blue-600",
-              bg: "bg-blue-50"
-            },
-            {
-              icon: "fa-users",
-              title: "Teamwork",
-              desc: "การทำงานเป็นทีม",
-              color: "text-indigo-600",
-              bg: "bg-indigo-50"
-            },
-            {
-              icon: "fa-book-open-reader",
-              title: "Learning & Mastery",
-              desc: "องค์กรแห่งการเรียนรู้และมีความเป็นมืออาชีพ",
-              color: "text-violet-600",
-              bg: "bg-violet-50"
-            }
-          ].map((item, idx) => (
-            <div key={idx} className="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-emerald-100 relative overflow-hidden">
-              <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-10 transition-transform group-hover:scale-150 ${item.bg.replace('bg-', 'bg-')}`}></div>
-              <div className={`w-14 h-14 rounded-2xl ${item.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                <i className={`fa-solid ${item.icon} text-2xl ${item.color}`}></i>
-              </div>
-              <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-gray-600 text-sm">{item.desc}</p>
-            </div>
-          ))}
         </div>
       </motion.section>
 
-      {/* 5. Hospital Mandate (หน้าที่และอำนาจหลัก) */}
+      {/* 6. Strategic Blueprint (Grouped Policies & Direction) */}
       <motion.section
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="card-premium overflow-hidden border border-emerald-100"
+        viewport={{ once: true, margin: "-100px" }}
       >
-        <div className="bg-gradient-to-r from-emerald-50 to-white px-8 py-6 border-b border-emerald-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-              <i className="fa-solid fa-gavel"></i>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">หน้าที่และอำนาจหลักของโรงพยาบาลชุมชน</h2>
-              <p className="text-sm text-gray-500 mt-0.5">ตามกฎกระทรวงแบ่งส่วนราชการสำนักงานปลัดกระทรวงสาธารณสุข</p>
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="text-emerald-500 font-black tracking-[0.2em] uppercase text-xs">Strategic Blueprint</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-3 mb-4 tracking-tight">ทิศทางและยุทธศาสตร์</h2>
+          <p className="text-slate-500">กรอบแนวทางการดำเนินงานเพื่อก้าวสู่ความสำเร็จตามวิสัยทัศน์อย่างยั่งยืน และการให้บริการที่เป็นเลิศ</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Strategic Excellence */}
+          <div className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-shadow">
+            <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 text-emerald-600 flex items-center justify-center shadow-sm"><i className="fa-solid fa-chess-rook text-lg"></i></div>
+              จุดเน้นยุทธศาสตร์ (Excellence)
+            </h3>
+            <div className="space-y-4">
+              {[
+                { label: "P&P Excellence", desc: "ด้านส่งเสริมและป้องกันโรค", styles: "bg-emerald-50 text-emerald-700 border border-emerald-100" },
+                { label: "Service Excellence", desc: "ยกระดับคุณภาพบริการมาตรฐาน", styles: "bg-blue-50 text-blue-700 border border-blue-100" },
+                { label: "People Excellence", desc: "สุขภาวะและศักยภาพบุคลากร", styles: "bg-violet-50 text-violet-700 border border-violet-100" },
+                { label: "Governance Excellence", desc: "ธรรมาภิบาลในระบบสุขภาพ", styles: "bg-orange-50 text-orange-700 border border-orange-100" }
+              ].map((ex, i) => (
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-white border border-slate-100 hover:border-slate-300 transition-colors">
+                  <span className={`inline-block px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shadow-sm ${ex.styles}`}>{ex.label}</span>
+                  <span className="text-slate-600 font-medium text-sm">{ex.desc}</span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-        <div className="p-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
-                  <i className="fa-solid fa-map-location-dot"></i>
+
+          {/* Executive Policy */}
+          <div className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-shadow">
+            <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 text-rose-500 flex items-center justify-center shadow-sm"><i className="fa-solid fa-user-tie text-lg"></i></div>
+              นโยบายหลักผู้บริหาร
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-4 h-[calc(100%-5rem)]">
+              {[
+                { icon: "fa-medal", title: "มาตรฐาน HA", sub: "เน้น 3P Safety เป็นหลัก" },
+                { icon: "fa-scale-balanced", title: "โปร่งใส (ITA)", sub: "ยึดมั่นหลักธรรมาภิบาล" },
+                { icon: "fa-laptop-medical", title: "Smart Hospital", sub: "พัฒนาระบบเทคโนโลยี" },
+                { icon: "fa-leaf", title: "เศรษฐกิจพอเพียง", sub: "ใช้ทรัพยากรให้คุ้มค่า" }
+              ].map((pol, i) => (
+                <div key={i} className="border border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-300 rounded-2xl p-6 flex flex-col justify-center transition-all cursor-default">
+                  <i className={`fa-solid ${pol.icon} text-slate-400 text-2xl mb-4 drop-shadow-sm`}></i>
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">{pol.title}</h4>
+                  <span className="text-xs text-slate-500 leading-relaxed font-light">{pol.sub}</span>
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">การวางแผนและยุทธศาสตร์</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mt-1">จัดทำแผนยุทธศาสตร์ด้านสุขภาพในเขตพื้นที่อำเภอให้สอดคล้องกับนโยบายของกระทรวง</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
-                  <i className="fa-solid fa-hand-holding-medical"></i>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">การให้บริการสาธารณสุข</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mt-1">ดำเนินการและให้บริการด้านการแพทย์ การส่งเสริมสุขภาพ การป้องกันโรค การรักษาพยาบาล และการฟื้นฟูสมรรถภาพแก่ประชาชนในเขตพื้นที่</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
-                  <i className="fa-solid fa-clipboard-check"></i>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">การกำกับและสนับสนุน</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mt-1">กำกับดูแล ประเมินผล และสนับสนุนการปฏิบัติงานของหน่วยงานสาธารณสุขในเครือข่ายระดับอำเภอ เพื่อให้การดำเนินงานเป็นไปตามกฎหมายและมีมาตรฐาน</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
-                  <i className="fa-solid fa-users-rays"></i>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">การพัฒนาและประสานงาน</h3>
-                  <ul className="mt-2 space-y-2">
-                    {[
-                      "พัฒนาระบบสารสนเทศ งานสุขศึกษา และการสื่อสารสาธารณะด้านสุขภาพในพื้นที่",
-                      "ประสานงานกับหน่วยงานที่เกี่ยวข้อง ภาคีเครือข่าย และองค์กรปกครองส่วนท้องถิ่น เพื่อพัฒนาคุณภาพชีวิตและสุขภาพของประชาชน",
-                      "คุ้มครองผู้บริโภคด้านสุขภาพในพื้นที่"
-                    ].map((text, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                        <i className="fa-solid fa-circle text-[6px] mt-2 text-emerald-400"></i>
-                        <span>{text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm border border-emerald-200">
-                  <i className="fa-solid fa-ellipsis"></i>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">การปฏิบัติงานอื่นๆ</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mt-1">ปฏิบัติงานร่วมกับหรือสนับสนุนการปฏิบัติงานของหน่วยงานอื่นที่เกี่ยวข้อง หรือตามที่ได้รับมอบหมาย</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </motion.section>
 
-      {/* 6. Service Scope (คุณลักษณะของบริการ) */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="bg-gradient-to-br from-gray-50 to-emerald-50/30 rounded-3xl p-8 md:p-12 border border-emerald-100/50"
-      >
-        <div className="flex flex-col md:flex-row gap-12 items-start">
-          <div className="md:w-1/3">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">คุณลักษณะของบริการ</h2>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              มุ่งมั่นให้บริการสุขภาพที่ครอบคลุมและมีคุณภาพ เพื่อสุขภาวะที่ดีของประชาชนในพื้นที่และใกล้เคียง
-            </p>
-            <div className="hidden md:block text-center">
-              <div className="inline-flex p-4 rounded-full bg-emerald-100 text-emerald-600 mb-4">
-                <i className="fa-solid fa-heart-pulse text-6xl"></i>
-              </div>
-            </div>
-          </div>
-          <div className="md:w-2/3 grid sm:grid-cols-2 gap-6">
-            {[
-              {
-                icon: "fa-hand-holding-heart",
-                label: "ส่งเสริม (Promotion)",
-                desc: "ส่งเสริมสุขภาพประชาชนทุกกลุ่มวัยตามทิศทางนโยบายกระทรวงสาธารณสุขและบริบทของพื้นที่"
-              },
-              {
-                icon: "fa-shield-virus",
-                label: "ป้องกัน (Prevention)",
-                desc: "ป้องกันโรคติดเชื้อ โรคไร้เชื้อและภัยสุขภาพ"
-              },
-              {
-                icon: "fa-stethoscope",
-                label: "รักษา (Treatment)",
-                desc: "ตรวจรักษาโรคตามบทบาทสถานพยาบาลระดับทุติยภูมิ ส่งต่อรักษาสถานพยาบาลที่มีศักยภาพสูงกว่า"
-              },
-              {
-                icon: "fa-person-walking-with-cane",
-                label: "ฟื้นฟู (Rehabilitation)",
-                desc: "ฟื้นฟูสภาพผู้ป่วย Stroke และอื่นๆ โดยทีมสหวิชาชีพ"
-              }
-            ].map((cap, idx) => (
-              <div key={idx} className="flex flex-col gap-3 bg-white p-6 rounded-xl shadow-sm border border-emerald-50 hover:border-emerald-200 transition-colors h-full">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                  <i className={`fa-solid ${cap.icon} text-xl`}></i>
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 text-lg mb-2">{cap.label}</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">{cap.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* 7. Strategic Direction */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="card-premium overflow-hidden border border-orange-100"
-      >
-        <div className="bg-gradient-to-r from-orange-50 to-white px-8 py-6 border-b border-orange-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-200">
-              <i className="fa-solid fa-chess-rook"></i>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">ยุทธศาสตร์ของหน่วยงาน</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Strategic Direction</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-8">
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                id: 1,
-                icon: "fa-shield-heart",
-                text: "พัฒนาความเป็นเลิศด้านการส่งเสริมสุขภาพและป้องกันโรค",
-                label: "P&P Excellence",
-                color: "text-emerald-600",
-                bg: "bg-emerald-50",
-                border: "border-emerald-100"
-              },
-              {
-                id: 2,
-                icon: "fa-hospital",
-                text: "พัฒนาระบบบริการสุขภาพให้มีคุณภาพมาตรฐานและเป็นที่ยอมรับ",
-                label: "Service Excellence",
-                color: "text-blue-600",
-                bg: "bg-blue-50",
-                border: "border-blue-100"
-              },
-              {
-                id: 3,
-                icon: "fa-users-gear",
-                text: "ส่งเสริมความเป็นเลิศในการจัดการกำลังคนที่มีประสิทธิภาพและเสริมสร้างสุขภาวการณ์ทำงานที่เหมาะสม",
-                label: "People Excellence",
-                color: "text-violet-600",
-                bg: "bg-violet-50",
-                border: "border-violet-100"
-              },
-              {
-                id: 4,
-                icon: "fa-scale-balanced",
-                text: "เสริมสร้างความเป็นเลิศด้านธรรมาภิบาลการพัฒนาและสนับสนุนระบบบริการสุขภาพ",
-                label: "Governance Excellence",
-                color: "text-orange-600",
-                bg: "bg-orange-50",
-                border: "border-orange-100"
-              }
-            ].map((item) => (
-              <div key={item.id} className={`flex gap-4 p-5 rounded-xl border ${item.border} bg-white hover:shadow-sm transition-shadow`}>
-                <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center ${item.color}`}>
-                  <i className={`fa-solid ${item.icon} text-xl`}></i>
-                </div>
-                <div className="flex-1">
-                  <span className={`inline-block text-xs font-semibold ${item.color} mb-1`}>{item.label}</span>
-                  <p className="text-gray-700 text-sm leading-relaxed font-medium">{item.id}. {item.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* 8. Executive Policy */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="card-premium overflow-hidden border border-purple-100"
-      >
-        <div className="bg-gradient-to-r from-purple-50 to-white px-8 py-6 border-b border-purple-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-200">
-              <i className="fa-solid fa-user-tie"></i>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900">นโยบายผู้บริหาร</h2>
-          </div>
-        </div>
-        <div className="p-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              { id: 1, text: "พัฒนาคุณภาพบริการให้ได้มาตรฐาน HA", sub: "เน้นความปลอดภัย 3P Safety" },
-              { id: 2, text: "บริหารงานด้วยความโปร่งใส (ITA)", sub: "ใช้หลักธรรมาภิบาล" },
-              { id: 3, text: "ก้าวสู่ Smart Hospital", sub: "พัฒนาระบบเทคโนโลยีสารสนเทศ" },
-              { id: 4, text: "ยึดหลักเศรษฐกิจพอเพียง", sub: "ใช้ทรัพยากรอย่างคุ้มค่า" }
-            ].map((item) => (
-              <div key={item.id} className="flex gap-4">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm border border-purple-200">
-                  {item.id}
-                </span>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{item.text}</h3>
-                  <p className="text-sm text-gray-500">{item.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* 9. Strategic Goals & Department Policy */}
-      <div className="grid md:grid-cols-2 gap-8">
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white rounded-2xl p-8 shadow-sm border border-emerald-100"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <i className="fa-solid fa-scroll text-emerald-600 text-xl"></i>
-            <h2 className="text-xl font-bold text-gray-900">นโยบายหน่วยงาน</h2>
-          </div>
-          <ul className="space-y-4">
-            {[
-              "ดูแลสุขภาพแบบบูรณาการ มีส่วนร่วม",
-              "บริการสุขภาพได้มาตรฐาน ปลอดภัย",
-              "ผู้รับบริการพึงพอใจ",
-              "พัฒนาบุคลากรให้มีสมรรถนะ",
-              "บริหารจัดการด้วยหลักธรรมาภิบาล"
-            ].map((text, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <i className="fa-solid fa-check text-emerald-500 mt-1"></i>
-                <span className="text-gray-600">{text}</span>
-              </li>
-            ))}
-          </ul>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white rounded-2xl p-8 shadow-sm border border-teal-100"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <i className="fa-solid fa-chess-knight text-teal-600 text-xl"></i>
-            <h2 className="text-xl font-bold text-gray-900">วัตถุประสงค์เชิงกลยุทธ์<br />(Strategic Objectives)</h2>
-          </div>
-          <ul className="space-y-4">
-            {[
-              { text: "เพื่อให้ประชาชนมีสุขภาพดีและเข้าถึงบริการได้ (P&P Excellence)", icon: "fa-heart-pulse" },
-              { text: "เพื่อให้เป็นโรงพยาบาลที่มีคุณภาพ ได้มาตรฐาน (Service Excellence)", icon: "fa-hospital" },
-              { text: "เพื่อให้บุคลากรมีความสุขและผูกพันต่อองค์กร (People Excellence)", icon: "fa-users-gear" },
-              { text: "เพื่อให้ระบบบริหารจัดการมีประสิทธิภาพ ยึดหลักธรรมาภิบาล (Governance Excellence)", icon: "fa-scale-balanced" }
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <div className="mt-1 w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 shrink-0 text-xs">
-                  <i className={`fa-solid ${item.icon}`}></i>
-                </div>
-                <span className="text-gray-600 text-sm md:text-base">{item.text}</span>
-              </li>
-            ))}
-          </ul>
-        </motion.section>
-      </div>
-
-      {/* 10. Quality Policy */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-        className="bg-white rounded-2xl p-8 shadow-sm border border-blue-100 mt-8"
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <i className="fa-solid fa-clipboard-check text-blue-600 text-xl"></i>
-          <h2 className="text-xl font-bold text-gray-900">นโยบายและแผนพัฒนาคุณภาพ</h2>
-        </div>
-        <ul className="space-y-4">
-          {[
-            "กำหนดนโยบายและเป้าหมายด้านคุณภาพ นโยบายการจัดการคุณภาพ นโยบาย 3P safety และนโยบายความปลอดภัยอื่นๆ",
-            "วางแผนพัฒนาคุณภาพครอบคลุมตามมาตรฐาน HA ฉบับที่ 5 และมาตรฐานวิชาชีพอื่นๆ",
-            "จัดทำและปฏิบัติการตามแผนกลยุทธ์ แผนพัฒนาคุณภาพ",
-            "ตรวจสอบและประเมินผลด้านการพัฒนาคุณภาพ ติดตามความก้าวหน้าผ่านระบบการวัดผลในแต่ละระดับขององค์กร",
-            "จัดทำแผนพัฒนาปรับปรุงจากการประเมินผล และโอกาสพัฒนาที่ผ่านการวิเคราะห์ ประมวลผล"
-          ].map((text, i) => (
-            <li key={i} className="flex items-start gap-3">
-              <i className="fa-solid fa-check-circle text-blue-500 mt-1"></i>
-              <span className="text-gray-600">{text}</span>
-            </li>
-          ))}
-        </ul>
-      </motion.section>
-
-      {/* 11. Contact CTA */}
+      {/* 7. Contact CTA */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className="mt-12 bg-emerald-600 rounded-2xl p-8 text-center text-white relative overflow-hidden"
+        viewport={{ once: true, margin: "-50px" }}
+        className="mt-20 bg-gradient-to-tr from-emerald-800 via-emerald-600 to-teal-500 rounded-[3rem] p-12 md:p-16 text-center text-white relative overflow-hidden shadow-2xl shadow-emerald-900/20"
       >
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10"></div>
-        <div className="relative z-10">
-          <h3 className="text-2xl font-bold mb-4">ต้องการข้อมูลเพิ่มเติม?</h3>
-          <p className="text-emerald-100 mb-8 max-w-lg mx-auto">
-            ทีมงานของเราพร้อมให้คำปรึกษาและบริการดุจญาติมิตร ติดต่อสอบถามข้อมูลเพิ่มเติมได้ตลอดเวลาทำการ
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 mix-blend-color-burn"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-8 backdrop-blur-md border border-white/20 shadow-xl rotate-3 hover:rotate-6 transition-transform">
+            <i className="fa-solid fa-headset text-4xl drop-shadow-md text-emerald-50"></i>
+          </div>
+          <h3 className="text-3xl md:text-4xl font-black mb-5 tracking-tight drop-shadow-sm">พร้อมให้บริการด้วยความใส่ใจ</h3>
+          <p className="text-emerald-50 mb-10 max-w-xl mx-auto text-lg md:text-xl font-light leading-relaxed">
+            ติดต่อสอบถามข้อมูล รับคำปรึกษา หรือแนะนำบริการ ทีมงานโรงพยาบาลปงยินดีต้อนรับทุกท่านดุจญาติมิตร
           </p>
           <a
             href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-emerald-700 font-bold py-3 px-8 rounded-full hover:bg-emerald-50 transition-colors shadow-lg shadow-emerald-900/20"
+            className="inline-flex items-center gap-3 bg-white text-emerald-800 font-bold py-4 px-10 border border-emerald-100 rounded-full hover:bg-emerald-50 hover:scale-105 transition-all shadow-xl shadow-emerald-900/30 active:scale-95 text-lg"
           >
             <i className="fa-solid fa-phone"></i>
-            ติดต่อเรา
+            ช่องทางการติดต่อ
           </a>
         </div>
       </motion.div>

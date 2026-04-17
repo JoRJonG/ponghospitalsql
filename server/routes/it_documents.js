@@ -84,7 +84,7 @@ router.get(['/view/:id', '/view/:id/:filename'], async (req, res) => {
         try {
             await fs.access(absolutePath)
         } catch {
-            return res.status(404).json({ error: 'ไม่พบไฟล์ในระบบ' })
+            return res.status(404).json({ error: 'ไม่พบไฟล์ในระบบ หรืออาจยังไม่ได้แนบไฟล์' })
         }
 
         await ITDocument.incrementDownload(req.params.id)
@@ -101,8 +101,6 @@ router.get(['/view/:id', '/view/:id/:filename'], async (req, res) => {
 // POST / (Admin)
 router.post('/', requireAuth, requirePermission('it_docs'), upload.single('file'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ error: 'กรุณาอัปโหลดไฟล์ PDF' })
-
         const title = sanitizeText(req.body.title || '')
         const description = sanitizeText(req.body.description || '')
         const category = req.body.category || ''
@@ -112,22 +110,32 @@ router.post('/', requireAuth, requirePermission('it_docs'), upload.single('file'
 
         if (!title || !category) return res.status(400).json({ error: 'กรุณาระบุชื่อและหมวดหมู่' })
 
-        const timestamp = Date.now()
-        const randomStr = Math.random().toString(36).substring(7)
-        const decodedName = decodeUploadFilename(req.file.originalname)
-        const safeFileName = `${timestamp}-${randomStr}${path.extname(decodedName)}`
-        const filePath = path.join(UPLOAD_DIR, safeFileName)
+        let filePath = null
+        let fileName = null
+        let mimeType = null
+        let fileSize = null
 
-        await fs.writeFile(filePath, req.file.buffer)
+        if (req.file) {
+            const timestamp = Date.now()
+            const randomStr = Math.random().toString(36).substring(7)
+            const decodedName = decodeUploadFilename(req.file.originalname)
+            const safeFileName = `${timestamp}-${randomStr}${path.extname(decodedName)}`
+            const fullPath = path.join(UPLOAD_DIR, safeFileName)
 
-        const relativePath = path.join('uploads', 'it_center', safeFileName).replace(/\\/g, '/')
+            await fs.writeFile(fullPath, req.file.buffer)
+
+            filePath = path.join('uploads', 'it_center', safeFileName).replace(/\\/g, '/')
+            fileName = decodedName
+            mimeType = req.file.mimetype
+            fileSize = req.file.size
+        }
 
         const newDoc = await ITDocument.create({
             title, description, category,
-            filePath: relativePath,
-            fileName: decodedName,
-            mimeType: req.file.mimetype,
-            fileSize: req.file.size,
+            filePath,
+            fileName,
+            mimeType,
+            fileSize,
             isPublished, displayOrder,
             createdBy: username
         })

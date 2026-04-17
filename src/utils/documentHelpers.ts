@@ -18,7 +18,8 @@ export function formatFileSize(bytes: number): string {
 /**
  * ดึง icon ตามประเภทไฟล์
  */
-export function getFileIcon(mimeType: string): string {
+export function getFileIcon(mimeType?: string | null): string {
+    if (!mimeType) return '📄' // Default for no file
     if (mimeType.includes('pdf')) {
         return '📄' // PDF
     } else if (mimeType.includes('word') || mimeType.includes('document')) {

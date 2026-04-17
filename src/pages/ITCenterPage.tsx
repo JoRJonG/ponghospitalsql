@@ -38,18 +38,19 @@ const IT_SECTIONS: ITSection[] = [
 const DocumentCard = memo(({ doc, ui, onOpen }: { doc: Document; ui: typeof IT_SECTIONS[0] | undefined; onOpen: (id: number, fileName: string) => void }) => (
     <motion.button
         layout
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.98 }}
-        whileHover={{ y: -3 }}
-        onClick={() => onOpen(doc.id, doc.fileName)}
-        className="group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all text-left w-full h-full"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        whileHover={doc.fileName ? { y: -3 } : {}}
+        onClick={() => doc.fileName && onOpen(doc.id, doc.fileName)}
+        className={`group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all text-left w-full h-full ${doc.fileName ? 'hover:shadow-md hover:border-emerald-200 cursor-pointer' : 'opacity-70 cursor-not-allowed grayscale-[0.5]'}`}
     >
         <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${ui?.bg || 'bg-slate-50'} ${ui?.color || 'text-slate-600'}`}>
             <i className={`fa-solid ${ui?.icon || 'fa-file-pdf'} text-2xl`} />
         </div>
         <div className="flex-1 min-w-0 pr-2">
-            <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-1 mb-1">
+            <h3 className={`font-bold transition-colors break-words text-left mb-1 ${doc.fileName ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-500'}`}>
                 {doc.title}
             </h3>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -63,8 +64,8 @@ const DocumentCard = memo(({ doc, ui, onOpen }: { doc: Document; ui: typeof IT_S
                 </span>
             </div>
         </div>
-        <div className="hidden sm:flex flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 items-center justify-center text-slate-300 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-            <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
+        <div className={`hidden sm:flex flex-shrink-0 w-8 h-8 rounded-full items-center justify-center transition-all ${doc.fileName ? 'bg-slate-50 text-slate-300 group-hover:bg-emerald-600 group-hover:text-white' : 'bg-slate-50 text-slate-200'}`}>
+            <i className={`fa-solid ${doc.fileName ? 'fa-arrow-up-right-from-square text-xs' : 'fa-hourglass-start text-[10px]'}`} />
         </div>
     </motion.button>
 ))
@@ -150,8 +151,9 @@ export default function ITCenterPage() {
             <div className="space-y-6">
                 {/* Tech Banner Section */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                     className="relative overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-2xl border border-emerald-500/10"
                 >
                     <div className="absolute inset-0 z-0">
@@ -163,35 +165,40 @@ export default function ITCenterPage() {
                         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent"></div>
                     </div>
 
-                    <div className="relative z-10 p-10 md:p-12 flex flex-col md:flex-row items-center gap-8 md:gap-10">
-                        <div className="w-20 h-20 shrink-0 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex flex-col items-center justify-center shadow-2xl">
-                            <i className="fa-solid fa-fingerprint text-3xl text-emerald-400"></i>
-                            <span className="text-[8px] font-black tracking-[0.2em] text-emerald-300/50 mt-1 uppercase">Secure</span>
+                    <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                        <div className="w-16 h-16 shrink-0 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex flex-col items-center justify-center shadow-2xl">
+                            <i className="fa-solid fa-fingerprint text-2xl text-emerald-400"></i>
+                            <span className="text-[6px] font-black tracking-[0.2em] text-emerald-300/50 mt-0.5 uppercase">Secure</span>
                         </div>
                         <div className="text-center md:text-left">
-                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 tracking-tight">ศูนย์คอมพิวเตอร์ <span className="text-emerald-400 font-light">(IT)</span></h2>
-                            <p className="text-slate-300 text-sm md:text-base lg:text-lg max-w-2xl font-light leading-relaxed">
+                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-black mb-2 tracking-tight">ศูนย์คอมพิวเตอร์ <span className="text-emerald-400 font-light">(IT)</span></h2>
+                            <p className="text-slate-300 text-sm md:text-base max-w-2xl font-light leading-relaxed">
                                 แหล่งรวบรวมข้อมูล มาตรฐาน และแนวทางปฏิบัติงานด้านเทคโนโลยีสารสนเทศ โรงพยาบาลปง
                             </p>
                         </div>
                     </div>
 
-                    <div className="relative px-10 md:px-12 pb-8 text-center md:text-left">
+                    <div className="relative px-6 md:px-8 pb-6 md:pb-8 text-center md:text-left">
                         <div className="relative max-w-2xl inline-block w-full">
-                            <i className="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500/50"></i>
+                            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500/50"></i>
                             <input 
                                 type="text"
                                 placeholder="ค้นหาเอกสาร IT (ชื่อไฟล์, รายละเอียด...)"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-6 py-3.5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:bg-white/10 transition-all text-base"
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:bg-white/10 transition-all text-sm"
                             />
                         </div>
                     </div>
                 </motion.div>
 
                 {!debouncedSearch && (
-                    <div className="flex flex-wrap justify-center md:justify-start gap-3 py-2 scrollbar-hide overflow-x-auto">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+                        className="flex flex-wrap justify-center md:justify-start gap-3 py-2 scrollbar-hide overflow-x-auto"
+                    >
                         {IT_SECTIONS.map((section) => (
                             <button
                                 key={section.id}
@@ -207,7 +214,7 @@ export default function ITCenterPage() {
                                 <span className="sm:hidden">{section.shortName}</span>
                             </button>
                         ))}
-                    </div>
+                    </motion.div>
                 )}
 
                 {loading ? (
@@ -228,8 +235,9 @@ export default function ITCenterPage() {
                     <div className="space-y-6">
                         {!debouncedSearch && (
                             <motion.div 
-                                initial={{ opacity: 0, x: -10 }}
+                                initial={{ opacity: 0, x: -30 }}
                                 animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.6, ease: "easeOut" }}
                                 className="flex items-center gap-4 py-2 px-4 border-l-4 border-emerald-500 bg-emerald-50/30 rounded-r-2xl"
                             >
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${IT_SECTIONS.find(s => s.id === activeTab)?.bg} ${IT_SECTIONS.find(s => s.id === activeTab)?.color}`}>
@@ -274,8 +282,9 @@ export default function ITCenterPage() {
 
                         {totalItems === 0 && (
                             <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
                                 className="py-20 text-center"
                             >
                                 <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">

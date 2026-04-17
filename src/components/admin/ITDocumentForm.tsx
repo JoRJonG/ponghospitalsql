@@ -94,10 +94,7 @@ export default function ITDocumentForm({ document, pendingFile, onSubmit, onCanc
             return
         }
 
-        if (!isEditMode && !file) {
-            setError('กรุณาเลือกไฟล์')
-            return
-        }
+        // Removed mandatory file check to allow adding topic only
 
         setLoading(true)
 
@@ -139,10 +136,10 @@ export default function ITDocumentForm({ document, pendingFile, onSubmit, onCanc
                             </div>
                             <div>
                                 <h3 className="text-white font-bold text-lg leading-tight">
-                                    {isEditMode ? 'แก้ไขเอกสารไอที' : 'อัปโหลดเอกสารไอทีใหม่'}
+                                    {isEditMode ? 'แก้ไขข้อมูล' : 'เพิ่มรายการใหม่'}
                                 </h3>
                                 <p className="text-emerald-100 text-xs mt-0.5">
-                                    {isEditMode ? 'ปรับปรุงข้อมูลเอกสารที่มีอยู่' : 'กรอกรายละเอียดเพื่อจัดเก็บเอกสารลงระบบ'}
+                                    {isEditMode ? 'ปรับปรุงรายละเอียดของเอกสาร' : 'สามารถเพิ่มเฉพาะหัวข้อก่อนแล้วค่อยแนบไฟล์ภายหลังได้'}
                                 </p>
                             </div>
                         </div>
@@ -185,13 +182,15 @@ export default function ITDocumentForm({ document, pendingFile, onSubmit, onCanc
                                 <i className="fa-solid fa-file-pdf text-emerald-500" />
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">ไฟล์ที่เลือก</p>
-                                <p className="text-sm font-semibold text-gray-800 truncate">{file?.name || 'ยังไม่ได้เลือกไฟล์'}</p>
+                                <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">ไฟล์เอกสาร</p>
+                                <p className={`text-sm font-semibold truncate ${file ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                                    {file?.name || 'ยังไม่มีไฟล์ (แนบภายหลังได้)'}
+                                </p>
                                 {file && <p className="text-[10px] text-gray-400">{formatFileSize(file.size)}</p>}
                             </div>
                             {!pendingFile && (
                                 <label className="cursor-pointer bg-white border border-emerald-200 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
-                                    เลือกใหม่
+                                    {file ? 'เปลี่ยนไฟล์' : 'เลือกไฟล์'}
                                     <input type="file" accept=".pdf" className="sr-only" onChange={handleFileChange} />
                                 </label>
                             )}
@@ -290,7 +289,7 @@ export default function ITDocumentForm({ document, pendingFile, onSubmit, onCanc
                             className="flex-3 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {loading ? <i className="fa-solid fa-spinner fa-spin" /> : <i className="fa-solid fa-check" />}
-                            {isEditMode ? 'บันทึกการแก้ไข' : 'ยืนยันการอัปโหลด'}
+                            {isEditMode ? 'บันทึกการแก้ไข' : (file ? 'ยืนยันการอัปโหลด' : 'บันทึกหัวข้อข้อมูล')}
                         </button>
                     </div>
                 </form>

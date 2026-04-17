@@ -20,10 +20,10 @@ class ITDocument {
         title VARCHAR(255) NOT NULL,
         description TEXT,
         category VARCHAR(255) NOT NULL,
-        file_path VARCHAR(512) NOT NULL,
-        file_name VARCHAR(255) NOT NULL,
-        mime_type VARCHAR(100) NOT NULL DEFAULT 'application/pdf',
-        file_size INT NOT NULL,
+        file_path VARCHAR(512) NULL,
+        file_name VARCHAR(255) NULL,
+        mime_type VARCHAR(100) NULL DEFAULT 'application/pdf',
+        file_size INT NULL,
         download_count INT DEFAULT 0,
         is_published BOOLEAN DEFAULT TRUE,
         display_order INT DEFAULT 0,
@@ -37,12 +37,15 @@ class ITDocument {
 
     // เพิ่มเอกสาร
     static async create({ title, description, category, filePath, fileName, mimeType, fileSize, isPublished = true, displayOrder = 0, createdBy }) {
-        if (fileSize > MAX_FILE_SIZE) {
-            throw new Error(`ขนาดไฟล์เกินกำหนด (สูงสุด ${MAX_FILE_SIZE / 1024 / 1024}MB)`)
+        if (filePath) {
+            if (fileSize > MAX_FILE_SIZE) {
+                throw new Error(`ขนาดไฟล์เกินกำหนด (สูงสุด ${MAX_FILE_SIZE / 1024 / 1024}MB)`)
+            }
+            if (mimeType !== 'application/pdf') {
+                throw new Error('รองรับเฉพาะไฟล์ PDF เท่านั้น')
+            }
         }
-        if (mimeType !== 'application/pdf') {
-            throw new Error('รองรับเฉพาะไฟล์ PDF เท่านั้น')
-        }
+
         if (!ALLOWED_CATEGORIES.includes(category)) {
             throw new Error('หมวดหมู่ไม่ถูกต้อง')
         }
