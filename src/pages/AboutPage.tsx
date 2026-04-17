@@ -5,6 +5,7 @@ import OrganizationChartPage from './OrganizationChartPage'
 import SEO from '../components/SEO'
 import PageHeader from '../components/PageHeader'
 import AboutLawsList from '../components/AboutLawsList'
+import ITCenterPage from './ITCenterPage'
 
 function AboutContent() {
   return (
@@ -577,6 +578,7 @@ export default function AboutPage() {
           <Route path="infographic" element={<InfographicPage />} />
           <Route path="organization" element={<OrganizationChartPage />} />
           <Route path="laws" element={<AboutLawsList />} />
+          <Route path="it-center" element={<ITCenterPage />} />
         </Routes>
       </div>
     </div>

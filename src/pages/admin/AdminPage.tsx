@@ -22,6 +22,7 @@ import HeroSliderSettings from '../../components/admin/HeroSliderSettings'
 import FeedbackManagement from '../../components/admin/FeedbackManagement'
 import DocumentsManagement, { type DocumentsManagementHandle } from '../../components/DocumentsManagement'
 import PRPosterManagement, { type PRPosterManagementHandle } from '../../components/admin/PRPosterManagement'
+import ITCenterManagement, { type ITCenterManagementHandle } from '../../components/ITCenterManagement'
 
 import OrganizationChartManagement from '../../components/admin/OrganizationChartManagement'
 import BannedIPsManagement, { type BannedIPsManagementHandle } from '../../components/admin/BannedIPsManagement'
@@ -107,10 +108,10 @@ type Unit = {
   updatedAt?: string
 }
 
-type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'pr_plan' | 'ita' | 'users' | 'feedback' | 'documents' | 'legalEthics' | 'settings-display' | 'settings-user' | 'banned_ips'
+type AdminTab = 'intro' | 'popups' | 'overview' | 'announce' | 'activity' | 'slide' | 'unit' | 'executive' | 'infographic' | 'organization' | 'pr_poster' | 'pr_plan' | 'ita' | 'users' | 'feedback' | 'documents' | 'it_center' | 'legalEthics' | 'settings-display' | 'settings-user' | 'banned_ips'
 
 
-const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'pr_plan', 'users', 'ita', 'feedback', 'documents', 'legalEthics', 'settings-display', 'settings-user', 'banned_ips'] as const
+const ADMIN_TABS: readonly AdminTab[] = ['intro', 'popups', 'overview', 'announce', 'activity', 'slide', 'unit', 'executive', 'infographic', 'organization', 'pr_poster', 'pr_plan', 'users', 'ita', 'feedback', 'documents', 'it_center', 'legalEthics', 'settings-display', 'settings-user', 'banned_ips'] as const
 const isAdminTab = (t: unknown): t is AdminTab => typeof t === 'string' && ADMIN_TABS.includes(t as AdminTab)
 
 const stripHtml = (s?: string) => (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
@@ -208,6 +209,7 @@ export default function AdminPage() {
     dashboard: hasPermission('dashboard'),
     admin: hasPermission('admin'),
     system: hasPermission('system'),
+    it_center: hasPermission('it_docs'),
   }), [hasPermission])
 
   const allowedTabs = useMemo<Record<AdminTab, boolean>>(() => {
@@ -228,6 +230,7 @@ export default function AdminPage() {
       users: permissions.users,
       feedback: permissions.feedback,
       documents: permissions.documents,
+      it_center: permissions.it_center,
       legalEthics: permissions.legalEthics,
       'settings-display': permissions.system,
       'settings-user': true,
@@ -278,6 +281,7 @@ export default function AdminPage() {
   const usersRef = useRef<UserManagementHandle>(null)
   const documentsRef = useRef<DocumentsManagementHandle>(null)
   const prPosterRef = useRef<PRPosterManagementHandle>(null)
+  const itCenterRef = useRef<ITCenterManagementHandle>(null)
 
   const bannedIpsRef = useRef<BannedIPsManagementHandle>(null)
   const legalEthicsRef = useRef<LegalEthicsManagementHandle>(null)
@@ -793,6 +797,22 @@ export default function AdminPage() {
               >
                 <span className="text-xl">📄</span>
                 <span>เอกสารดาวน์โหลด</span>
+              </button>
+            )}
+
+            {allowedTabs.it_center && (
+              <button
+                onClick={() => {
+                  setTab('it_center')
+                  if (window.innerWidth < 1024) setSidebarOpen(false)
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'it_center'
+                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  }`}
+              >
+                <span className="text-xl">💻</span>
+                <span>ศูนย์คอมพิวเตอร์ (IT)</span>
               </button>
             )}
 
@@ -1713,6 +1733,17 @@ export default function AdminPage() {
                   className="space-y-4 lg:space-y-6"
                 >
                   <DocumentsManagement ref={documentsRef} />
+                </motion.div>
+              ) : tab === 'it_center' ? (
+                <motion.div
+                  key="it_center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4 lg:space-y-6"
+                >
+                  <ITCenterManagement ref={itCenterRef} />
                 </motion.div>
               ) : tab === 'legalEthics' ? (
                 <motion.div

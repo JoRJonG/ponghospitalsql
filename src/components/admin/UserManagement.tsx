@@ -42,6 +42,7 @@ const PERMISSION_OPTIONS: PermissionOption[] = [
   { value: 'infographics', label: 'Infographic', description: 'จัดการรูปภาพ Infographic' },
   { value: 'ita', label: 'ITA', description: 'จัดการเมนู ITA' },
   { value: 'documents', label: 'เอกสารดาวน์โหลด', description: 'จัดการไฟล์เอกสารและหมวดหมู่' },
+  { value: 'it_docs', label: 'ศูนย์คอมพิวเตอร์ (IT)', description: 'จัดการเอกสารและคู่มือในศูนย์คอมพิวเตอร์' },
   { value: 'feedback', label: 'ความคิดเห็น', description: 'ดูและจัดการความคิดเห็นจากผู้ใช้' },
   { value: 'users', label: 'ผู้ใช้', description: 'จัดการบัญชีผู้ใช้และสิทธิ์' },
   { value: 'pr_poster', label: 'PR Poster', description: 'จัดการรูปภาพประชาสัมพันธ์ (PR Poster)' },

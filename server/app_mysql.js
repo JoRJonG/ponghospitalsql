@@ -28,6 +28,7 @@ import organizationRouter from './routes/organization.js'
 import thaidAuthRouter from './routes/thaidAuth.js'
 import airqualityRouter from './routes/airquality.js'
 import legalEthicsRouter from './routes/legal_ethics.js'
+import itDocumentsRouter from './routes/it_documents.js'
 import { apiLimiter, createRateLimiter } from './middleware/ratelimit.js'
 import { preventHpp, xssSanitizer, validateOrigin } from './middleware/security.js'
 import { botBlocker } from './middleware/botBlocker.js'
@@ -200,6 +201,7 @@ export async function createServer() {
   app.use('/api/organization', organizationRouter)
   app.use('/api/airquality', airqualityRouter)
   app.use('/api/legal-ethics', legalEthicsRouter)
+  app.use('/api/it-center', itDocumentsRouter)
 
   // Visitor tracking middleware (REMOVED: Now handled exclusively by frontend POST /api/visitors/track to prevent non-JS bots from inflating counts)
   // app.use(trackVisitors)

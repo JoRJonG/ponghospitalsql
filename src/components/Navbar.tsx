@@ -212,6 +212,12 @@ export default function Navbar() {
                         <span>กฎหมายที่เกี่ยวข้องกับการดำเนินงาน</span>
                       </NavLink>
                     </li>
+                    <li>
+                      <NavLink to="/about/it-center" onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">
+                        <i className="fa-solid fa-laptop-code text-gray-500" />
+                        <span>ศูนย์คอมพิวเตอร์ (IT)</span>
+                      </NavLink>
+                    </li>
                   </ul>
                 </div>
               ) : null}
@@ -330,6 +336,16 @@ export default function Navbar() {
                         >
                           <i className="fa-solid fa-scale-balanced text-gray-500 text-xs" />
                           <span>กฎหมายที่เกี่ยวข้องกับการดำเนินงาน</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/about/it-center"
+                          onClick={() => { setOpen(false); setMobileAboutOpen(false) }}
+                          className="w-full text-left text-sm px-2 py-1 rounded hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 flex items-center gap-2"
+                        >
+                          <i className="fa-solid fa-laptop-code text-gray-500 text-xs" />
+                          <span>ศูนย์คอมพิวเตอร์ (IT)</span>
                         </NavLink>
                       </li>
                     </ul>
