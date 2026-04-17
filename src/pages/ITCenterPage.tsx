@@ -35,40 +35,74 @@ const IT_SECTIONS: ITSection[] = [
     { id: 'คู่มือระบบสารสนเทศ', name: 'คู่มือการใช้งานต่างๆ', shortName: 'คู่มือ IT', icon: 'fa-book-atlas', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', fullName: 'คู่มือต่างๆ (IT Manuals)' },
 ]
 
-const DocumentCard = memo(({ doc, ui, onOpen }: { doc: Document; ui: typeof IT_SECTIONS[0] | undefined; onOpen: (id: number, fileName: string) => void }) => (
-    <motion.button
-        layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        whileHover={doc.fileName ? { y: -3 } : {}}
-        onClick={() => doc.fileName && onOpen(doc.id, doc.fileName)}
-        className={`group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all text-left w-full h-full ${doc.fileName ? 'hover:shadow-md hover:border-emerald-200 cursor-pointer' : 'opacity-70 cursor-not-allowed grayscale-[0.5]'}`}
-    >
-        <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${ui?.bg || 'bg-slate-50'} ${ui?.color || 'text-slate-600'}`}>
-            <i className={`fa-solid ${ui?.icon || 'fa-file-pdf'} text-2xl`} />
-        </div>
-        <div className="flex-1 min-w-0 pr-2">
-            <h3 className={`font-bold transition-colors break-words text-left mb-1 ${doc.fileName ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-500'}`}>
-                {doc.title}
-            </h3>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                    <i className="fa-regular fa-calendar" />
-                    {new Date(doc.createdAt).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' })}
-                </span>
-                <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                    <i className="fa-solid fa-eye" />
-                    {doc.downloadCount} ครั้ง
-                </span>
-            </div>
-        </div>
-        <div className={`hidden sm:flex flex-shrink-0 w-8 h-8 rounded-full items-center justify-center transition-all ${doc.fileName ? 'bg-slate-50 text-slate-300 group-hover:bg-emerald-600 group-hover:text-white' : 'bg-slate-50 text-slate-200'}`}>
-            <i className={`fa-solid ${doc.fileName ? 'fa-arrow-up-right-from-square text-xs' : 'fa-hourglass-start text-[10px]'}`} />
-        </div>
-    </motion.button>
-))
+// Helper function for indentation based on numbering (e.g. 9.1.1)
+const getIndentLevel = (title: string): number => {
+    if (!title) return 0;
+    
+    // ค้นหาตัวเลขลำดับด้านหน้าถึงแม้ว่าจะไม่มีการเว้นวรรค
+    const match = title.match(/^(\d+(?:\.\d+)*)/);
+    if (!match) return 0;
+    
+    const parts = match[1].split('.');
+    return Math.max(0, parts.length - 1);
+};
+
+const DocumentCard = memo(({ doc, ui, onOpen, baseDepth = 0 }: { doc: Document; ui: typeof IT_SECTIONS[0] | undefined; onOpen: (id: number, fileName: string) => void; baseDepth?: number }) => {
+    const rawDepth = getIndentLevel(doc.title);
+    const depth = Math.max(0, rawDepth - baseDepth);
+    const isChild = depth > 0;
+    
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="w-full flex items-stretch"
+        >
+            {isChild && (
+                <div 
+                    className={`shrink-0 flex items-center justify-end ${
+                        depth === 1 ? 'w-8 sm:w-16 md:w-24' : 
+                        depth === 2 ? 'w-16 sm:w-32 md:w-48' : 
+                        'w-24 sm:w-40 md:w-64'
+                    }`}
+                />
+            )}
+            
+            <motion.button
+                whileHover={doc.fileName ? { y: -3 } : {}}
+                onClick={() => doc.fileName && onOpen(doc.id, doc.fileName)}
+                className={`flex-1 group flex flex-col sm:flex-row items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all text-left ${doc.fileName ? 'hover:shadow-md hover:border-emerald-200 cursor-pointer' : 'opacity-70 cursor-not-allowed grayscale-[0.5]'}`}
+            >
+                <div className={`${isChild ? 'w-10 h-10 sm:w-12 sm:h-12' : 'w-12 h-12 sm:w-14 sm:h-14'} rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${ui?.bg || 'bg-slate-50'} ${ui?.color || 'text-slate-600'}`}>
+                    <i className={`fa-solid ${ui?.icon || 'fa-file-pdf'} ${isChild ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`} />
+                </div>
+                <div className="flex-1 min-w-0 pr-2">
+                    <h3 className={`font-bold transition-colors break-words text-left mb-1 ${
+                        isChild ? 'text-[15px] sm:text-base' : 'text-base sm:text-lg'
+                    } ${doc.fileName ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-500'}`}>
+                        {doc.title}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                            <i className="fa-regular fa-calendar" />
+                            {new Date(doc.createdAt).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                            <i className="fa-solid fa-eye" />
+                            {doc.downloadCount} ครั้ง
+                        </span>
+                    </div>
+                </div>
+                <div className={`hidden sm:flex flex-shrink-0 ${isChild ? 'w-6 h-6' : 'w-8 h-8'} rounded-full items-center justify-center transition-all ${doc.fileName ? 'bg-slate-50 text-slate-300 group-hover:bg-emerald-600 group-hover:text-white' : 'bg-slate-50 text-slate-200'}`}>
+                    <i className={`fa-solid ${doc.fileName ? 'fa-arrow-up-right-from-square text-[10px] sm:text-xs' : 'fa-hourglass-start text-[10px]'}`} />
+                </div>
+            </motion.button>
+        </motion.div>
+    );
+});
 
 DocumentCard.displayName = 'DocumentCard'
 
@@ -266,17 +300,21 @@ export default function ITCenterPage() {
                             className="grid grid-cols-1 gap-4"
                         >
                             <AnimatePresence mode="popLayout">
-                                {documents.map(doc => {
-                                    const sectionUi = IT_SECTIONS.find(s => s.id === doc.category)
-                                    return (
-                                        <DocumentCard 
-                                            key={doc.id} 
-                                            doc={doc} 
-                                            ui={sectionUi} 
-                                            onOpen={handleOpen} 
-                                        />
-                                    )
-                                })}
+                                {(() => {
+                                    const baseDepth = documents.length > 0 ? Math.min(...documents.map(d => getIndentLevel(d.title))) : 0;
+                                    return documents.map(doc => {
+                                        const sectionUi = IT_SECTIONS.find(s => s.id === doc.category)
+                                        return (
+                                            <DocumentCard 
+                                                key={doc.id} 
+                                                doc={doc} 
+                                                ui={sectionUi} 
+                                                onOpen={handleOpen}
+                                                baseDepth={baseDepth}
+                                            />
+                                        )
+                                    })
+                                })()}
                             </AnimatePresence>
                         </motion.div>
 

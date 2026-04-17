@@ -27,6 +27,15 @@ export interface ITCenterManagementHandle {
     refresh: () => Promise<void>
 }
 
+// Helper function for indentation based on numbering (e.g. 9.1.1)
+const getIndentLevel = (title: string): number => {
+    if (!title) return 0;
+    const match = title.match(/^(\d+(?:\.\d+)*)/);
+    if (!match) return 0;
+    const parts = match[1].split('.');
+    return Math.max(0, parts.length - 1);
+};
+
 const IT_CATEGORIES = [
     'ทั้งหมด',
     'Cybersecurity',
@@ -291,24 +300,38 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
                                 {documents.length === 0 ? (
                                     <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400 italic">ไม่พบข้อมูล</td></tr>
                                 ) : (
-                                    documents.map(doc => (
-                                        <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-start gap-3">
-                                                    <span className="text-2xl">{getFileIcon(doc.mimeType)}</span>
-                                                    <div>
-                                                        <div className="font-bold text-gray-800 line-clamp-1">{doc.title}</div>
-                                                        <div className="text-xs text-gray-400">
-                                                            {doc.fileName ? (
-                                                                <>
-                                                                    {formatFileSize(doc.fileSize)} • เข้าชม {doc.downloadCount} ครั้ง
-                                                                </>
-                                                            ) : (
-                                                                <span className="text-rose-500 font-bold">⚠️ ยังไม่มีการแนบไฟล์</span>
-                                                            )}
+                                    (() => {
+                                        const baseDepth = documents.length > 0 ? Math.min(...documents.map(d => getIndentLevel(d.title))) : 0;
+                                        return documents.map(doc => {
+                                            const rawDepth = getIndentLevel(doc.title);
+                                            const depth = Math.max(0, rawDepth - baseDepth);
+                                            const isChild = depth > 0;
+                                            
+                                            return (
+                                            <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-start gap-3">
+                                                        {isChild && (
+                                                            <div className={`shrink-0 ${
+                                                                depth === 1 ? 'w-6 sm:w-12' : 
+                                                                depth === 2 ? 'w-12 sm:w-20' : 
+                                                                'w-20 sm:w-28'
+                                                            }`} />
+                                                        )}
+                                                        <span className={`${isChild ? 'text-xl mt-0.5' : 'text-2xl'}`}>{getFileIcon(doc.mimeType)}</span>
+                                                        <div>
+                                                            <div className={`font-bold text-gray-800 break-words ${isChild ? 'text-sm' : ''}`}>{doc.title}</div>
+                                                            <div className="text-xs text-gray-400">
+                                                                {doc.fileName ? (
+                                                                    <>
+                                                                        {formatFileSize(doc.fileSize)} • เข้าชม {doc.downloadCount} ครั้ง
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="text-rose-500 font-bold">⚠️ ยังไม่มีการแนบไฟล์</span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg border border-emerald-100 font-medium">
@@ -327,9 +350,11 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
+                                    )
+                                })
+                            })()
+                        )}
+                    </tbody>
                         </table>
                     </div>
 

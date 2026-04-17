@@ -84,7 +84,16 @@ class ITDocument {
             params.push(`%${search}%`, `%${search}%`)
         }
 
-        query += ' ORDER BY display_order ASC, created_at DESC'
+        // เรียงลำดับโดยใช้ display_order
+        // ตามด้วยการแยกตัวเลขหัวข้อเป็น 4 ระดับ (เช่น 9.1.2 เป็น L1=9, L2=1, L3=2, L4=0)
+        // เพื่อให้เรียงลำดับลึกขนาดย่อย (เช่น 9.1.1 และ 9.1.2) ได้อย่างถูกต้อง 100%
+        query += ` ORDER BY 
+            display_order ASC, 
+            CAST(SUBSTRING_INDEX(CONCAT(SUBSTRING_INDEX(title, ' ', 1), '.0.0.0'), '.', 1) AS UNSIGNED) ASC,
+            CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(CONCAT(SUBSTRING_INDEX(title, ' ', 1), '.0.0.0'), '.', 2), '.', -1) AS UNSIGNED) ASC,
+            CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(CONCAT(SUBSTRING_INDEX(title, ' ', 1), '.0.0.0'), '.', 3), '.', -1) AS UNSIGNED) ASC,
+            CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(CONCAT(SUBSTRING_INDEX(title, ' ', 1), '.0.0.0'), '.', 4), '.', -1) AS UNSIGNED) ASC,
+            title ASC`
 
         if (page && limit) {
             const offset = (page - 1) * limit
