@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, memo } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useMemo, memo, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import SEO from '../components/SEO'
+import Pagination from '../components/Pagination'
 
 interface Document {
     id: number
@@ -14,51 +15,44 @@ interface Document {
     createdAt: string
 }
 
-// IT Center Sections Metadata - Hoisted outside component
 const IT_SECTIONS = [
-    { id: 'Cybersecurity', name: 'Cybersecurity Technical Assessment Matrix', icon: 'fa-shield-halved', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200' },
-    { id: 'ระเบียบการใช้งานระบบสารสนเทศ', name: 'ระเบียบการใช้งานระบบสารสนเทศ', icon: 'fa-file-shield', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
-    { id: 'ระบบประเมินมาตรฐานระบบบริการสุขภาพ', name: 'ระบบประเมินมาตรฐานระบบบริการสุขภาพ', icon: 'fa-laptop-medical', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-    { id: 'คู่มือระบบสารสนเทศ', name: 'คู่มือต่างๆ (IT)', icon: 'fa-book-atlas', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+    { id: 'Cybersecurity', name: 'Cybersecurity Data Matrix', shortName: 'Cybersec', icon: 'fa-shield-halved', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200', fullName: 'Cybersecurity Technical Assessment Matrix' },
+    { id: 'ระเบียบการใช้งานระบบสารสนเทศ', name: 'ระเบียบการใช้งาน IT', shortName: 'ระเบียบ', icon: 'fa-file-shield', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', fullName: 'ระเบียบการใช้งานระบบสารสนเทศ' },
+    { id: 'ระบบประเมินมาตรฐานระบบบริการสุขภาพ', name: 'มาตรฐานบริการสุขภาพ', shortName: 'มาตรฐาน', icon: 'fa-laptop-medical', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', fullName: 'ระบบประเมินมาตรฐานระบบบริการสุขภาพ' },
+    { id: 'ระบบประเมินโรงพยาบาลอัจฉริยะ (Smart hospital)', name: 'Smart Hospital (ประเมิน)', shortName: 'Smart Hosp', icon: 'fa-microchip', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', fullName: 'ระบบประเมินโรงพยาบาลอัจฉริยะ (Smart hospital)' },
+    { id: 'คู่มือระบบสารสนเทศ', name: 'คู่มือการใช้งานต่างๆ', shortName: 'คู่มือ IT', icon: 'fa-book-atlas', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', fullName: 'คู่มือต่างๆ (IT Manuals)' },
 ]
 
-// [rerender-memo] Extracted and memoized child component
-const DocumentCard = memo(({ doc, ui, onOpen }: { doc: Document; ui: typeof IT_SECTIONS[0]; onOpen: (id: number, fileName: string) => void }) => (
+const DocumentCard = memo(({ doc, ui, onOpen }: { doc: Document; ui: typeof IT_SECTIONS[0] | undefined; onOpen: (id: number, fileName: string) => void }) => (
     <motion.button
-        key={doc.id}
-        initial={{ opacity: 0, x: -10 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.3 }}
+        layout
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        whileHover={{ y: -3 }}
         onClick={() => onOpen(doc.id, doc.fileName)}
-        className="group flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all text-left w-full"
+        className="group flex flex-col sm:flex-row items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all text-left w-full h-full"
     >
-        <div className="flex items-start gap-4 flex-1">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${ui.bg} ${ui.color}`}>
-                <i className={`fa-solid ${ui.icon} text-xl`} />
-            </div>
-            <div>
-                <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors md:text-lg">
-                    {doc.title}
-                </h3>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <i className="fa-regular fa-calendar" />
-                        {new Date(doc.createdAt).toLocaleDateString('th-TH', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        })}
-                    </span>
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <i className="fa-solid fa-eye" />
-                        เข้าชม {doc.downloadCount} ครั้ง
-                    </span>
-                </div>
+        <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${ui?.bg || 'bg-slate-50'} ${ui?.color || 'text-slate-600'}`}>
+            <i className={`fa-solid ${ui?.icon || 'fa-file-pdf'} text-2xl`} />
+        </div>
+        <div className="flex-1 min-w-0 pr-2">
+            <h3 className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-1 mb-1">
+                {doc.title}
+            </h3>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                    <i className="fa-regular fa-calendar" />
+                    {new Date(doc.createdAt).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' })}
+                </span>
+                <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                    <i className="fa-solid fa-eye" />
+                    {doc.downloadCount} ครั้ง
+                </span>
             </div>
         </div>
-        <div className="ml-4 flex-shrink-0 w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-            <i className="fa-solid fa-arrow-up-right-from-square text-sm" />
+        <div className="hidden sm:flex flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 items-center justify-center text-slate-300 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+            <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
         </div>
     </motion.button>
 ))
@@ -66,127 +60,231 @@ const DocumentCard = memo(({ doc, ui, onOpen }: { doc: Document; ui: typeof IT_S
 DocumentCard.displayName = 'DocumentCard'
 
 export default function ITCenterPage() {
-    const [allDocs, setAllDocs] = useState<Document[]>([])
+    const [documents, setDocuments] = useState<Document[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    
+    // Filters & Pagination state
+    const [activeTab, setActiveTab] = useState(IT_SECTIONS[0].id)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [debouncedSearch, setDebouncedSearch] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
+    const itemsPerPage = 20
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery)
+            setCurrentPage(1) // Reset to first page when searching
+        }, 500)
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
+    const fetchDocuments = useCallback(async () => {
+        setLoading(true)
+        try {
+            const params = new URLSearchParams({
+                category: debouncedSearch ? '' : activeTab,
+                search: debouncedSearch,
+                page: currentPage.toString(),
+                limit: itemsPerPage.toString(),
+                isPublished: 'true'
+            })
+
+            const res = await fetch(`/api/it-center?${params.toString()}`)
+            if (!res.ok) throw new Error('Fetch failed')
+            const result = await res.json()
+            
+            setDocuments(result.data || [])
+            if (result.pagination) {
+                setTotalPages(result.pagination.totalPages)
+                setTotalItems(result.pagination.total)
+            } else {
+                setTotalPages(1)
+                setTotalItems(result.data?.length || 0)
+            }
+        } catch (err) {
+            console.error('Fetch IT docs error:', err)
+            setError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง')
+        } finally {
+            setLoading(false)
+        }
+    }, [activeTab, currentPage, debouncedSearch])
 
     useEffect(() => {
-        let isMounted = true
-        const fetchAllITDocs = async () => {
-            setLoading(true)
-            try {
-                // Fetch all IT documents from the new isolated API
-                const res = await fetch(`/api/it-center?limit=20&isPublished=true`)
-                if (!res.ok) throw new Error('Fetch failed')
-                const data = await res.json()
-                if (isMounted) setAllDocs(data.data || [])
-            } catch (err) {
-                console.error('Fetch all IT docs error:', err)
-                if (isMounted) setError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง')
-            } finally {
-                if (isMounted) setLoading(false)
-            }
-        }
-        fetchAllITDocs()
-        return () => { isMounted = false }
-    }, [])
+        fetchDocuments()
+    }, [fetchDocuments])
 
-    // Group documents by category
-    const groupedDocs = useMemo(() => {
-        const groups: Record<string, Document[]> = {}
-        allDocs.forEach(doc => {
-            if (!groups[doc.category]) {
-                groups[doc.category] = []
-            }
-            groups[doc.category].push(doc)
-        })
-        return groups
-    }, [allDocs])
+    const handleTabChange = (tabId: string) => {
+        setActiveTab(tabId)
+        setCurrentPage(1) // Reset to first page when changing tab
+        setSearchQuery('')
+    }
 
-    // Use memoized handleOpen to keep DocumentCard stable
     const handleOpen = useMemo(() => (id: number, fileName: string) => {
         const url = `/api/it-center/view/${id}/${encodeURIComponent(fileName)}`
         window.open(url, '_blank', 'noopener,noreferrer')
     }, [])
 
     return (
-        <div className="page-wrapper pb-12">
+        <div className="page-wrapper pb-20">
             <SEO
                 title="ศูนย์คอมพิวเตอร์ (IT)"
                 description="ศูนย์คอมพิวเตอร์ (IT) โรงพยาบาลปง - เข้าดูเอกสาร คู่มือ และระเบียบปฏิบัติด้านสารสนเทศ"
             />
 
-            <div className="space-y-10">
+            <div className="space-y-6">
                 {/* Tech Banner Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="relative overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl border border-emerald-500/20"
+                    className="relative overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-2xl border border-emerald-500/10"
                 >
-                    <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat mix-blend-overlay"></div>
-                    <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl"></div>
-                    <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
-                        <div className="w-24 h-24 shrink-0 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center shadow-lg">
-                            <i className="fa-solid fa-server text-4xl text-emerald-400"></i>
-                            <span className="text-[10px] font-bold tracking-widest text-emerald-200 mt-1">V. 2026</span>
+                    <div className="absolute inset-0 z-0">
+                        <img 
+                            src="/it-center-bg.png" 
+                            alt="Background" 
+                            className="w-full h-full object-cover opacity-40 mix-blend-luminosity scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent"></div>
+                    </div>
+
+                    <div className="relative z-10 p-10 md:p-12 flex flex-col md:flex-row items-center gap-8 md:gap-10">
+                        <div className="w-20 h-20 shrink-0 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex flex-col items-center justify-center shadow-2xl">
+                            <i className="fa-solid fa-fingerprint text-3xl text-emerald-400"></i>
+                            <span className="text-[8px] font-black tracking-[0.2em] text-emerald-300/50 mt-1 uppercase">Secure</span>
                         </div>
-                        <div>
-                            <h2 className="text-3xl md:text-4xl font-bold mb-3">ศูนย์คอมพิวเตอร์ (IT)</h2>
-                            <p className="text-slate-300 text-lg md:text-xl max-w-2xl font-light leading-relaxed">
-                                มุ่งเน้นการให้บริการและพัฒนาเทคโนโลยีสารสนเทศที่มีประสิทธิภาพ เพื่อความมั่นคงปลอดภัยและพร้อมใช้ของข้อมูลสุขภาพโรงพยาบาลปง
+                        <div className="text-center md:text-left">
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 tracking-tight">ศูนย์คอมพิวเตอร์ <span className="text-emerald-400 font-light">(IT)</span></h2>
+                            <p className="text-slate-300 text-sm md:text-base lg:text-lg max-w-2xl font-light leading-relaxed">
+                                แหล่งรวบรวมข้อมูล มาตรฐาน และแนวทางปฏิบัติงานด้านเทคโนโลยีสารสนเทศ โรงพยาบาลปง
                             </p>
+                        </div>
+                    </div>
+
+                    <div className="relative px-10 md:px-12 pb-8 text-center md:text-left">
+                        <div className="relative max-w-2xl inline-block w-full">
+                            <i className="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500/50"></i>
+                            <input 
+                                type="text"
+                                placeholder="ค้นหาเอกสาร IT (ชื่อไฟล์, รายละเอียด...)"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-12 pr-6 py-3.5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:bg-white/10 transition-all text-base"
+                            />
                         </div>
                     </div>
                 </motion.div>
 
-                {/* [rendering-conditional-render] Use ternary instead of && */}
+                {!debouncedSearch && (
+                    <div className="flex flex-wrap justify-center md:justify-start gap-3 py-2 scrollbar-hide overflow-x-auto">
+                        {IT_SECTIONS.map((section) => (
+                            <button
+                                key={section.id}
+                                onClick={() => handleTabChange(section.id)}
+                                className={`flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${
+                                    activeTab === section.id 
+                                    ? `bg-slate-900 text-white shadow-xl shadow-slate-200` 
+                                    : `bg-white text-slate-500 border border-slate-100 hover:border-emerald-200 hover:text-emerald-700`
+                                }`}
+                            >
+                                <i className={`fa-solid ${section.icon} ${activeTab === section.id ? 'text-emerald-400' : 'text-slate-300'}`}></i>
+                                <span className="hidden sm:inline">{section.name}</span>
+                                <span className="sm:hidden">{section.shortName}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 {loading ? (
-                    <div className="flex flex-col gap-6 py-12 justify-center items-center text-emerald-600">
-                        <i className="fa-solid fa-circle-notch fa-spin text-4xl"></i>
-                        <p className="animate-pulse font-medium">กำลังเตรียมข้อมูลเอกสาร...</p>
+                    <div className="flex flex-col gap-6 py-20 justify-center items-center">
+                        <div className="relative">
+                            <div className="w-16 h-16 rounded-full border-4 border-emerald-500/10 border-t-emerald-500 animate-spin"></div>
+                            <i className="fa-solid fa-bolt absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-emerald-500 text-xl"></i>
+                        </div>
+                        <p className="font-bold text-slate-400 tracking-widest uppercase text-xs">Fetching Data...</p>
                     </div>
                 ) : error ? (
-                    <div className="p-8 text-center bg-red-50 rounded-2xl border border-red-100">
-                        <i className="fa-solid fa-circle-exclamation text-red-500 text-3xl mb-3" />
-                        <p className="text-red-700 font-medium">{error}</p>
+                    <div className="p-10 text-center bg-rose-50 rounded-[2rem] border border-rose-100 max-w-lg mx-auto">
+                        <i className="fa-solid fa-circle-exclamation text-rose-500 text-4xl mb-4" />
+                        <h3 className="text-xl font-bold text-rose-900 mb-2">Connection Error</h3>
+                        <p className="text-rose-600/70 font-medium">{error}</p>
                     </div>
                 ) : (
-                    <div className="space-y-12">
-                        {IT_SECTIONS.map((section, sIdx) => {
-                            const sectionDocs = groupedDocs[section.id] || []
-                            return (
-                                <motion.section
-                                    key={section.id}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: sIdx * 0.1 }}
-                                    className="space-y-4"
-                                >
-                                    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100">
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${section.bg} ${section.color}`}>
-                                            <i className={`fa-solid ${section.icon} text-lg`} />
-                                        </div>
-                                        <h2 className="text-xl font-bold text-gray-800">{section.name}</h2>
-                                        <span className="ml-auto text-sm font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">
-                                            {sectionDocs.length} รายการ
-                                        </span>
-                                    </div>
+                    <div className="space-y-6">
+                        {!debouncedSearch && (
+                            <motion.div 
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="flex items-center gap-4 py-2 px-4 border-l-4 border-emerald-500 bg-emerald-50/30 rounded-r-2xl"
+                            >
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${IT_SECTIONS.find(s => s.id === activeTab)?.bg} ${IT_SECTIONS.find(s => s.id === activeTab)?.color}`}>
+                                    <i className={`fa-solid ${IT_SECTIONS.find(s => s.id === activeTab)?.icon} text-xl`}></i>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                                        {(IT_SECTIONS.find(s => s.id === activeTab) as any)?.fullName || activeTab}
+                                    </h3>
+                                </div>
+                            </motion.div>
+                        )}
 
-                                    {sectionDocs.length === 0 ? (
-                                        <div className="p-8 text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 text-gray-400 italic">
-                                            ยังไม่มีเอกสารในหมวดหมู่นี้
-                                        </div>
-                                    ) : (
-                                        <div className="grid gap-4">
-                                            {sectionDocs.map(doc => (
-                                                <DocumentCard key={doc.id} doc={doc} ui={section} onOpen={handleOpen} />
-                                            ))}
-                                        </div>
-                                    )}
-                                </motion.section>
-                            )
-                        })}
+                        {debouncedSearch && (
+                            <div className="flex items-center gap-3 text-slate-400 font-bold px-4">
+                                <i className="fa-solid fa-filter text-emerald-500"></i>
+                                {totalItems > 0 
+                                    ? `พบ "${debouncedSearch}" จำนวน ${totalItems} รายการ`
+                                    : `ไม่พบเอกสารที่เกี่ยวข้องกับ "${debouncedSearch}"`
+                                }
+                            </div>
+                        )}
+
+                        <motion.div 
+                            layout
+                            className="grid grid-cols-1 gap-4"
+                        >
+                            <AnimatePresence mode="popLayout">
+                                {documents.map(doc => {
+                                    const sectionUi = IT_SECTIONS.find(s => s.id === doc.category)
+                                    return (
+                                        <DocumentCard 
+                                            key={doc.id} 
+                                            doc={doc} 
+                                            ui={sectionUi} 
+                                            onOpen={handleOpen} 
+                                        />
+                                    )
+                                })}
+                            </AnimatePresence>
+                        </motion.div>
+
+                        {totalItems === 0 && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="py-20 text-center"
+                            >
+                                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <i className="fa-solid fa-folder-open text-4xl text-slate-200"></i>
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900">ไม่มีข้อมูลเอกสาร</h3>
+                                <p className="text-slate-400">ยังไม่มีการเพิ่มไฟล์ในหมวดหมู่นี้</p>
+                            </motion.div>
+                        )}
+
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={totalItems}
+                            pageSize={itemsPerPage}
+                            onPageChange={(page) => {
+                                setCurrentPage(page)
+                                window.scrollTo({ top: 300, behavior: 'smooth' })
+                            }}
+                            itemLabel="เอกสาร"
+                        />
                     </div>
                 )}
             </div>
