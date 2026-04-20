@@ -66,9 +66,6 @@ export default function InfographicPage() {
         <div className="relative z-10">
           <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Infographic</h2>
           <div className="h-1 w-20 bg-emerald-500 rounded-full mb-4"></div>
-          <p className="text-gray-600 max-w-2xl">
-            สื่อประชาสัมพันธ์ในรูปแบบรูปภาพและข้อมูลสถิติต่างๆ ของโรงพยาบาลปง
-          </p>
         </div>
       </div>
 
