@@ -93,17 +93,17 @@ export default function InfographicPage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="card overflow-hidden"
+              className="card overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-slate-100"
             >
-              <div className="card-body p-0 bg-slate-50 aspect-[1/1.414] w-full relative sm:aspect-auto sm:min-h-[600px] flex items-center justify-center">
+              <div className="card-body p-0 bg-slate-50/50 w-full relative min-h-[200px] sm:min-h-[300px] flex items-center justify-center">
                 {/* Fallback spinner while loading */}
-                <div className="absolute inset-0 flex items-center justify-center text-slate-300">
-                  <i className="fa-solid fa-image fa-2x animate-pulse"></i>
+                <div className="absolute inset-0 flex items-center justify-center text-slate-200">
+                  <i className="fa-solid fa-image fa-3x animate-pulse"></i>
                 </div>
                 <img
                   src={`${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}w=1200`}
                   alt={item.title}
-                  className="w-full h-full object-contain sm:h-auto sm:object-cover relative z-10 bg-white"
+                  className="w-full h-auto relative z-10 object-contain"
                   loading="lazy"
                   decoding="async"
                   onError={(e) => {

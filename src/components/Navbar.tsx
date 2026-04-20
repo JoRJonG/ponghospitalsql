@@ -126,7 +126,7 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <header className="border-b border-gray-100 bg-white/95 sticky top-0 z-40 shadow-md will-change-[transform]">
+      <header className="border-b border-emerald-100/50 bg-white/75 backdrop-blur-md sticky top-0 z-40 shadow-sm will-change-[transform] transition-all duration-300">
         <div className="container-narrow flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3">
             <img
@@ -154,7 +154,7 @@ export default function Navbar() {
             <div className="relative" onMouseEnter={openIta} onMouseLeave={closeItaLater}>
               <NavLink to="/ita" className={navItemClass} onClick={() => setItaOpen(o => !o)}>ITA ▾</NavLink>
               {itaOpen && itaRoots.length > 0 ? (
-                <div className="absolute left-0 mt-1 w-72 max-h-[70vh] overflow-auto rounded-lg border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-sm p-2 z-50 animate-fade-in">
+                <div className="absolute left-0 mt-1 w-72 max-h-[70vh] overflow-auto rounded-xl border border-white/60 bg-white/85 shadow-xl backdrop-blur-lg p-2 z-50 animate-fade-in origin-top">
                   <ul className="space-y-1">
                     {itaRoots.map(r => (
                       <li key={r._id} className="group">
@@ -186,7 +186,7 @@ export default function Navbar() {
             <div className="relative" onMouseEnter={openAbout} onMouseLeave={closeAboutLater}>
               <NavLink to="/about" className={navItemClass} onClick={() => setAboutOpen(o => !o)}>เกี่ยวกับเรา ▾</NavLink>
               {aboutOpen ? (
-                <div className="absolute left-0 mt-1 w-64 rounded-lg border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-sm p-2 z-50 animate-fade-in">
+                <div className="absolute left-0 mt-1 w-64 rounded-xl border border-white/60 bg-white/85 shadow-xl backdrop-blur-lg p-2 z-50 animate-fade-in origin-top">
                   <ul className="space-y-1">
                     <li>
                       <NavLink to="/about" end onClick={() => setAboutOpen(false)} className="w-full text-left px-3 py-2 rounded-md hover:bg-emerald-50 hover:text-emerald-700 text-sm text-gray-700 flex items-center gap-2">

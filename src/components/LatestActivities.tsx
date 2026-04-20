@@ -97,7 +97,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
             return (
               <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id}>
                 {/* stagger-item + delay ให้ cards ปรากฏทีละใบ */}
-                <article className={`group cursor-pointer stagger-item stagger-delay-${Math.min(i, 11)} bg-white/90 shadow-sm border border-gray-100 p-3 rounded-2xl hover:-translate-y-1 hover:shadow-lg transition-[transform,box-shadow] duration-300`}>
+                <article className={`group cursor-pointer stagger-item stagger-delay-${Math.min(i, 11)} bg-white glass-panel shadow-sm border border-emerald-500/5 p-3 rounded-2xl hover:-translate-y-1.5 hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-500 ease-out`}>
                   <div className="overflow-hidden rounded-xl shadow-inner mb-3">
                     <img
                       loading="lazy"
@@ -108,7 +108,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       srcSet={srcSet}
                       sizes={sizes}
                       alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
-                      className="w-full aspect-[4/3] object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full aspect-[4/3] object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.05]"
                     />
                     {categoryColor && a.category ? (
                       <span className={`absolute top-3 left-3 ${categoryColor.bg} ${categoryColor.text} px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide shadow-lg`}>
@@ -186,7 +186,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                 || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill', sizes: '(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw' })
               return (
-                <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="card overflow-hidden group transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 border-0 shadow-lg">
+                <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="card overflow-hidden group transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_8px_30px_rgb(16,185,129,0.15)] hover:border-emerald-200 border border-emerald-500/5 shadow-md rounded-2xl relative">
                   <div className="relative">
                     <img
                       loading="lazy"
@@ -197,9 +197,9 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       srcSet={srcSet}
                       sizes={sizes}
                       alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
-                      className="w-full aspect-[4/3] object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full aspect-[4/3] object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.05]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
                       <div className="font-semibold line-clamp-2 text-xs md:text-sm leading-tight mb-1">{a.title}</div>
                       {a.date ? <div className="text-[10px] md:text-xs opacity-90">{new Intl.DateTimeFormat('th-TH').format(new Date(a.date))}</div> : null}

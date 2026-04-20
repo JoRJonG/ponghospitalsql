@@ -163,8 +163,8 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                     to={`/announcement/${generateSlug(a._id, a.title)}`}
                     key={a._id}
                     className={
-                      `block bg-white/90 shadow-sm border border-gray-100 p-5 rounded-2xl transition-[transform,box-shadow] duration-300 group relative overflow-hidden stagger-item stagger-delay-${Math.min(i, 11)} ` +
-                      `hover:shadow-lg hover:-translate-y-1`
+                      `block bg-white/90 shadow-sm border border-emerald-500/5 p-5 rounded-2xl transition-all duration-500 ease-out group relative overflow-hidden stagger-item stagger-delay-${Math.min(i, 11)} ` +
+                      `hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] hover:-translate-y-1.5 hover:border-emerald-200 hover:bg-white`
                     }
                   >
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -295,9 +295,9 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                 <Link
                   to={`/announcement/${generateSlug(a._id, a.title)}`}
                   key={a._id}
-                  className="block w-full bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 px-4 py-3 md:py-4 md:px-6 group hover:-translate-y-1 hover:border-emerald-300"
+                  className="block w-full bg-white rounded-2xl border border-emerald-500/5 shadow-sm hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-500 ease-out px-4 py-3 md:py-5 md:px-6 group hover:-translate-y-1.5 hover:border-emerald-200"
                 >
-                  <div className="flex items-start gap-3 md:gap-5">
+                  <div className="flex items-start gap-4 md:gap-5">
                     {/* Icon */}
                     <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-lg bg-gray-50 border border-gray-100">
                       <i className={`fa-solid ${style.icon} ${style.iconColor} text-lg md:text-xl`}></i>
