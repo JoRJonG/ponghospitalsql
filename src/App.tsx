@@ -100,13 +100,13 @@ function App() {
               <ScrollToTopWrapper />
               <VisitorTrackingBeacon />
 
-              <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50 overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
-                <div className="flex flex-col min-h-screen">
+              <div className="relative flex min-h-screen flex-col text-gray-800 bg-slate-50 overflow-hidden print:overflow-visible print:block selection:bg-emerald-100 selection:text-emerald-900">
+                <div className="flex flex-col min-h-screen print:block print:min-h-0">
                   <div className="print:hidden">
                     <Navbar />
                   </div>
-                  <main className="flex-1 min-h-screen">
-                    <div className="app-container py-0 print:p-0">
+                  <main className="flex-1 min-h-screen print:block print:min-h-0">
+                    <div className="app-container py-0 print:p-0 print:block">
                       <Suspense fallback={<LoadingFallback />}>
                         <Routes>
                           <Route path="/" element={<HomePage />} />

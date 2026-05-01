@@ -31,7 +31,8 @@ const months = [
   'ธันวาคม',
 ]
 
-const convertToThaiNumber = (value: number | string): string => {
+const convertToThaiNumber = (value: number | string | null | undefined): string => {
+  if (value === null || value === undefined || value === '') return ''
   const thaiDigits = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙']
   return String(value)
     .split('')
@@ -2018,7 +2019,7 @@ const S11Page = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen p-0 print:p-0">
+    <div className="bg-white min-h-screen p-0 print:p-0 print:min-h-0 print:bg-transparent">
       <div className="fixed top-4 right-4 flex gap-2 z-50 print:hidden">
         <button
           onClick={() => setGenerated(false)}
@@ -2043,10 +2044,10 @@ const S11Page = () => {
         return (
           <div
             key={`${item.month}-${item.year}`}
-            className="flex flex-col items-center"
+            className="flex flex-col items-center print:block print:!m-0"
           >
             <div
-              className="mx-auto bg-white"
+              className="mx-auto bg-white print:!w-full print:!min-h-0 print:!m-0 print:!py-[15mm]"
               style={{
                 width: '210mm',
                 minHeight: '297mm',
@@ -2058,13 +2059,13 @@ const S11Page = () => {
                 color: '#111',
                 boxSizing: 'border-box',
                 pageBreakAfter: isLast ? 'auto' : 'always',
-                pageBreakBefore: index === 0 ? 'auto' : 'always',
+                breakAfter: isLast ? 'auto' : 'always',
               }}
             >
               <div className="text-center mb-3">
                 <p
                   style={{
-                    fontSize: '16pt',
+                    fontSize: '18pt',
                     marginBottom: 0,
                     fontWeight: 'bold',
                     fontFamily:
@@ -2075,7 +2076,7 @@ const S11Page = () => {
                 </p>
                 <p
                   style={{
-                    fontSize: '16pt',
+                    fontSize: '18pt',
                     marginTop: 0,
                     fontWeight: 'bold',
                     fontFamily:
@@ -2228,10 +2229,10 @@ const S11Page = () => {
                 })()}
 
                 <p>
-                  รวมทั้งสิ้น.....{convertToThaiNumber(yearsWithOffset)}
-                  .....ปี.....{convertToThaiNumber(monthsWithOffset)}
-                  .....เดือน.....วัน จำนวนที่ขอเบิก.....{amountDisplayText}
-                  .....บาท (...{amountThaiText}...)
+                  รวมทั้งสิ้น.....{convertToThaiNumber(yearsWithOffset) || '๐'}
+                  .....ปี.....{convertToThaiNumber(monthsWithOffset) || '๐'}
+                  .....เดือน.....วัน จำนวนที่ขอเบิก.....{amountDisplayText || '................'}
+                  .....บาท ({amountThaiText ? `...${amountThaiText}...` : '................................................'})
                 </p>
                 <p className="indent-10">
                   ข้าพเจ้าขอรับรองข้อมูลดังกล่าวเป็นความจริงทุกประการ
@@ -2239,7 +2240,7 @@ const S11Page = () => {
                   ข้าพเจ้าขอรับผิดชอบคืนเงินแต่เพียงผู้เดียว
                 </p>
 
-                <div className="pt-8">
+                <div className="pt-8 print:pt-8">
                   <div className="flex justify-end mt-4">
                     <div className="text-center" style={{ minWidth: '220px' }}>
                       <p>
@@ -2268,10 +2269,12 @@ const S11Page = () => {
           @media print {
             @page {
               margin: 0;
-              size: auto;
+              size: A4 portrait;
             }
             body {
-              -webkit-print-color-adjust: exact;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              background-color: white;
             }
           }
         `}
