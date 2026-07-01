@@ -244,15 +244,8 @@
   --text-600: rgba(0, 0, 0, 0.58);
 }
 
-/* Dark Theme Overrides */
-.dark {
-  --hospital-bg-primary: #0f172a;
-  --hospital-bg-secondary: #1e293b;
-  --hospital-bg-accent: #0f1629;
-  --hospital-text-primary: #f8fafc;
-  --hospital-text-secondary: #e2e8f0;
-  --hospital-text-muted: #94a3b8;
-}
+/* ปิดการใช้งาน Dark Mode (Override dark variant) */
+@custom-variant dark (&:where(.dark-mode-disabled));
 
 html {
   font-size: 15px;
