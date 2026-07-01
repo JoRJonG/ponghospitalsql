@@ -110,14 +110,14 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3 sm:gap-0">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-800">โปสเตอร์ประชาสัมพันธ์</h2>
-                        <p className="text-gray-600 text-sm">รวมป้ายประชาสัมพันธ์ข่าวสารและกิจกรรมต่างๆ ของโรงพยาบาล</p>
+                        <p className="text-gray-600 text-sm">สื่อประชาสัมพันธ์และโปสเตอร์ประกาศจากโรงพยาบาลปง</p>
                     </div>
 
                     <Link
                         to="/pr-posters"
                         className="btn btn-outline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5 shrink-0 self-start sm:self-auto"
                     >
-                        ดูทั้งหมด <span aria-hidden>→</span>
+                        ดูโปสเตอร์ทั้งหมด <span aria-hidden>→</span>
                     </Link>
                 </div>
 
@@ -189,6 +189,11 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                                                         )
                                                     })()}
                                                 </div>
+                                                {poster.title && (
+                                                    <p className="text-xs text-slate-600 text-center font-medium line-clamp-2 px-1 pb-1 leading-relaxed">
+                                                        {poster.title}
+                                                    </p>
+                                                )}
                                             </div>
                                         </SwiperSlide>
                                     ))}

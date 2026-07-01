@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import PageHeader from './PageHeader'
 
 type DocItem = {
@@ -107,14 +106,11 @@ export default function AboutLawsList() {
             ) : (
                 <div className="space-y-8">
                     <div className="grid gap-4">
-                        {docs.map((doc, idx) => (
-                            <motion.button
+                        {docs.map((doc) => (
+                            <button
                                 key={`${doc.source}-${doc.id}`}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: (idx % 20) * 0.05, duration: 0.4 }}
                                 onClick={() => handleOpen(doc.url)}
-                                className="group flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all text-left w-full"
+                                className="group flex items-center justify-between p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all text-left w-full"
                             >
                                 <div className="flex items-start gap-4 flex-1">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${doc.source === 'pr' ? 'bg-purple-50 text-purple-600' : 'bg-emerald-50 text-emerald-600'
@@ -146,7 +142,7 @@ export default function AboutLawsList() {
                                 <div className="ml-4 flex-shrink-0 w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-all">
                                     <i className="fa-solid fa-arrow-up-right-from-square text-sm" />
                                 </div>
-                            </motion.button>
+                            </button>
                         ))}
                     </div>
 

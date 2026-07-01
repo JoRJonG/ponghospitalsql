@@ -41,29 +41,29 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 text-balance">ระบบสารสนเทศภายใน</h2>
-          <p className="text-gray-600 text-sm">เชื่อมต่อไปยังหน่วยงานและระบบสารสนเทศต่างๆ ภายในโรงพยาบาล</p>
+          <p className="text-gray-600 text-sm">ระบบงานภายในและเว็บไซต์หน่วยงานที่เกี่ยวข้อง</p>
         </div>
       </div>
       {fetchError ? (
         <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
       ) : null}
       {!items && !fetchError ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[138px]">
-              <div className="w-14 h-14 mb-3 rounded-full bg-slate-100"></div>
-              <div className="h-4 w-20 bg-slate-200 rounded"></div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[100px] md:h-[138px]">
+              <div className="w-10 h-10 md:w-14 md:h-14 mb-2 md:mb-3 rounded-full bg-slate-100"></div>
+              <div className="h-3 md:h-4 w-16 md:w-20 bg-slate-200 rounded"></div>
             </div>
           ))}
         </div>
       ) : null}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
         {Array.isArray(items) && items.map(u => {
           const src = u.image?.url
           const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
           const card = (
-            <div className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-lg transition duration-300 h-full">
-              <div className="w-14 h-14 mb-3 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl group-hover:scale-110 transition duration-300">
+            <div className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-md transition duration-300 h-full">
+              <div className="w-10 h-10 md:w-14 md:h-14 mb-2 md:mb-3 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-lg md:text-2xl group-hover:scale-110 transition duration-300 shadow-sm">
                 {src ? (
                   <img
                     loading="lazy" decoding="async"
@@ -71,14 +71,14 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
                     srcSet={srcSet}
                     sizes={sizes}
                     alt={u.name}
-                    className="max-h-10 w-auto object-contain"
+                    className="max-h-6 md:max-h-10 w-auto object-contain"
                     width={40} height={40}
                   />
                 ) : (
                   <i className="fa-solid fa-building-user" />
                 )}
               </div>
-              <span className="font-bold text-slate-700 group-hover:text-emerald-500 text-center line-clamp-2">{u.name}</span>
+              <span className="font-bold text-slate-700 group-hover:text-emerald-500 text-center line-clamp-2 text-xs md:text-sm">{u.name}</span>
             </div>
           )
           return u.href ? (
@@ -107,22 +107,22 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3 mb-4">{error}</div>
         ) : null}
         {!items && !fetchError ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[138px]">
-                <div className="w-14 h-14 mb-3 rounded-full bg-slate-100"></div>
-                <div className="h-4 w-20 bg-slate-200 rounded"></div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[100px] md:h-[138px]">
+                <div className="w-10 h-10 md:w-14 md:h-14 mb-2 md:mb-3 rounded-full bg-slate-100"></div>
+                <div className="h-3 md:h-4 w-16 md:w-20 bg-slate-200 rounded"></div>
               </div>
             ))}
           </div>
         ) : null}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
           {Array.isArray(items) && items.map(u => {
             const src = u.image?.url
             const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
             const card = (
-              <div className="group flex flex-col items-center justify-center py-6 px-6 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-lg transition duration-300 h-full">
-                <div className="w-14 h-14 mb-3 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl group-hover:scale-110 transition duration-300">
+              <div className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:shadow-md transition duration-300 h-full">
+                <div className="w-10 h-10 md:w-14 md:h-14 mb-2 md:mb-3 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-lg md:text-2xl group-hover:scale-110 transition duration-300 shadow-sm">
                   {src ? (
                     <img
                       loading="lazy" decoding="async"
@@ -130,14 +130,14 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
                       srcSet={srcSet}
                       sizes={sizes}
                       alt={u.name}
-                      className="max-h-10 w-auto object-contain"
+                      className="max-h-6 md:max-h-10 w-auto object-contain"
                       width={40} height={40}
                     />
                   ) : (
                     <i className="fa-solid fa-building" />
                   )}
                 </div>
-                <span className="font-bold text-slate-700 group-hover:text-emerald-600 text-center line-clamp-2">{u.name}</span>
+                <span className="font-bold text-slate-700 group-hover:text-emerald-600 text-center line-clamp-2 text-xs md:text-sm">{u.name}</span>
               </div>
             )
             return u.href ? (

@@ -84,11 +84,11 @@ Redirect 301 /sitemap.xml /sitemap.php
     RewriteRule .* - [F,L]
 
     # Block Common SQL Injection & RCE patterns
-    RewriteCond %{QUERY_STRING} "(union.*select|insert.*into|update.*set|delete.*from)" [NC,OR]
-    RewriteCond %{QUERY_STRING} "(base64_decode|eval\(|passwd|boot\.ini|/etc/shadow|/proc/self)" [NC,OR]
-    RewriteCond %{QUERY_STRING} "(<script>|javascript:|vbscript:|onload=|onerror=)" [NC,OR]
-    RewriteCond %{QUERY_STRING} "(\.\./|\.\.\\)" [NC]
-    RewriteRule .* - [F,L]
+	RewriteCond %{QUERY_STRING} "(\.\./|\.\.\\|\.\.\.\.//|etc/passwd|logFile=|redirect_to=)" [NC,OR]
+	RewriteCond %{QUERY_STRING} "(union.*select|insert.*into|update.*set|delete.*from)" [NC,OR]
+	RewriteCond %{QUERY_STRING} "(base64_decode|eval\(|passwd|boot\.ini|/etc/shadow|/proc/self)" [NC,OR]
+	RewriteCond %{QUERY_STRING} "(<script>|javascript:|vbscript:|onload=|onerror=|alert|document\.domain)" [NC]
+	RewriteRule .* - [F,L]
 
     # ============================================================
     # 3.3 BLOCK BAD BOTS & SCANNERS
@@ -119,6 +119,7 @@ Redirect 301 /sitemap.xml /sitemap.php
     Require not ip 34.68.34.84
     Require not ip 34.68.34.92
     Require not ip 34.68.34.73
+	Require not ip 217.11.165
 
     # -------------------------------------------------------
     # [ZONE 2] THE AWS BOTNET
@@ -230,3 +231,4 @@ RedirectMatch 403 (?i)^/(swagger|api-docs|apidocs|graphql|rest)
 RedirectMatch 403 (?i)^/(mcp|bonita|phpmyadmin|adminLogin|serverlogin|version|install)
 RedirectMatch 403 (?i)^/(wp-admin|wp-content|wp-includes|wp-json)
 RedirectMatch 403 (?i)\.(sql|zip|tar|gz|rar|z|xz|bz2|7z|bak|old|sqlite|db)$
+RedirectMatch 403 (?i)^/(js/elfinder|__clockwork|v1/cs/configs|v2/keys|AdminPage|index\.php|opm|sftp-config\.json|ftp)

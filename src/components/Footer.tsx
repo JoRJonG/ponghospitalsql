@@ -72,7 +72,7 @@ export default function Footer() {
           </div>
 
           <div className="border-t border-slate-100 pt-8 text-center text-xs text-slate-500 font-medium">
-            <p>&copy; {new Date().getFullYear()} Pong Hospital All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} โรงพยาบาลปง สงวนลิขสิทธิ์</p>
           </div>
         </div>
       </footer>

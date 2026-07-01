@@ -3,7 +3,6 @@ import { NavLink, Routes, Route, Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useState, useCallback } from 'react'
 import { useSWR } from '../hooks/useSWR'
 import SEO from '../components/SEO'
-import PageHeader from '../components/PageHeader'
 import SearchFilterBar from '../components/SearchFilterBar'
 import Pagination from '../components/Pagination'
 import { generateSlug } from '../utils/slugify'
@@ -206,7 +205,7 @@ function List({ category }: { category?: Announcement['category'] }) {
                 value={isCategoryRoute ? category : urlCategory}
                 onChange={handleCategoryChange}
                 disabled={isCategoryRoute}
-                className={`w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm ${isCategoryRoute ? 'bg-gray-100 text-gray-500' : ''}`}
+                className={`w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm ${isCategoryRoute ? 'bg-slate-100 text-slate-500' : ''}`}
               >
                 <option value="all">ทุกหมวดหมู่</option>
                 <option value="ประชาสัมพันธ์">ประชาสัมพันธ์</option>
@@ -220,7 +219,7 @@ function List({ category }: { category?: Announcement['category'] }) {
               <select
                 value={sortBy}
                 onChange={handleSortChange}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
               >
                 <option value="newest">ใหม่ล่าสุด</option>
                 <option value="oldest">เก่าที่สุด</option>
@@ -236,10 +235,10 @@ function List({ category }: { category?: Announcement['category'] }) {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden animate-pulse p-4">
-                <div className="h-3 w-40 bg-gray-200 rounded mb-3" />
-                <div className="h-4 w-3/4 bg-gray-200 rounded mb-2" />
-                <div className="h-4 w-1/2 bg-gray-200 rounded" />
+              <div key={i} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden animate-pulse p-4">
+                <div className="h-3 w-40 bg-slate-200 rounded mb-3" />
+                <div className="h-4 w-3/4 bg-slate-200 rounded mb-2" />
+                <div className="h-4 w-1/2 bg-slate-200 rounded" />
               </div>
             ))}
           </div>
@@ -253,14 +252,11 @@ function List({ category }: { category?: Announcement['category'] }) {
           <Link
             to={`/announcement/${generateSlug(a._id, a.title)}`}
             key={a._id}
-            className={
-              `block bg-white p-4 rounded-xl shadow-sm border border-gray-100 transition-[transform,box-shadow] duration-300 group relative overflow-hidden ` +
-              `hover:border-emerald-400 hover:shadow-lg hover:-translate-y-1`
-            }
+            className="block bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all duration-200 group relative overflow-hidden hover:border-emerald-200 hover:shadow-md"
           >
             <div className="card-body">
-              <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2 mb-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || 'bg-slate-100 text-slate-700'} group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors duration-200`}>{a.category}</span>
+              <div className="text-sm text-slate-500 flex flex-wrap items-center gap-2 mb-2">
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || 'bg-slate-100 text-slate-700'} transition-colors duration-200`}>{a.category}</span>
                 <span>{a.publishedAt ?
                   new Date(a.publishedAt).toLocaleDateString('th-TH', {
                     day: 'numeric',
@@ -280,12 +276,12 @@ function List({ category }: { category?: Announcement['category'] }) {
                   </span>
                 ) : null}
               </div>
-              <div className="font-semibold text-gray-800 text-sm md:text-base mb-1 group-hover:text-emerald-500 transition-colors duration-200">{a.title}</div>
-              {a.content ? <p className="text-xs text-gray-500 line-clamp-2 mt-1">{stripHtml(a.content)}</p> : null}
+              <div className="font-semibold text-slate-800 text-sm md:text-base mb-1 group-hover:text-emerald-600 transition-colors duration-200">{a.title}</div>
+              {a.content ? <p className="text-xs text-slate-500 line-clamp-2 mt-1">{stripHtml(a.content)}</p> : null}
             </div>
           </Link>
         )) : null}
-        {!loading && !error && items.length === 0 ? <div className="text-gray-500 text-center py-8">ไม่พบประกาศ</div> : null}
+        {!loading && !error && items.length === 0 ? <div className="text-slate-500 text-center py-8">ไม่พบประกาศ</div> : null}
 
         {/* Pagination */}
         {!loading && !error && totalCount > 0 ? (
@@ -304,24 +300,34 @@ function List({ category }: { category?: Announcement['category'] }) {
 
 export default function AnnouncementsPage() {
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper pb-16">
       {/* SEO meta tags สำหรับหน้าข่าวสาร/ประกาศ */}
       <SEO
         title="ข่าวสาร/ประกาศ"
         description="ข่าวสาร ประกาศรับสมัครงาน ประชาสัมพันธ์ และประกาศจัดซื้อจัดจ้างของโรงพยาบาลปง จังหวัดพะเยา อัปเดตล่าสุด"
       />
-      <div className="container-narrow py-8">
-        <PageHeader title="ประกาศ" />
+      <div className="container-professional py-10 space-y-8">
+        
+        {/* Minimalist Header */}
+        <div className="flex items-end justify-between gap-4 pb-4 border-b border-slate-200">
+            <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">ประกาศและข่าวสาร</h1>
+                <p className="text-slate-500 text-sm mt-1">
+                    ข่าวสาร ประกาศรับสมัครงาน ประชาสัมพันธ์ และประกาศจัดซื้อจัดจ้าง
+                </p>
+            </div>
+        </div>
+
         <div className="mb-6">
-          <div className="relative rounded-2xl border border-emerald-100 bg-white/90 backdrop-blur-md shadow-md shadow-emerald-500/5">
+          <div className="relative rounded-2xl border border-slate-200 bg-white shadow-sm p-1">
             <div className="grid grid-cols-2 gap-2 px-3 py-3 text-sm sm:flex sm:flex-nowrap sm:gap-2">
               <NavLink
                 to="/announcements"
                 end
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-xl transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >
@@ -331,9 +337,9 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/jobs"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-xl transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >
@@ -343,9 +349,9 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/news"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-xl transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >
@@ -355,9 +361,9 @@ export default function AnnouncementsPage() {
               <NavLink
                 to="/announcements/notices"
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-full transition-all duration-300 font-medium ${isActive
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  `inline-flex items-center gap-2 w-full justify-start sm:w-auto sm:flex-none px-4 py-2 rounded-xl transition-all duration-300 font-medium ${isActive
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
                   }`
                 }
               >

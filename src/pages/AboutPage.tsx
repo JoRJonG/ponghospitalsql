@@ -16,10 +16,10 @@ function AboutContent() {
         style={{ backgroundImage: 'url("/imgpong.png")' }}
       >
         <div className="absolute inset-0 bg-black/10 transition-colors"></div>
-        <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-emerald-950/95 via-emerald-900/70 to-transparent"></div>
+        <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-slate-900/95 via-slate-800/70 to-transparent"></div>
         
         <div className="absolute top-0 right-0 p-12 opacity-10 hidden md:block">
-          <i className="fa-solid fa-hospital text-9xl transform rotate-12 text-white"></i>
+          <i className="fa-solid fa-hospital text-8xl text-white"></i>
         </div>
         
         <div className="relative z-10 p-8 md:p-14 mt-auto">
@@ -28,17 +28,17 @@ function AboutContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-800/50 backdrop-blur-md border border-emerald-400/30 text-emerald-100 text-sm font-semibold mb-6 shadow-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/60 backdrop-blur-md border border-slate-500/30 text-slate-100 text-sm font-semibold mb-6 shadow-sm">
               <i className="fa-solid fa-clock-rotate-left"></i>
               ให้บริการตั้งแต่ พ.ศ. 2502
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-3 tracking-tight text-white drop-shadow-lg">
               โรงพยาบาลปง
-              <span className="block text-emerald-300/90 text-2xl md:text-3xl font-light mt-2 tracking-wide">
+              <span className="block text-slate-300/90 text-2xl md:text-3xl font-light mt-2 tracking-wide">
                 Pong Hospital
               </span>
             </h1>
-            <p className="text-emerald-50 max-w-3xl leading-relaxed opacity-90 text-lg md:text-xl font-light mt-4">
+            <p className="text-slate-100 max-w-3xl leading-relaxed opacity-90 text-lg md:text-xl font-light mt-4">
               จากสถานีอนามัยเล็ก ๆ สู่การเป็น<span className="font-semibold text-white">โรงพยาบาลชุมชนที่ทันสมัย</span> พร้อมดูแลสุขภาพของประชาชนด้วยคุณภาพและมาตรฐาน
             </p>
           </motion.div>
@@ -51,11 +51,8 @@ function AboutContent() {
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          className="relative bg-gradient-to-br from-emerald-50 to-white p-10 md:p-12 rounded-[2rem] border border-emerald-100/50 shadow-lg shadow-emerald-100/20 overflow-hidden group hover:shadow-xl hover:shadow-emerald-200/30 transition-all duration-500"
+          className="relative bg-white p-10 md:p-12 rounded-2xl border border-emerald-100/50 shadow-sm hover:shadow-md transition-all duration-500"
         >
-          <div className="absolute -top-10 -right-10 text-[15rem] text-emerald-500/5 opacity-20 transform -rotate-12 transition-transform duration-700 group-hover:scale-110">
-            <i className="fa-solid fa-quote-right"></i>
-          </div>
           <div className="relative z-10">
             <h2 className="text-sm font-black tracking-widest text-emerald-600 uppercase mb-8 flex items-center gap-3">
               <span className="w-8 h-1 bg-emerald-500 rounded-full"></span>
@@ -71,7 +68,7 @@ function AboutContent() {
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          className="relative bg-gradient-to-br from-teal-50 to-white p-10 md:p-12 rounded-[2rem] border border-teal-100/50 shadow-lg shadow-teal-100/20 hover:shadow-xl hover:shadow-teal-200/30 transition-all duration-500"
+          className="relative bg-white p-10 md:p-12 rounded-2xl border border-teal-100/50 shadow-sm hover:shadow-md transition-all duration-500"
         >
             <h2 className="text-sm font-black tracking-widest text-teal-600 uppercase mb-8 flex items-center gap-3">
               <span className="w-8 h-1 bg-teal-500 rounded-full"></span>
@@ -116,9 +113,8 @@ function AboutContent() {
             { icon: "fa-users-viewfinder", title: "Teamwork", desc: "การทำงานเป็นทีม", color: "text-indigo-500", bg: "bg-indigo-50", border: "hover:border-indigo-300" },
             { icon: "fa-book-open-reader", title: "Learning & Mastery", desc: "องค์กรแห่งการเรียนรู้ มืออาชีพ", color: "text-purple-500", bg: "bg-purple-50", border: "hover:border-purple-300" }
           ].map((item, idx) => (
-            <div key={idx} className={`group bg-white rounded-3xl p-8 border border-slate-100 ${item.border} shadow-sm hover:shadow-xl transition-all duration-500 relative overflow-hidden flex flex-col items-center text-center hover:-translate-y-1`}>
-              <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full ${item.bg} opacity-50 blur-3xl transition-transform duration-1000 group-hover:scale-150`}></div>
-              <div className={`w-16 h-16 rounded-2xl ${item.bg} text-2xl ${item.color} flex items-center justify-center mb-6 shadow-sm transform group-hover:rotate-6 transition-transform duration-300`}>
+            <div key={idx} className={`group bg-white rounded-2xl p-8 border border-slate-100 ${item.border} shadow-sm hover:shadow-md transition-all duration-500 flex flex-col items-center text-center`}>
+              <div className={`w-16 h-16 rounded-xl ${item.bg} text-2xl ${item.color} flex items-center justify-center mb-6 shadow-sm`}>
                 <i className={`fa-solid ${item.icon}`}></i>
               </div>
               <h3 className="font-bold text-slate-800 text-lg mb-2">{item.title}</h3>
@@ -133,20 +129,17 @@ function AboutContent() {
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
-        className="bg-slate-900 rounded-[3rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20"
+        className="bg-white border border-slate-200 shadow-sm rounded-2xl p-10 md:p-16 relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[url('/it-center-bg.png')] opacity-5 mix-blend-overlay bg-cover bg-center"></div>
-        <div className="absolute -left-40 top-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px]"></div>
-        
         <div className="relative z-10 flex flex-col md:flex-row gap-12 md:gap-20">
           <div className="md:w-1/3 shrink-0">
-            <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Our Journey</span>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">ประวัติ<br/>ความเป็นมา</h2>
-            <p className="text-slate-400 font-light leading-relaxed text-sm md:text-base">ก้าวเดินของโรงพยาบาลปง จากจุดเริ่มต้นเล็กๆ สู่วิสัยทัศน์ระดับโรงพยาบาลชุมชนขนาดใหญ่ที่พร้อมดูแลและรับใช้ประชาชนอย่างเต็มศักยภาพตลอดมา</p>
+            <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Our Journey</span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-slate-900">ประวัติ<br/>ความเป็นมา</h2>
+            <p className="text-slate-600 font-light leading-relaxed text-sm md:text-base">ก้าวเดินของโรงพยาบาลปง จากจุดเริ่มต้นเล็กๆ สู่วิสัยทัศน์ระดับโรงพยาบาลชุมชนขนาดใหญ่ที่พร้อมดูแลและรับใช้ประชาชนอย่างเต็มศักยภาพตลอดมา</p>
           </div>
           
           <div className="md:w-2/3 relative">
-            <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-emerald-400 via-emerald-600/30 to-transparent"></div>
+            <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-emerald-400 via-emerald-200 to-transparent"></div>
             <div className="space-y-10">
               {[
                 { year: "2502", title: "สถานีอนามัยอำเภอ", desc: "ก่อตั้งสถานบริการสาธารณสุขครั้งแรก เพื่อรองรับประชาชนเบื้องต้น" },
@@ -156,11 +149,11 @@ function AboutContent() {
                 { year: "2536 - ปัจจุบัน", title: "โรงพยาบาลขนาด 30 เตียง", desc: "พัฒนาคุณภาพบริการ สถานที่ และอุปกรณ์การแพทย์อย่างต่อเนื่องจนถึงปัจจุบัน", highlight: true },
               ].map((item, index) => (
                 <div key={index} className="relative pl-10 md:pl-14 group">
-                  <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-slate-900 shadow-md ${item.highlight ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-600/50 group-hover:bg-emerald-400 transition-colors'}`}></div>
+                  <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-white shadow-sm ${item.highlight ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-200 group-hover:bg-emerald-400 transition-colors'}`}></div>
                   <div className="flex flex-col gap-1.5">
-                    <span className={`text-xs font-black tracking-wider ${item.highlight ? 'text-emerald-300' : 'text-emerald-500'}`}>พ.ศ. {item.year}</span>
-                    <h3 className="text-xl font-bold text-white group-hover:text-emerald-300 transition-colors">{item.title}</h3>
-                    <p className="text-slate-400 text-sm font-light leading-relaxed">{item.desc}</p>
+                    <span className={`text-xs font-black tracking-wider ${item.highlight ? 'text-emerald-600' : 'text-slate-500'}`}>พ.ศ. {item.year}</span>
+                    <h3 className={`text-xl font-bold transition-colors ${item.highlight ? 'text-slate-900' : 'text-slate-800 group-hover:text-emerald-700'}`}>{item.title}</h3>
+                    <p className="text-slate-600 text-sm font-light leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -177,13 +170,12 @@ function AboutContent() {
       >
         <div className="grid lg:grid-cols-12 gap-6">
           {/* Service Scope (Takes up more visual space) */}
-          <div className="lg:col-span-7 bg-emerald-600 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden flex flex-col group hover:shadow-2xl hover:shadow-emerald-600/20 transition-shadow">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:bg-white/10 transition-colors duration-1000"></div>
+          <div className="lg:col-span-7 bg-emerald-50 rounded-2xl p-8 md:p-12 text-slate-900 flex flex-col shadow-sm border border-emerald-100">
             
-            <div className="relative z-10 mb-10 max-w-sm">
-              <span className="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/20 text-emerald-100 font-bold tracking-[0.1em] text-[10px] mb-4">Core Scope</span>
+            <div className="mb-10 max-w-sm">
+              <span className="inline-block px-3 py-1 rounded-full bg-white border border-emerald-200 text-emerald-700 font-bold tracking-[0.1em] text-[10px] mb-4">Core Scope</span>
               <h2 className="text-3xl font-bold mb-4">บริการของเรา</h2>
-              <p className="text-emerald-100/90 font-light leading-relaxed">พัฒนาศักยภาพการดูแลสุขภาพ 4 มิติ เพื่อประชาชนเข้าถึงบริการที่ได้มาตรฐาน ปลอดภัย และอุ่นใจในทุกโอกาส</p>
+              <p className="text-slate-600 font-light leading-relaxed">พัฒนาศักยภาพการดูแลสุขภาพ 4 มิติ เพื่อประชาชนเข้าถึงบริการที่ได้มาตรฐาน ปลอดภัย และอุ่นใจในทุกโอกาส</p>
             </div>
             
             <div className="relative z-10 grid sm:grid-cols-2 gap-4 mt-auto">
@@ -193,20 +185,20 @@ function AboutContent() {
                 { icon: "fa-stethoscope", label: "Treatment", desc: "รักษาโรคตามมาตรฐานทุติยภูมิ" },
                 { icon: "fa-person-walking-with-cane", label: "Rehabilitation", desc: "ฟื้นฟูสภาพผู้ป่วยแบบองค์รวม" }
               ].map((cap, idx) => (
-                <div key={idx} className="bg-white/[0.08] backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:bg-white/[0.15] hover:border-white/20 transition-all cursor-default">
-                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 text-emerald-50">
+                <div key={idx} className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all cursor-default">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 text-emerald-600">
                     <i className={`fa-solid ${cap.icon} text-xl shadow-sm`}></i>
                   </div>
-                  <h4 className="font-bold text-lg mb-1">{cap.label}</h4>
-                  <p className="text-sm text-emerald-100/70 font-light leading-relaxed">{cap.desc}</p>
+                  <h4 className="font-bold text-lg mb-1 text-slate-800">{cap.label}</h4>
+                  <p className="text-sm text-slate-500 font-light leading-relaxed">{cap.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Hospital Mandate */}
-          <div className="lg:col-span-5 bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-shadow rounded-[2.5rem] p-8 md:p-12 flex flex-col">
-            <div className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-800 flex items-center justify-center mb-6 border border-slate-100 shadow-sm">
+          <div className="lg:col-span-5 bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow rounded-2xl p-8 md:p-12 flex flex-col">
+            <div className="w-14 h-14 rounded-xl bg-slate-50 text-slate-800 flex items-center justify-center mb-6 border border-slate-100 shadow-sm">
               <i className="fa-solid fa-gavel text-xl"></i>
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-8">บทบาทและอำนาจหน้าที่</h2>
@@ -296,21 +288,19 @@ function AboutContent() {
         initial={{ opacity: 0, scale: 0.98 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true, margin: "-50px" }}
-        className="mt-20 bg-gradient-to-tr from-emerald-800 via-emerald-600 to-teal-500 rounded-[3rem] p-12 md:p-16 text-center text-white relative overflow-hidden shadow-2xl shadow-emerald-900/20"
+        className="mt-20 bg-white border border-slate-200 rounded-2xl p-12 md:p-16 text-center text-slate-900 shadow-sm"
       >
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 mix-blend-color-burn"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-8 backdrop-blur-md border border-white/20 shadow-xl rotate-3 hover:rotate-6 transition-transform">
-            <i className="fa-solid fa-headset text-4xl drop-shadow-md text-emerald-50"></i>
+        <div className="flex flex-col items-center">
+          <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center mb-8 border border-emerald-100">
+            <i className="fa-solid fa-headset text-4xl drop-shadow-sm text-emerald-600"></i>
           </div>
-          <h3 className="text-3xl md:text-4xl font-black mb-5 tracking-tight drop-shadow-sm">พร้อมให้บริการด้วยความใส่ใจ</h3>
-          <p className="text-emerald-50 mb-10 max-w-xl mx-auto text-lg md:text-xl font-light leading-relaxed">
+          <h3 className="text-3xl md:text-4xl font-black mb-5 tracking-tight text-slate-800">พร้อมให้บริการด้วยความใส่ใจ</h3>
+          <p className="text-slate-600 mb-10 max-w-xl mx-auto text-lg md:text-xl font-light leading-relaxed">
             ติดต่อสอบถามข้อมูล รับคำปรึกษา หรือแนะนำบริการ ทีมงานโรงพยาบาลปงยินดีต้อนรับทุกท่านดุจญาติมิตร
           </p>
           <a
             href="/contact"
-            className="inline-flex items-center gap-3 bg-white text-emerald-800 font-bold py-4 px-10 border border-emerald-100 rounded-full hover:bg-emerald-50 hover:scale-105 transition-all shadow-xl shadow-emerald-900/30 active:scale-95 text-lg"
+            className="inline-flex items-center gap-3 bg-emerald-600 text-white font-bold py-4 px-10 border border-emerald-600 rounded-full hover:bg-emerald-700 hover:scale-105 transition-all shadow-md shadow-emerald-900/10 active:scale-95 text-lg"
           >
             <i className="fa-solid fa-phone"></i>
             ช่องทางการติดต่อ

@@ -111,7 +111,7 @@ function ExecutiveCard({ m, index, total }: { m: Manager; index: number; total: 
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      transition={{ duration: 0.4 }}
       className="h-full relative"
     >
       {/* Connector Lines (Desktop Only) */}
@@ -239,8 +239,14 @@ export default function ManagementPage() {
         )}
 
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-y-12 animate-pulse mt-8">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-col items-center text-center max-w-[280px] mx-auto w-full">
+                <div className="w-36 h-48 rounded-[50%] bg-slate-200 mb-4" />
+                <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
+                <div className="h-3 bg-slate-100 rounded w-24" />
+              </div>
+            ))}
           </div>
         )}
       </div>

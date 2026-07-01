@@ -27,7 +27,7 @@ type Activity = {
   category?: 'HEALTH CARE' | 'MEETING' | 'DONATION' | 'SERVICE' | string
 }
 
-export default function LatestActivities({ limit = 6, embedded = false }: { limit?: number, embedded?: boolean }) {
+export default function LatestActivities({ limit = 6, embedded = false, darkHeader = false }: { limit?: number, embedded?: boolean, darkHeader?: boolean }) {
   const { refreshKey } = useHomepageRefresh()
 
   // ใช้ useSWR สำหรับ data fetching พร้อม caching
@@ -53,17 +53,17 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
 
   return embedded ? (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8 md:mb-12">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 text-balance">ภาพกิจกรรม</h2>
-          <p className="text-gray-600 text-sm">รวมภาพกิจกรรมและโครงการต่างๆ ของโรงพยาบาล</p>
+          <h2 className={`text-2xl md:text-3xl font-bold text-balance ${darkHeader ? 'text-white' : 'text-slate-800'}`}>ภาพกิจกรรม</h2>
+          <p className={`text-sm md:text-base mt-2 ${darkHeader ? 'text-white/80' : 'text-gray-600'}`}>กิจกรรม โครงการส่งเสริมสุขภาพ และการให้บริการประชาชน</p>
         </div>
         <Link
           to="/activities"
-          className="btn btn-outline inline-flex items-center gap-1 transition-transform hover:translate-x-0.5"
-          aria-label="ดูทั้งหมดกิจกรรม"
+          className={`btn ${darkHeader ? 'btn-secondary' : 'btn-outline'} inline-flex items-center gap-1 transition-transform hover:translate-x-0.5`}
+          aria-label="ดูกิจกรรมทั้งหมด"
         >
-          ดูทั้งหมด <span aria-hidden>→</span>
+          ดูกิจกรรมทั้งหมด <span aria-hidden>→</span>
         </Link>
       </div>
       {isLoading ? (
@@ -80,7 +80,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
       ) : null}
       {Array.isArray(items) && items.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map((a, i) => {
+          {items.map((a) => {
             const first = a.images && a.images.length ? a.images[0] : undefined
             const img = typeof first === 'string' ? first : first?.url
               || logo
@@ -96,9 +96,8 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
 
             return (
               <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id}>
-                {/* stagger-item + delay ให้ cards ปรากฏทีละใบ */}
-                <article className={`group cursor-pointer stagger-item stagger-delay-${Math.min(i, 11)} bg-white glass-panel shadow-sm border border-emerald-500/5 p-3 rounded-2xl hover:-translate-y-1.5 hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-500 ease-out`}>
-                  <div className="overflow-hidden rounded-xl shadow-inner mb-3">
+                <article className="group cursor-pointer bg-white shadow-sm border border-emerald-500/5 p-3 rounded-xl hover:-translate-y-1 hover:shadow-md transition-all duration-300 ease-out">
+                  <div className="relative overflow-hidden rounded-lg shadow-inner mb-3">
                     <img
                       loading="lazy"
                       decoding="async"
@@ -124,7 +123,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                       </>
                     ) : null}
                     {a.viewCount !== undefined && a.viewCount > 0 ? (
-                      <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
+                      <span><i className="far fa-eye mr-1"></i> {a.viewCount} ครั้ง</span>
                     ) : null}
                   </div>
                   <h3 className="text-sm md:text-base font-semibold text-slate-800 leading-snug group-hover:text-emerald-500 transition mb-2">
@@ -186,7 +185,7 @@ export default function LatestActivities({ limit = 6, embedded = false }: { limi
                 || logo
               const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill', sizes: '(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw' })
               return (
-                <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="card overflow-hidden group transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_8px_30px_rgb(16,185,129,0.15)] hover:border-emerald-200 border border-emerald-500/5 shadow-md rounded-2xl relative">
+                <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="card overflow-hidden group transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md border border-emerald-500/5 shadow-sm rounded-xl relative">
                   <div className="relative">
                     <img
                       loading="lazy"

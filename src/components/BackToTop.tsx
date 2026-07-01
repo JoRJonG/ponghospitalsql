@@ -33,8 +33,8 @@ const BackToTop: React.FC = () => {
     <button
       onClick={scrollToTop}
       aria-label="Back to top"
-      // ใช้ Tailwind classes สำหรับกำหนดตำแหน่ง (fixed bottom right), การใช้สี emerald ให้เข้ากับธีมหลัก, อนิเมชั่น (transition) และ hide ใน print mode
-      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 print:hidden ${
+      // Floating Frap CTA - 56px circular button with whisper-soft layered shadow and active scale
+      className={`fixed bottom-6 right-6 z-50 w-14 h-14 flex items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 hover:shadow-emerald-md active:scale-95 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 print:hidden ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
       }`}
     >

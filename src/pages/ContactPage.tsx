@@ -135,14 +135,14 @@ export default function ContactPage() {
           <motion.section
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-6"
           >
             {/* Emergency / Call Center Card */}
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-6">
               <div className="flex items-start gap-4">
                 <div className="h-12 w-12 rounded-lg bg-white text-emerald-600 flex items-center justify-center ring-1 ring-emerald-200">
-                  <span className="text-xl" aria-hidden>📞</span>
+                  <i className="fa-solid fa-phone text-xl" aria-hidden></i>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-end gap-2">
@@ -152,24 +152,24 @@ export default function ContactPage() {
                   <p className="mt-1 text-gray-700">สอบถามข้อมูลทั่วไป นัดหมาย ตรวจสอบสิทธิ และข้อเสนอแนะ</p>
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <a href={`tel:${phoneMain}`} className="btn btn-primary" aria-label="โทรหาโรงพยาบาล">
-                      <span>📞</span> โทร {phoneMain}
+                      <i className="fa-solid fa-phone"></i> โทร {phoneMain}
                     </a>
                     <a href={mapsSearch} target="_blank" rel="noopener noreferrer" className="btn btn-outline" aria-label="เปิดแผนที่ Google Maps">
-                      <span>📍</span> เส้นทาง
+                      <i className="fa-solid fa-location-dot"></i> เส้นทาง
                     </a>
                     <a href={`mailto:${emailMain}`} className="btn btn-outline" aria-label="ส่งอีเมลหาโรงพยาบาล">
-                      <span>✉️</span> อีเมล
+                      <i className="fa-solid fa-envelope"></i> อีเมล
                     </a>
                   </div>
                   <div className="mt-4 grid sm:grid-cols-2 gap-3">
                     <div className="rounded-lg bg-white ring-1 ring-emerald-100 p-3">
                       <div className="text-xs text-gray-600">ห้องฉุกเฉิน</div>
-                      <div className="mt-1 font-semibold text-gray-900 flex items-center gap-2"><span className="text-rose-600" aria-hidden>🚑</span> 24 ชั่วโมง</div>
+                      <div className="mt-1 font-semibold text-gray-900 flex items-center gap-2"><i className="fa-solid fa-truck-medical text-rose-600" aria-hidden></i> 24 ชั่วโมง</div>
                       <div className="text-sm text-gray-700 mt-1">โทร {phoneEmergency}</div>
                     </div>
                     <div className="rounded-lg bg-white ring-1 ring-emerald-100 p-3">
                       <div className="text-xs text-gray-600">เวลาทำการ (OPD)</div>
-                      <div className="mt-1 font-semibold text-gray-900 flex items-center gap-2"><span aria-hidden>🕒</span> จันทร์–ศุกร์</div>
+                      <div className="mt-1 font-semibold text-gray-900 flex items-center gap-2"><i className="fa-regular fa-clock" aria-hidden></i> จันทร์–ศุกร์</div>
                       <div className="text-sm text-gray-700 mt-1">08:00–16:00</div>
                     </div>
                   </div>
@@ -225,7 +225,7 @@ export default function ContactPage() {
           <motion.section
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm p-3 md:p-4"
           >
             <div className="aspect-video w-full rounded-lg overflow-hidden ring-1 ring-gray-200">
@@ -256,12 +256,12 @@ export default function ContactPage() {
         <motion.section
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="mt-8 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm p-6"
         >
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <span className="text-emerald-600" aria-hidden>💬</span>
+              <i className="fa-regular fa-comment-dots text-emerald-600" aria-hidden></i>
               ช่องรับฟังความคิดเห็น
             </h2>
             <p className="mt-2 text-gray-600">

@@ -94,7 +94,7 @@ const VisitorCounter: React.FC = () => {
             <i className="fa-solid fa-triangle-exclamation text-xl"></i>
           </div>
           <div>
-            <h2 className="text-white/80 font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h2>
+            <h2 className="text-white/80 font-bold text-sm tracking-widest uppercase mb-0.5">สถิติการเข้าชม</h2>
             <span className="flex items-center text-xs text-red-200">
               ไม่สามารถโหลดข้อมูลได้
             </span>
@@ -115,7 +115,7 @@ const VisitorCounter: React.FC = () => {
           <i className="fa-solid fa-chart-pie text-xl"></i>
         </div>
         <div>
-          <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-0.5">Website Statistics</h2>
+          <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-0.5">สถิติการเข้าชม</h2>
           <p className="text-teal-100/90 text-xs font-medium">ข้อมูลสถิติการเข้าชมเว็บไซต์</p>
         </div>
       </div>
@@ -123,17 +123,17 @@ const VisitorCounter: React.FC = () => {
       <div className="flex items-center gap-8 md:gap-12">
         <div className="text-center">
           <span className="block text-3xl font-bold text-white drop-shadow-sm">{formatNumber(stats.today)}</span>
-          <span className="text-xs text-teal-100 uppercase tracking-wide font-semibold">Visits Today</span>
+          <span className="text-xs text-teal-100 uppercase tracking-wide font-semibold">ผู้เข้าชมวันนี้</span>
         </div>
         <div className="h-8 w-px bg-teal-400/50"></div>
         <div className="text-center">
           <span className="block text-3xl font-bold text-white drop-shadow-sm">{formatNumber(stats.lifetimeTotal)}</span>
-          <span className="text-xs text-teal-100 uppercase tracking-wide font-semibold">Total Visits</span>
+          <span className="text-xs text-teal-100 uppercase tracking-wide font-semibold">ยอดเข้าชมทั้งหมด</span>
         </div>
       </div>
 
       <div className="hidden md:block text-teal-100/80 text-xs">
-        Last update: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+        อัปเดตล่าสุด: {new Date().toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' })}
       </div>
     </div>
   )

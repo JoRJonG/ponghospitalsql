@@ -6,17 +6,11 @@ import { responsiveImageProps } from '../utils/image'
 import { useSWR } from '../hooks/useSWR'
 import logo from '../assets/logo-150x150.png'
 import SEO from '../components/SEO'
-import PageHeader from '../components/PageHeader'
 import SearchFilterBar from '../components/SearchFilterBar'
 import Pagination from '../components/Pagination'
 import { generateSlug } from '../utils/slugify'
 
-const stripHtml = (html?: string) => {
-  if (!html) return ''
-  const tmp = document.createElement('div')
-  tmp.innerHTML = html
-  return tmp.textContent || tmp.innerText || ''
-}
+
 
 type Activity = {
   _id: string
@@ -123,14 +117,23 @@ export default function ActivitiesListPage() {
   }, [searchParams, setSearchParams, totalPages])
 
   return (
-    <div className="page-wrapper">
-      <div className="container-narrow py-8">
+    <div className="page-wrapper pb-16">
+      <div className="container-professional py-10 space-y-8">
         {/* SEO meta tags สำหรับหน้ากิจกรรม */}
         <SEO
           title="ภาพกิจกรรม"
           description="ภาพกิจกรรมและข่าวสารกิจกรรมล่าสุดของโรงพยาบาลปง อำเภอปง จังหวัดพะเยา การบริการชุมชน และกิจกรรมส่งเสริมสุขภาพ"
         />
-        <PageHeader title="กิจกรรมทั้งหมด" />
+        
+        {/* Minimalist Header เหมือน PRPostersPage */}
+        <div className="flex items-end justify-between gap-4 pb-4 border-b border-slate-200">
+            <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">ภาพกิจกรรม</h1>
+                <p className="text-slate-500 text-sm mt-1">
+                    ข่าวสารกิจกรรมและการบริการชุมชนของโรงพยาบาลปง
+                </p>
+            </div>
+        </div>
 
         {/* Search and Filter Controls */}
         <SearchFilterBar
@@ -152,38 +155,38 @@ export default function ActivitiesListPage() {
           summary={!loading ? <>พบ {totalCount} กิจกรรม {searchQuery && `สำหรับ "${searchQuery}"`}</> : undefined}
         />
 
-        {loading && (
+        {loading ? (
           <>
             {/* Mobile skeleton: list style */}
             <div className="md:hidden space-y-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm overflow-hidden animate-pulse">
+                <div key={i} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden animate-pulse">
                   <div className="flex gap-3 p-3">
-                    <div className="h-24 w-32 bg-gray-200 rounded" />
+                    <div className="h-24 w-32 bg-slate-100 rounded" />
                     <div className="flex-1 py-1">
-                      <div className="h-4 w-3/4 bg-gray-200 rounded" />
-                      <div className="h-3 w-1/2 bg-gray-200 rounded mt-2" />
+                      <div className="h-4 w-3/4 bg-slate-100 rounded" />
+                      <div className="h-3 w-1/2 bg-slate-100 rounded mt-2" />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
             {/* Desktop/tablet skeleton: grid cards */}
-            <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6 mt-1">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="card overflow-hidden animate-pulse">
-                  <div className="bg-gray-200 aspect-[4/3] w-full rounded-lg" />
-                  <div className="card-body p-4">
-                    <div className="h-4 w-2/3 bg-gray-200 rounded mb-2" />
-                    <div className="h-3 w-1/2 bg-gray-200 rounded" />
+            <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5 mt-1">
+              {[...Array(10)].map((_, i) => (
+                <div key={i} className="bg-white rounded-xl border border-slate-100 overflow-hidden animate-pulse">
+                  <div className="bg-slate-200 aspect-[4/3] w-full" />
+                  <div className="p-3">
+                    <div className="h-4 w-4/5 bg-slate-200 rounded mb-2" />
+                    <div className="h-3 w-1/2 bg-slate-100 rounded" />
                   </div>
                 </div>
               ))}
             </div>
           </>
-        )}
+        ) : null}
 
-        {!loading && items.length > 0 && (
+        {!loading && items.length > 0 ? (
           <>
             {/* Mobile: list style */}
             <div className="md:hidden space-y-3">
@@ -193,7 +196,7 @@ export default function ActivitiesListPage() {
                   || logo
                 const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill' })
                 return (
-                  <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="block bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-200">
+                  <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-200">
                     <div className="flex gap-3 p-3">
                       <img
                         loading="lazy"
@@ -205,8 +208,8 @@ export default function ActivitiesListPage() {
                         className="h-24 w-32 object-cover rounded"
                       />
                       <div className="flex-1 min-w-0 py-1">
-                        <div className="font-semibold text-gray-800 line-clamp-2">{a.title}</div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                        <div className="font-semibold text-slate-800 line-clamp-2">{a.title}</div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                           {a.date && <div>{new Date(a.date).toLocaleDateString()}</div>}
                           {a.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye text-xs"></i> {a.viewCount}</div>}
                         </div>
@@ -217,55 +220,46 @@ export default function ActivitiesListPage() {
               })}
             </div>
             {/* Desktop/tablet: grid cards */}
-            <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
               {items.map(a => {
                 const first = a.images && a.images.length ? a.images[0] : undefined
-                const img = typeof first === 'string' ? first : first?.url
-                  || logo
-                const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800, 1024], crop: 'fill' })
+                const img = typeof first === 'string' ? first : first?.url || logo
+                const { src, srcSet, sizes } = responsiveImageProps(img, { widths: [320, 480, 640, 800], crop: 'fill' })
                 return (
-                  <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="group block">
-                    <article className="bg-white/90 shadow-sm border border-gray-100 p-3 rounded-2xl hover:-translate-y-1 hover:shadow-lg transition-[transform,box-shadow] duration-300">
-                      <div className="overflow-hidden rounded-xl shadow-inner mb-3">
-                        <img
-                          loading="lazy"
-                          decoding="async"
-                          src={src}
-                          srcSet={srcSet}
-                          sizes={sizes}
-                          alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
-                          className="w-full aspect-[4/3] object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
+                  <Link to={`/activities/${generateSlug(a._id, a.title)}`} key={a._id} className="group block text-left bg-white rounded-xl border border-slate-100 overflow-hidden hover:border-emerald-200 hover:shadow-md transition-all duration-200">
+                    <div className="aspect-[4/3] bg-slate-50 overflow-hidden">
+                      <img
+                        loading="lazy"
+                        decoding="async"
+                        src={src}
+                        srcSet={srcSet}
+                        sizes={sizes}
+                        alt={a.title ? `กิจกรรม: ${a.title}` : 'กิจกรรม'}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="px-3 py-3">
+                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-1.5">
                         {a.date && (
-                          <>
-                            <span><i className="far fa-calendar mr-1"></i> {new Date(a.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
-                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                          </>
+                          <span><i className="far fa-calendar mr-1"></i> {new Date(a.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
                         )}
                         {a.viewCount !== undefined && a.viewCount > 0 && (
-                          <span><i className="far fa-eye mr-1"></i> {a.viewCount} views</span>
+                          <span><i className="far fa-eye mr-1"></i> {a.viewCount}</span>
                         )}
                       </div>
-                      <h3 className="text-sm md:text-base font-semibold text-slate-800 leading-snug group-hover:text-emerald-500 transition-colors duration-200 mb-2">
+                      <h3 className="text-xs sm:text-sm font-semibold text-slate-800 line-clamp-2 leading-relaxed group-hover:text-emerald-600 transition-colors duration-200">
                         {a.title}
                       </h3>
-                      {a.description && (
-                        <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-                          {stripHtml(a.description)}
-                        </p>
-                      )}
-                    </article>
+                    </div>
                   </Link>
                 )
               })}
             </div>
           </>
-        )}
+        ) : null}
 
         {/* Pagination */}
-        {!loading && !error && totalCount > 0 && (
+        {!loading && !error && totalCount > 0 ? (
           <Pagination
             currentPage={page}
             totalPages={totalPages}
@@ -274,16 +268,16 @@ export default function ActivitiesListPage() {
             onPageChange={gotoPage}
             itemLabel="กิจกรรม"
           />
-        )}
+        ) : null}
 
-        {error && (
+        {error ? (
           <div className="border border-red-200 bg-red-50 text-red-700 rounded-xl p-4 mt-3">{error}</div>
-        )}
-        {!loading && !error && items.length === 0 && (
-          <div className="text-gray-500 text-center py-8">
+        ) : null}
+        {!loading && !error && items.length === 0 ? (
+          <div className="text-slate-500 text-center py-8">
             {searchQuery ? `ไม่พบกิจกรรมที่ตรงกับการค้นหา "${searchQuery}"` : 'ยังไม่มีกิจกรรม'}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )

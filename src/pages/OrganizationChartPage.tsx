@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+
 
 type OrganizationChart = {
     _id: string
@@ -30,46 +30,23 @@ function OrganizationChartPage() {
         fetchData()
     }, [])
 
-    const containerVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.5, staggerChildren: 0.1 }
-        }
-    }
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 10 },
-        visible: { opacity: 1, y: 0 }
-    }
-
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-6"
-        >
-            <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-cyan-100/50 rounded-full blur-3xl"></div>
-
-                <div className="relative z-10">
-                    <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">โครงสร้างองค์กร</h2>
-                    <div className="h-1 w-20 bg-emerald-500 rounded-full mb-4"></div>
-                    <p className="text-gray-600 max-w-2xl">
-                        โครงสร้างการบริหารงานและแผนผังบุคลากรของโรงพยาบาลปง
-                    </p>
+        <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="relative z-10 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100 shadow-sm">
+                        <i className="fa-solid fa-sitemap text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 className="text-2xl lg:text-3xl font-bold text-slate-800">โครงสร้างองค์กร</h2>
+                        <p className="text-slate-500 text-sm mt-1">โครงสร้างการบริหารงานและแผนผังบุคลากรของโรงพยาบาลปง</p>
+                    </div>
                 </div>
             </div>
 
             {loading ? (
-                <div className="min-h-[400px] flex items-center justify-center rounded-2xl bg-white/50 backdrop-blur-sm border border-gray-100">
-                    <div className="text-center text-gray-400">
-                        <i className="fa-solid fa-circle-notch fa-spin text-3xl mb-3"></i>
-                        <p>กำลังโหลดข้อมูล...</p>
-                    </div>
+                <div className="space-y-6 animate-pulse">
+                    <div className="h-96 bg-slate-100 rounded-2xl w-full border border-slate-200"></div>
                 </div>
             ) : error ? (
                 <div className="min-h-[300px] flex items-center justify-center rounded-2xl bg-red-50/50 border border-red-100">
@@ -88,12 +65,11 @@ function OrganizationChartPage() {
             ) : (
                 <div className="space-y-8">
                     {charts.map((chart) => (
-                        <motion.div
+                        <div
                             key={chart._id}
-                            variants={itemVariants}
-                            className="relative rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm p-4 lg:p-6"
+                            className="relative rounded-2xl border border-slate-200 bg-white shadow-sm p-4 lg:p-6"
                         >
-                            <div className="overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
+                            <div className="overflow-hidden rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center min-h-[300px]">
                                 <img
                                     src={`${chart.imageUrl}${chart.imageUrl.includes('?') ? '&' : '?'}w=1200`}
                                     alt={chart.title || "แผนผังองค์กร"}
@@ -101,13 +77,11 @@ function OrganizationChartPage() {
                                     loading="lazy"
                                 />
                             </div>
-                            {/* Optional: if you want to show title */}
-                            {/* <div className="mt-4 text-center font-medium text-gray-700">{chart.title}</div> */}
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             )}
-        </motion.div>
+        </div>
     )
 }
 

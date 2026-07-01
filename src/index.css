@@ -1,5 +1,56 @@
 @import "tailwindcss";
 
+@theme {
+  /* Starbucks Greens replacing Emerald */
+  --color-emerald-50: #d4e9e2; /* Green Light */
+  --color-emerald-100: #b8dacd;
+  --color-emerald-200: #8ebfa9;
+  --color-emerald-300: #68a287;
+  --color-emerald-400: #00754A; /* Green Accent */
+  --color-emerald-500: #00754A; /* Green Accent */
+  --color-emerald-600: #006241; /* Starbucks Green */
+  --color-emerald-700: #1E3932; /* House Green */
+  --color-emerald-800: #1E3932;
+  --color-emerald-900: #1a2a26;
+
+  /* Medical Amber for Alerts */
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+
+  /* Clean Medical Slate & Gray */
+  --color-slate-50: #f8fafc; /* Cool White */
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Starbucks Red */
+  --color-red-500: #c82014;
+  --color-red-600: #9e1910;
+}
+
 @layer utilities {
   .card-hover {
     @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg;
@@ -88,25 +139,18 @@
 }
 
 
-/* Professional Hospital Theme Variables */
+/* Starbucks Theme Variables */
 :root {
-  /* Mor Prom Green (Modern Emerald) - สดใส ล้ำสมัย สบายตา */
-  --hospital-primary: #10b981;
-  /* Emerald 500 - Main Brand Color */
-  --hospital-primary-dark: #047857;
-  /* Emerald 700 - Hover States */
-  --hospital-primary-light: #d1fae5;
-  /* Emerald 100 - Backgrounds */
-  --hospital-secondary: #059669;
-  /* Emerald 600 - Secondary Elements */
-  --hospital-accent: #34d399;
-  /* Emerald 400 - Highlights */
-  --hospital-accent-dark: #065f46;
-  /* Emerald 800 - Deep Accent */
-  --hospital-accent-light: #6ee7b7;
-  /* Emerald 300 - Light Accent */
+  /* Starbucks Greens */
+  --hospital-primary: #006241; /* Starbucks Green - Headings */
+  --hospital-primary-dark: #1E3932; /* House Green - Deep bands */
+  --hospital-primary-light: #d4e9e2; /* Green Light - Valid tints */
+  --hospital-secondary: #00754A; /* Green Accent - Primary CTAs */
+  --hospital-accent: #0891b2; /* Cyan Medical Accent */
+  --hospital-accent-dark: #0e7490; 
+  --hospital-accent-light: #cffafe; 
 
-  /* Neutral Medical Colors */
+  /* Clean Medical Colors */
   --hospital-gray-50: #f8fafc;
   --hospital-gray-100: #f1f5f9;
   --hospital-gray-200: #e2e8f0;
@@ -118,38 +162,35 @@
   --hospital-gray-800: #1e293b;
   --hospital-gray-900: #0f172a;
 
-  /* Medical-themed Background Colors — mint cream ที่ match teal palette */
-  --hospital-bg-primary: #f0fdfa;
-  /* Light teal tint — สบายตา */
-  --hospital-bg-secondary: #f0fdf4;
-  /* Light mint */
-  --hospital-bg-accent: #fffbeb;
-  /* Light amber tint — สำหรับ accent sections */
+  /* Clean Medical Background Colors */
+  --hospital-bg-primary: #f8fafc; /* Cool Slate 50 */
+  --hospital-bg-secondary: #f1f5f9; 
+  --hospital-bg-accent: #ffffff;
 
   /* Professional Text Colors */
-  --hospital-text-primary: #0f172a;
-  --hospital-text-secondary: #374151;
-  --hospital-text-muted: #6b7280;
+  --hospital-text-primary: rgba(0, 0, 0, 0.87);
+  --hospital-text-secondary: rgba(0, 0, 0, 0.58);
+  --hospital-text-muted: rgba(0, 0, 0, 0.38);
 
-  /* Status Colors for Medical Context */
-  --hospital-success: #0d9488;
-  --hospital-warning: #f59e0b;
-  --hospital-error: #dc2626;
-  --hospital-info: #0891b2;
+  /* Status Colors */
+  --hospital-success: #00754A; /* Green Accent */
+  --hospital-warning: #fbbc05; /* Yellow */
+  --hospital-error: #c82014; /* Red */
+  --hospital-info: #006241; /* Starbucks Green */
 
-  /* Professional Shadows */
-  --hospital-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --hospital-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --hospital-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --hospital-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --hospital-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* Shadows (Starbucks Layered Elevation) */
+  --hospital-shadow-sm: 0 0 0.5px rgba(0, 0, 0, 0.14), 0 1px 1px rgba(0, 0, 0, 0.24);
+  --hospital-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 2px 2px rgba(0, 0, 0, 0.06), 0 0 2px rgba(0, 0, 0, 0.07);
+  --hospital-shadow-md: 0 0 6px rgba(0, 0, 0, 0.24), 0 8px 12px rgba(0, 0, 0, 0.14);
+  --hospital-shadow-lg: 0 0 8px rgba(0, 0, 0, 0.24), 0 12px 16px rgba(0, 0, 0, 0.14);
+  --hospital-shadow-xl: 0 0 12px rgba(0, 0, 0, 0.24), 0 16px 24px rgba(0, 0, 0, 0.14);
 
   /* Professional Border Radius */
-  --hospital-radius-sm: 0.375rem;
-  --hospital-radius: 0.5rem;
-  --hospital-radius-md: 0.75rem;
-  --hospital-radius-lg: 1rem;
-  --hospital-radius-xl: 1.5rem;
+  --hospital-radius-sm: 4px;
+  --hospital-radius: 12px;
+  --hospital-radius-md: 12px;
+  --hospital-radius-lg: 16px;
+  --hospital-radius-xl: 50px;
 
   /* Typography Scale */
   --hospital-font-size-xs: 0.75rem;
@@ -175,32 +216,32 @@
   --hospital-space-20: 5rem;
   --hospital-space-24: 6rem;
 
-  /* Gradient System */
-  --gradient-primary: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-  --gradient-primary-soft: linear-gradient(135deg, #ccfbf1 0%, #cffafe 100%);
-  --gradient-accent: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
-  --gradient-overlay: linear-gradient(180deg, rgba(13, 148, 136, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
+  /* Gradient System - Starbucks relies on solid blocks */
+  --gradient-primary: none;
+  --gradient-primary-soft: none;
+  --gradient-accent: none;
+  --gradient-overlay: none;
 
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.3);
-  --glass-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 
   /* Enhanced Shadows with Color */
-  --shadow-emerald-sm: 0 2px 8px rgba(16, 185, 129, 0.1);
-  --shadow-emerald-md: 0 4px 16px rgba(16, 185, 129, 0.15);
-  --shadow-emerald-lg: 0 8px 24px rgba(16, 185, 129, 0.2);
-  --shadow-emerald-xl: 0 12px 32px rgba(16, 185, 129, 0.25);
+  --shadow-emerald-sm: 0 2px 8px rgba(0, 98, 65, 0.1);
+  --shadow-emerald-md: 0 4px 16px rgba(0, 98, 65, 0.15);
+  --shadow-emerald-lg: 0 8px 24px rgba(0, 98, 65, 0.2);
+  --shadow-emerald-xl: 0 12px 32px rgba(0, 98, 65, 0.25);
 
   /* Legacy compatibility */
-  --brand-blue: #0d9488;
-  --brand-blue-600: #0d9488;
-  --brand-blue-700: #15803d;
-  --brand-gray-50: #f8fafc;
-  --brand-gray-100: #f1f5f9;
-  --brand-gray-200: #e2e8f0;
-  --text-800: #0f172a;
-  --text-600: #475569;
+  --brand-blue: #00754A;
+  --brand-blue-600: #00754A;
+  --brand-blue-700: #006241;
+  --brand-gray-50: #f2f0eb;
+  --brand-gray-100: #edebe9;
+  --brand-gray-200: #d6dbde;
+  --text-800: rgba(0, 0, 0, 0.87);
+  --text-600: rgba(0, 0, 0, 0.58);
 }
 
 /* Dark Theme Overrides */
@@ -367,8 +408,7 @@ html.grayscale-mode {
 /* Standard Page Wrapper — consistent background across all pages */
 .page-wrapper {
   min-height: 100vh;
-  background-color: #f8fafc;
-  /* slate-50 */
+  background-color: var(--hospital-bg-primary);
 }
 
 /* Professional Button System */
@@ -377,18 +417,22 @@ html.grayscale-mode {
   align-items: center;
   justify-content: center;
   gap: var(--hospital-space-2);
-  border-radius: var(--hospital-radius);
-  padding: var(--hospital-space-3) var(--hospital-space-4);
+  border-radius: 8px;
+  padding: 7px 16px;
   border: 1px solid transparent;
   font-weight: 600;
   font-size: var(--hospital-font-size-sm);
-  line-height: 1.25rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.2;
+  transition: all 0.2s ease;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: var(--hospital-shadow-sm);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .btn:disabled {
@@ -475,16 +519,20 @@ html.grayscale-mode {
   align-items: center;
   justify-content: center;
   gap: var(--hospital-space-2);
-  padding: 0.65rem 1.1rem;
-  border-radius: var(--hospital-radius);
+  padding: 7px 16px;
+  border-radius: 8px;
   font-size: var(--hospital-font-size-sm);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.2;
   border: 1px solid transparent;
   color: #ffffff;
-  background: var(--hospital-gray-700);
-  box-shadow: var(--hospital-shadow-sm);
+  background: var(--hospital-gray-900);
+  box-shadow: none;
   transition: all 0.2s ease;
+}
+
+.admin-btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .admin-btn:hover:not(:disabled) {
@@ -667,10 +715,10 @@ a:focus-visible {
 }
 
 .card {
-  background: #fff;
-  border: 1px solid var(--brand-gray-200);
-  border-radius: .75rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .04)
+  background: var(--hospital-bg-primary);
+  border: 1px solid var(--hospital-gray-200);
+  border-radius: 12px;
+  box-shadow: var(--hospital-shadow-sm);
 }
 
 .card-body {

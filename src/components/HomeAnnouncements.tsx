@@ -96,7 +96,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
           <div>
             <h2 className="text-2xl font-bold text-slate-800 text-balance">ข่าวประชาสัมพันธ์ และประกาศจัดซื้อ</h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
-              ติดตามข้อมูลข่าวสารการจัดซื้อจัดจ้าง การรับสมัครงาน และประกาศสำคัญต่างๆ จากโรงพยาบาลได้ที่นี่
+              ข่าวสารการจัดซื้อจัดจ้าง การรับสมัครงาน และประกาศสำคัญจากโรงพยาบาลปง
             </p>
             <Link
               to="/announcements"
@@ -149,7 +149,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
 
           {Array.isArray(filtered) && filtered.length > 0 ? (
             <div className="space-y-4">
-              {filtered.map((a, i) => {
+              {filtered.map((a) => {
                 const categoryColors: Record<Announcement['category'], { label: string }> = {
                   'ประกาศจัดซื้อจัดจ้าง': { label: 'จัดซื้อจัดจ้าง' },
                   'สมัครงาน': { label: 'รับสมัครงาน' },
@@ -163,14 +163,14 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                     to={`/announcement/${generateSlug(a._id, a.title)}`}
                     key={a._id}
                     className={
-                      `block bg-white/90 shadow-sm border border-emerald-500/5 p-5 rounded-2xl transition-all duration-500 ease-out group relative overflow-hidden stagger-item stagger-delay-${Math.min(i, 11)} ` +
-                      `hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] hover:-translate-y-1.5 hover:border-emerald-200 hover:bg-white`
+                      `block bg-white shadow-sm border border-emerald-500/5 p-5 rounded-xl transition-all duration-300 ease-out group relative overflow-hidden ` +
+                      `hover:shadow-md hover:-translate-y-1 hover:border-emerald-200`
                     }
                   >
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-3 mb-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || 'bg-slate-100 text-slate-700'} group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors duration-200`}>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || 'bg-slate-100 text-slate-700'} transition-colors duration-200`}>
                             {colors.label}
                           </span>
                           <span className="text-slate-400 text-xs">
@@ -295,7 +295,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                 <Link
                   to={`/announcement/${generateSlug(a._id, a.title)}`}
                   key={a._id}
-                  className="block w-full bg-white rounded-2xl border border-emerald-500/5 shadow-sm hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-500 ease-out px-4 py-3 md:py-5 md:px-6 group hover:-translate-y-1.5 hover:border-emerald-200"
+                  className="block w-full bg-white rounded-xl border border-emerald-500/5 shadow-sm hover:shadow-md transition-all duration-300 ease-out px-4 py-3 md:py-5 md:px-6 group hover:-translate-y-1 hover:border-emerald-200"
                 >
                   <div className="flex items-start gap-4 md:gap-5">
                     {/* Icon */}
@@ -305,7 +305,7 @@ export default function HomeAnnouncements({ limit = 10, embedded = false }: { li
                     {/* Main content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || style.badge} group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors duration-200`}>{a.category}</span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeClass[a.category] || style.badge} transition-colors duration-200`}>{a.category}</span>
                         {isNew(a) ? (
                           <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             ใหม่

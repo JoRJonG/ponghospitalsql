@@ -112,36 +112,36 @@ export default function ActivityDetailPage() {
           }
         />
 
-        {!item && !error && (
+        {!item && !error ? (
           <div className="space-y-3">
-            <div className="h-8 w-2/3 bg-gray-200 animate-pulse rounded" />
-            <div className="h-4 w-1/3 bg-gray-200 animate-pulse rounded" />
+            <div className="h-8 w-2/3 bg-slate-200 animate-pulse rounded" />
+            <div className="h-4 w-1/3 bg-slate-200 animate-pulse rounded" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[...Array(2)].map((_, i) => (
-                <div key={i} className="bg-gray-200 aspect-[4/3] animate-pulse rounded" />
+                <div key={i} className="bg-slate-200 aspect-[4/3] animate-pulse rounded" />
               ))}
             </div>
           </div>
-        )}
+        ) : null}
 
-        {error && (
+        {error ? (
           <div className="border border-red-200 bg-red-50 text-red-700 rounded p-3">{error}</div>
-        )}
+        ) : null}
 
-        {item && (
+        {item ? (
           <article className="space-y-4">
             <span className="sr-only">{item.title}</span>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              {item.date && <div>{new Date(item.date).toLocaleDateString()}</div>}
-              {item.viewCount !== undefined && <div className="flex items-center gap-1"><i className="fas fa-eye"></i> {item.viewCount} ครั้ง</div>}
+            <div className="flex items-center gap-4 text-sm text-slate-500">
+              {item.date ? <div>{new Date(item.date).toLocaleDateString()}</div> : null}
+              {item.viewCount !== undefined ? <div className="flex items-center gap-1"><i className="fas fa-eye"></i> {item.viewCount} ครั้ง</div> : null}
             </div>
-            {item.description && (
+            {item.description ? (
               <div className="ql-snow">
-                <div className="ql-editor max-w-none p-0 text-gray-800" dangerouslySetInnerHTML={sanitize(item.description)} />
+                <div className="ql-editor max-w-none p-0 text-slate-800" dangerouslySetInnerHTML={sanitize(item.description)} />
               </div>
-            )}
+            ) : null}
             {/* Images gallery */}
-            {Array.isArray(item.images) && item.images.length > 0 && (
+            {Array.isArray(item.images) && item.images.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {item.images.map((im, idx) => {
                   const src = typeof im === 'string' ? im : im?.url
@@ -164,11 +164,11 @@ export default function ActivityDetailPage() {
                   )
                 })}
               </div>
-            )}
+            ) : null}
           </article>
-        )}
+        ) : null}
 
-        {lightboxOpen && images.length > 0 && (
+        {lightboxOpen && images.length > 0 ? (
           <div
             className="fixed inset-0 z-50 bg-black/90 flex flex-col"
             onClick={(e) => {
@@ -228,7 +228,7 @@ export default function ActivityDetailPage() {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )

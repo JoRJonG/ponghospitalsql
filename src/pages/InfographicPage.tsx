@@ -36,11 +36,10 @@ export default function InfographicPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <i className="fa-solid fa-spinner fa-spin text-4xl text-green-600 mb-4" />
-          <p className="text-gray-600">กำลังโหลดข้อมูล...</p>
-        </div>
+      <div className="space-y-6 animate-pulse">
+        <div className="h-24 bg-slate-100 rounded-2xl w-full"></div>
+        <div className="h-64 bg-slate-100 rounded-2xl w-full"></div>
+        <div className="h-64 bg-slate-100 rounded-2xl w-full"></div>
       </div>
     )
   }
@@ -59,13 +58,15 @@ export default function InfographicPage() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 lg:p-8 border border-emerald-100 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-100/50 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-teal-100/50 rounded-full blur-3xl"></div>
-
-        <div className="relative z-10">
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Infographic</h2>
-          <div className="h-1 w-20 bg-emerald-500 rounded-full mb-4"></div>
+      <div className="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100 shadow-sm">
+            <i className="fa-solid fa-image text-xl"></i>
+          </div>
+          <div>
+            <h2 className="text-2xl lg:text-3xl font-bold text-slate-800">Infographic</h2>
+            <p className="text-slate-500 text-sm mt-1">สื่อประชาสัมพันธ์และข้อมูลสุขภาพน่ารู้</p>
+          </div>
         </div>
       </div>
 
@@ -84,13 +85,10 @@ export default function InfographicPage() {
         </motion.div>
       ) : (
         <div className="space-y-6">
-          {infographics.map((item, index) => (
-            <motion.div
+          {infographics.map((item) => (
+            <div
               key={item._id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="card overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-slate-100"
+              className="bg-white rounded-2xl overflow-hidden group hover:shadow-md transition-all duration-300 border border-slate-200"
             >
               <div className="card-body p-0 bg-slate-50/50 w-full relative min-h-[200px] sm:min-h-[300px] flex items-center justify-center">
                 {/* Fallback spinner while loading */}
@@ -109,7 +107,7 @@ export default function InfographicPage() {
                   }}
                 />
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

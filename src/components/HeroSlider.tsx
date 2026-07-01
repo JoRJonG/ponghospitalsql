@@ -87,6 +87,9 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
     return () => clearInterval(t)
   }, [slides, idx])
 
+  const prev = useCallback(() => setIdx(i => (i - 1 + slides.length) % slides.length), [slides.length])
+  const next = useCallback(() => setIdx(i => (i + 1) % slides.length), [slides.length])
+
   // Precompute tiny background previews once per slides change to avoid calling hooks inside loops
   const bgUrls = useMemo(() => {
     return slides.map(s => {
@@ -101,7 +104,12 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
   return (
     <div className="w-full">
       <div>
-        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-auto md:h-[60vh] overflow-hidden bg-slate-50">
+        <div
+          className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-auto md:h-[60vh] overflow-hidden bg-slate-50"
+          role="region"
+          aria-label="สไลด์ภาพโรงพยาบาล"
+          aria-roledescription="carousel"
+        >
           {slides.map((s, i) => {
             const props = responsiveImageProps(s.src, { widths: [480, 768, 1024, 1440], crop: 'fit', sizes: '100vw' })
             const bg = bgUrls[i]
@@ -137,6 +145,29 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
               </div>
             )
           })}
+
+          {/* Prev / Next Navigation Arrows */}
+          {slides.length > 1 ? (
+            <>
+              <button
+                type="button"
+                aria-label="สไลด์ก่อนหน้า"
+                onClick={prev}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 focus-visible:ring-2 focus-visible:ring-white focus:outline-none"
+              >
+                <i className="fa-solid fa-chevron-left text-sm md:text-base" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="สไลด์ถัดไป"
+                onClick={next}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 focus-visible:ring-2 focus-visible:ring-white focus:outline-none"
+              >
+                <i className="fa-solid fa-chevron-right text-sm md:text-base" aria-hidden="true" />
+              </button>
+            </>
+          ) : null}
+
           {/* Caption overlay removed per request */}
           {/* Progress bar — แสดง countdown ของ slide ปัจจุบัน */}
           {slides.length > 1 ? (
@@ -149,11 +180,12 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
             </div>
           ) : null}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-            {slides.map((_, i) => (
+            {slides.map((s, i) => (
               <button
                 key={i}
                 type="button"
-                aria-label={`slide ${i + 1}`}
+                aria-label={`สไลด์${i + 1}${s.alt ? `: ${s.alt}` : ''}`}
+                aria-current={i === idx ? 'true' : undefined}
                 onClick={() => setIdx(i)}
                 className={`h-3 w-3 rounded-full transition-[background-color,transform,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none ${i === idx ? 'bg-white scale-110 shadow-md' : 'bg-white/50 hover:bg-white/80'}`}
                 onFocus={() => { /* keep to allow focus-visible CSS to show */ }}
