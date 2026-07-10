@@ -189,11 +189,7 @@ export default function PRPoster({ embedded = false }: { embedded?: boolean }) {
                                                         )
                                                     })()}
                                                 </div>
-                                                {poster.title && (
-                                                    <p className="text-xs text-slate-600 text-center font-medium line-clamp-2 px-1 pb-1 leading-relaxed">
-                                                        {poster.title}
-                                                    </p>
-                                                )}
+
                                             </div>
                                         </SwiperSlide>
                                     ))}

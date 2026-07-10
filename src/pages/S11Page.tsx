@@ -2041,6 +2041,21 @@ const S11Page = () => {
         const yearsWithOffset = Math.floor(totalMonthsWithOffset / 12)
         const monthsWithOffset = totalMonthsWithOffset % 12
 
+        // เลื่อน endDate ไปตาม index เดือน เพื่อให้ "ถึงวันที่" ในข้อ ๒ ตรงกับ "รวม" ของแต่ละหน้า
+        let advancedEndDate = ''
+        if (formData.endDate) {
+          const ep = parseThaiDateParts(formData.endDate)
+          const totalM = ep.monthIndex + index
+          const newMonthIndex = totalM % 12
+          const newBuddhistYear = ep.buddhistYear + Math.floor(totalM / 12)
+          const lastDay = getLastDayOfThaiMonth(newBuddhistYear, newMonthIndex)
+          advancedEndDate = buildIsoDate({
+            day: Math.min(ep.day, lastDay),
+            monthIndex: newMonthIndex,
+            buddhistYear: newBuddhistYear,
+          })
+        }
+
         return (
           <div
             key={`${item.month}-${item.year}`}
@@ -2153,7 +2168,7 @@ const S11Page = () => {
                   {formatThaiDate(formData.startDate) ||
                     '.....................................'}
                   ..ถึงวันที่...
-                  {formatThaiDate(formData.endDate) ||
+                  {formatThaiDate(advancedEndDate) ||
                     '..............................'}
                   ...รวม {convertToThaiNumber(yearsWithOffset) ||
                     '..............'}{' '}
