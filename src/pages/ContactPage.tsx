@@ -94,8 +94,7 @@ export default function ContactPage() {
       } else {
         showToast(data.error || 'เกิดข้อผิดพลาดในการส่งข้อมูล', undefined, 'error')
       }
-    } catch (error) {
-      console.error('Error submitting feedback:', error)
+    } catch {
       showToast('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', undefined, 'error')
     } finally {
       setIsSubmitting(false)
