@@ -65,6 +65,8 @@ export const validateOrigin = (req, res, next) => {
     // Add default dev origins if not specified
     if (process.env.NODE_ENV !== 'production') {
         allowedOrigins.push('http://localhost:5173')
+        allowedOrigins.push('http://localhost:5174')
+        allowedOrigins.push('http://localhost:5175')
         allowedOrigins.push('http://localhost:3000')
     }
 

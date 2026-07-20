@@ -55,8 +55,6 @@ type TrainingDateField =
   | 'trainingRhcStart'
   | 'trainingRhcEnd'
 
-type TrainingDatePart = 'day' | 'monthIndex' | 'buddhistYear'
-
 type TrainingValues = {
   hospital?: string
   province?: string
@@ -112,8 +110,8 @@ const positions = [
   // เภสัชกร
   { name: 'เภสัชกร', category: 'เภสัชกร' },
 
-  // พยาบาลวิชาชีพ
-  { name: 'พยาบาลวิชาชีพ', category: newCategory },
+  // พยาบาลวิชาชีพ — มีอัตราเบี้ยเลี้ยงเฉพาะ ไม่ใช้ newCategory
+  { name: 'พยาบาลวิชาชีพ', category: 'พยาบาลวิชาชีพ' },
 
   // สายงานระดับปริญญาตรีขึ้นไป (วิชาชีพเฉพาะ ก)
   { name: 'นักกายภาพบำบัด', category: newCategory },
@@ -255,6 +253,8 @@ const positions = [
   { name: 'ผู้ช่วยช่างทั่วไป', category: 'สายงานระดับต่ำกว่าปริญญาตรี' },
 ]
 
+// อัตราค่าตอบแทนเบี้ยเลี้ยงเหมาจ่าย พื้นที่ปกติ ระดับ 2
+// อ้างอิง: แนวทาง ฉบับที่ 11 พ.ศ. 2566 กระทรวงสาธารณสุข
 const amountRates = {
   'แพทย์และทันตแพทย์': {
     '1-3': 10000,
@@ -262,14 +262,14 @@ const amountRates = {
     '10+': 25000,
   },
   'เภสัชกร': {
-    '1-3': 5500,
+    '1-3': 4500,
     '4-10': 5500,
     '10+': 6500,
   },
   'พยาบาลวิชาชีพ': {
-    '1-3': 5500,
-    '4-10': 5500,
-    '10+': 6500,
+    '1-3': 2400,
+    '4-10': 3000,
+    '10+': 3200,
   },
   'สหสาขาวิชาชีพ': {
     '1-3': 2200,
@@ -500,23 +500,39 @@ const getNext12MonthsWithYear = (startMonth: string, startYear: number) => {
   return data
 }
 
+/**
+ * คำนวณผลต่างวันที่ โดยถ้า endDate ว่างจะใช้วันปัจจุบันแทน
+ */
 const calculateDateDifference = (
   startDate: string,
   endDate: string,
-): { years: number; months: number } => {
-  if (!startDate || !endDate) return { years: 0, months: 0 }
+  useNowIfEndEmpty = false,
+): { years: number; months: number; days: number } => {
+  if (!startDate) return { years: 0, months: 0, days: 0 }
   const start = new Date(startDate)
-  const end = new Date(endDate)
+  if (Number.isNaN(start.getTime())) return { years: 0, months: 0, days: 0 }
 
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return { years: 0, months: 0 }
+  let end: Date
+  if (!endDate || endDate === '') {
+    if (useNowIfEndEmpty) {
+      end = new Date()
+    } else {
+      return { years: 0, months: 0, days: 0 }
+    }
+  } else {
+    end = new Date(endDate)
+    if (Number.isNaN(end.getTime())) return { years: 0, months: 0, days: 0 }
   }
 
   let years = end.getFullYear() - start.getFullYear()
   let monthsDiff = end.getMonth() - start.getMonth()
+  let daysDiff = end.getDate() - start.getDate()
 
-  if (end.getDate() < start.getDate()) {
+  if (daysDiff < 0) {
     monthsDiff--
+    // Number of days in the previous month relative to the end date
+    const prevMonthLastDay = new Date(end.getFullYear(), end.getMonth(), 0).getDate()
+    daysDiff += prevMonthLastDay
   }
 
   if (monthsDiff < 0) {
@@ -524,7 +540,204 @@ const calculateDateDifference = (
     monthsDiff += 12
   }
 
-  return { years: Math.max(0, years), months: Math.max(0, monthsDiff) }
+  return {
+    years: Math.max(0, years),
+    months: Math.max(0, monthsDiff),
+    days: Math.max(0, daysDiff),
+  }
+}
+
+const aggregateDurations = (durations: { years: number; months: number; days: number }[]) => {
+  let y = 0, m = 0, d = 0
+  for (const dur of durations) {
+    y += dur.years
+    m += dur.months
+    d += dur.days
+  }
+  if (d >= 30) {
+    m += Math.floor(d / 30)
+    d = d % 30
+  }
+  if (m >= 12) {
+    y += Math.floor(m / 12)
+    m = m % 12
+  }
+  return { years: y, months: m, days: d }
+}
+
+// ─────────────────────────────────────────────────────────────
+// ThaiDateInput — 3 ช่อง (วัน / เดือน / ปี พ.ศ.) + ค้นหาได้
+// ─────────────────────────────────────────────────────────────
+const THAI_MONTHS_FULL = [
+  'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน',
+  'พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม',
+  'กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม',
+]
+const THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+
+const parseIsoToThai = (iso: string) => {
+  if (!iso) return { day: '', month: '', year: '' }
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return { day: '', month: '', year: '' }
+  return {
+    day: String(d.getDate()),
+    month: THAI_MONTHS_FULL[d.getMonth()],
+    year: String(d.getFullYear() + 543),
+  }
+}
+
+const resolveMonthIndex = (month: string): number => {
+  const m = month.trim()
+  if (!m) return -1
+  let idx = THAI_MONTHS_FULL.findIndex(x => x === m)
+  if (idx >= 0) return idx
+  idx = THAI_MONTHS_SHORT.findIndex(x => x === m)
+  if (idx >= 0) return idx
+  const num = parseInt(m, 10)
+  if (!isNaN(num) && num >= 1 && num <= 12) return num - 1
+  // Fallback ค้นหาบางส่วน (เช่น พิมพ์ "มกรา")
+  idx = THAI_MONTHS_FULL.findIndex(x => x.startsWith(m))
+  if (idx >= 0) return idx
+  return -1
+}
+
+const buildIsoFromThai = (day: string, month: string, year: string): string => {
+  const dayNum = parseInt(day.trim(), 10)
+  const monthIdx = resolveMonthIndex(month)
+  const yearBE = parseInt(year.trim(), 10)
+  
+  // บังคับให้เป็นปี พ.ศ. 4 หลักที่สมเหตุสมผลเท่านั้น เพื่อป้องกันการอัปเดตผิดพลาดระหว่างกำลังพิมพ์ (เช่น พิมพ์ "25" แล้วถูกบังคับเปลี่ยนทันที)
+  if (isNaN(dayNum) || monthIdx < 0 || isNaN(yearBE) || yearBE < 2400 || yearBE > 2600) return ''
+  
+  const yearCE = yearBE - 543
+  // Check valid date format
+  const d = new Date(yearCE, monthIdx, dayNum)
+  if (d.getFullYear() !== yearCE || d.getMonth() !== monthIdx || d.getDate() !== dayNum) return ''
+  
+  return `${yearCE}-${String(monthIdx + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+}
+
+const ThaiDateInput = ({
+  value,
+  onChange,
+  id,
+}: {
+  value: string
+  onChange: (isoDate: string) => void
+  id?: string
+}) => {
+  const currentBE = new Date().getFullYear() + 543
+  const yearList = Array.from({ length: currentBE - 2499 }, (_, i) => String(2500 + i))
+  const dayList = Array.from({ length: 31 }, (_, i) => String(i + 1))
+  const uid = id ?? Math.random().toString(36).slice(2)
+
+  const [dayVal, setDayVal] = useState('')
+  const [monthVal, setMonthVal] = useState('')
+  const [yearVal, setYearVal] = useState('')
+
+  useEffect(() => {
+    const parts = parseIsoToThai(value)
+    setDayVal(parts.day)
+    setMonthVal(parts.month)
+    setYearVal(parts.year)
+  }, [value])
+
+  const commit = (d: string, m: string, y: string) => {
+    const iso = buildIsoFromThai(d, m, y)
+    if (iso) {
+      onChange(iso)
+    } else if (!d.trim() && !m.trim() && !y.trim()) {
+      onChange('')
+    }
+  }
+
+  const handleBlur = () => {
+    // จัดการปี 2 หลักให้กลายเป็น 4 หลักเฉพาะตอนพิมพ์เสร็จแล้วเท่านั้น
+    let y = yearVal.trim()
+    const parsedY = parseInt(y, 10)
+    if (!isNaN(parsedY) && parsedY > 0 && parsedY < 100) {
+      y = String(parsedY + 2500)
+    }
+
+    const iso = buildIsoFromThai(dayVal, monthVal, y)
+    if (iso) {
+      const parts = parseIsoToThai(iso)
+      setDayVal(parts.day)
+      setMonthVal(parts.month)
+      setYearVal(parts.year)
+      commit(parts.day, parts.month, parts.year)
+    } else {
+      commit(dayVal, monthVal, yearVal)
+    }
+  }
+
+  const thaiLabel = value ? (() => {
+    const parsed = parseIsoToThai(value)
+    if (!parsed.day) return null
+    return `${parsed.day} ${THAI_MONTHS_SHORT[THAI_MONTHS_FULL.indexOf(parsed.month)]} ${parsed.year}`
+  })() : null
+
+  const inputClass = 'w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white'
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="grid grid-cols-3 gap-2">
+        {/* วัน */}
+        <div>
+          <input
+            id={`${uid}-day`}
+            list={`${uid}-day-list`}
+            value={dayVal}
+            onChange={(e) => { setDayVal(e.target.value); commit(e.target.value, monthVal, yearVal) }}
+            onBlur={handleBlur}
+            placeholder="วัน"
+            className={inputClass}
+            autoComplete="off"
+          />
+          <datalist id={`${uid}-day-list`}>
+            {dayList.map(d => <option key={d} value={d} />)}
+          </datalist>
+        </div>
+        {/* เดือน */}
+        <div>
+          <input
+            id={`${uid}-month`}
+            list={`${uid}-month-list`}
+            value={monthVal}
+            onChange={(e) => { setMonthVal(e.target.value); commit(dayVal, e.target.value, yearVal) }}
+            onBlur={handleBlur}
+            placeholder="เดือน"
+            className={inputClass}
+            autoComplete="off"
+          />
+          <datalist id={`${uid}-month-list`}>
+            {THAI_MONTHS_FULL.map(m => <option key={m} value={m} />)}
+          </datalist>
+        </div>
+        {/* ปี พ.ศ. */}
+        <div>
+          <input
+            id={`${uid}-year`}
+            list={`${uid}-year-list`}
+            value={yearVal}
+            onChange={(e) => { setYearVal(e.target.value); commit(dayVal, monthVal, e.target.value) }}
+            onBlur={handleBlur}
+            placeholder="พ.ศ."
+            className={inputClass}
+            autoComplete="off"
+          />
+          <datalist id={`${uid}-year-list`}>
+            {yearList.map(y => <option key={y} value={y} />)}
+          </datalist>
+        </div>
+      </div>
+      {thaiLabel && (
+        <span className="text-xs text-emerald-600 font-medium px-1">
+          📅 {thaiLabel}
+        </span>
+      )}
+    </div>
+  )
 }
 
 const S11Page = () => {
@@ -559,36 +772,55 @@ const S11Page = () => {
   // Ref for Position Select
   const positionSelectRef = useRef<SelectInstance<PositionOption> | null>(null)
 
-  const totalMonthsOfExperience = useMemo(() => {
-    const { years: currentYears, months: currentMonths } =
-      calculateDateDifference(formData.startDate, formData.endDate)
-    let totalMonths = currentYears * 12 + currentMonths
+  const currentWorkDuration = useMemo(() => {
+    return calculateDateDifference(
+      formData.startDate,
+      formData.endDate,
+      false, // บังคับให้กรอก ไม่ใช้วันปัจจุบันแล้ว
+    )
+  }, [formData.startDate, formData.endDate])
 
-    formData.workHistory.forEach((job) => {
-      const { years, months } = calculateDateDifference(
+  const historyWorkDuration = useMemo(() => {
+    return formData.workHistory.reduce((sum, job) => {
+      const diff = calculateDateDifference(
         job.startDate,
         job.endDate,
+        false, // บังคับให้กรอก ไม่ใช้วันปัจจุบัน
       )
-      totalMonths += years * 12 + months
-    })
+      return {
+        years: sum.years + diff.years,
+        months: sum.months + diff.months,
+        days: sum.days + diff.days
+      }
+    }, { years: 0, months: 0, days: 0 })
+  }, [formData.workHistory])
 
+  const trainingDuration = useMemo(() => {
     const trainingYears = Number(formData.trainingPracticeYears) || 0
     const trainingMonths = Number(formData.trainingPracticeMonths) || 0
-    totalMonths += trainingYears * 12 + trainingMonths
+    return { years: trainingYears, months: trainingMonths, days: 0 }
+  }, [formData.trainingPracticeYears, formData.trainingPracticeMonths])
 
-    return totalMonths
-  }, [
-    formData.startDate,
-    formData.endDate,
-    formData.workHistory,
-    formData.trainingPracticeYears,
-    formData.trainingPracticeMonths,
-  ])
 
-  const totalYearsOfExperience = useMemo(
-    () => Math.floor(totalMonthsOfExperience / 12),
-    [totalMonthsOfExperience],
-  )
+  const historyWorkMonths = historyWorkDuration.years * 12 + historyWorkDuration.months
+  const trainingMonthsTotal = trainingDuration.years * 12 + trainingDuration.months
+
+  const totalExperienceDuration = useMemo(() => {
+    const total = aggregateDurations([currentWorkDuration, historyWorkDuration, trainingDuration])
+    return total
+  }, [currentWorkDuration, historyWorkDuration, trainingDuration])
+
+  const totalMonthsOfExperience = totalExperienceDuration.years * 12 + totalExperienceDuration.months
+  const totalYearsOfExperience = totalExperienceDuration.years
+  const totalRemainderMonths = totalExperienceDuration.months
+  const totalRemainderDays = totalExperienceDuration.days
+
+  // ระดับช่วงปีเพื่อแสดง badge
+  const experienceBracket = useMemo(() => {
+    if (totalYearsOfExperience >= 10) return { label: '10 ปีขึ้นไป', color: 'emerald', key: '10+' }
+    if (totalYearsOfExperience >= 4) return { label: '4–10 ปี', color: 'blue', key: '4-10' }
+    return { label: '1–3 ปี', color: 'amber', key: '1-3' }
+  }, [totalYearsOfExperience])
 
   const addWorkHistory = () => {
     if (formData.workHistory.length >= MAX_WORK_HISTORY_ITEMS) {
@@ -646,75 +878,18 @@ const S11Page = () => {
     }))
   }
 
+  // Simple setter สำหรับ workHistory dates
   const handleWorkHistoryDateChange = (
     id: string,
     field: 'startDate' | 'endDate',
-    part: keyof ThaiDateParts,
-    rawValue: string,
+    isoDate: string,
   ) => {
-    if (rawValue === '') {
-      setFormData((prev) => ({
-        ...prev,
-        workHistory: prev.workHistory.map((entry) =>
-          entry.id === id ? { ...entry, [field]: '' } : entry,
-        ),
-      }))
-      return
-    }
-
-    const numericValue = Number(rawValue)
-    if (Number.isNaN(numericValue)) return
-
     setFormData((prev) => ({
       ...prev,
-      workHistory: prev.workHistory.map((entry) => {
-        if (entry.id !== id) return entry
-        const currentValue = entry[field] ?? ''
-        const baseParts: ThaiDateParts = currentValue
-          ? parseThaiDateParts(String(currentValue))
-          : {
-            day: 1,
-            monthIndex: 0,
-            buddhistYear: new Date().getFullYear() + 543,
-          }
-        const updatedParts: ThaiDateParts = {
-          ...baseParts,
-          [part]: numericValue,
-        }
-        const lastDay = getLastDayOfThaiMonth(
-          updatedParts.buddhistYear,
-          updatedParts.monthIndex,
-        )
-        const safeParts: ThaiDateParts = {
-          ...updatedParts,
-          day: Math.min(updatedParts.day, lastDay),
-        }
-        const isoDate = buildIsoDate(safeParts)
-        if (!isoDate) return entry
-        return { ...entry, [field]: isoDate }
-      }),
+      workHistory: prev.workHistory.map((entry) =>
+        entry.id === id ? { ...entry, [field]: isoDate } : entry,
+      ),
     }))
-  }
-
-  const updateThaiDateField = (
-    field: 'startDate' | 'endDate',
-    updates: Partial<ThaiDateParts>,
-  ) => {
-    setFormData((prev) => {
-      const currentParts = parseThaiDateParts(prev[field])
-      const merged: ThaiDateParts = { ...currentParts, ...updates }
-      const lastDay = getLastDayOfThaiMonth(
-        merged.buddhistYear,
-        merged.monthIndex,
-      )
-      const safeParts: ThaiDateParts = {
-        ...merged,
-        day: Math.min(merged.day, lastDay),
-      }
-      const isoDate = buildIsoDate(safeParts)
-      if (!isoDate) return prev
-      return { ...prev, [field]: isoDate }
-    })
   }
 
   const handleInputChange = (
@@ -748,75 +923,28 @@ const S11Page = () => {
           : sanitizedValue,
       }
 
-      // Auto-calculate amount when position or trainingPracticeYears changes
-      if (fieldName === 'position' || fieldName === 'trainingPracticeYears') {
-        const position = fieldName === 'position' ? value : newFormData.position
-        const years =
-          fieldName === 'trainingPracticeYears'
-            ? value === ''
-              ? 0
-              : Number(value)
-            : Number(newFormData.trainingPracticeYears) || 0
-
-        const category = positions.find((p) => p.name === position)?.category
-        if (category) {
-          const calculatedAmount = getAmountForProfession(category, years)
-          newFormData.amount =
-            calculatedAmount === '' ? '' : calculatedAmount
-        }
-      }
+      // หมายเหตุ: amount คำนวณผ่าน useEffect (totalYearsOfExperience) อย่างเดียว
+      // ไม่ต้องคำนวณซ้ำที่นี่ เพื่อป้องกัน inconsistency
 
       return newFormData
     })
   }
 
-  const handlePrimaryDateSelectChange = (
+  // Simple direct setter สำหรับ native input[type=date]
+  const handlePrimaryDateChange = (
     field: 'startDate' | 'endDate',
-    part: keyof ThaiDateParts,
-    rawValue: string,
+    isoDate: string,
   ) => {
-    if (rawValue === '') {
-      setFormData((prev) => ({ ...prev, [field]: '' }))
-      return
-    }
-    updateThaiDateField(field, { [part]: Number(rawValue) })
+    setFormData((prev) => ({ ...prev, [field]: isoDate }))
   }
 
   const currentBuddhistYear = new Date().getFullYear() + 543
 
   const handleTrainingDateChange = (
     field: TrainingDateField,
-    part: TrainingDatePart,
-    rawValue: string,
+    isoDate: string,
   ) => {
-    if (rawValue === '') {
-      setFormData((prev) => ({ ...prev, [field]: '' }))
-      return
-    }
-
-    const numericValue = Number(rawValue)
-    if (Number.isNaN(numericValue)) return
-
-    setFormData((prev) => {
-      const currentValue = prev[field] ?? ''
-      const baseParts: ThaiDateParts = currentValue
-        ? parseThaiDateParts(String(currentValue))
-        : { day: 1, monthIndex: 0, buddhistYear: currentBuddhistYear }
-
-      const updatedParts: ThaiDateParts = { ...baseParts, [part]: numericValue }
-      const lastDay = getLastDayOfThaiMonth(
-        updatedParts.buddhistYear,
-        updatedParts.monthIndex,
-      )
-      const safeParts: ThaiDateParts = {
-        ...updatedParts,
-        day: Math.min(updatedParts.day, lastDay),
-      }
-
-      const isoDate = buildIsoDate(safeParts)
-      if (!isoDate) return prev
-      return { ...prev, [field]: isoDate }
-    })
+    setFormData((prev) => ({ ...prev, [field]: isoDate }))
   }
 
   useEffect(() => {
@@ -883,15 +1011,6 @@ const S11Page = () => {
 
   const baseTotalMonths = totalMonthsOfExperience
 
-  const startDateParts = parseThaiDateParts(formData.startDate)
-  const endDateParts = parseThaiDateParts(formData.endDate)
-
-  const yearOptions = Array.from(
-    { length: currentBuddhistYear - 2500 + 1 },
-    (_, index) => 2500 + index,
-  )
-  const dayOptions = Array.from({ length: 31 }, (_, index) => index + 1)
-
   const amountValue =
     typeof formData.amount === 'number' && Number.isFinite(formData.amount)
       ? formData.amount
@@ -903,10 +1022,14 @@ const S11Page = () => {
     ? numberToThaiText(amountValue)
     : ''
 
-  const trainingRphStartParts = parseThaiDateParts(formData.trainingRphStart)
-  const trainingRphEndParts = parseThaiDateParts(formData.trainingRphEnd)
-  const trainingRhcStartParts = parseThaiDateParts(formData.trainingRhcStart)
-  const trainingRhcEndParts = parseThaiDateParts(formData.trainingRhcEnd)
+  // ยังใช้ใน section ช่วงเดือนขอรับ (month/year dropdowns)
+  const yearOptions = Array.from(
+    { length: currentBuddhistYear - 2500 + 1 },
+    (_, index) => 2500 + index,
+  )
+  const dayOptions = Array.from({ length: 31 }, (_, index) => index + 1)
+  void dayOptions // ใช้เป็น reference ในกรณีที่ section อื่นต้องการ
+
 
   const trainingRphLine = buildTrainingLine(
     'รพศ/รพท',
@@ -990,6 +1113,24 @@ const S11Page = () => {
         boxShadow: 'none',
       },
     }),
+  }
+
+  const handleStartMonthBlur = () => {
+    const m = formData.startMonth.trim()
+    if (!m) return
+    const idx = resolveMonthIndex(m)
+    if (idx >= 0) {
+      setFormData(prev => ({ ...prev, startMonth: THAI_MONTHS_FULL[idx] }))
+    }
+  }
+
+  const handleStartYearBlur = () => {
+    const y = String(formData.startYear).trim()
+    if (!y) return
+    const parsedY = parseInt(y, 10)
+    if (!isNaN(parsedY) && parsedY > 0 && parsedY < 100) {
+      setFormData(prev => ({ ...prev, startYear: parsedY + 2500 }))
+    }
   }
 
   if (!generated) {
@@ -1202,14 +1343,85 @@ const S11Page = () => {
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
                   ข้อมูลการปฏิบัติงาน
                 </h2>
+
+                {/* ── Breakdown ระยะเวลารวม ── */}
+                <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
+                  <div className="px-4 py-2 bg-gray-100 border-b border-gray-200">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">สรุประยะเวลาปฏิบัติงานรวม</span>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {/* ปัจจุบัน */}
+                    <div className="flex items-center justify-between px-4 py-2.5 text-sm">
+                      <span className="text-gray-600">📍 ที่ปฏิบัติงานปัจจุบัน</span>
+                      <span className="font-medium text-gray-800">
+                        {`${currentWorkDuration.years} ปี${currentWorkDuration.months > 0 ? ` ${currentWorkDuration.months} เดือน` : ''}${currentWorkDuration.days > 0 ? ` ${currentWorkDuration.days} วัน` : ''}`}
+                        {!formData.endDate && (
+                          <span className="ml-1 text-xs text-blue-500">(ถึงปัจจุบัน)</span>
+                        )}
+                      </span>
+                    </div>
+                    {/* ประวัติย้อนหลัง */}
+                    {historyWorkMonths > 0 && (
+                      <div className="flex items-center justify-between px-4 py-2.5 text-sm">
+                        <span className="text-gray-600">📋 ประวัติการทำงานก่อนหน้า ({formData.workHistory.length} รายการ)</span>
+                        <span className="font-medium text-gray-800">
+                          {`${historyWorkDuration.years} ปี${historyWorkDuration.months > 0 ? ` ${historyWorkDuration.months} เดือน` : ''}${historyWorkDuration.days > 0 ? ` ${historyWorkDuration.days} วัน` : ''}`}
+                        </span>
+                      </div>
+                    )}
+                    {/* ฝึกพูนทักษะ */}
+                    {trainingMonthsTotal > 0 && (
+                      <div className="flex items-center justify-between px-4 py-2.5 text-sm">
+                        <span className="text-gray-600">🎓 ฝึกเพิ่มพูนทักษะ</span>
+                        <span className="font-medium text-gray-800">
+                          {`${trainingDuration.years} ปี${trainingDuration.months > 0 ? ` ${trainingDuration.months} เดือน` : ''}`}
+                        </span>
+                      </div>
+                    )}
+                    {/* รวม */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-emerald-50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-emerald-800">⏱ รวมทั้งสิ้น</span>
+                        {formData.position && (
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                            experienceBracket.key === '10+'
+                              ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300'
+                              : experienceBracket.key === '4-10'
+                                ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300'
+                                : 'bg-amber-100 text-amber-700 ring-1 ring-amber-300'
+                          }`}>
+                            ระดับ {experienceBracket.label}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-base font-bold text-emerald-800">
+                        {`${totalYearsOfExperience} ปี${totalRemainderMonths > 0 ? ` ${totalRemainderMonths} เดือน` : ''}${totalRemainderDays > 0 ? ` ${totalRemainderDays} วัน` : ''}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── จำนวนเงินที่คำนวณ ── */}
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-800 mb-1.5">
                       จำนวนเงินที่คำนวณ (บาท)
                     </label>
-                    <div className="w-full px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 font-medium">
-                      {formData.amount ||
-                        'กรุณาเลือกตำแหน่งและกรอกข้อมูลการทำงาน'}
+                    <div className={`w-full px-4 py-3 rounded-lg border font-semibold text-lg flex items-center justify-between ${
+                      formData.amount
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                        : 'bg-gray-50 border-gray-200 text-gray-400'
+                    }`}>
+                      <span>
+                        {formData.amount
+                          ? `${Number(formData.amount).toLocaleString()} บาท`
+                          : 'กรุณาเลือกตำแหน่งและกรอกวันที่เริ่มงาน'}
+                      </span>
+                      {formData.amount && (
+                        <span className="text-sm font-normal text-emerald-600">
+                          ({numberToThaiText(Number(formData.amount))})
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1218,160 +1430,33 @@ const S11Page = () => {
                     <label className="block text-sm font-medium text-gray-800 mb-1.5">
                       วันที่เริ่ม
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <select
-                        id="startDate-day"
-                        value={
-                          formData.startDate
-                            ? String(startDateParts.day)
-                            : ''
-                        }
-                        onChange={(e) =>
-                          handlePrimaryDateSelectChange(
-                            'startDate',
-                            'day',
-                            e.target.value,
-                          )
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      >
-                        <option value="">วัน</option>
-                        {dayOptions.map((day) => (
-                          <option key={`sd-${day}`} value={String(day)}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={
-                          formData.startDate
-                            ? String(startDateParts.monthIndex)
-                            : ''
-                        }
-                        onChange={(e) =>
-                          handlePrimaryDateSelectChange(
-                            'startDate',
-                            'monthIndex',
-                            e.target.value,
-                          )
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      >
-                        <option value="">เดือน</option>
-                        {months.map((m, i) => (
-                          <option key={`sm-${m}`} value={String(i)}>
-                            {m}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={
-                          formData.startDate
-                            ? String(startDateParts.buddhistYear)
-                            : ''
-                        }
-                        onChange={(e) =>
-                          handlePrimaryDateSelectChange(
-                            'startDate',
-                            'buddhistYear',
-                            e.target.value,
-                          )
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      >
-                        <option value="">พ.ศ.</option>
-                        {yearOptions.map((y) => (
-                          <option key={`sy-${y}`} value={String(y)}>
-                            {y}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <ThaiDateInput
+                      id="startDate-input"
+                      value={formData.startDate}
+                      onChange={(iso) => handlePrimaryDateChange('startDate', iso)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-800 mb-1.5">
                       ถึงวันที่
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <select
-                        id="endDate-day"
-                        value={
-                          formData.endDate ? String(endDateParts.day) : ''
-                        }
-                        onChange={(e) =>
-                          handlePrimaryDateSelectChange(
-                            'endDate',
-                            'day',
-                            e.target.value,
-                          )
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      >
-                        <option value="">วัน</option>
-                        {dayOptions.map((day) => (
-                          <option key={`ed-${day}`} value={String(day)}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={
-                          formData.endDate
-                            ? String(endDateParts.monthIndex)
-                            : ''
-                        }
-                        onChange={(e) =>
-                          handlePrimaryDateSelectChange(
-                            'endDate',
-                            'monthIndex',
-                            e.target.value,
-                          )
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      >
-                        <option value="">เดือน</option>
-                        {months.map((m, i) => (
-                          <option key={`em-${m}`} value={String(i)}>
-                            {m}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={
-                          formData.endDate
-                            ? String(endDateParts.buddhistYear)
-                            : ''
-                        }
-                        onChange={(e) =>
-                          handlePrimaryDateSelectChange(
-                            'endDate',
-                            'buddhistYear',
-                            e.target.value,
-                          )
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      >
-                        <option value="">พ.ศ.</option>
-                        {yearOptions.map((y) => (
-                          <option key={`ey-${y}`} value={String(y)}>
-                            {y}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <ThaiDateInput
+                      id="endDate-input"
+                      value={formData.endDate}
+                      onChange={(iso) => handlePrimaryDateChange('endDate', iso)}
+                    />
                   </div>
                 </div>
               </div>
+
+
 
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
                   ประวัติการปฏิบัติงาน (ถ้ามี)
                 </h2>
                 <div className="space-y-4">
-                  {formData.workHistory.map((entry, index) => {
-                    const whStart = parseThaiDateParts(entry.startDate)
-                    const whEnd = parseThaiDateParts(entry.endDate)
-                    return (
+                   {formData.workHistory.map((entry, index) => (
                       <div
                         key={entry.id}
                         className="border border-emerald-200 rounded-lg p-4 relative bg-emerald-50/50"
@@ -1421,151 +1506,19 @@ const S11Page = () => {
                             <label className="block text-sm font-medium text-gray-800 mb-1.5">
                               วันที่เริ่ม
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
-                              <select
-                                value={
-                                  entry.startDate
-                                    ? String(whStart.day)
-                                    : ''
-                                }
-                                onChange={(e) =>
-                                  handleWorkHistoryDateChange(
-                                    entry.id,
-                                    'startDate',
-                                    'day',
-                                    e.target.value,
-                                  )
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                              >
-                                <option value="">วัน</option>
-                                {dayOptions.map((d) => (
-                                  <option key={d} value={String(d)}>
-                                    {d}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={
-                                  entry.startDate
-                                    ? String(whStart.monthIndex)
-                                    : ''
-                                }
-                                onChange={(e) =>
-                                  handleWorkHistoryDateChange(
-                                    entry.id,
-                                    'startDate',
-                                    'monthIndex',
-                                    e.target.value,
-                                  )
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                              >
-                                <option value="">เดือน</option>
-                                {months.map((m, i) => (
-                                  <option key={m} value={String(i)}>
-                                    {m}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={
-                                  entry.startDate
-                                    ? String(whStart.buddhistYear)
-                                    : ''
-                                }
-                                onChange={(e) =>
-                                  handleWorkHistoryDateChange(
-                                    entry.id,
-                                    'startDate',
-                                    'buddhistYear',
-                                    e.target.value,
-                                  )
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                              >
-                                <option value="">พ.ศ.</option>
-                                {yearOptions.map((y) => (
-                                  <option key={y} value={String(y)}>
-                                    {y}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                            <ThaiDateInput
+                              value={entry.startDate}
+                              onChange={(iso) => handleWorkHistoryDateChange(entry.id, 'startDate', iso)}
+                            />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-800 mb-1.5">
                               ถึงวันที่
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
-                              <select
-                                value={
-                                  entry.endDate ? String(whEnd.day) : ''
-                                }
-                                onChange={(e) =>
-                                  handleWorkHistoryDateChange(
-                                    entry.id,
-                                    'endDate',
-                                    'day',
-                                    e.target.value,
-                                  )
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                              >
-                                <option value="">วัน</option>
-                                {dayOptions.map((d) => (
-                                  <option key={d} value={String(d)}>
-                                    {d}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={
-                                  entry.endDate
-                                    ? String(whEnd.monthIndex)
-                                    : ''
-                                }
-                                onChange={(e) =>
-                                  handleWorkHistoryDateChange(
-                                    entry.id,
-                                    'endDate',
-                                    'monthIndex',
-                                    e.target.value,
-                                  )
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                              >
-                                <option value="">เดือน</option>
-                                {months.map((m, i) => (
-                                  <option key={m} value={String(i)}>
-                                    {m}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={
-                                  entry.endDate
-                                    ? String(whEnd.buddhistYear)
-                                    : ''
-                                }
-                                onChange={(e) =>
-                                  handleWorkHistoryDateChange(
-                                    entry.id,
-                                    'endDate',
-                                    'buddhistYear',
-                                    e.target.value,
-                                  )
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                              >
-                                <option value="">พ.ศ.</option>
-                                {yearOptions.map((y) => (
-                                  <option key={y} value={String(y)}>
-                                    {y}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                            <ThaiDateInput
+                              value={entry.endDate}
+                              onChange={(iso) => handleWorkHistoryDateChange(entry.id, 'endDate', iso)}
+                            />
                           </div>
                         </div>
                         <button
@@ -1577,8 +1530,7 @@ const S11Page = () => {
                           <span className="text-xl font-bold leading-none translate-y-[-1px]">&times;</span>
                         </button>
                       </div>
-                    )
-                  })}
+                    ))}
                 </div>
                 <div className="mt-4">
                   <button
@@ -1650,141 +1602,19 @@ const S11Page = () => {
                         />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="grid grid-cols-3 gap-2">
-                          <select
-                            value={
-                              formData.trainingRphStart
-                                ? String(trainingRphStartParts.day)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRphStart',
-                                'day',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">วัน</option>
-                            {dayOptions.map((d) => (
-                              <option key={d} value={String(d)}>
-                                {d}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRphStart
-                                ? String(trainingRphStartParts.monthIndex)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRphStart',
-                                'monthIndex',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">เดือน</option>
-                            {months.map((m, i) => (
-                              <option key={m} value={String(i)}>
-                                {m}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRphStart
-                                ? String(trainingRphStartParts.buddhistYear)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRphStart',
-                                'buddhistYear',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">พ.ศ.</option>
-                            {yearOptions.map((y) => (
-                              <option key={y} value={String(y)}>
-                                {y}
-                              </option>
-                            ))}
-                          </select>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">วันเริ่ม</label>
+                          <ThaiDateInput
+                            value={formData.trainingRphStart}
+                            onChange={(iso) => handleTrainingDateChange('trainingRphStart', iso)}
+                          />
                         </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <select
-                            value={
-                              formData.trainingRphEnd
-                                ? String(trainingRphEndParts.day)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRphEnd',
-                                'day',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">วัน</option>
-                            {dayOptions.map((d) => (
-                              <option key={d} value={String(d)}>
-                                {d}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRphEnd
-                                ? String(trainingRphEndParts.monthIndex)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRphEnd',
-                                'monthIndex',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">เดือน</option>
-                            {months.map((m, i) => (
-                              <option key={m} value={String(i)}>
-                                {m}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRphEnd
-                                ? String(trainingRphEndParts.buddhistYear)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRphEnd',
-                                'buddhistYear',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">พ.ศ.</option>
-                            {yearOptions.map((y) => (
-                              <option key={y} value={String(y)}>
-                                {y}
-                              </option>
-                            ))}
-                          </select>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">วันสิ้นสุด</label>
+                          <ThaiDateInput
+                            value={formData.trainingRphEnd}
+                            onChange={(iso) => handleTrainingDateChange('trainingRphEnd', iso)}
+                          />
                         </div>
                       </div>
                     </div>
@@ -1813,141 +1643,19 @@ const S11Page = () => {
                         />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="grid grid-cols-3 gap-2">
-                          <select
-                            value={
-                              formData.trainingRhcStart
-                                ? String(trainingRhcStartParts.day)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRhcStart',
-                                'day',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">วัน</option>
-                            {dayOptions.map((d) => (
-                              <option key={d} value={String(d)}>
-                                {d}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRhcStart
-                                ? String(trainingRhcStartParts.monthIndex)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRhcStart',
-                                'monthIndex',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">เดือน</option>
-                            {months.map((m, i) => (
-                              <option key={m} value={String(i)}>
-                                {m}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRhcStart
-                                ? String(trainingRhcStartParts.buddhistYear)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRhcStart',
-                                'buddhistYear',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">พ.ศ.</option>
-                            {yearOptions.map((y) => (
-                              <option key={y} value={String(y)}>
-                                {y}
-                              </option>
-                            ))}
-                          </select>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">วันเริ่ม</label>
+                          <ThaiDateInput
+                            value={formData.trainingRhcStart}
+                            onChange={(iso) => handleTrainingDateChange('trainingRhcStart', iso)}
+                          />
                         </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <select
-                            value={
-                              formData.trainingRhcEnd
-                                ? String(trainingRhcEndParts.day)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRhcEnd',
-                                'day',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">วัน</option>
-                            {dayOptions.map((d) => (
-                              <option key={d} value={String(d)}>
-                                {d}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRhcEnd
-                                ? String(trainingRhcEndParts.monthIndex)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRhcEnd',
-                                'monthIndex',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">เดือน</option>
-                            {months.map((m, i) => (
-                              <option key={m} value={String(i)}>
-                                {m}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={
-                              formData.trainingRhcEnd
-                                ? String(trainingRhcEndParts.buddhistYear)
-                                : ''
-                            }
-                            onChange={(e) =>
-                              handleTrainingDateChange(
-                                'trainingRhcEnd',
-                                'buddhistYear',
-                                e.target.value,
-                              )
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">พ.ศ.</option>
-                            {yearOptions.map((y) => (
-                              <option key={y} value={String(y)}>
-                                {y}
-                              </option>
-                            ))}
-                          </select>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">วันสิ้นสุด</label>
+                          <ThaiDateInput
+                            value={formData.trainingRhcEnd}
+                            onChange={(iso) => handleTrainingDateChange('trainingRhcEnd', iso)}
+                          />
                         </div>
                       </div>
                     </div>
@@ -1961,44 +1669,48 @@ const S11Page = () => {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-800 mb-1.5" htmlFor="startMonth-input">
                       เดือนเริ่มต้น
                     </label>
-                    <select
-                      id="startMonth-select"
+                    <input
+                      id="startMonth-input"
+                      list="startMonth-list"
                       name="startMonth"
                       value={formData.startMonth}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
+                      onBlur={handleStartMonthBlur}
+                      placeholder="เดือน"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      autoComplete="off"
                       required
-                    >
-                      <option value="">เลือกเดือน</option>
+                    />
+                    <datalist id="startMonth-list">
                       {months.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
+                        <option key={m} value={m} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-800 mb-1.5" htmlFor="startYear-input">
                       ปีเริ่มต้น (พ.ศ.)
                     </label>
-                    <select
-                      id="startYear-select"
+                    <input
+                      id="startYear-input"
+                      list="startYear-list"
                       name="startYear"
                       value={formData.startYear}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
+                      onBlur={handleStartYearBlur}
+                      placeholder="พ.ศ."
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      autoComplete="off"
                       required
-                    >
-                      <option value="">เลือกปี</option>
+                    />
+                    <datalist id="startYear-list">
                       {yearOptions.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
+                        <option key={y} value={y} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
                 </div>
               </div>
@@ -2040,6 +1752,12 @@ const S11Page = () => {
         const totalMonthsWithOffset = baseTotalMonths + index
         const yearsWithOffset = Math.floor(totalMonthsWithOffset / 12)
         const monthsWithOffset = totalMonthsWithOffset % 12
+        const daysWithOffset = totalExperienceDuration.days
+
+        const currentWorkMonthsWithOffset = (currentWorkDuration.years * 12 + currentWorkDuration.months) + index
+        const currentJobYears = Math.floor(currentWorkMonthsWithOffset / 12)
+        const currentJobMonths = currentWorkMonthsWithOffset % 12
+        const currentJobDays = currentWorkDuration.days
 
         // เลื่อน endDate ไปตาม index เดือน เพื่อให้ "ถึงวันที่" ในข้อ ๒ ตรงกับ "รวม" ของแต่ละหน้า
         let advancedEndDate = ''
@@ -2170,10 +1888,10 @@ const S11Page = () => {
                   ..ถึงวันที่...
                   {formatThaiDate(advancedEndDate) ||
                     '..............................'}
-                  ...รวม {convertToThaiNumber(yearsWithOffset) ||
+                  ...รวม {convertToThaiNumber(currentJobYears) ||
                     '..............'}{' '}
-                  ปี {convertToThaiNumber(monthsWithOffset) || '.........'}{' '}
-                  เดือน .....วัน
+                  ปี {convertToThaiNumber(currentJobMonths) || '.........'}{' '}
+                  เดือน .....{convertToThaiNumber(currentJobDays) || '......'}.....วัน
                 </p>
 
                 {(() => {
@@ -2198,7 +1916,7 @@ const S11Page = () => {
                   return Array.from({ length: workHistorySlots }, (_, idx) => {
                     const job = uniqueWorkHistory[idx]
                     if (job) {
-                      const { years, months: jobMonths } =
+                      const { years, months: jobMonths, days: jobDays } =
                         calculateDateDifference(job.startDate, job.endDate)
                       return (
                         <Fragment key={job.id}>
@@ -2222,7 +1940,7 @@ const S11Page = () => {
                             {convertToThaiNumber(years) || '..............'}{' '}
                             ปี{' '}
                             {convertToThaiNumber(jobMonths) || '.........'}{' '}
-                            เดือน ...........วัน
+                            เดือน .....{convertToThaiNumber(jobDays) || '......'}.....วัน
                           </p>
                         </Fragment>
                       )
@@ -2246,7 +1964,7 @@ const S11Page = () => {
                 <p>
                   รวมทั้งสิ้น.....{convertToThaiNumber(yearsWithOffset) || '๐'}
                   .....ปี.....{convertToThaiNumber(monthsWithOffset) || '๐'}
-                  .....เดือน.....วัน จำนวนที่ขอเบิก.....{amountDisplayText || '................'}
+                  .....เดือน.....{convertToThaiNumber(daysWithOffset) || '๐'}.....วัน จำนวนที่ขอเบิก.....{amountDisplayText || '................'}
                   .....บาท ({amountThaiText ? `...${amountThaiText}...` : '................................................'})
                 </p>
                 <p className="indent-10">
