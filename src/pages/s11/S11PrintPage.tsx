@@ -1,0 +1,297 @@
+// ─── S11PrintPage — หน้าเอกสารพิมพ์แต่ละเดือน ─────────────────
+
+import { Fragment } from 'react'
+import type { FormDataState } from './types'
+import {
+  convertToThaiNumber,
+  formatThaiDate,
+  buildTrainingLine,
+  calculateDateDifference,
+  parseThaiDateParts,
+  buildIsoDate,
+  getLastDayOfThaiMonth,
+} from './utils'
+
+type Props = {
+  item: { month: string; year: number }
+  index: number
+  isLast: boolean
+  formData: FormDataState
+  baseTotalMonths: number
+  totalExperienceDuration: { years: number; months: number; days: number }
+  currentWorkDuration: { years: number; months: number; days: number }
+  trainingPracticeYearsDisplay: string
+  trainingPracticeMonthsDisplay: string
+  addedTrainingLines: number
+  amountDisplayText: string
+  amountThaiText: string
+}
+
+const S11PrintPage = ({
+  item,
+  index,
+  isLast,
+  formData,
+  baseTotalMonths,
+  totalExperienceDuration,
+  currentWorkDuration,
+  trainingPracticeYearsDisplay,
+  trainingPracticeMonthsDisplay,
+  addedTrainingLines,
+  amountDisplayText,
+  amountThaiText,
+}: Props) => {
+  const totalMonthsWithOffset = baseTotalMonths + index
+  const yearsWithOffset = Math.floor(totalMonthsWithOffset / 12)
+  const monthsWithOffset = totalMonthsWithOffset % 12
+  const daysWithOffset = totalExperienceDuration.days
+
+  const currentWorkMonthsWithOffset =
+    currentWorkDuration.years * 12 + currentWorkDuration.months + index
+  const currentJobYears = Math.floor(currentWorkMonthsWithOffset / 12)
+  const currentJobMonths = currentWorkMonthsWithOffset % 12
+  const currentJobDays = currentWorkDuration.days
+
+  // เลื่อน endDate ตาม index เดือน
+  let advancedEndDate = ''
+  if (formData.endDate) {
+    const ep = parseThaiDateParts(formData.endDate)
+    const totalM = ep.monthIndex + index
+    const newMonthIndex = totalM % 12
+    const newBuddhistYear = ep.buddhistYear + Math.floor(totalM / 12)
+    const lastDay = getLastDayOfThaiMonth(newBuddhistYear, newMonthIndex)
+    advancedEndDate = buildIsoDate({
+      day: Math.min(ep.day, lastDay),
+      monthIndex: newMonthIndex,
+      buddhistYear: newBuddhistYear,
+    })
+  }
+
+  const trainingRphLine = buildTrainingLine(
+    'รพศ/รพท',
+    { hospital: '.....................', province: '....................', start: '.................................', end: '.....................................' },
+    {
+      hospital: formData.trainingRphHospital,
+      province: formData.trainingRphProvince,
+      start: formData.trainingRphStart ? formatThaiDate(formData.trainingRphStart) : '',
+      end: formData.trainingRphEnd ? formatThaiDate(formData.trainingRphEnd) : '',
+    },
+    { main: '• รพศ/รพท..................... จังหวัด....................', period: 'ตั้งแต่.................................ถึง.....................................' },
+  )
+
+  const trainingRhcLine = buildTrainingLine(
+    'รพช',
+    { hospital: '...........................', province: '....................', start: '..................................', end: '.....................................' },
+    {
+      hospital: formData.trainingRhcHospital,
+      province: formData.trainingRhcProvince,
+      start: formData.trainingRhcStart ? formatThaiDate(formData.trainingRhcStart) : '',
+      end: formData.trainingRhcEnd ? formatThaiDate(formData.trainingRhcEnd) : '',
+    },
+    { main: '• รพช........................... จังหวัด....................', period: 'ตั้งแต่..................................ถึง.....................................' },
+  )
+
+  const renderHospital = (name: string) => {
+    if (!name) return 'โรงพยาบาล............................'
+    const trimmed = name.trim()
+    if (
+      trimmed.startsWith('โรงพยาบาล') ||
+      trimmed.startsWith('รพ.') ||
+      trimmed.startsWith('สำนักงาน') ||
+      trimmed.startsWith('สสจ.') ||
+      trimmed.startsWith('สสอ.') ||
+      trimmed.startsWith('รพ.สต.')
+    ) {
+      return ` ${trimmed} `
+    }
+    return ` โรงพยาบาล${trimmed} `
+  }
+
+  // ── Work History Items ──────────────────────────────────────
+  const baseWorkHistorySlots = 5
+  const uniqueWorkHistory = (() => {
+    const seen = new Set<string>()
+    return formData.workHistory.filter((job) => {
+      const key = [job.hospital, job.province, job.level, job.startDate, job.endDate].join('|')
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  })()
+
+  const workHistorySlots = Math.max(
+    baseWorkHistorySlots - addedTrainingLines,
+    uniqueWorkHistory.length,
+  )
+  const filledCount = Math.min(uniqueWorkHistory.length, workHistorySlots)
+  const workItems = []
+  let itemIndex = 2
+
+  for (let i = 0; i < filledCount; i++) {
+    const job = uniqueWorkHistory[i]
+    const { years, months: jobMonths, days: jobDays } = calculateDateDifference(job.startDate, job.endDate)
+    workItems.push(
+      <Fragment key={job.id}>
+        <p>
+          {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(job.hospital)}จังหวัด{job.province ? ` ${job.province} ` : '..........................'}จัดระดับ{job.level ? ` ${convertToThaiNumber(job.level)} ` : '..................................'}
+        </p>
+        <p className="pl-6">
+          ตั้งแต่วันที่{job.startDate ? ` ${formatThaiDate(job.startDate)} ` : '.....................................'}ถึงวันที่{job.endDate ? ` ${formatThaiDate(job.endDate)} ` : '..............................'}รวม {convertToThaiNumber(years)} ปี {convertToThaiNumber(jobMonths)} เดือน {convertToThaiNumber(jobDays)} วัน
+        </p>
+      </Fragment>
+    )
+    itemIndex++
+  }
+
+  // ปัจจุบัน
+  workItems.push(
+    <Fragment key="current-work">
+      <p>
+        {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(formData.currentWorkplace)}จังหวัด{formData.province ? ` ${formData.province} ` : '..........................'}จัดระดับ ปกติ ระดับ {convertToThaiNumber(2)}
+      </p>
+      <p className="pl-6">
+        ตั้งแต่วันที่{formData.startDate ? ` ${formatThaiDate(formData.startDate)} ` : '.....................................'}ถึงวันที่{advancedEndDate ? ` ${formatThaiDate(advancedEndDate)} ` : '..............................'}รวม {convertToThaiNumber(currentJobYears)} ปี {convertToThaiNumber(currentJobMonths)} เดือน {convertToThaiNumber(currentJobDays)} วัน
+      </p>
+    </Fragment>
+  )
+  itemIndex++
+
+  // ช่องว่าง
+  for (let i = filledCount; i < workHistorySlots; i++) {
+    workItems.push(
+      <Fragment key={`empty-${i}`}>
+        <p>
+          {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่โรงพยาบาล............................จังหวัด..........................จัดระดับ..................................
+        </p>
+        <p className="pl-6">
+          ตั้งแต่วันที่..................................... ถึงวันที่.............................. รวม..............ปี.........เดือน...........วัน
+        </p>
+      </Fragment>
+    )
+    itemIndex++
+  }
+
+  return (
+    <div className="flex flex-col items-center print:block print:!m-0">
+      <div
+        className="mx-auto bg-white print:!w-full print:!min-h-0 print:!m-0 print:!py-[15mm]"
+        style={{
+          width: '210mm',
+          minHeight: '297mm',
+          padding: '22mm',
+          fontFamily: '"TH SarabunPSK", "Sarabun", "Leelawadee UI", "Tahoma", "Times New Roman", serif',
+          fontSize: '16pt',
+          lineHeight: '1.1',
+          color: '#111',
+          boxSizing: 'border-box',
+          pageBreakAfter: isLast ? 'auto' : 'always',
+          breakAfter: isLast ? 'auto' : 'always',
+        }}
+      >
+        {/* หัวเรื่อง */}
+        <div className="text-center mb-3">
+          <p style={{ fontSize: '18pt', marginBottom: 0, fontWeight: 'bold', fontFamily: '"TH SarabunPSK", "Sarabun", "Leelawadee UI", "Tahoma", "Times New Roman", serif' }}>
+            ใบขอรับเงินค่าตอบแทนเบี้ยเลี้ยงเหมาจ่ายสำหรับเจ้าหน้าที่
+          </p>
+          <p style={{ fontSize: '18pt', marginTop: 0, fontWeight: 'bold', fontFamily: '"TH SarabunPSK", "Sarabun", "Leelawadee UI", "Tahoma", "Times New Roman", serif' }}>
+            ที่ปฏิบัติงานในหน่วยบริการสังกัดกระทรวงสาธารณสุข
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-right">
+            หน่วยบริการ{formData.unit ? ` ${formData.unit} ` : '........................................'}
+          </p>
+          <p className="text-right">
+            ประจำเดือน {item.month} พ.ศ. {convertToThaiNumber(item.year)}
+          </p>
+
+          <div style={{ marginBottom: '8pt', whiteSpace: 'pre-line' }}>
+            <span>
+              ข้าพเจ้าชื่อ{formData.name ? ` ${formData.name} ` : '.............'}นามสกุล{formData.surname ? ` ${formData.surname} ` : '.............'}ตำแหน่ง{formData.position ? ` ${formData.position} ` : '.............'}
+            </span>
+            <br />
+            <span>
+              ปัจจุบันปฏิบัติงานที่{formData.currentWorkplace ? ` ${formData.currentWorkplace} ` : '.............'}จังหวัด{formData.province ? ` ${formData.province} ` : '.............'}งาน/กลุ่มงาน{formData.level ? ` ${convertToThaiNumber(formData.level)} ` : '.............'}
+            </span>
+            <br />
+            <span>
+              ปฏิบัติงานในหน่วยบริการ {convertToThaiNumber(yearsWithOffset)} ปี {convertToThaiNumber(monthsWithOffset)} เดือน (นับถึงสิ้นเดือนที่เบิกจ่าย)
+            </span>
+            <br />
+            <span>โดยมีรายละเอียดการปฏิบัติงาน ดังนี้ (เฉพาะสายแพทย์ตอบข้อ ๑ ด้วย)</span>
+          </div>
+
+          {/* ข้อ ๑ ฝึกเพิ่มพูนทักษะ */}
+          {(() => {
+            let durationText = `${trainingPracticeYearsDisplay} ปี ${trainingPracticeMonthsDisplay} เดือน`
+            if ((trainingPracticeYearsDisplay === '..............' || trainingPracticeYearsDisplay === '๐') && trainingPracticeMonthsDisplay !== '..............' && trainingPracticeMonthsDisplay !== '๐') {
+              durationText = `${trainingPracticeMonthsDisplay} เดือน`
+            } else if (trainingPracticeYearsDisplay !== '..............' && trainingPracticeYearsDisplay !== '๐' && (trainingPracticeMonthsDisplay === '..............' || trainingPracticeMonthsDisplay === '๐')) {
+              durationText = `${trainingPracticeYearsDisplay} ปี`
+            }
+            return (
+              <p>
+                ๑. ฝึกเพิ่มพูนทักษะ (ปีที่ ๑) รวมระยะเวลาการปฏิบัติงาน {durationText} ดังนี้
+              </p>
+            )
+          })()}
+          <ul className="pl-8 space-y-1 list-none">
+            <li className="leading-tight">
+              <span>{trainingRphLine.main}</span>
+              <span className="block pl-6">{trainingRphLine.period}</span>
+            </li>
+            <li className="leading-tight">
+              <span>{trainingRhcLine.main}</span>
+              <span className="block pl-6">{trainingRhcLine.period}</span>
+            </li>
+            {formData.extraTraining.map((extra) => {
+              const extraLine = buildTrainingLine(
+                extra.type,
+                { hospital: '.....................', province: '....................', start: '.................................', end: '.....................................' },
+                { hospital: extra.hospital, province: extra.province, start: extra.startDate ? formatThaiDate(extra.startDate) : '', end: extra.endDate ? formatThaiDate(extra.endDate) : '' },
+                { main: `• ${extra.type}..................... จังหวัด....................`, period: 'ตั้งแต่.................................ถึง.....................................' }
+              )
+              return (
+                <li key={extra.id} className="leading-tight">
+                  <span>{extraLine.main}</span>
+                  <span className="block pl-6">{extraLine.period}</span>
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* ข้อ ๒+ ประวัติการทำงาน */}
+          {workItems}
+
+          {/* รวมทั้งสิ้น */}
+          <p>
+            รวมทั้งสิ้น {convertToThaiNumber(yearsWithOffset)} ปี {convertToThaiNumber(monthsWithOffset)} เดือน {convertToThaiNumber(daysWithOffset)} วัน จำนวนที่ขอเบิก{amountDisplayText ? ` ${amountDisplayText} ` : '................'}บาท ({amountThaiText || '................................................'})
+          </p>
+          <p className="indent-10">
+            ข้าพเจ้าขอรับรองข้อมูลดังกล่าวเป็นความจริงทุกประการ และหากมีการเรียกเงินคืน ข้าพเจ้าขอรับผิดชอบคืนเงินแต่เพียงผู้เดียว
+          </p>
+
+          {/* ลายเซ็น */}
+          <div className="pt-8 print:pt-8">
+            <div className="flex justify-end mt-4">
+              <div className="text-center" style={{ minWidth: '220px' }}>
+                <p>({formData.name} {formData.surname})</p>
+                <p>ตำแหน่ง {formData.position}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* เส้นแบ่งหน้า (เฉพาะ screen) */}
+      {!isLast && (
+        <div className="print:hidden w-full flex justify-center" style={{ pageBreakBefore: 'auto' }}>
+          <div className="w-[210mm] border-t border-dashed border-emerald-300 my-8 opacity-70" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default S11PrintPage
