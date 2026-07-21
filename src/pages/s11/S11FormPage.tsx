@@ -1,7 +1,7 @@
 import type { Ref } from 'react'
 import Select, { type SelectInstance, type StylesConfig, type CSSObjectWithLabel, type ControlProps, type OptionProps } from 'react-select'
 import type { FormDataState, TrainingDateField, TrainingExtraEntry, PositionOption } from './types'
-import { positions, months, MAX_INPUT_LENGTH } from './constants'
+import { positions, MAX_INPUT_LENGTH } from './constants'
 import ThaiDateInput from './ThaiDateInput'
 
 type Props = {
@@ -14,14 +14,11 @@ type Props = {
   trainingMonthsTotal: number
   totalExperienceDuration: { years: number; months: number; days: number }
   totalYearsOfExperience: number
-  yearOptions: number[]
   numberToThaiText: (num: number) => string
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
   onPrimaryDateChange: (field: 'startDate' | 'endDate', isoDate: string) => void
   onTrainingDateChange: (field: TrainingDateField, isoDate: string) => void
   onPositionChange: (option: PositionOption | null) => void
-  onStartMonthBlur: () => void
-  onStartYearBlur: () => void
   onAddWorkHistory: () => void
   onRemoveWorkHistory: (id: string) => void
   onWorkHistoryChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
@@ -49,8 +46,8 @@ const customSelectStyles: StylesConfig<PositionOption, false> = {
     backgroundColor: state.isSelected
       ? '#10b981'
       : state.isFocused
-      ? '#d1fae5'
-      : undefined,
+        ? '#d1fae5'
+        : undefined,
     color: state.isSelected ? 'white' : '#1f2937',
     cursor: 'pointer',
   }),
@@ -72,14 +69,11 @@ const S11FormPage = ({
   trainingMonthsTotal,
   totalExperienceDuration,
   totalYearsOfExperience,
-  yearOptions,
   numberToThaiText,
   onInputChange,
   onPrimaryDateChange,
   onTrainingDateChange,
   onPositionChange,
-  onStartMonthBlur,
-  onStartYearBlur,
   onAddWorkHistory,
   onRemoveWorkHistory,
   onWorkHistoryChange,
@@ -215,15 +209,15 @@ const S11FormPage = ({
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1.5">วันที่เริ่ม</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1.5">วันที่เริ่มทำงาน</label>
                   <ThaiDateInput id="startDate-input" value={formData.startDate} onChange={(iso) => onPrimaryDateChange('startDate', iso)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1.5">ถึงวันที่</label>
-                  <ThaiDateInput id="endDate-input" value={formData.endDate} onChange={(iso) => onPrimaryDateChange('endDate', iso)} />
+                  <ThaiDateInput id="endDate-input" value={formData.endDate} onChange={(iso) => onPrimaryDateChange('endDate', iso)} disabled={true} />
                 </div>
               </div>
             </div>
@@ -311,7 +305,7 @@ const S11FormPage = ({
 
             {/* รายละเอียดการฝึกเพิ่มพูนทักษะ */}
             <div className="mt-6">
-              <h3 className="text-base font-semibold text-gray-800 mb-3">รายละเอียดการฝึกเพิ่มพูนทักษะ</h3>
+              <h3 className="text-base font-semibold text-gray-800 mb-3">รายละเอียดการฝึกเพิ่มพูนทักษะ (เฉพาะสายแพทย์)</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1.5">รวมระยะเวลาการปฏิบัติงาน (ปี)</label>
@@ -471,58 +465,7 @@ const S11FormPage = ({
               </div>
             </div>
 
-            {/* ช่วงเดือนขอรับ */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
-                ช่วงเดือนขอรับ
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1.5" htmlFor="startMonth-input">
-                    เดือนเริ่มต้น
-                  </label>
-                  <input
-                    id="startMonth-input"
-                    list="startMonth-list"
-                    name="startMonth"
-                    value={formData.startMonth}
-                    onChange={onInputChange}
-                    onBlur={onStartMonthBlur}
-                    placeholder="เดือน"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                    autoComplete="off"
-                    required
-                  />
-                  <datalist id="startMonth-list">
-                    {months.map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1.5" htmlFor="startYear-input">
-                    ปีเริ่มต้น (พ.ศ.)
-                  </label>
-                  <input
-                    id="startYear-input"
-                    list="startYear-list"
-                    name="startYear"
-                    value={formData.startYear}
-                    onChange={onInputChange}
-                    onBlur={onStartYearBlur}
-                    placeholder="พ.ศ."
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                    autoComplete="off"
-                    required
-                  />
-                  <datalist id="startYear-list">
-                    {yearOptions.map((y) => (
-                      <option key={y} value={y} />
-                    ))}
-                  </datalist>
-                </div>
-              </div>
-            </div>
+            {/* ช่วงเดือนขอรับถูกซ่อนไว้ตามความต้องการ */}
 
             {/* สรุปรวมก่อนส่งฟอร์ม */}
             <div>
@@ -571,9 +514,8 @@ const S11FormPage = ({
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1.5">จำนวนเงินที่คำนวณ (บาท)</label>
-                  <div className={`w-full px-5 py-4 rounded-xl border font-bold text-xl flex items-center justify-between shadow-inner ${
-                    formData.amount ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-gray-50 border-gray-200 text-gray-400'
-                  }`}>
+                  <div className={`w-full px-5 py-4 rounded-xl border font-bold text-xl flex items-center justify-between shadow-inner ${formData.amount ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-gray-50 border-gray-200 text-gray-400'
+                    }`}>
                     <span>
                       {formData.amount
                         ? `${Number(formData.amount).toLocaleString()} บาท`

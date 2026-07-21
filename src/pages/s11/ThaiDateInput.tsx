@@ -4,17 +4,21 @@ import { useState, useEffect } from 'react'
 import { THAI_MONTHS_FULL } from './constants'
 import { parseIsoToThai, buildIsoFromThai } from './utils'
 
-const inputClass =
-  'w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white'
+const inputClass = (disabled?: boolean) =>
+  `w-full px-2 py-2 border border-gray-300 rounded-lg outline-none text-sm ${
+    disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-emerald-500'
+  }`
 
 const ThaiDateInput = ({
   value,
   onChange,
   id,
+  disabled,
 }: {
   value: string
   onChange: (isoDate: string) => void
   id?: string
+  disabled?: boolean
 }) => {
   const currentBE = new Date().getFullYear() + 543
   const yearList = Array.from({ length: currentBE - 2499 }, (_, i) => String(2500 + i))
@@ -74,8 +78,9 @@ const ThaiDateInput = ({
             onChange={(e) => { setDayVal(e.target.value); commit(e.target.value, monthVal, yearVal) }}
             onBlur={handleBlur}
             placeholder="วัน"
-            className={inputClass}
+            className={inputClass(disabled)}
             autoComplete="off"
+            disabled={disabled}
           />
           <datalist id={`${uid}-day-list`}>
             {dayList.map(d => <option key={d} value={d} />)}
@@ -90,8 +95,9 @@ const ThaiDateInput = ({
             onChange={(e) => { setMonthVal(e.target.value); commit(dayVal, e.target.value, yearVal) }}
             onBlur={handleBlur}
             placeholder="เดือน"
-            className={inputClass}
+            className={inputClass(disabled)}
             autoComplete="off"
+            disabled={disabled}
           />
           <datalist id={`${uid}-month-list`}>
             {THAI_MONTHS_FULL.map(m => <option key={m} value={m} />)}
@@ -106,8 +112,9 @@ const ThaiDateInput = ({
             onChange={(e) => { setYearVal(e.target.value); commit(dayVal, monthVal, e.target.value) }}
             onBlur={handleBlur}
             placeholder="พ.ศ."
-            className={inputClass}
+            className={inputClass(disabled)}
             autoComplete="off"
+            disabled={disabled}
           />
           <datalist id={`${uid}-year-list`}>
             {yearList.map(y => <option key={y} value={y} />)}

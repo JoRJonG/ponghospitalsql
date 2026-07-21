@@ -10,7 +10,6 @@ import {
   MAX_WORK_HISTORY_ITEMS,
   MAX_INPUT_LENGTH,
   VALID_NAME_REGEX,
-  THAI_MONTHS_FULL,
 } from './constants'
 import {
   sanitizeInput,
@@ -20,7 +19,6 @@ import {
   getAmountForProfession,
   getNext12MonthsWithYear,
   numberToThaiText,
-  resolveMonthIndex,
 } from './utils'
 import S11FormPage from './S11FormPage'
 import S11PrintView from './S11PrintView'
@@ -42,10 +40,10 @@ const INITIAL_FORM: FormDataState = {
   trainingPracticeYears: '',
   trainingPracticeMonths: '',
   startDate: '',
-  endDate: '',
+  endDate: new Date(Date.UTC(new Date().getFullYear(), 8, 30)).toISOString(),
   unit: 'โรงพยาบาลปง',
-  startMonth: '',
-  startYear: '',
+  startMonth: 'กันยายน',
+  startYear: new Date().getFullYear() + 543,
   amount: '',
   trainingRphHospital: '',
   trainingRphProvince: '',
@@ -144,22 +142,6 @@ const S11Page = () => {
 
   const handlePositionChange = (option: PositionOption | null) => {
     setFormData((prev) => ({ ...prev, position: option ? option.value : '' }))
-  }
-
-  const handleStartMonthBlur = () => {
-    const m = formData.startMonth.trim()
-    if (!m) return
-    const idx = resolveMonthIndex(m)
-    if (idx >= 0) setFormData((prev) => ({ ...prev, startMonth: THAI_MONTHS_FULL[idx] }))
-  }
-
-  const handleStartYearBlur = () => {
-    const y = String(formData.startYear).trim()
-    if (!y) return
-    const parsedY = parseInt(y, 10)
-    if (!isNaN(parsedY) && parsedY > 0 && parsedY < 100) {
-      setFormData((prev) => ({ ...prev, startYear: parsedY + 2500 }))
-    }
   }
 
   const addWorkHistory = () => {
@@ -277,10 +259,6 @@ const S11Page = () => {
 
   const addedTrainingLines = formData.extraTraining.length
 
-
-
-  const yearOptions = Array.from({ length: currentBuddhistYear - 2500 + 1 }, (_, i) => 2500 + i)
-
   // ── Form submit validation ───────────────────────────────
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -311,8 +289,6 @@ const S11Page = () => {
     if (!checkRequired(!!formData.level?.trim(), () => focusField(document.getElementById('level-input')), 'กรุณากรอกงาน/กลุ่มงาน')) return
     if (!checkRequired(!!formData.startDate, () => focusField(document.getElementById('startDate-input-day')), 'กรุณากรอกวันที่เริ่มปฏิบัติงาน (ปัจจุบัน)')) return
     if (!checkRequired(!!formData.endDate, () => focusField(document.getElementById('endDate-input-day')), 'กรุณากรอกวันที่สิ้นสุดปฏิบัติงาน (ปัจจุบัน)')) return
-    if (!checkRequired(!!formData.startMonth, () => focusField(document.getElementById('startMonth-input')), 'กรุณาเลือกเดือนเริ่มต้น')) return
-    if (!checkRequired(!!formData.startYear, () => focusField(document.getElementById('startYear-input')), 'กรุณากรอกปีเริ่มต้น (พ.ศ.)')) return
 
     const validateDateRange = (start: string, end: string, label: string) => {
       if (start && end) {
@@ -397,14 +373,11 @@ const S11Page = () => {
         trainingMonthsTotal={trainingMonthsTotal}
         totalExperienceDuration={totalExperienceDuration}
         totalYearsOfExperience={totalYearsOfExperience}
-        yearOptions={yearOptions}
         numberToThaiText={numberToThaiText}
         onInputChange={handleInputChange}
         onPrimaryDateChange={handlePrimaryDateChange}
         onTrainingDateChange={handleTrainingDateChange}
         onPositionChange={handlePositionChange}
-        onStartMonthBlur={handleStartMonthBlur}
-        onStartYearBlur={handleStartYearBlur}
         onAddWorkHistory={addWorkHistory}
         onRemoveWorkHistory={removeWorkHistory}
         onWorkHistoryChange={handleWorkHistoryChange}
