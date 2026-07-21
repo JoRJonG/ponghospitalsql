@@ -40,7 +40,7 @@ const INITIAL_FORM: FormDataState = {
   trainingPracticeYears: '',
   trainingPracticeMonths: '',
   startDate: '',
-  endDate: new Date(Date.UTC(new Date().getFullYear(), 7, 31)).toISOString(),
+  endDate: new Date(Date.UTC(new Date().getFullYear(), 9, 31)).toISOString(),
   unit: 'โรงพยาบาลปง',
   startMonth: 'สิงหาคม',
   startYear: new Date().getFullYear() + 543,
