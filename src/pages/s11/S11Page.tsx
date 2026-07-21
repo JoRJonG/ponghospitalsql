@@ -31,6 +31,7 @@ const numericFieldNames = new Set<keyof FormDataState>([
 ])
 
 const INITIAL_FORM: FormDataState = {
+  title: '',
   name: '',
   surname: '',
   position: '',
@@ -283,6 +284,7 @@ const S11Page = () => {
       return true
     }
 
+    if (!checkRequired(!!formData.title, () => focusField(document.querySelector<HTMLElement>('input[name="title"]')), 'กรุณาเลือกคำนำหน้าชื่อ')) return
     if (!checkRequired(!!formData.name?.trim(), () => focusField(document.querySelector<HTMLElement>('input[name="name"]')), 'กรุณากรอกชื่อ')) return
     if (!checkRequired(!!formData.surname?.trim(), () => focusField(document.querySelector<HTMLElement>('input[name="surname"]')), 'กรุณากรอกนามสกุล')) return
     if (!checkRequired(!!formData.position, () => positionSelectRef.current?.focus(), 'กรุณาเลือกตำแหน่ง')) return

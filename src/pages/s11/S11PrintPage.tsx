@@ -208,7 +208,7 @@ const S11PrintPage = ({
 
           <div style={{ marginBottom: '8pt', whiteSpace: 'pre-line' }}>
             <span>
-              ข้าพเจ้าชื่อ{formData.name ? ` ${formData.name} ` : '.............'}นามสกุล{formData.surname ? ` ${formData.surname} ` : '.............'}ตำแหน่ง{formData.position ? ` ${formData.position} ` : '.............'}
+              ข้าพเจ้าชื่อ{formData.name ? ` ${formData.title}${formData.name} ` : '.............'}นามสกุล{formData.surname ? ` ${formData.surname} ` : '.............'}ตำแหน่ง{formData.position ? ` ${formData.position} ` : '.............'}
             </span>
             <br />
             <span>

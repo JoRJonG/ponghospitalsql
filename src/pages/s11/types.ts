@@ -44,6 +44,7 @@ export type TrainingExtraEntry = {
 }
 
 export type FormDataState = {
+  title: string
   name: string
   surname: string
   position: string

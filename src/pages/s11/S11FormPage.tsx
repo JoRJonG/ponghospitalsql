@@ -104,7 +104,45 @@ const S11FormPage = ({
               <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
                 ข้อมูลส่วนตัว
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1.5">คำนำหน้า</label>
+                  <div className="flex items-center space-x-4 h-[42px]">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="title"
+                        value="นาย"
+                        checked={formData.title === 'นาย'}
+                        onChange={onInputChange}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 cursor-pointer"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">นาย</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="title"
+                        value="นาง"
+                        checked={formData.title === 'นาง'}
+                        onChange={onInputChange}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 cursor-pointer"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">นาง</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="title"
+                        value="นางสาว"
+                        checked={formData.title === 'นางสาว'}
+                        onChange={onInputChange}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 cursor-pointer"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">นางสาว</span>
+                    </label>
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1.5">ชื่อ</label>
                   <input
@@ -113,7 +151,7 @@ const S11FormPage = ({
                     maxLength={MAX_INPUT_LENGTH}
                     value={formData.name}
                     onChange={onInputChange}
-                    placeholder="เช่น นายสมชาย"
+                    placeholder="เช่น สมชาย"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                     required
                   />
