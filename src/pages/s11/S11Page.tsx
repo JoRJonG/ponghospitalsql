@@ -311,6 +311,14 @@ const S11Page = () => {
 
     for (let i = 0; i < formData.workHistory.length; i++) {
       const job = formData.workHistory[i]
+      
+      if (!checkRequired(!!job.hospital.trim(), () => focusField(document.getElementById(`wh-${i}-hospital`)), `กรุณากรอกชื่อโรงพยาบาลในสถานที่ทำงานที่ ${i + 1}`)) return
+      if (!checkRequired(!!job.province.trim(), () => focusField(document.getElementById(`wh-${i}-province`)), `กรุณากรอกจังหวัดในสถานที่ทำงานที่ ${i + 1}`)) return
+      if (!checkRequired(!!job.classification?.trim(), () => focusField(document.getElementById(`wh-${i}-classification`)), `กรุณากรอกการจัดระดับในสถานที่ทำงานที่ ${i + 1}`)) return
+      if (!checkRequired(!!job.level.trim(), () => focusField(document.getElementById(`wh-${i}-level`)), `กรุณากรอกระดับในสถานที่ทำงานที่ ${i + 1}`)) return
+      if (!checkRequired(!!job.startDate, () => focusField(document.getElementById(`wh-${i}-startDate-day`)), `กรุณากรอกวันที่เริ่มปฏิบัติงานในสถานที่ทำงานที่ ${i + 1}`)) return
+      if (!checkRequired(!!job.endDate, () => focusField(document.getElementById(`wh-${i}-endDate-day`)), `กรุณากรอกถึงวันที่ในสถานที่ทำงานที่ ${i + 1}`)) return
+
       if (!validateDateRange(job.startDate, job.endDate, `ประวัติการปฏิบัติงานที่ ${i + 1}`)) return
 
       if (i > 0) {

@@ -233,6 +233,7 @@ const S11FormPage = ({
                     <p className="text-sm font-medium text-emerald-800 mb-3">สถานที่ทำงานที่ {index + 1}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input
+                        id={`wh-${index}-hospital`}
                         type="text"
                         name="hospital"
                         maxLength={MAX_INPUT_LENGTH}
@@ -242,6 +243,7 @@ const S11FormPage = ({
                         className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                       />
                       <input
+                        id={`wh-${index}-province`}
                         type="text"
                         name="province"
                         maxLength={MAX_INPUT_LENGTH}
@@ -253,6 +255,7 @@ const S11FormPage = ({
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                       <input
+                        id={`wh-${index}-classification`}
                         type="text"
                         name="classification"
                         maxLength={MAX_INPUT_LENGTH}
@@ -262,6 +265,7 @@ const S11FormPage = ({
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                       />
                       <input
+                        id={`wh-${index}-level`}
                         type="text"
                         name="level"
                         maxLength={MAX_INPUT_LENGTH}
@@ -274,11 +278,11 @@ const S11FormPage = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-800 mb-1.5">วันที่เริ่ม</label>
-                        <ThaiDateInput value={entry.startDate} onChange={(iso) => onWorkHistoryDateChange(entry.id, 'startDate', iso)} />
+                        <ThaiDateInput id={`wh-${index}-startDate`} value={entry.startDate} onChange={(iso) => onWorkHistoryDateChange(entry.id, 'startDate', iso)} />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-800 mb-1.5">ถึงวันที่</label>
-                        <ThaiDateInput value={entry.endDate} onChange={(iso) => onWorkHistoryDateChange(entry.id, 'endDate', iso)} />
+                        <ThaiDateInput id={`wh-${index}-endDate`} value={entry.endDate} onChange={(iso) => onWorkHistoryDateChange(entry.id, 'endDate', iso)} />
                       </div>
                     </div>
                     <button

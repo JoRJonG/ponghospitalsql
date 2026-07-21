@@ -112,7 +112,7 @@ const S11PrintPage = ({
   const uniqueWorkHistory = (() => {
     const seen = new Set<string>()
     return formData.workHistory.filter((job) => {
-      const key = [job.hospital, job.province, job.level, job.startDate, job.endDate].join('|')
+      const key = [job.hospital, job.province, job.classification, job.level, job.startDate, job.endDate].join('|')
       if (seen.has(key)) return false
       seen.add(key)
       return true
