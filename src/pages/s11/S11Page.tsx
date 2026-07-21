@@ -42,7 +42,7 @@ const INITIAL_FORM: FormDataState = {
   startDate: '',
   endDate: new Date(Date.UTC(new Date().getFullYear(), 9, 31)).toISOString(),
   unit: 'โรงพยาบาลปง',
-  startMonth: 'สิงหาคม',
+  startMonth: 'ตุลาคม',
   startYear: new Date().getFullYear() + 543,
   amount: '',
   trainingRphHospital: '',
