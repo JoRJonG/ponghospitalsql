@@ -176,7 +176,7 @@ const S11Page = () => {
       ...prev,
       workHistory: [
         ...prev.workHistory,
-        { id: Date.now().toString(), hospital: '', province: '', level: '', startDate: '', endDate: '' },
+        { id: Date.now().toString(), hospital: '', province: '', classification: '', level: '', startDate: '', endDate: '' },
       ],
     }))
   }
@@ -289,14 +289,30 @@ const S11Page = () => {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => el.focus(), 300)
     }
-    if (!formData.name?.trim()) return focusField(document.querySelector<HTMLElement>('input[name="name"]'))
-    if (!formData.surname?.trim()) return focusField(document.querySelector<HTMLElement>('input[name="surname"]'))
-    if (!formData.position) return positionSelectRef.current?.focus()
-    if (!formData.level?.trim()) return focusField(document.getElementById('level-input'))
-    if (!formData.startDate) return focusField(document.getElementById('startDate-day'))
-    if (!formData.endDate) return focusField(document.getElementById('endDate-day'))
-    if (!formData.startMonth) return focusField(document.getElementById('startMonth-input'))
-    if (!formData.startYear) return focusField(document.getElementById('startYear-input'))
+
+    const checkRequired = (condition: boolean, action: () => void, message: string) => {
+      if (!condition) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ข้อมูลไม่ครบถ้วน',
+          text: message,
+          confirmButtonColor: '#10b981',
+        }).then(() => {
+          action()
+        })
+        return false
+      }
+      return true
+    }
+
+    if (!checkRequired(!!formData.name?.trim(), () => focusField(document.querySelector<HTMLElement>('input[name="name"]')), 'กรุณากรอกชื่อ')) return
+    if (!checkRequired(!!formData.surname?.trim(), () => focusField(document.querySelector<HTMLElement>('input[name="surname"]')), 'กรุณากรอกนามสกุล')) return
+    if (!checkRequired(!!formData.position, () => positionSelectRef.current?.focus(), 'กรุณาเลือกตำแหน่ง')) return
+    if (!checkRequired(!!formData.level?.trim(), () => focusField(document.getElementById('level-input')), 'กรุณากรอกงาน/กลุ่มงาน')) return
+    if (!checkRequired(!!formData.startDate, () => focusField(document.getElementById('startDate-input-day')), 'กรุณากรอกวันที่เริ่มปฏิบัติงาน (ปัจจุบัน)')) return
+    if (!checkRequired(!!formData.endDate, () => focusField(document.getElementById('endDate-input-day')), 'กรุณากรอกวันที่สิ้นสุดปฏิบัติงาน (ปัจจุบัน)')) return
+    if (!checkRequired(!!formData.startMonth, () => focusField(document.getElementById('startMonth-input')), 'กรุณาเลือกเดือนเริ่มต้น')) return
+    if (!checkRequired(!!formData.startYear, () => focusField(document.getElementById('startYear-input')), 'กรุณากรอกปีเริ่มต้น (พ.ศ.)')) return
 
     const validateDateRange = (start: string, end: string, label: string) => {
       if (start && end) {

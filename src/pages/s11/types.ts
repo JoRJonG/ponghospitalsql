@@ -28,6 +28,7 @@ export type WorkHistoryEntry = {
   id: string
   hospital: string
   province: string
+  classification?: string
   level: string
   startDate: string
   endDate: string

@@ -257,14 +257,23 @@ const S11FormPage = ({
                         className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                       />
                     </div>
-                    <div className="mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                      <input
+                        type="text"
+                        name="classification"
+                        maxLength={MAX_INPUT_LENGTH}
+                        value={entry.classification || ''}
+                        onChange={(e) => onWorkHistoryChange(entry.id, e)}
+                        placeholder="จัดระดับ (เช่น ปกติ)"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
+                      />
                       <input
                         type="text"
                         name="level"
                         maxLength={MAX_INPUT_LENGTH}
                         value={entry.level}
                         onChange={(e) => onWorkHistoryChange(entry.id, e)}
-                        placeholder="ระดับ"
+                        placeholder="ระดับ (เช่น 2)"
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                       />
                     </div>

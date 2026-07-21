@@ -133,7 +133,7 @@ const S11PrintPage = ({
     workItems.push(
       <Fragment key={job.id}>
         <p>
-          {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(job.hospital)}จังหวัด{job.province ? ` ${job.province} ` : '..........................'}จัดระดับ{job.level ? ` ${convertToThaiNumber(job.level)} ` : '..................................'}
+          {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(job.hospital)}จังหวัด{job.province ? ` ${job.province} ` : '..........................'}จัดระดับ{job.classification ? ` ${job.classification} ` : '.....................'}ระดับ{job.level ? ` ${convertToThaiNumber(job.level)} ` : '..................'}
         </p>
         <p className="pl-6">
           ตั้งแต่วันที่{job.startDate ? ` ${formatThaiDate(job.startDate)} ` : '.....................................'}ถึงวันที่{job.endDate ? ` ${formatThaiDate(job.endDate)} ` : '..............................'}รวม {convertToThaiNumber(years)} ปี {convertToThaiNumber(jobMonths)} เดือน {convertToThaiNumber(jobDays)} วัน
@@ -161,7 +161,7 @@ const S11PrintPage = ({
     workItems.push(
       <Fragment key={`empty-${i}`}>
         <p>
-          {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่โรงพยาบาล............................จังหวัด..........................จัดระดับ..................................
+          {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่โรงพยาบาล............................จังหวัด..........................จัดระดับ.....................ระดับ..................
         </p>
         <p className="pl-6">
           ตั้งแต่วันที่..................................... ถึงวันที่.............................. รวม..............ปี.........เดือน...........วัน
@@ -174,11 +174,11 @@ const S11PrintPage = ({
   return (
     <div className="flex flex-col items-center print:block print:!m-0">
       <div
-        className="mx-auto bg-white print:!w-full print:!min-h-0 print:!m-0 print:!py-[15mm]"
+        className="mx-auto bg-white print:!w-full print:!min-h-0 print:!m-0 print:!p-[20mm]"
         style={{
           width: '210mm',
           minHeight: '297mm',
-          padding: '22mm',
+          padding: '20mm',
           fontFamily: '"TH SarabunPSK", "Sarabun", "Leelawadee UI", "Tahoma", "Times New Roman", serif',
           fontSize: '16pt',
           lineHeight: '1.1',
