@@ -1,6 +1,6 @@
 import type { Ref } from 'react'
 import Select, { type SelectInstance, type StylesConfig, type CSSObjectWithLabel, type ControlProps, type OptionProps } from 'react-select'
-import type { FormDataState, TrainingDateField, TrainingExtraEntry, PositionOption } from './types'
+import type { FormDataState, TrainingEntry, PositionOption } from './types'
 import { positions, MAX_INPUT_LENGTH } from './constants'
 import ThaiDateInput from './ThaiDateInput'
 
@@ -17,15 +17,14 @@ type Props = {
   numberToThaiText: (num: number) => string
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
   onPrimaryDateChange: (field: 'startDate' | 'endDate', isoDate: string) => void
-  onTrainingDateChange: (field: TrainingDateField, isoDate: string) => void
   onPositionChange: (option: PositionOption | null) => void
   onAddWorkHistory: () => void
   onRemoveWorkHistory: (id: string) => void
   onWorkHistoryChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   onWorkHistoryDateChange: (id: string, field: 'startDate' | 'endDate', isoDate: string) => void
-  onAddExtraTraining: () => void
-  onRemoveExtraTraining: (index: number) => void
-  onExtraTrainingChange: (index: number, field: keyof TrainingExtraEntry, value: string) => void
+  onAddTrainingRecord: () => void
+  onRemoveTrainingRecord: (index: number) => void
+  onTrainingRecordChange: (index: number, field: keyof TrainingEntry, value: string) => void
   onSubmit: (e: React.FormEvent) => void
 }
 
@@ -72,15 +71,14 @@ const S11FormPage = ({
   numberToThaiText,
   onInputChange,
   onPrimaryDateChange,
-  onTrainingDateChange,
   onPositionChange,
   onAddWorkHistory,
   onRemoveWorkHistory,
   onWorkHistoryChange,
   onWorkHistoryDateChange,
-  onAddExtraTraining,
-  onRemoveExtraTraining,
-  onExtraTrainingChange,
+  onAddTrainingRecord,
+  onRemoveTrainingRecord,
+  onTrainingRecordChange,
   onSubmit,
 }: Props) => {
   const positionOptions: PositionOption[] = positions.map((p) => ({ value: p.name, label: p.name }))
@@ -348,106 +346,13 @@ const S11FormPage = ({
             {/* รายละเอียดการฝึกเพิ่มพูนทักษะ */}
             <div className="mt-6">
               <h3 className="text-base font-semibold text-gray-800 mb-3">รายละเอียดการฝึกเพิ่มพูนทักษะ (เฉพาะสายแพทย์)</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1.5">รวมระยะเวลาการปฏิบัติงาน (ปี)</label>
-                  <input
-                    type="number"
-                    name="trainingPracticeYears"
-                    value={formData.trainingPracticeYears}
-                    onChange={onInputChange}
-                    placeholder="เช่น 1"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1.5">รวมระยะเวลาการปฏิบัติงาน (เดือน)</label>
-                  <input
-                    type="number"
-                    name="trainingPracticeMonths"
-                    value={formData.trainingPracticeMonths}
-                    onChange={onInputChange}
-                    placeholder="เช่น 6"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                  />
-                </div>
-              </div>
+
               <div className="space-y-4">
-                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                  <p className="text-sm font-medium text-gray-700">รพศ/รพท</p>
-                  <div className="space-y-3 mt-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input
-                        type="text"
-                        name="trainingRphHospital"
-                        maxLength={MAX_INPUT_LENGTH}
-                        value={formData.trainingRphHospital}
-                        onChange={onInputChange}
-                        placeholder="ชื่อหน่วย"
-                        className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                      <input
-                        type="text"
-                        name="trainingRphProvince"
-                        maxLength={MAX_INPUT_LENGTH}
-                        value={formData.trainingRphProvince}
-                        onChange={onInputChange}
-                        placeholder="จังหวัด"
-                        className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">วันเริ่ม</label>
-                        <ThaiDateInput value={formData.trainingRphStart} onChange={(iso) => onTrainingDateChange('trainingRphStart', iso)} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">วันสิ้นสุด</label>
-                        <ThaiDateInput value={formData.trainingRphEnd} onChange={(iso) => onTrainingDateChange('trainingRphEnd', iso)} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                  <p className="text-sm font-medium text-gray-700">รพช</p>
-                  <div className="space-y-3 mt-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input
-                        type="text"
-                        name="trainingRhcHospital"
-                        maxLength={MAX_INPUT_LENGTH}
-                        value={formData.trainingRhcHospital}
-                        onChange={onInputChange}
-                        placeholder="ชื่อหน่วย"
-                        className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                      <input
-                        type="text"
-                        name="trainingRhcProvince"
-                        maxLength={MAX_INPUT_LENGTH}
-                        value={formData.trainingRhcProvince}
-                        onChange={onInputChange}
-                        placeholder="จังหวัด"
-                        className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">วันเริ่ม</label>
-                        <ThaiDateInput value={formData.trainingRhcStart} onChange={(iso) => onTrainingDateChange('trainingRhcStart', iso)} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">วันสิ้นสุด</label>
-                        <ThaiDateInput value={formData.trainingRhcEnd} onChange={(iso) => onTrainingDateChange('trainingRhcEnd', iso)} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {formData.extraTraining.map((entry, index) => (
+                {formData.trainingRecords.map((entry, index) => (
                   <div key={entry.id} className="border border-gray-300 rounded-lg p-4 bg-gray-50 relative">
                     <button
                       type="button"
-                      onClick={() => onRemoveExtraTraining(index)}
+                      onClick={() => onRemoveTrainingRecord(index)}
                       className="absolute top-4 right-4 text-red-500 hover:text-red-700"
                       title="ลบ"
                     >
@@ -456,7 +361,7 @@ const S11FormPage = ({
                     <div className="mb-2">
                       <select
                         value={entry.type}
-                        onChange={(e) => onExtraTrainingChange(index, 'type', e.target.value)}
+                        onChange={(e) => onTrainingRecordChange(index, 'type', e.target.value)}
                         className="text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
                       >
                         <option value="รพศ/รพท">รพศ/รพท</option>
@@ -469,7 +374,7 @@ const S11FormPage = ({
                           type="text"
                           maxLength={MAX_INPUT_LENGTH}
                           value={entry.hospital}
-                          onChange={(e) => onExtraTrainingChange(index, 'hospital', e.target.value)}
+                          onChange={(e) => onTrainingRecordChange(index, 'hospital', e.target.value)}
                           placeholder="ชื่อหน่วย"
                           className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                         />
@@ -477,7 +382,7 @@ const S11FormPage = ({
                           type="text"
                           maxLength={MAX_INPUT_LENGTH}
                           value={entry.province}
-                          onChange={(e) => onExtraTrainingChange(index, 'province', e.target.value)}
+                          onChange={(e) => onTrainingRecordChange(index, 'province', e.target.value)}
                           placeholder="จังหวัด"
                           className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                         />
@@ -485,11 +390,11 @@ const S11FormPage = ({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">วันเริ่ม</label>
-                          <ThaiDateInput value={entry.startDate} onChange={(iso) => onExtraTrainingChange(index, 'startDate', iso)} />
+                          <ThaiDateInput value={entry.startDate} onChange={(iso) => onTrainingRecordChange(index, 'startDate', iso)} />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">วันสิ้นสุด</label>
-                          <ThaiDateInput value={entry.endDate} onChange={(iso) => onExtraTrainingChange(index, 'endDate', iso)} />
+                          <ThaiDateInput value={entry.endDate} onChange={(iso) => onTrainingRecordChange(index, 'endDate', iso)} />
                         </div>
                       </div>
                     </div>
@@ -498,7 +403,7 @@ const S11FormPage = ({
                 <div className="mt-4">
                   <button
                     type="button"
-                    onClick={onAddExtraTraining}
+                    onClick={onAddTrainingRecord}
                     className="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold py-2 px-4 rounded-lg transition duration-200 border border-emerald-200"
                   >
                     + เพิ่มการฝึกเพิ่มพูนทักษะ
@@ -534,11 +439,11 @@ const S11FormPage = ({
                       </span>
                     </div>
                   )}
-                  {trainingMonthsTotal > 0 && (
+                  {(trainingMonthsTotal > 0 || trainingDuration.days > 0) && (
                     <div className="flex items-center justify-between px-4 py-3 text-sm">
                       <span className="text-gray-600">🎓 ฝึกเพิ่มพูนทักษะ</span>
                       <span className="font-medium text-gray-800">
-                        {`${trainingDuration.years} ปี${trainingDuration.months > 0 ? ` ${trainingDuration.months} เดือน` : ''}`}
+                        {`${trainingDuration.years} ปี${trainingDuration.months > 0 ? ` ${trainingDuration.months} เดือน` : ''}${trainingDuration.days > 0 ? ` ${trainingDuration.days} วัน` : ''}`}
                       </span>
                     </div>
                   )}

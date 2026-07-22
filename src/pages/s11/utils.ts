@@ -221,6 +221,8 @@ export const calculateDateDifference = (
     if (Number.isNaN(end.getTime())) return { years: 0, months: 0, days: 0 }
   }
 
+  if (start > end) return { years: 0, months: 0, days: 0 }
+
   // นับวันแบบ Inclusive (รวมวันสุดท้ายด้วย) จึงต้องบวก endDate ไปอีก 1 วัน
   end.setDate(end.getDate() + 1)
 

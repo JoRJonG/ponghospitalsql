@@ -6,11 +6,6 @@ export type ThaiDateParts = {
   buddhistYear: number
 }
 
-export type TrainingDateField =
-  | 'trainingRphStart'
-  | 'trainingRphEnd'
-  | 'trainingRhcStart'
-  | 'trainingRhcEnd'
 
 export type TrainingValues = {
   hospital?: string
@@ -34,7 +29,7 @@ export type WorkHistoryEntry = {
   endDate: string
 }
 
-export type TrainingExtraEntry = {
+export type TrainingEntry = {
   id: string
   type: 'รพศ/รพท' | 'รพช'
   hospital: string
@@ -51,23 +46,13 @@ export type FormDataState = {
   currentWorkplace: string
   province: string
   level: string
-  trainingPracticeYears: number | ''
-  trainingPracticeMonths: number | ''
   startDate: string
   endDate: string
   unit: string
   startMonth: string
   startYear: number | ''
   amount: number | ''
-  trainingRphHospital: string
-  trainingRphProvince: string
-  trainingRphStart: string
-  trainingRphEnd: string
-  trainingRhcHospital: string
-  trainingRhcProvince: string
-  trainingRhcStart: string
-  trainingRhcEnd: string
-  extraTraining: TrainingExtraEntry[]
+  trainingRecords: TrainingEntry[]
   workHistory: WorkHistoryEntry[]
 }
 

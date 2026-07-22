@@ -67,29 +67,7 @@ const S11PrintPage = ({
     })
   }
 
-  const trainingRphLine = buildTrainingLine(
-    'รพศ/รพท',
-    { hospital: '.....................', province: '....................', start: '.................................', end: '.....................................' },
-    {
-      hospital: formData.trainingRphHospital,
-      province: formData.trainingRphProvince,
-      start: formData.trainingRphStart ? formatThaiDate(formData.trainingRphStart) : '',
-      end: formData.trainingRphEnd ? formatThaiDate(formData.trainingRphEnd) : '',
-    },
-    { main: '• รพศ/รพท..................... จังหวัด....................', period: 'ตั้งแต่.................................ถึง.....................................' },
-  )
 
-  const trainingRhcLine = buildTrainingLine(
-    'รพช',
-    { hospital: '...........................', province: '....................', start: '..................................', end: '.....................................' },
-    {
-      hospital: formData.trainingRhcHospital,
-      province: formData.trainingRhcProvince,
-      start: formData.trainingRhcStart ? formatThaiDate(formData.trainingRhcStart) : '',
-      end: formData.trainingRhcEnd ? formatThaiDate(formData.trainingRhcEnd) : '',
-    },
-    { main: '• รพช........................... จังหวัด....................', period: 'ตั้งแต่..................................ถึง.....................................' },
-  )
 
   const renderHospital = (name: string) => {
     if (!name) return 'โรงพยาบาล............................'
@@ -236,30 +214,40 @@ const S11PrintPage = ({
               </p>
             )
           })()}
-          <ul className="pl-8 space-y-1 list-none">
-            <li className="leading-tight">
-              <span>{trainingRphLine.main}</span>
-              <span className="block pl-6">{trainingRphLine.period}</span>
-            </li>
-            <li className="leading-tight">
-              <span>{trainingRhcLine.main}</span>
-              <span className="block pl-6">{trainingRhcLine.period}</span>
-            </li>
-            {formData.extraTraining.map((extra) => {
-              const extraLine = buildTrainingLine(
-                extra.type,
-                { hospital: '.....................', province: '....................', start: '.................................', end: '.....................................' },
-                { hospital: extra.hospital, province: extra.province, start: extra.startDate ? formatThaiDate(extra.startDate) : '', end: extra.endDate ? formatThaiDate(extra.endDate) : '' },
-                { main: `• ${extra.type}..................... จังหวัด....................`, period: 'ตั้งแต่.................................ถึง.....................................' }
-              )
-              return (
-                <li key={extra.id} className="leading-tight">
-                  <span>{extraLine.main}</span>
-                  <span className="block pl-6">{extraLine.period}</span>
-                </li>
-              )
-            })}
-          </ul>
+          {(() => {
+            const hasAnyTrainingData = formData.trainingRecords.length > 0
+
+            return (
+              <ul className="pl-8 space-y-1 list-none">
+                {!hasAnyTrainingData && (
+                  <>
+                    <li className="leading-tight">
+                      <span>• รพศ/รพท..................... จังหวัด....................</span>
+                      <span className="block pl-6">ตั้งแต่.................................ถึง.....................................</span>
+                    </li>
+                    <li className="leading-tight">
+                      <span>• รพช........................... จังหวัด....................</span>
+                      <span className="block pl-6">ตั้งแต่..................................ถึง.....................................</span>
+                    </li>
+                  </>
+                )}
+                {formData.trainingRecords.map((record) => {
+                  const recordLine = buildTrainingLine(
+                    record.type,
+                    { hospital: '.....................', province: '....................', start: '.................................', end: '.....................................' },
+                    { hospital: record.hospital, province: record.province, start: record.startDate ? formatThaiDate(record.startDate) : '', end: record.endDate ? formatThaiDate(record.endDate) : '' },
+                    { main: `• ${record.type}..................... จังหวัด....................`, period: 'ตั้งแต่.................................ถึง.....................................' }
+                  )
+                  return (
+                    <li key={record.id} className="leading-tight">
+                      <span>{recordLine.main}</span>
+                      <span className="block pl-6">{recordLine.period}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            )
+          })()}
 
           {/* ข้อ ๒+ ประวัติการทำงาน */}
           {workItems}

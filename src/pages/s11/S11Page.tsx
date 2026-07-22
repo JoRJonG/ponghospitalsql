@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import type { SelectInstance } from 'react-select'
 import Swal from 'sweetalert2'
 
-import type { FormDataState, TrainingDateField, TrainingExtraEntry, PositionOption } from './types'
+import type { FormDataState, TrainingEntry, PositionOption } from './types'
 import {
   months,
   positions,
@@ -26,8 +26,6 @@ import S11PrintView from './S11PrintView'
 // ── Numeric fields ───────────────────────────────────────────
 const numericFieldNames = new Set<keyof FormDataState>([
   'startYear',
-  'trainingPracticeYears',
-  'trainingPracticeMonths',
 ])
 
 const INITIAL_FORM: FormDataState = {
@@ -38,23 +36,12 @@ const INITIAL_FORM: FormDataState = {
   currentWorkplace: 'โรงพยาบาลปง',
   province: 'พะเยา',
   level: '',
-  trainingPracticeYears: '',
-  trainingPracticeMonths: '',
   startDate: '',
   endDate: new Date(Date.UTC(new Date().getFullYear(), 9, 31)).toISOString(),
   unit: 'โรงพยาบาลปง',
   startMonth: 'ตุลาคม',
   startYear: new Date().getFullYear() + 543,
-  amount: '',
-  trainingRphHospital: '',
-  trainingRphProvince: '',
-  trainingRphStart: '',
-  trainingRphEnd: '',
-  trainingRhcHospital: '',
-  trainingRhcProvince: '',
-  trainingRhcStart: '',
-  trainingRhcEnd: '',
-  extraTraining: [],
+  trainingRecords: [],
   workHistory: [],
 }
 
@@ -86,12 +73,12 @@ const S11Page = () => {
   )
 
   const trainingDuration = useMemo(
-    () => ({
-      years: Number(formData.trainingPracticeYears) || 0,
-      months: Number(formData.trainingPracticeMonths) || 0,
-      days: 0,
-    }),
-    [formData.trainingPracticeYears, formData.trainingPracticeMonths],
+    () => {
+      const recordDiffs = formData.trainingRecords.map((ext) => calculateDateDifference(ext.startDate, ext.endDate, false))
+
+      return aggregateDurations(recordDiffs)
+    },
+    [formData.trainingRecords],
   )
 
   const totalExperienceDuration = useMemo(
@@ -134,10 +121,6 @@ const S11Page = () => {
   }
 
   const handlePrimaryDateChange = (field: 'startDate' | 'endDate', isoDate: string) => {
-    setFormData((prev) => ({ ...prev, [field]: isoDate }))
-  }
-
-  const handleTrainingDateChange = (field: TrainingDateField, isoDate: string) => {
     setFormData((prev) => ({ ...prev, [field]: isoDate }))
   }
 
@@ -192,38 +175,38 @@ const S11Page = () => {
     }))
   }
 
-  const addExtraTraining = () => {
-    if (formData.extraTraining.length >= 3) {
+  const addTrainingRecord = () => {
+    if (formData.trainingRecords.length >= 6) {
       Swal.fire({
         icon: 'warning',
         title: 'จำกัดจำนวน',
-        text: 'เพิ่มการฝึกเพิ่มพูนทักษะอื่นๆ ได้สูงสุด 3 รายการเท่านั้น',
+        text: 'เพิ่มการฝึกเพิ่มพูนทักษะได้สูงสุด 6 รายการเท่านั้น',
         confirmButtonColor: '#10b981',
       })
       return
     }
     setFormData((prev) => ({
       ...prev,
-      extraTraining: [
-        ...prev.extraTraining,
+      trainingRecords: [
+        ...prev.trainingRecords,
         { id: Date.now().toString(), type: 'รพศ/รพท', hospital: '', province: '', startDate: '', endDate: '' },
       ],
     }))
   }
 
-  const removeExtraTraining = (index: number) => {
+  const removeTrainingRecord = (index: number) => {
     setFormData((prev) => {
-      const newList = [...prev.extraTraining]
+      const newList = [...prev.trainingRecords]
       newList.splice(index, 1)
-      return { ...prev, extraTraining: newList }
+      return { ...prev, trainingRecords: newList }
     })
   }
 
-  const handleExtraTrainingChange = (index: number, field: keyof TrainingExtraEntry, value: string) => {
+  const handleTrainingRecordChange = (index: number, field: keyof TrainingEntry, value: string) => {
     setFormData((prev) => {
-      const newList = [...prev.extraTraining]
+      const newList = [...prev.trainingRecords]
       newList[index] = { ...newList[index], [field]: value }
-      return { ...prev, extraTraining: newList }
+      return { ...prev, trainingRecords: newList }
     })
   }
 
@@ -242,12 +225,13 @@ const S11Page = () => {
   const trainingMonthsTotal = trainingDuration.years * 12 + trainingDuration.months
 
   const trainingPracticeYearsDisplay =
-    typeof formData.trainingPracticeYears === 'number' && Number.isFinite(formData.trainingPracticeYears)
-      ? convertToThaiNumber(formData.trainingPracticeYears)
+    trainingDuration.years > 0
+      ? convertToThaiNumber(trainingDuration.years)
       : '..............'
+
   const trainingPracticeMonthsDisplay =
-    typeof formData.trainingPracticeMonths === 'number' && Number.isFinite(formData.trainingPracticeMonths)
-      ? convertToThaiNumber(formData.trainingPracticeMonths)
+    trainingDuration.months > 0
+      ? convertToThaiNumber(trainingDuration.months)
       : '..............'
 
   const amountValue =
@@ -258,7 +242,8 @@ const S11Page = () => {
 
 
 
-  const addedTrainingLines = formData.extraTraining.length
+  // training lines baseline is 2. Every line beyond 2 reduces work history slots.
+  const addedTrainingLines = Math.max(0, formData.trainingRecords.length - 2)
 
   // ── Form submit validation ───────────────────────────────
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -358,12 +343,9 @@ const S11Page = () => {
       }
     }
 
-    if (!validateDateRange(formData.trainingRphStart, formData.trainingRphEnd, 'ฝึกเพิ่มพูนทักษะ รพศ/รพท')) return
-    if (!validateDateRange(formData.trainingRhcStart, formData.trainingRhcEnd, 'ฝึกเพิ่มพูนทักษะ รพช')) return
-
-    for (let i = 0; i < formData.extraTraining.length; i++) {
-      const extra = formData.extraTraining[i]
-      if (!validateDateRange(extra.startDate, extra.endDate, `การฝึกเพิ่มพูนทักษะ ${extra.type}`)) return
+    for (let i = 0; i < formData.trainingRecords.length; i++) {
+      const record = formData.trainingRecords[i]
+      if (!validateDateRange(record.startDate, record.endDate, `การฝึกเพิ่มพูนทักษะ ${record.type}`)) return
     }
 
     setGenerated(true)
@@ -386,15 +368,14 @@ const S11Page = () => {
         numberToThaiText={numberToThaiText}
         onInputChange={handleInputChange}
         onPrimaryDateChange={handlePrimaryDateChange}
-        onTrainingDateChange={handleTrainingDateChange}
         onPositionChange={handlePositionChange}
         onAddWorkHistory={addWorkHistory}
         onRemoveWorkHistory={removeWorkHistory}
         onWorkHistoryChange={handleWorkHistoryChange}
         onWorkHistoryDateChange={handleWorkHistoryDateChange}
-        onAddExtraTraining={addExtraTraining}
-        onRemoveExtraTraining={removeExtraTraining}
-        onExtraTrainingChange={handleExtraTrainingChange}
+        onAddTrainingRecord={addTrainingRecord}
+        onRemoveTrainingRecord={removeTrainingRecord}
+        onTrainingRecordChange={handleTrainingRecordChange}
         onSubmit={handleFormSubmit}
       />
     )
