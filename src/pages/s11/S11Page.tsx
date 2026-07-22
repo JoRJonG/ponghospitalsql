@@ -26,6 +26,7 @@ import S11PrintView from './S11PrintView'
 // ── Numeric fields ───────────────────────────────────────────
 const numericFieldNames = new Set<keyof FormDataState>([
   'startYear',
+  'amount',
 ])
 
 const INITIAL_FORM: FormDataState = {
@@ -43,6 +44,7 @@ const INITIAL_FORM: FormDataState = {
   startYear: new Date().getFullYear() + 543,
   trainingRecords: [],
   workHistory: [],
+  amount: '',
 }
 
 const S11Page = () => {
