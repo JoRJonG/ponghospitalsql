@@ -264,7 +264,7 @@ const S11PrintPage = ({
           <div className="pt-8 print:pt-8">
             <div className="flex justify-end mt-4">
               <div className="text-center" style={{ minWidth: '220px' }}>
-                <p>({formData.name} {formData.surname})</p>
+                <p>({formData.title}{formData.name} {formData.surname})</p>
                 <p>ตำแหน่ง {formData.position}</p>
               </div>
             </div>
