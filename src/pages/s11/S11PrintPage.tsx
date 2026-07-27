@@ -2,6 +2,7 @@
 
 import { Fragment } from 'react'
 import type { FormDataState } from './types'
+import { positions } from './constants'
 import {
   convertToThaiNumber,
   formatThaiDate,
@@ -10,6 +11,8 @@ import {
   parseThaiDateParts,
   buildIsoDate,
   getLastDayOfThaiMonth,
+  getAmountForProfession,
+  numberToThaiText,
 } from './utils'
 
 type Props = {
@@ -23,8 +26,6 @@ type Props = {
   trainingPracticeYearsDisplay: string
   trainingPracticeMonthsDisplay: string
   addedTrainingLines: number
-  amountDisplayText: string
-  amountThaiText: string
 }
 
 const S11PrintPage = ({
@@ -38,13 +39,19 @@ const S11PrintPage = ({
   trainingPracticeYearsDisplay,
   trainingPracticeMonthsDisplay,
   addedTrainingLines,
-  amountDisplayText,
-  amountThaiText,
 }: Props) => {
   const totalMonthsWithOffset = baseTotalMonths + index
   const yearsWithOffset = Math.floor(totalMonthsWithOffset / 12)
   const monthsWithOffset = totalMonthsWithOffset % 12
   const daysWithOffset = totalExperienceDuration.days
+
+  // คำนวณ amount ตาม yearsWithOffset/monthsWithOffset ของหน้านี้
+  const positionCategory = positions.find((p) => p.name === formData.position)?.category ?? ''
+  const pageAmountRaw = positionCategory
+    ? getAmountForProfession(positionCategory, { years: yearsWithOffset, months: monthsWithOffset, days: daysWithOffset })
+    : ''
+  const pageAmountDisplay = typeof pageAmountRaw === 'number' ? convertToThaiNumber(pageAmountRaw) : ''
+  const pageAmountText = typeof pageAmountRaw === 'number' ? numberToThaiText(pageAmountRaw) : ''
 
   const currentWorkMonthsWithOffset =
     currentWorkDuration.years * 12 + currentWorkDuration.months + index
@@ -254,7 +261,7 @@ const S11PrintPage = ({
 
           {/* รวมทั้งสิ้น */}
           <p>
-            รวมทั้งสิ้น {convertToThaiNumber(yearsWithOffset)} ปี {convertToThaiNumber(monthsWithOffset)} เดือน {convertToThaiNumber(daysWithOffset)} วัน จำนวนที่ขอเบิก{amountDisplayText ? ` ${amountDisplayText} ` : '................'}บาท ({amountThaiText || '................................................'})
+            รวมทั้งสิ้น {convertToThaiNumber(yearsWithOffset)} ปี {convertToThaiNumber(monthsWithOffset)} เดือน {convertToThaiNumber(daysWithOffset)} วัน จำนวนที่ขอเบิก{pageAmountDisplay ? ` ${pageAmountDisplay} ` : '................'}บาท ({pageAmountText || '................................................'})
           </p>
           <p className="indent-10">
             ข้าพเจ้าขอรับรองข้อมูลดังกล่าวเป็นความจริงทุกประการ และหากมีการเรียกเงินคืน ข้าพเจ้าขอรับผิดชอบคืนเงินแต่เพียงผู้เดียว

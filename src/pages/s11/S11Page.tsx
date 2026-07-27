@@ -59,18 +59,12 @@ const S11Page = () => {
   )
 
   const historyWorkDuration = useMemo(
-    () =>
-      formData.workHistory.reduce(
-        (sum, job) => {
-          const diff = calculateDateDifference(job.startDate, job.endDate, false)
-          return {
-            years: sum.years + diff.years,
-            months: sum.months + diff.months,
-            days: sum.days + diff.days,
-          }
-        },
-        { years: 0, months: 0, days: 0 },
-      ),
+    () => {
+      const diffs = formData.workHistory.map((job) =>
+        calculateDateDifference(job.startDate, job.endDate, false)
+      )
+      return aggregateDurations(diffs)
+    },
     [formData.workHistory],
   )
 
@@ -97,13 +91,13 @@ const S11Page = () => {
       if (sel) {
         setFormData((prev) => ({
           ...prev,
-          amount: getAmountForProfession(sel.category, totalYearsOfExperience),
+          amount: getAmountForProfession(sel.category, totalExperienceDuration),
         }))
       }
     } else {
       setFormData((prev) => ({ ...prev, amount: '' }))
     }
-  }, [formData.position, totalYearsOfExperience])
+  }, [formData.position, totalExperienceDuration])
 
   // ── Handlers ─────────────────────────────────────────────
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -235,11 +229,6 @@ const S11Page = () => {
     trainingDuration.months > 0
       ? convertToThaiNumber(trainingDuration.months)
       : '..............'
-
-  const amountValue =
-    typeof formData.amount === 'number' && Number.isFinite(formData.amount) ? formData.amount : NaN
-  const amountDisplayText = Number.isFinite(amountValue) ? convertToThaiNumber(amountValue) : ''
-  const amountThaiText = Number.isFinite(amountValue) ? numberToThaiText(amountValue) : ''
 
 
 
@@ -393,8 +382,6 @@ const S11Page = () => {
       trainingPracticeYearsDisplay={trainingPracticeYearsDisplay}
       trainingPracticeMonthsDisplay={trainingPracticeMonthsDisplay}
       addedTrainingLines={addedTrainingLines}
-      amountDisplayText={amountDisplayText}
-      amountThaiText={amountThaiText}
       onBack={() => setGenerated(false)}
     />
   )

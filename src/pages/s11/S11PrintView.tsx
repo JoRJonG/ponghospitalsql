@@ -11,8 +11,6 @@ type Props = {
   trainingPracticeMonthsDisplay: string
 
   addedTrainingLines: number
-  amountDisplayText: string
-  amountThaiText: string
   onBack: () => void
 }
 
@@ -26,8 +24,6 @@ const S11PrintView = ({
   trainingPracticeMonthsDisplay,
 
   addedTrainingLines,
-  amountDisplayText,
-  amountThaiText,
   onBack,
 }: Props) => {
   return (
@@ -63,8 +59,6 @@ const S11PrintView = ({
             trainingPracticeMonthsDisplay={trainingPracticeMonthsDisplay}
 
             addedTrainingLines={addedTrainingLines}
-            amountDisplayText={amountDisplayText}
-            amountThaiText={amountThaiText}
           />
         )
       })}

@@ -260,11 +260,21 @@ export const aggregateDurations = (durations: { years: number; months: number; d
 }
 
 // ── Amount Calculator ─────────────────────────────────────────
-export const getAmountForProfession = (profession: string, years: number): number | '' => {
+export const getAmountForProfession = (
+  profession: string,
+  experience: { years: number; months: number; days: number } | number
+): number | '' => {
   const rates = amountRates[profession as keyof typeof amountRates]
   if (!rates) return ''
-  if (years >= 10) return rates['10+']
-  if (years >= 4) return rates['4-10']
-  if (years >= 0) return rates['1-3']
-  return ''
+  
+  const y = typeof experience === 'number' ? experience : experience.years
+
+  // เรท 10+ (ครบ 10 ปีบริบูรณ์ขึ้นไป)
+  if (y >= 10) return rates['10+']
+  
+  // เรท 4-10 (ครบ 4 ปีบริบูรณ์ แต่ยังไม่ถึง 10 ปีบริบูรณ์)
+  if (y >= 4) return rates['4-10']
+  
+  // เรท 1-3 (ยังไม่ครบ 4 ปีบริบูรณ์)
+  return rates['1-3']
 }
