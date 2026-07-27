@@ -268,13 +268,15 @@ export const getAmountForProfession = (
   if (!rates) return ''
   
   const y = typeof experience === 'number' ? experience : experience.years
+  const m = typeof experience === 'number' ? 0 : experience.months
+  const d = typeof experience === 'number' ? 0 : experience.days
 
-  // เรท 10+ (ครบ 10 ปีขึ้นไป)
-  if (y >= 10) return rates['10+']
+  // เรท 10+ (10 ปี 1 เดือนขึ้นไป)
+  if (y > 10 || (y === 10 && (m > 0 || d > 0))) return rates['10+']
   
-  // เรท 4-10 (ครบ 3 ปีขึ้นไป ถึง ไม่เกิน 10 ปี)
-  if (y >= 3) return rates['4-10']
+  // เรท 4-10 (3 ปี 1 เดือนขึ้นไป ถึง 10 ปี 0 เดือน)
+  if (y > 3 || (y === 3 && (m > 0 || d > 0))) return rates['4-10']
   
-  // เรท 1-3 (น้อยกว่า 3 ปี)
+  // เรท 1-3 (ไม่เกิน 3 ปี 0 เดือน)
   return rates['1-3']
 }
