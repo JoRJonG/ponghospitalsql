@@ -269,12 +269,12 @@ export const getAmountForProfession = (
   
   const y = typeof experience === 'number' ? experience : experience.years
 
-  // เรท 10+ (ครบ 10 ปีบริบูรณ์ขึ้นไป)
+  // เรท 10+ (ครบ 10 ปีขึ้นไป)
   if (y >= 10) return rates['10+']
   
-  // เรท 4-10 (ครบ 4 ปีบริบูรณ์ แต่ยังไม่ถึง 10 ปีบริบูรณ์)
-  if (y >= 4) return rates['4-10']
+  // เรท 4-10 (ครบ 3 ปีขึ้นไป ถึง ไม่เกิน 10 ปี)
+  if (y >= 3) return rates['4-10']
   
-  // เรท 1-3 (ยังไม่ครบ 4 ปีบริบูรณ์)
+  // เรท 1-3 (น้อยกว่า 3 ปี)
   return rates['1-3']
 }
