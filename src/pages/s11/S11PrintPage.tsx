@@ -106,10 +106,10 @@ const S11PrintPage = ({
   // ตรวจสอบว่ามีรายการใดมีแนวโน้มขึ้นบรรทัดใหม่หรือกินพื้นที่เพิ่มหรือไม่
   const hasWrappedLine = (() => {
     if (formData.trainingRecords.length > 0) return true
-    if (formData.currentWorkplace && formData.currentWorkplace.length > 25) return true
+    if (formData.currentWorkplace && formData.currentWorkplace.length > 35) return true
     return uniqueWorkHistory.some((job) => {
       const hospitalName = job.hospital ? job.hospital.trim() : ''
-      return hospitalName.length > 25 || (job.entryType === 'study' && hospitalName.length > 20)
+      return hospitalName.length > 35 || (job.entryType === 'study' && hospitalName.length > 32)
     })
   })()
 
