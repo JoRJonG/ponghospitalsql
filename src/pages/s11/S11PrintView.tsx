@@ -70,7 +70,9 @@ const S11PrintView = ({
               margin: 0;
               size: A4 portrait;
             }
-            body {
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
               background-color: white;

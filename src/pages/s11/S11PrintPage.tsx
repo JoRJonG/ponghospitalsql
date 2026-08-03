@@ -174,7 +174,7 @@ const S11PrintPage = ({
   return (
     <div className="flex flex-col items-center print:block print:!m-0">
       <div
-        className="mx-auto bg-white print:!w-full print:!min-h-0 print:!m-0 print:!p-[20mm]"
+        className="mx-auto bg-white print:!w-full print:!min-h-0 print:!m-0 print:!p-[15mm]"
         style={{
           width: '210mm',
           minHeight: '297mm',
@@ -283,7 +283,7 @@ const S11PrintPage = ({
           </p>
 
           {/* ลายเซ็น */}
-          <div className="pt-8 print:pt-8">
+          <div className="pt-4 print:pt-4">
             <div className="flex justify-end mt-4">
               <div className="text-center" style={{ minWidth: '220px' }}>
                 <p>({formData.title}{formData.name} {formData.surname})</p>
