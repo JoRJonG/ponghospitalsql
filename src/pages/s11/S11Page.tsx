@@ -354,7 +354,12 @@ const S11Page = () => {
 
     for (let i = 0; i < formData.trainingRecords.length; i++) {
       const record = formData.trainingRecords[i]
-      if (!validateDateRange(record.startDate, record.endDate, `การฝึกเพิ่มพูนทักษะ ${record.type}`)) return
+      const label = `การฝึกเพิ่มพูนทักษะ ${record.type} ที่ ${i + 1}`
+      if (!checkRequired(!!record.hospital.trim(), () => focusField(document.getElementById(`tr-${i}-hospital`)), `กรุณากรอกชื่อหน่วยงานใน${label}`)) return
+      if (!checkRequired(!!record.province.trim(), () => focusField(document.getElementById(`tr-${i}-province`)), `กรุณากรอกจังหวัดใน${label}`)) return
+      if (!checkRequired(!!record.startDate, () => focusField(document.getElementById(`tr-${i}-startDate-day`)), `กรุณากรอกวันเริ่มใน${label}`)) return
+      if (!checkRequired(!!record.endDate, () => focusField(document.getElementById(`tr-${i}-endDate-day`)), `กรุณากรอกวันสิ้นสุดใน${label}`)) return
+      if (!validateDateRange(record.startDate, record.endDate, label)) return
     }
 
     setGenerated(true)

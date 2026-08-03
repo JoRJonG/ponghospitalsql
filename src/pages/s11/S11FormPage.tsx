@@ -404,6 +404,7 @@ const S11FormPage = ({
                     <div className="space-y-3 mt-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input
+                          id={`tr-${index}-hospital`}
                           type="text"
                           maxLength={MAX_INPUT_LENGTH}
                           value={entry.hospital}
@@ -412,6 +413,7 @@ const S11FormPage = ({
                           className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                         />
                         <input
+                          id={`tr-${index}-province`}
                           type="text"
                           maxLength={MAX_INPUT_LENGTH}
                           value={entry.province}
@@ -423,11 +425,11 @@ const S11FormPage = ({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">วันเริ่ม</label>
-                          <ThaiDateInput value={entry.startDate} onChange={(iso) => onTrainingRecordChange(index, 'startDate', iso)} />
+                          <ThaiDateInput id={`tr-${index}-startDate`} value={entry.startDate} onChange={(iso) => onTrainingRecordChange(index, 'startDate', iso)} />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">วันสิ้นสุด</label>
-                          <ThaiDateInput value={entry.endDate} onChange={(iso) => onTrainingRecordChange(index, 'endDate', iso)} />
+                          <ThaiDateInput id={`tr-${index}-endDate`} value={entry.endDate} onChange={(iso) => onTrainingRecordChange(index, 'endDate', iso)} />
                         </div>
                       </div>
                     </div>
