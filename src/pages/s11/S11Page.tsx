@@ -251,14 +251,8 @@ const S11Page = () => {
     e.preventDefault()
     const focusField = (el: HTMLElement | null) => {
       if (!el) return
-      // รอ layout settle ก่อน scroll (หลัง Swal ปิด animation เสร็จ)
-      setTimeout(() => {
-        el.scrollIntoView({ block: 'center' })
-        el.focus()
-        const prev = el.style.outline
-        el.style.outline = '2px solid #f59e0b'
-        setTimeout(() => { el.style.outline = prev }, 1500)
-      }, 150)
+      el.focus({ preventScroll: true })
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
 
     const checkRequired = (condition: boolean, action: () => void, message: string) => {
@@ -269,8 +263,9 @@ const S11Page = () => {
           text: message,
           confirmButtonColor: '#10b981',
           returnFocus: false,
-        }).then(() => {
-          action()
+          didClose: () => {
+            action()
+          },
         })
         return false
       }
