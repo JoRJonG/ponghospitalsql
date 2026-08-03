@@ -252,7 +252,13 @@ const S11Page = () => {
     const focusField = (el: HTMLElement | null) => {
       if (!el) return
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      setTimeout(() => el.focus(), 300)
+      setTimeout(() => {
+        el.focus()
+        // Highlight briefly so user sees which field needs attention
+        const prev = el.style.outline
+        el.style.outline = '2px solid #f59e0b'
+        setTimeout(() => { el.style.outline = prev }, 1500)
+      }, 400)
     }
 
     const checkRequired = (condition: boolean, action: () => void, message: string) => {
