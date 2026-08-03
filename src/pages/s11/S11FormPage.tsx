@@ -233,21 +233,7 @@ const S11FormPage = ({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1.5">งาน/กลุ่มงาน</label>
-                  <input
-                    id="level-input"
-                    type="text"
-                    name="level"
-                    maxLength={MAX_INPUT_LENGTH}
-                    value={formData.level}
-                    onChange={onInputChange}
-                    placeholder="เช่น ดิจิทัลทางการแพทย์และสุขภาพ"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                    required
-                  />
-                </div>
+              <div className="mt-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1.5">ระดับ รพ.</label>
                   <input
@@ -290,22 +276,20 @@ const S11FormPage = ({
                       <button
                         type="button"
                         onClick={() => onWorkHistoryTypeChange(entry.id, 'work')}
-                        className={`flex-1 py-1.5 px-3 rounded-lg text-sm font-medium border transition-colors ${
-                          entry.entryType === 'work'
+                        className={`flex-1 py-1.5 px-3 rounded-lg text-sm font-medium border transition-colors ${entry.entryType === 'work'
                             ? 'bg-emerald-600 text-white border-emerald-600'
                             : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-400'
-                        }`}
+                          }`}
                       >
                         🏥 ปฏิบัติงาน
                       </button>
                       <button
                         type="button"
                         onClick={() => onWorkHistoryTypeChange(entry.id, 'study')}
-                        className={`flex-1 py-1.5 px-3 rounded-lg text-sm font-medium border transition-colors ${
-                          entry.entryType === 'study'
+                        className={`flex-1 py-1.5 px-3 rounded-lg text-sm font-medium border transition-colors ${entry.entryType === 'study'
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
-                        }`}
+                          }`}
                       >
                         🎓 ลาไปศึกษาต่อ
                       </button>

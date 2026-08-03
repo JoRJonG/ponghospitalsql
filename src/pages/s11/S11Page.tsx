@@ -274,7 +274,6 @@ const S11Page = () => {
     if (!checkRequired(!!formData.name?.trim(), () => focusField(document.querySelector<HTMLElement>('input[name="name"]')), 'กรุณากรอกชื่อ')) return
     if (!checkRequired(!!formData.surname?.trim(), () => focusField(document.querySelector<HTMLElement>('input[name="surname"]')), 'กรุณากรอกนามสกุล')) return
     if (!checkRequired(!!formData.position, () => positionSelectRef.current?.focus(), 'กรุณาเลือกตำแหน่ง')) return
-    if (!checkRequired(!!formData.level?.trim(), () => focusField(document.getElementById('level-input')), 'กรุณากรอกงาน/กลุ่มงาน')) return
     if (!checkRequired(!!formData.startDate, () => focusField(document.getElementById('startDate-input-day')), 'กรุณากรอกวันที่เริ่มปฏิบัติงาน (ปัจจุบัน)')) return
     if (!checkRequired(!!formData.endDate, () => focusField(document.getElementById('endDate-input-day')), 'กรุณากรอกวันที่สิ้นสุดปฏิบัติงาน (ปัจจุบัน)')) return
 
