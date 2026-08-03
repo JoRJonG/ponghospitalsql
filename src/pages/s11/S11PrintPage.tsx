@@ -297,7 +297,7 @@ const S11PrintPage = ({
           </p>
 
           {/* ลายเซ็น */}
-          <div className="pt-4 print:pt-4">
+          <div className={hasWrappedLine ? 'pt-12 print:pt-12' : 'pt-4 print:pt-4'}>
             <div className="flex justify-end mt-4">
               <div className="text-center" style={{ minWidth: '220px' }}>
                 <p>({formData.title}{formData.name} {formData.surname})</p>
