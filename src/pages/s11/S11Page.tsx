@@ -251,14 +251,14 @@ const S11Page = () => {
     e.preventDefault()
     const focusField = (el: HTMLElement | null) => {
       if (!el) return
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // รอ layout settle ก่อน scroll (หลัง Swal ปิด animation เสร็จ)
       setTimeout(() => {
+        el.scrollIntoView({ block: 'center' })
         el.focus()
-        // Highlight briefly so user sees which field needs attention
         const prev = el.style.outline
         el.style.outline = '2px solid #f59e0b'
         setTimeout(() => { el.style.outline = prev }, 1500)
-      }, 400)
+      }, 150)
     }
 
     const checkRequired = (condition: boolean, action: () => void, message: string) => {
@@ -268,6 +268,7 @@ const S11Page = () => {
           title: 'ข้อมูลไม่ครบถ้วน',
           text: message,
           confirmButtonColor: '#10b981',
+          returnFocus: false,
         }).then(() => {
           action()
         })
