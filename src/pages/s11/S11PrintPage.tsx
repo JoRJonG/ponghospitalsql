@@ -93,7 +93,6 @@ const S11PrintPage = ({
   }
 
   // ── Work History Items ──────────────────────────────────────
-  const baseWorkHistorySlots = 5
   const uniqueWorkHistory = (() => {
     const seen = new Set<string>()
     return formData.workHistory.filter((job) => {
@@ -104,10 +103,25 @@ const S11PrintPage = ({
     })
   })()
 
-  const workHistorySlots = Math.max(
+  // ตรวจสอบว่ามีรายการใดมีแนวโน้มขึ้นบรรทัดใหม่หรือกินพื้นที่เพิ่มหรือไม่
+  const hasWrappedLine = (() => {
+    if (formData.trainingRecords.length > 0) return true
+    if (formData.currentWorkplace && formData.currentWorkplace.length > 25) return true
+    return uniqueWorkHistory.some((job) => {
+      const hospitalName = job.hospital ? job.hospital.trim() : ''
+      return hospitalName.length > 25 || (job.entryType === 'study' && hospitalName.length > 20)
+    })
+  })()
+
+  // ถ้าขึ้นบรรทัดใหม่/เกินหน้า ให้ตัดเหลือ 4 สล็อต (สุดที่ข้อ ๖) ถ้าปกติให้ 5 สล็อต (สุดที่ข้อ ๗)
+  const maxAllowedHistorySlots = hasWrappedLine ? 4 : 5
+  const baseWorkHistorySlots = hasWrappedLine ? 4 : 5
+
+  const calculatedSlots = Math.max(
     baseWorkHistorySlots - addedTrainingLines,
     uniqueWorkHistory.length,
   )
+  const workHistorySlots = Math.min(maxAllowedHistorySlots, calculatedSlots)
   const filledCount = Math.min(uniqueWorkHistory.length, workHistorySlots)
   const workItems = []
   let itemIndex = 2
