@@ -60,9 +60,9 @@ const S11Page = () => {
 
   const historyWorkDuration = useMemo(
     () => {
-      const diffs = formData.workHistory.map((job) =>
-        calculateDateDifference(job.startDate, job.endDate, false)
-      )
+      const diffs = formData.workHistory
+        .filter((job) => job.entryType !== 'study')
+        .map((job) => calculateDateDifference(job.startDate, job.endDate, false))
       return aggregateDurations(diffs)
     },
     [formData.workHistory],
