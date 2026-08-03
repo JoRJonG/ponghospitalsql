@@ -212,7 +212,7 @@ const S11PrintPage = ({
             </span>
             <br />
             <span>
-              ปัจจุบันปฏิบัติงานที่{formData.currentWorkplace ? ` ${formData.currentWorkplace} ` : '.............'}จังหวัด{formData.province ? ` ${formData.province} ` : '.............'}งาน/กลุ่มงาน{formData.level ? ` ${convertToThaiNumber(formData.level)} ` : '.............'}
+              ปัจจุบันปฏิบัติงานที่{formData.currentWorkplace ? ` ${formData.currentWorkplace} ` : '.............'}จังหวัด{formData.province ? ` ${formData.province} ` : '.............'}ระดับ/กลุ่ม{formData.level || formData.hospitalLevel ? ` ปกติ ${formData.hospitalLevel || '2.1'} ${formData.level || ''}`.trimEnd() + ' ' : '.............'}
             </span>
             <br />
             <span>
