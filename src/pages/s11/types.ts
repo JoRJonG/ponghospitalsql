@@ -47,6 +47,7 @@ export type FormDataState = {
   currentWorkplace: string
   province: string
   level: string
+  hospitalLevel: string
   startDate: string
   endDate: string
   unit: string

@@ -233,19 +233,34 @@ const S11FormPage = ({
                   />
                 </div>
               </div>
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-800 mb-1.5">งาน/กลุ่มงาน</label>
-                <input
-                  id="level-input"
-                  type="text"
-                  name="level"
-                  maxLength={MAX_INPUT_LENGTH}
-                  value={formData.level}
-                  onChange={onInputChange}
-                  placeholder="เช่น ดิจิทัลทางการแพทย์และสุขภาพ"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1.5">งาน/กลุ่มงาน</label>
+                  <input
+                    id="level-input"
+                    type="text"
+                    name="level"
+                    maxLength={MAX_INPUT_LENGTH}
+                    value={formData.level}
+                    onChange={onInputChange}
+                    placeholder="เช่น ดิจิทัลทางการแพทย์และสุขภาพ"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1.5">ระดับ รพ.</label>
+                  <input
+                    id="hospitalLevel-input"
+                    type="text"
+                    name="hospitalLevel"
+                    maxLength={MAX_INPUT_LENGTH}
+                    value={formData.hospitalLevel}
+                    onChange={onInputChange}
+                    placeholder="เช่น 2.1"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">

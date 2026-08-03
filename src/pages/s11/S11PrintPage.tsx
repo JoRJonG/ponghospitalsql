@@ -147,7 +147,7 @@ const S11PrintPage = ({
   workItems.push(
     <Fragment key="current-work">
       <p>
-        {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(formData.currentWorkplace)}จังหวัด{formData.province ? ` ${formData.province} ` : '..........................'}จัดระดับ ปกติ ระดับ {convertToThaiNumber(2)}
+        {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(formData.currentWorkplace)}จังหวัด{formData.province ? ` ${formData.province} ` : '..........................'}จัดระดับ ปกติ ระดับ {convertToThaiNumber(formData.hospitalLevel || '2.1')}
       </p>
       <p className="pl-6">
         ตั้งแต่วันที่{formData.startDate ? ` ${formatThaiDate(formData.startDate)} ` : '.....................................'}ถึงวันที่{advancedEndDate ? ` ${formatThaiDate(advancedEndDate)} ` : '..............................'}รวม {convertToThaiNumber(currentJobYears)} ปี {convertToThaiNumber(currentJobMonths)} เดือน {convertToThaiNumber(currentJobDays)} วัน

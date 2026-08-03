@@ -37,6 +37,7 @@ const INITIAL_FORM: FormDataState = {
   currentWorkplace: 'โรงพยาบาลปง',
   province: 'พะเยา',
   level: '',
+  hospitalLevel: '2.1',
   startDate: '',
   endDate: new Date(Date.UTC(new Date().getFullYear(), 9, 31)).toISOString(),
   unit: 'โรงพยาบาลปง',
