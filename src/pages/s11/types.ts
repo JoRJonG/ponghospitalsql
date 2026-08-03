@@ -21,6 +21,7 @@ export type TrainingLine = {
 
 export type WorkHistoryEntry = {
   id: string
+  entryType: 'work' | 'study'
   hospital: string
   province: string
   classification?: string

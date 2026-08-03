@@ -115,16 +115,31 @@ const S11PrintPage = ({
   for (let i = 0; i < filledCount; i++) {
     const job = uniqueWorkHistory[i]
     const { years, months: jobMonths, days: jobDays } = calculateDateDifference(job.startDate, job.endDate)
-    workItems.push(
-      <Fragment key={job.id}>
-        <p>
-          {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(job.hospital)}จังหวัด{job.province ? ` ${job.province} ` : '..........................'}จัดระดับ{job.classification ? ` ${job.classification} ` : '.....................'}ระดับ{job.level ? ` ${convertToThaiNumber(job.level)} ` : '..................'}
-        </p>
-        <p className="pl-6">
-          ตั้งแต่วันที่{job.startDate ? ` ${formatThaiDate(job.startDate)} ` : '.....................................'}ถึงวันที่{job.endDate ? ` ${formatThaiDate(job.endDate)} ` : '..............................'}รวม {convertToThaiNumber(years)} ปี {convertToThaiNumber(jobMonths)} เดือน {convertToThaiNumber(jobDays)} วัน
-        </p>
-      </Fragment>
-    )
+    const isStudy = job.entryType === 'study'
+
+    if (isStudy) {
+      workItems.push(
+        <Fragment key={job.id}>
+          <p>
+            {convertToThaiNumber(itemIndex)}. ลาไปศึกษาต่อ{job.hospital ? ` ${job.hospital.trim()} ` : '............................'}จังหวัด{job.province ? ` ${job.province} ` : '..........................'}
+          </p>
+          <p className="pl-6">
+            ตั้งแต่วันที่{job.startDate ? ` ${formatThaiDate(job.startDate)} ` : '.....................................'}ถึงวันที่{job.endDate ? ` ${formatThaiDate(job.endDate)} ` : '..............................'}รวม {convertToThaiNumber(years)} ปี {convertToThaiNumber(jobMonths)} เดือน {convertToThaiNumber(jobDays)} วัน
+          </p>
+        </Fragment>
+      )
+    } else {
+      workItems.push(
+        <Fragment key={job.id}>
+          <p>
+            {convertToThaiNumber(itemIndex)}. ปฏิบัติงานที่{renderHospital(job.hospital)}จังหวัด{job.province ? ` ${job.province} ` : '..........................'}จัดระดับ{job.classification ? ` ${job.classification} ` : '...................'}ระดับ{job.level ? ` ${convertToThaiNumber(job.level)} ` : '..................'}
+          </p>
+          <p className="pl-6">
+            ตั้งแต่วันที่{job.startDate ? ` ${formatThaiDate(job.startDate)} ` : '.....................................'}ถึงวันที่{job.endDate ? ` ${formatThaiDate(job.endDate)} ` : '..............................'}รวม {convertToThaiNumber(years)} ปี {convertToThaiNumber(jobMonths)} เดือน {convertToThaiNumber(jobDays)} วัน
+          </p>
+        </Fragment>
+      )
+    }
     itemIndex++
   }
 

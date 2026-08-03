@@ -22,6 +22,7 @@ type Props = {
   onRemoveWorkHistory: (id: string) => void
   onWorkHistoryChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   onWorkHistoryDateChange: (id: string, field: 'startDate' | 'endDate', isoDate: string) => void
+  onWorkHistoryTypeChange: (id: string, entryType: 'work' | 'study') => void
   onAddTrainingRecord: () => void
   onRemoveTrainingRecord: (index: number) => void
   onTrainingRecordChange: (index: number, field: keyof TrainingEntry, value: string) => void
@@ -79,6 +80,7 @@ const S11FormPage = ({
   onAddTrainingRecord,
   onRemoveTrainingRecord,
   onTrainingRecordChange,
+  onWorkHistoryTypeChange,
   onSubmit,
 }: Props) => {
   const positionOptions: PositionOption[] = positions.map((p) => ({ value: p.name, label: p.name }))
@@ -267,6 +269,33 @@ const S11FormPage = ({
                 {formData.workHistory.map((entry, index) => (
                   <div key={entry.id} className="border border-emerald-200 rounded-lg p-4 relative bg-emerald-50/50">
                     <p className="text-sm font-medium text-emerald-800 mb-3">สถานที่ทำงานที่ {index + 1}</p>
+
+                    {/* Toggle ประเภทรายการ */}
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => onWorkHistoryTypeChange(entry.id, 'work')}
+                        className={`flex-1 py-1.5 px-3 rounded-lg text-sm font-medium border transition-colors ${
+                          entry.entryType === 'work'
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-400'
+                        }`}
+                      >
+                        🏥 ปฏิบัติงาน
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onWorkHistoryTypeChange(entry.id, 'study')}
+                        className={`flex-1 py-1.5 px-3 rounded-lg text-sm font-medium border transition-colors ${
+                          entry.entryType === 'study'
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                        }`}
+                      >
+                        🎓 ลาไปศึกษาต่อ
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input
                         id={`wh-${index}-hospital`}
@@ -275,7 +304,7 @@ const S11FormPage = ({
                         maxLength={MAX_INPUT_LENGTH}
                         value={entry.hospital}
                         onChange={(e) => onWorkHistoryChange(entry.id, e)}
-                        placeholder="โรงพยาบาล"
+                        placeholder={entry.entryType === 'study' ? 'ชื่อสถาบัน/มหาวิทยาลัย' : 'โรงพยาบาล'}
                         className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                       />
                       <input
@@ -289,28 +318,33 @@ const S11FormPage = ({
                         className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                       />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                      <input
-                        id={`wh-${index}-classification`}
-                        type="text"
-                        name="classification"
-                        maxLength={MAX_INPUT_LENGTH}
-                        value={entry.classification || ''}
-                        onChange={(e) => onWorkHistoryChange(entry.id, e)}
-                        placeholder="จัดระดับ (เช่น ปกติ)"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      />
-                      <input
-                        id={`wh-${index}-level`}
-                        type="text"
-                        name="level"
-                        maxLength={MAX_INPUT_LENGTH}
-                        value={entry.level}
-                        onChange={(e) => onWorkHistoryChange(entry.id, e)}
-                        placeholder="ระดับ (เช่น 2)"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
-                      />
-                    </div>
+
+                    {/* แสดงเฉพาะเมื่อเป็นประเภทปฏิบัติงาน */}
+                    {entry.entryType === 'work' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                        <input
+                          id={`wh-${index}-classification`}
+                          type="text"
+                          name="classification"
+                          maxLength={MAX_INPUT_LENGTH}
+                          value={entry.classification || ''}
+                          onChange={(e) => onWorkHistoryChange(entry.id, e)}
+                          placeholder="จัดระดับ (เช่น ปกติ)"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
+                        />
+                        <input
+                          id={`wh-${index}-level`}
+                          type="text"
+                          name="level"
+                          maxLength={MAX_INPUT_LENGTH}
+                          value={entry.level}
+                          onChange={(e) => onWorkHistoryChange(entry.id, e)}
+                          placeholder="ระดับ (เช่น 2)"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
+                        />
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-800 mb-1.5">วันที่เริ่ม</label>

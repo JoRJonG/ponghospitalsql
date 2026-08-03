@@ -138,7 +138,7 @@ const S11Page = () => {
       ...prev,
       workHistory: [
         ...prev.workHistory,
-        { id: Date.now().toString(), hospital: '', province: '', classification: '', level: '', startDate: '', endDate: '' },
+        { id: Date.now().toString(), entryType: 'work', hospital: '', province: '', classification: '', level: '', startDate: '', endDate: '' },
       ],
     }))
   }
@@ -167,6 +167,15 @@ const S11Page = () => {
       ...prev,
       workHistory: prev.workHistory.map((entry) =>
         entry.id === id ? { ...entry, [field]: isoDate } : entry,
+      ),
+    }))
+  }
+
+  const handleWorkHistoryTypeChange = (id: string, entryType: 'work' | 'study') => {
+    setFormData((prev) => ({
+      ...prev,
+      workHistory: prev.workHistory.map((entry) =>
+        entry.id === id ? { ...entry, entryType } : entry,
       ),
     }))
   }
@@ -289,11 +298,14 @@ const S11Page = () => {
 
     for (let i = 0; i < formData.workHistory.length; i++) {
       const job = formData.workHistory[i]
+      const isStudy = job.entryType === 'study'
       
-      if (!checkRequired(!!job.hospital.trim(), () => focusField(document.getElementById(`wh-${i}-hospital`)), `กรุณากรอกชื่อโรงพยาบาลในสถานที่ทำงานที่ ${i + 1}`)) return
+      if (!checkRequired(!!job.hospital.trim(), () => focusField(document.getElementById(`wh-${i}-hospital`)), `กรุณากรอก${isStudy ? 'ชื่อสถาบัน/สถานที่' : 'ชื่อโรงพยาบาล'}ในสถานที่ทำงานที่ ${i + 1}`)) return
       if (!checkRequired(!!job.province.trim(), () => focusField(document.getElementById(`wh-${i}-province`)), `กรุณากรอกจังหวัดในสถานที่ทำงานที่ ${i + 1}`)) return
-      if (!checkRequired(!!job.classification?.trim(), () => focusField(document.getElementById(`wh-${i}-classification`)), `กรุณากรอกการจัดระดับในสถานที่ทำงานที่ ${i + 1}`)) return
-      if (!checkRequired(!!job.level.trim(), () => focusField(document.getElementById(`wh-${i}-level`)), `กรุณากรอกระดับในสถานที่ทำงานที่ ${i + 1}`)) return
+      if (!isStudy) {
+        if (!checkRequired(!!job.classification?.trim(), () => focusField(document.getElementById(`wh-${i}-classification`)), `กรุณากรอกการจัดระดับในสถานที่ทำงานที่ ${i + 1}`)) return
+        if (!checkRequired(!!job.level.trim(), () => focusField(document.getElementById(`wh-${i}-level`)), `กรุณากรอกระดับในสถานที่ทำงานที่ ${i + 1}`)) return
+      }
       if (!checkRequired(!!job.startDate, () => focusField(document.getElementById(`wh-${i}-startDate-day`)), `กรุณากรอกวันที่เริ่มปฏิบัติงานในสถานที่ทำงานที่ ${i + 1}`)) return
       if (!checkRequired(!!job.endDate, () => focusField(document.getElementById(`wh-${i}-endDate-day`)), `กรุณากรอกถึงวันที่ในสถานที่ทำงานที่ ${i + 1}`)) return
 
@@ -364,6 +376,7 @@ const S11Page = () => {
         onRemoveWorkHistory={removeWorkHistory}
         onWorkHistoryChange={handleWorkHistoryChange}
         onWorkHistoryDateChange={handleWorkHistoryDateChange}
+        onWorkHistoryTypeChange={handleWorkHistoryTypeChange}
         onAddTrainingRecord={addTrainingRecord}
         onRemoveTrainingRecord={removeTrainingRecord}
         onTrainingRecordChange={handleTrainingRecordChange}
