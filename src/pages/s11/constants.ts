@@ -55,7 +55,7 @@ export const positions = [
   { name: 'นักเทคโนโลยีหัวใจและทรวงอก', category: newCategory },
   { name: 'นักฟิสิกส์การแพทย์', category: 'สายงานระดับปริญญาตรีขึ้นไป' },
   { name: 'นักทัศนมาตร', category: 'สายงานระดับปริญญาตรีขึ้นไป' },
-  { name: 'นักสาธารณสุข', category: 'สายงานระดับปริญญาตรีขึ้นไป' },
+  { name: 'นักสาธารณสุข', category: newCategory },
   { name: 'นักกายอุปกรณ์', category: newCategory },
   { name: 'วิศวกรไฟฟ้า', category: 'สายงานระดับปริญญาตรีขึ้นไป' },
 
