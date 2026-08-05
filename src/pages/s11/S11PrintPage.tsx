@@ -113,8 +113,9 @@ const S11PrintPage = ({
   })()
 
   // ตรวจสอบว่ามีรายการใดมีแนวโน้มขึ้นบรรทัดใหม่หรือกินพื้นที่เพิ่มหรือไม่
+  // หมายเหตุ: ข้อ ๑ มี placeholder 2 บรรทัดอยู่แล้ว — กรอก training 1-2 รายการจึงไม่ลด slot
   const hasWrappedLine = (() => {
-    if (formData.trainingRecords.length > 0) return true
+    if (addedTrainingLines > 0) return true  // training เกิน 2 รายการ
     if (formData.currentWorkplace && formData.currentWorkplace.length > 35) return true
     return uniqueWorkHistory.some((job) => {
       const hospitalName = job.hospital ? job.hospital.trim() : ''
@@ -260,22 +261,20 @@ const S11PrintPage = ({
             )
           })()}
           {(() => {
-            const hasAnyTrainingData = formData.trainingRecords.length > 0
+            const filledCount = formData.trainingRecords.length
+            // กำหนด placeholder 2 ประเภทที่ต้องแสดงเสมอ
+            const defaultPlaceholders: { type: 'รพศ/รพท' | 'รพช'; main: string; period: string }[] = [
+              { type: 'รพศ/รพท', main: '• รพศ/รพท..................... จังหวัด....................', period: 'ตั้งแต่.................................ถึง.....................................' },
+              { type: 'รพช',     main: '• รพช........................... จังหวัด....................', period: 'ตั้งแต่..................................ถึง.....................................' },
+            ]
+            // หา placeholder ที่ยังต้องแสดง (pad ให้ครบ 2 บรรทัดเสมอ)
+            const filledTypes = formData.trainingRecords.map((r) => r.type)
+            const remainingPlaceholders = filledCount < 2
+              ? defaultPlaceholders.filter((p) => !filledTypes.includes(p.type))
+              : []
 
             return (
               <ul className="pl-8 space-y-1 list-none">
-                {!hasAnyTrainingData && (
-                  <>
-                    <li className="leading-tight">
-                      <span>• รพศ/รพท..................... จังหวัด....................</span>
-                      <span className="block pl-6">ตั้งแต่.................................ถึง.....................................</span>
-                    </li>
-                    <li className="leading-tight">
-                      <span>• รพช........................... จังหวัด....................</span>
-                      <span className="block pl-6">ตั้งแต่..................................ถึง.....................................</span>
-                    </li>
-                  </>
-                )}
                 {formData.trainingRecords.map((record) => {
                   const recordLine = buildTrainingLine(
                     record.type,
@@ -290,6 +289,13 @@ const S11PrintPage = ({
                     </li>
                   )
                 })}
+                {/* pad placeholder ที่ยังขาดอยู่ให้ครบ 2 บรรทัด */}
+                {remainingPlaceholders.map((ph) => (
+                  <li key={`ph-${ph.type}`} className="leading-tight">
+                    <span>{ph.main}</span>
+                    <span className="block pl-6">{ph.period}</span>
+                  </li>
+                ))}
               </ul>
             )
           })()}
