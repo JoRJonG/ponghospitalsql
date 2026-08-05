@@ -10,6 +10,7 @@ import {
   MAX_WORK_HISTORY_ITEMS,
   MAX_INPUT_LENGTH,
   VALID_NAME_REGEX,
+  POSITION_LEVEL_OPTIONS,
 } from './constants'
 import {
   sanitizeInput,
@@ -34,6 +35,7 @@ const INITIAL_FORM: FormDataState = {
   name: '',
   surname: '',
   position: '',
+  positionLevel: '',
   currentWorkplace: 'โรงพยาบาลปง',
   province: 'พะเยา',
   level: '',
@@ -122,8 +124,20 @@ const S11Page = () => {
   }
 
   const handlePositionChange = (option: PositionOption | null) => {
-    setFormData((prev) => ({ ...prev, position: option ? option.value : '' }))
+    setFormData((prev) => ({
+      ...prev,
+      position: option ? option.value : '',
+      positionLevel: '', // reset ระดับทุกครั้งเมื่อเปลี่ยนตำแหน่ง
+    }))
   }
+
+  const handlePositionLevelChange = (level: string) => {
+    setFormData((prev) => ({ ...prev, positionLevel: level }))
+  }
+
+  // ตัวเลือกระดับตำแหน่งตาม category ของตำแหน่งที่เลือก
+  const selectedPositionCategory = positions.find((p) => p.name === formData.position)?.category ?? ''
+  const availablePositionLevels = POSITION_LEVEL_OPTIONS[selectedPositionCategory] ?? []
 
   const addWorkHistory = () => {
     if (formData.workHistory.length >= MAX_WORK_HISTORY_ITEMS) {
@@ -368,6 +382,7 @@ const S11Page = () => {
       <S11FormPage
         formData={formData}
         positionSelectRef={positionSelectRef}
+        availablePositionLevels={availablePositionLevels}
         currentWorkDuration={currentWorkDuration}
         historyWorkDuration={historyWorkDuration}
         historyWorkMonths={historyWorkMonths}
@@ -379,6 +394,7 @@ const S11Page = () => {
         onInputChange={handleInputChange}
         onPrimaryDateChange={handlePrimaryDateChange}
         onPositionChange={handlePositionChange}
+        onPositionLevelChange={handlePositionLevelChange}
         onAddWorkHistory={addWorkHistory}
         onRemoveWorkHistory={removeWorkHistory}
         onWorkHistoryChange={handleWorkHistoryChange}

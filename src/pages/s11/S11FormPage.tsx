@@ -7,6 +7,7 @@ import ThaiDateInput from './ThaiDateInput'
 type Props = {
   formData: FormDataState
   positionSelectRef: Ref<SelectInstance<PositionOption>>
+  availablePositionLevels: string[]
   currentWorkDuration: { years: number; months: number; days: number }
   historyWorkDuration: { years: number; months: number; days: number }
   historyWorkMonths: number
@@ -18,6 +19,7 @@ type Props = {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
   onPrimaryDateChange: (field: 'startDate' | 'endDate', isoDate: string) => void
   onPositionChange: (option: PositionOption | null) => void
+  onPositionLevelChange: (level: string) => void
   onAddWorkHistory: () => void
   onRemoveWorkHistory: (id: string) => void
   onWorkHistoryChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
@@ -62,6 +64,7 @@ const customSelectStyles: StylesConfig<PositionOption, false> = {
 const S11FormPage = ({
   formData,
   positionSelectRef,
+  availablePositionLevels,
   currentWorkDuration,
   historyWorkDuration,
   historyWorkMonths,
@@ -73,6 +76,7 @@ const S11FormPage = ({
   onInputChange,
   onPrimaryDateChange,
   onPositionChange,
+  onPositionLevelChange,
   onAddWorkHistory,
   onRemoveWorkHistory,
   onWorkHistoryChange,
@@ -184,6 +188,44 @@ const S11FormPage = ({
                   styles={customSelectStyles}
                   classNamePrefix="react-select"
                 />
+
+                {/* ระดับตำแหน่ง — แสดงเมื่อตำแหน่งที่เลือกมีระดับ */}
+                {availablePositionLevels.length > 0 && (
+                  <div className="mt-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <label className="text-sm font-medium text-gray-700">ระดับตำแหน่ง</label>
+                      <span className="text-xs text-gray-400">(ถ้ามี)</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {availablePositionLevels.map((lv) => (
+                        <button
+                          key={lv}
+                          type="button"
+                          onClick={() => onPositionLevelChange(
+                            formData.positionLevel === lv ? '' : lv
+                          )}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                            formData.positionLevel === lv
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-emerald-400 hover:text-emerald-700'
+                          }`}
+                        >
+                          {lv}
+                        </button>
+                      ))}
+                      {formData.positionLevel && (
+                        <button
+                          type="button"
+                          onClick={() => onPositionLevelChange('')}
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium border border-red-300 text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors"
+                          title="ยกเลิกระดับตำแหน่ง"
+                        >
+                          ✕ ยกเลิก
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

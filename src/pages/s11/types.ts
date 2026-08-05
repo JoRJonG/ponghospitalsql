@@ -44,6 +44,7 @@ export type FormDataState = {
   name: string
   surname: string
   position: string
+  positionLevel: string   // ระดับตำแหน่ง เช่น ชำนาญการ, ชำนาญการพิเศษ
   currentWorkplace: string
   province: string
   level: string
@@ -57,6 +58,7 @@ export type FormDataState = {
   trainingRecords: TrainingEntry[]
   workHistory: WorkHistoryEntry[]
 }
+
 
 export type PositionOption = {
   value: string
