@@ -312,9 +312,10 @@ const S11PrintPage = ({
           </p>
 
           {/* ลายเซ็น */}
-          <div className={hasWrappedLine ? 'pt-16 print:pt-16' : 'pt-4 print:pt-4'}>
+          <div className={hasWrappedLine ? 'pt-10 print:pt-10' : 'pt-6 print:pt-6'}>
             <div className="flex justify-end mt-4">
-              <div className="text-center" style={{ minWidth: '220px' }}>
+              <div className="text-center" style={{ minWidth: '240px' }}>
+                <div style={{ height: '40px' }} />
                 <p>({formData.title}{formData.name} {formData.surname})</p>
                 <p>ตำแหน่ง {formData.position}{formData.positionLevel ?? ''}</p>
               </div>
