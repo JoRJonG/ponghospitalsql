@@ -231,7 +231,7 @@ const S11PrintPage = ({
 
           <div style={{ marginBottom: '8pt', whiteSpace: 'pre-line' }}>
             <span>
-              ข้าพเจ้าชื่อ{formData.name ? ` ${formData.title}${formData.name} ` : '.............'}นามสกุล{formData.surname ? ` ${formData.surname} ` : '.............'}ตำแหน่ง{formData.position ? ` ${formData.position}${formData.positionLevel ? ` ${formData.positionLevel}` : ''} ` : '.............'}
+              ข้าพเจ้าชื่อ{formData.name ? ` ${formData.title}${formData.name} ` : '.............'}นามสกุล{formData.surname ? ` ${formData.surname} ` : '.............'}ตำแหน่ง{formData.position ? ` ${formData.position}${formData.positionLevel ?? ''} ` : '.............'}
             </span>
             <br />
             <span>
@@ -310,7 +310,7 @@ const S11PrintPage = ({
             <div className="flex justify-end mt-4">
               <div className="text-center" style={{ minWidth: '220px' }}>
                 <p>({formData.title}{formData.name} {formData.surname})</p>
-                <p>ตำแหน่ง {formData.position}{formData.positionLevel ? ` ${formData.positionLevel}` : ''}</p>
+                <p>ตำแหน่ง {formData.position}{formData.positionLevel ?? ''}</p>
               </div>
             </div>
           </div>
