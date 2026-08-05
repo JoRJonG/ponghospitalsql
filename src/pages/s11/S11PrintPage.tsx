@@ -40,26 +40,7 @@ const S11PrintPage = ({
   trainingPracticeMonthsDisplay,
   addedTrainingLines,
 }: Props) => {
-  const totalMonthsWithOffset = baseTotalMonths + index
-  const yearsWithOffset = Math.floor(totalMonthsWithOffset / 12)
-  const monthsWithOffset = totalMonthsWithOffset % 12
-  const daysWithOffset = totalExperienceDuration.days
-
-  // คำนวณ amount ตาม yearsWithOffset/monthsWithOffset ของหน้านี้
-  const positionCategory = positions.find((p) => p.name === formData.position)?.category ?? ''
-  const pageAmountRaw = positionCategory
-    ? getAmountForProfession(positionCategory, { years: yearsWithOffset, months: monthsWithOffset, days: daysWithOffset })
-    : ''
-  const pageAmountDisplay = typeof pageAmountRaw === 'number' ? convertToThaiNumber(pageAmountRaw) : ''
-  const pageAmountText = typeof pageAmountRaw === 'number' ? numberToThaiText(pageAmountRaw) : ''
-
-  const currentWorkMonthsWithOffset =
-    currentWorkDuration.years * 12 + currentWorkDuration.months + index
-  const currentJobYears = Math.floor(currentWorkMonthsWithOffset / 12)
-  const currentJobMonths = currentWorkMonthsWithOffset % 12
-  const currentJobDays = currentWorkDuration.days
-
-  // เลื่อน endDate ตาม index เดือน
+  // เลื่อน endDate ตาม index เดือน (คำนวณก่อน เพื่อให้ได้ days ที่ถูกต้องตามปฏิทินจริง)
   let advancedEndDate = ''
   if (formData.endDate) {
     const ep = parseThaiDateParts(formData.endDate)
@@ -73,6 +54,34 @@ const S11PrintPage = ({
       buddhistYear: newBuddhistYear,
     })
   }
+
+  // days ของสถานที่ปัจจุบัน: คำนวณใหม่จาก advancedEndDate ของหน้านี้ (เปลี่ยนตามเดือน)
+  const advancedCurrentDays = advancedEndDate
+    ? calculateDateDifference(formData.startDate, advancedEndDate).days
+    : currentWorkDuration.days
+
+  const totalMonthsWithOffset = baseTotalMonths + index
+  const yearsWithOffset = Math.floor(totalMonthsWithOffset / 12)
+  const monthsWithOffset = totalMonthsWithOffset % 12
+  // days รวมทั้งสิ้น = current (advanced) + history + training (fixed)
+  const nonCurrentDays = totalExperienceDuration.days - currentWorkDuration.days
+  const daysWithOffset = advancedCurrentDays + nonCurrentDays
+
+  // คำนวณ amount ตาม yearsWithOffset/monthsWithOffset ของหน้านี้
+  const positionCategory = positions.find((p) => p.name === formData.position)?.category ?? ''
+  const pageAmountRaw = positionCategory
+    ? getAmountForProfession(positionCategory, { years: yearsWithOffset, months: monthsWithOffset, days: daysWithOffset })
+    : ''
+  const pageAmountDisplay = typeof pageAmountRaw === 'number' ? convertToThaiNumber(pageAmountRaw) : ''
+  const pageAmountText = typeof pageAmountRaw === 'number' ? numberToThaiText(pageAmountRaw) : ''
+
+  const currentWorkMonthsWithOffset =
+    currentWorkDuration.years * 12 + currentWorkDuration.months + index
+  const currentJobYears = Math.floor(currentWorkMonthsWithOffset / 12)
+  const currentJobMonths = currentWorkMonthsWithOffset % 12
+  const currentJobDays = advancedCurrentDays  // ← เปลี่ยนตามเดือนจริง
+
+
 
 
 

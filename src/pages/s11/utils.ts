@@ -254,7 +254,7 @@ export const aggregateDurations = (durations: { years: number; months: number; d
     m += dur.months
     d += dur.days
   }
-  if (d >= 30) { m += Math.floor(d / 30); d = d % 30 }
+  // ไม่ปัดวันเป็นเดือน — แสดงตามจริง (วันอาจมากกว่า 30 ได้ในกรณีรวมหลายช่วง)
   if (m >= 12) { y += Math.floor(m / 12); m = m % 12 }
   return { years: y, months: m, days: d }
 }
