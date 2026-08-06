@@ -8,7 +8,7 @@ type Unit = {
   image?: { url: string; publicId?: string }
 }
 
-export default function UnitLinks({ embedded = false }: { embedded?: boolean }) {
+export default function UnitLinks({ embedded = false, limit = 24 }: { embedded?: boolean; limit?: number }) {
   // ใช้ useSWR สำหรับ data fetching พร้อม caching
   // ข้อมูล units ไม่ค่อยเปลี่ยน เหมาะกับการ cache นานๆ
   const { data: items, error: fetchError } = useSWR<Unit[]>(
@@ -49,7 +49,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
       ) : null}
       {!items && !fetchError ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
-          {[1, 2, 3, 4, 5, 6].map(i => (
+          {Array.from({ length: limit }).map((_, i) => (
             <div key={i} className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[100px] md:h-[138px]">
               <div className="w-10 h-10 md:w-14 md:h-14 mb-2 md:mb-3 rounded-full bg-slate-100"></div>
               <div className="h-3 md:h-4 w-16 md:w-20 bg-slate-200 rounded"></div>
@@ -58,7 +58,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
         </div>
       ) : null}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
-        {Array.isArray(items) && items.map(u => {
+        {Array.isArray(items) && items.slice(0, limit).map(u => {
           const src = u.image?.url
           const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
           const card = (
@@ -108,7 +108,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
         ) : null}
         {!items && !fetchError ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
+            {Array.from({ length: limit }).map((_, i) => (
               <div key={i} className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white border border-slate-200 rounded-xl animate-pulse h-[100px] md:h-[138px]">
                 <div className="w-10 h-10 md:w-14 md:h-14 mb-2 md:mb-3 rounded-full bg-slate-100"></div>
                 <div className="h-3 md:h-4 w-16 md:w-20 bg-slate-200 rounded"></div>
@@ -117,7 +117,7 @@ export default function UnitLinks({ embedded = false }: { embedded?: boolean }) 
           </div>
         ) : null}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
-          {Array.isArray(items) && items.map(u => {
+          {Array.isArray(items) && items.slice(0, limit).map(u => {
             const src = u.image?.url
             const { src: rsrc, srcSet, sizes } = responsiveImageProps(src, { widths: [160, 240, 320], crop: 'fit' })
             const card = (
