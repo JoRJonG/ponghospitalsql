@@ -23,7 +23,7 @@ export default function PdfViewer({ url, data, className = '', title, onError }:
   const [scale, setScale] = useState<number>(1.1)
   const [isFit, setIsFit] = useState<boolean>(true)
   const [rotate, setRotate] = useState<number>(0)
-  const [showThumbnails, setShowThumbnails] = useState<boolean>(true)
+  const [showThumbnails, setShowThumbnails] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth >= 768 : true)
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -182,7 +182,7 @@ export default function PdfViewer({ url, data, className = '', title, onError }:
       style={{ minHeight: isFullscreen ? '100vh' : '650px' }}
     >
       {/* Primary Toolbar */}
-      <div className="bg-white text-slate-800 px-3.5 py-2 flex items-center justify-between gap-2 flex-wrap z-20 shadow-sm border-b border-slate-200">
+      <div className="bg-white text-slate-800 px-2 sm:px-3.5 py-2 flex flex-wrap items-center justify-center sm:justify-between gap-2 z-20 shadow-sm border-b border-slate-200">
         {/* Left Section: Thumbnails & Page Counter Navigation */}
         <div className="flex items-center gap-2">
           {numPages > 1 && (
@@ -339,7 +339,7 @@ export default function PdfViewer({ url, data, className = '', title, onError }:
       <div className="flex-1 flex overflow-hidden bg-slate-200/80 relative">
         {/* Left Thumbnail Drawer */}
         {showThumbnails && numPages > 1 && (
-          <aside className="w-52 bg-white border-r border-slate-300 p-3 overflow-y-auto flex flex-col gap-3 shrink-0 z-10 animate-fade-in shadow-md">
+          <aside className="absolute md:relative inset-y-0 left-0 w-48 md:w-52 bg-white border-r border-slate-300 p-3 overflow-y-auto flex flex-col gap-3 shrink-0 z-30 animate-fade-in shadow-2xl md:shadow-md">
             <div className="text-xs font-bold text-[#006241] uppercase tracking-wider mb-1 flex items-center justify-between border-b border-slate-200 pb-2">
               <span>สารบัญหน้า</span>
               <span className="bg-emerald-100 text-[#006241] px-2 py-0.5 rounded-full text-[10px]">{numPages} หน้า</span>
@@ -353,7 +353,12 @@ export default function PdfViewer({ url, data, className = '', title, onError }:
                     <button
                       key={`thumb_${pNum}`}
                       type="button"
-                      onClick={() => scrollToPage(pNum)}
+                      onClick={() => {
+                        scrollToPage(pNum)
+                        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                          setShowThumbnails(false)
+                        }
+                      }}
                       className={`group relative rounded-xl p-1.5 border transition-all text-left flex flex-col items-center gap-1.5 ${
                         isSelected
                           ? 'border-[#006241] bg-emerald-50 shadow-md ring-2 ring-[#006241]/20'

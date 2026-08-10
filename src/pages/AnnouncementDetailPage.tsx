@@ -255,9 +255,9 @@ export default function AnnouncementDetailPage() {
                 </h1>
 
                 {/* Meta & Actions Row */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-5 border-t border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-5 border-t border-slate-100">
                   {/* Category, Date, Views */}
-                  <div className="flex items-center flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500 font-medium">
+                  <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-slate-500 font-medium">
                     <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${getCategoryBadgeClass(item.category)}`}>
                       {item.category}
                     </span>
@@ -282,7 +282,7 @@ export default function AnnouncementDetailPage() {
                   </div>
 
                   {/* Share & Copy Actions */}
-                  <div className="flex items-center gap-2 print:hidden">
+                  <div className="flex items-center gap-2 print:hidden self-start sm:self-auto">
                     <button
                       type="button"
                       onClick={handleCopyLink}
