@@ -345,7 +345,7 @@ const S11FormPage = ({
                         maxLength={MAX_INPUT_LENGTH}
                         value={entry.hospital}
                         onChange={(e) => onWorkHistoryChange(entry.id, e)}
-                        placeholder={entry.entryType === 'study' ? 'ชื่อสถาบัน/มหาวิทยาลัย' : 'โรงพยาบาล'}
+                        placeholder={entry.entryType === 'study' ? 'ชื่อสถาบัน/มหาวิทยาลัย' : 'โรงพยาบาล / รพ.สต. / หน่วยงาน'}
                         className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition outline-none"
                       />
                       <input
