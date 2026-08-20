@@ -5,6 +5,7 @@ import type { FormDataState } from './types'
 import { positions } from './constants'
 import {
   convertToThaiNumber,
+  formatThaiAmount,
   formatThaiDate,
   buildTrainingLine,
   calculateDateDifference,
@@ -72,7 +73,7 @@ const S11PrintPage = ({
   const pageAmountRaw = positionCategory
     ? getAmountForProfession(positionCategory, { years: yearsWithOffset, months: monthsWithOffset, days: daysWithOffset })
     : ''
-  const pageAmountDisplay = typeof pageAmountRaw === 'number' ? convertToThaiNumber(pageAmountRaw) : ''
+  const pageAmountDisplay = typeof pageAmountRaw === 'number' ? formatThaiAmount(pageAmountRaw) : ''
   const pageAmountText = typeof pageAmountRaw === 'number' ? numberToThaiText(pageAmountRaw) : ''
 
   const currentWorkMonthsWithOffset =
@@ -87,18 +88,7 @@ const S11PrintPage = ({
 
   const renderHospital = (name: string) => {
     if (!name) return 'โรงพยาบาล............................'
-    const trimmed = name.trim()
-    if (
-      trimmed.startsWith('โรงพยาบาล') ||
-      trimmed.startsWith('รพ.') ||
-      trimmed.startsWith('สำนักงาน') ||
-      trimmed.startsWith('สสจ.') ||
-      trimmed.startsWith('สสอ.') ||
-      trimmed.startsWith('รพ.สต.')
-    ) {
-      return ` ${trimmed} `
-    }
-    return ` โรงพยาบาล${trimmed} `
+    return ` ${name.trim()} `
   }
 
   // ── Work History Items ──────────────────────────────────────

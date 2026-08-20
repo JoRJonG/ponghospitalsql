@@ -22,6 +22,19 @@ export const convertToThaiNumber = (value: number | string | null | undefined): 
     .join('')
 }
 
+/**
+ * แสดงจำนวนเงินพร้อม comma ตามหลักพัน แล้วแปลงตัวเลขเป็นเลขไทย
+ * เช่น 12500 → "๑๒,๕๐๐"
+ */
+export const formatThaiAmount = (value: number | string | null | undefined): string => {
+  if (value === null || value === undefined || value === '') return ''
+  const num = Number(value)
+  if (!Number.isFinite(num)) return ''
+  // จัดรูปแบบด้วย comma ก่อน แล้วแปลงเลขอารบิคเป็นเลขไทย
+  const formatted = num.toLocaleString('th-TH')
+  return convertToThaiNumber(formatted)
+}
+
 // ── Thai Date Utilities ───────────────────────────────────────
 export const formatThaiDate = (isoDate: string): string => {
   if (!isoDate) return ''

@@ -83,6 +83,11 @@ Redirect 301 /sitemap.xml /sitemap.php
     RewriteCond %{HTTP_USER_AGENT} "\$\{jndi:" [NC]
     RewriteRule .* - [F,L]
 
+	# Block CMS Specific Exploits (Joomla, WordPress Plugins, etc.)
+    RewriteCond %{QUERY_STRING} "(option=com_|com_gridbox|task=store\.register|gf_page=)" [NC]
+    RewriteRule .* - [F,L]
+	
+	
     # Block Common SQL Injection & RCE patterns
 	RewriteCond %{QUERY_STRING} "(\.\./|\.\.\\|\.\.\.\.//|etc/passwd|logFile=|redirect_to=)" [NC,OR]
 	RewriteCond %{QUERY_STRING} "(union.*select|insert.*into|update.*set|delete.*from)" [NC,OR]
