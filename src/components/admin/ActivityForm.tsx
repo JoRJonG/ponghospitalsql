@@ -139,7 +139,6 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
     try {
       let r: Response
       const token = getToken()
-      if (!token) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณาเข้าสู่ระบบใหม่', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); logout(); return }
 
       if (initialData?._id) {
         // Edit mode: PUT JSON
@@ -161,6 +160,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
 
         r = await fetch(endpoint, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Authorization': `Bearer ${token}` },
           body: fd
         })
@@ -188,6 +188,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
             for (const f of pendingFiles) fd.append('images', f)
             r = await fetch(endpoint, {
               method: 'POST',
+              credentials: 'include',
               headers: { 'Authorization': `Bearer ${newToken}` },
               body: fd
             })

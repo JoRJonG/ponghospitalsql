@@ -18,10 +18,7 @@ export default function ThaIDSettings() {
         try {
             const token = getToken()
 
-            if (!token) {
-                // อาจจะ redirect ไป login หรือแสดง error
-                return
-            }
+
 
             setFetching(true)
             setError(null)
