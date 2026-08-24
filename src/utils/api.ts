@@ -91,10 +91,12 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
       } else if (errorData.code === 'INACTIVITY_TIMEOUT') {
         console.log('Session expired due to inactivity, logging out...')
         localStorage.removeItem('ph_admin_user')
-        // Trigger logout by dispatching custom event
         window.dispatchEvent(new CustomEvent('auth:logout'))
-        // Show alert to user
         Swal.fire('แจ้งเตือน', 'เซสชันหมดอายุเนื่องจากไม่มีการใช้งานเกิน 30 นาที กรุณาเข้าสู่ระบบใหม่', 'warning')
+      } else {
+        console.log('Unauthorized access, logging out...')
+        localStorage.removeItem('ph_admin_user')
+        window.dispatchEvent(new CustomEvent('auth:logout'))
       }
     } catch (error) {
       console.error('Error during token refresh:', error)

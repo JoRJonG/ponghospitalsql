@@ -23,18 +23,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Initialize from localStorage synchronously so refresh doesn't cause a false redirect
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     try {
-      // Check for session cookie to detect browser restart
-      const hasSession = document.cookie.split(';').some((c) => c.trim().startsWith('ph_admin_session_active='))
-
-      if (!hasSession) {
-        // Browser was closed, clear persistent storage
-        localStorage.removeItem('ph_admin_user')
-        return false
-      }
-
-      return true
+      const rawUser = localStorage.getItem('ph_admin_user')
+      return Boolean(rawUser)
     } catch (error) {
-      console.warn('[auth] read token failed', error)
+      console.warn('[auth] read user from storage failed', error)
       return false
     }
   })

@@ -28,6 +28,9 @@ export function useAuthFetch(): Fetcher {
             logout()
             throw new Error('Session expired')
           }
+        } else {
+          logout()
+          throw new Error('Unauthorized access')
         }
       } catch (error) {
         console.warn('authFetch: failed to refresh token', error)
