@@ -6,46 +6,33 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
  * รับ token จาก query parameter แล้ว redirect ไป dashboard
  */
 export default function LoginSuccessPage() {
-    const [searchParams] = useSearchParams()
     const navigate = useNavigate()
 
     useEffect(() => {
-        const token = searchParams.get('token')
-
-        if (token) {
+        const checkSession = async () => {
             try {
-                // เก็บ token ใน localStorage
-                localStorage.setItem('ph_admin_token', token)
-
-                // Decode JWT เพื่อดึงข้อมูล user (ไม่ต้อง verify signature เพราะมาจาก backend ของเราเอง)
-                const payload = JSON.parse(atob(token.split('.')[1]))
-
-                if (payload.username) {
-                    const user = {
-                        username: payload.username,
-                        roles: payload.roles || [],
-                        permissions: payload.permissions || []
+                const r = await fetch('/api/auth/me', { credentials: 'include' })
+                if (r.ok) {
+                    const data = await r.json()
+                    if (data.user) {
+                        localStorage.setItem('ph_admin_user', JSON.stringify(data.user))
+                        setTimeout(() => {
+                            window.location.replace('/admin')
+                        }, 1000)
+                    } else {
+                        navigate('/login?error=no_user', { replace: true })
                     }
-                    localStorage.setItem('ph_admin_user', JSON.stringify(user))
+                } else {
+                    navigate('/login?error=auth_failed', { replace: true })
                 }
-
-                // Set session cookie
-                document.cookie = 'ph_admin_session_active=true; path=/'
-
-                // Redirect ไปหน้า Dashboard หลังจาก 1 วินาที
-                setTimeout(() => {
-                    // Force reload to update AuthContext state from localStorage
-                    window.location.replace('/admin')
-                }, 1000)
             } catch (error) {
-                console.error('[ThaID] Token parsing failed:', error)
-                navigate('/login?error=invalid_token', { replace: true })
+                console.error('[ThaID] Session fetch failed:', error)
+                navigate('/login?error=invalid_session', { replace: true })
             }
-        } else {
-            // ถ้าไม่มี token ให้กลับไปหน้า login
-            navigate('/login?error=no_token', { replace: true })
         }
-    }, [searchParams, navigate])
+
+        checkSession()
+    }, [navigate])
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">

@@ -41,12 +41,7 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
   const makeRequest = async (includeAuth = true): Promise<Response> => {
     const headers: Record<string, string> = { ...options.headers as Record<string, string> }
 
-    if (includeAuth) {
-      const token = localStorage.getItem('ph_admin_token')
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-    }
+    // Use HttpOnly cookie for auth (credentials: 'include')
 
     return fetch(buildApiUrl(url), {
       ...options,
@@ -74,7 +69,6 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
 
         if (refreshResponse.ok) {
           const refreshData = await refreshResponse.json()
-          localStorage.setItem('ph_admin_token', refreshData.token)
           if (refreshData.user && typeof refreshData.user.username === 'string') {
             const roles = Array.isArray(refreshData.user.roles) ? refreshData.user.roles : []
             const permissions = Array.isArray(refreshData.user.permissions) ? refreshData.user.permissions : []
@@ -90,14 +84,12 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
           response = await makeRequest() // Retry with new token
         } else {
           console.log('Token refresh failed, clearing token')
-          localStorage.removeItem('ph_admin_token')
           localStorage.removeItem('ph_admin_user')
           // Trigger logout by dispatching custom event
           window.dispatchEvent(new CustomEvent('auth:logout'))
         }
       } else if (errorData.code === 'INACTIVITY_TIMEOUT') {
         console.log('Session expired due to inactivity, logging out...')
-        localStorage.removeItem('ph_admin_token')
         localStorage.removeItem('ph_admin_user')
         // Trigger logout by dispatching custom event
         window.dispatchEvent(new CustomEvent('auth:logout'))
@@ -106,7 +98,6 @@ export async function apiRequest(url: string, options: RequestInit = {}): Promis
       }
     } catch (error) {
       console.error('Error during token refresh:', error)
-      localStorage.removeItem('ph_admin_token')
       localStorage.removeItem('ph_admin_user')
       window.dispatchEvent(new CustomEvent('auth:logout'))
     }

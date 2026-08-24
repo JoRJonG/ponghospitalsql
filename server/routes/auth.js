@@ -124,6 +124,17 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
   }
 })
 
+// Get current user session
+router.get('/me', requireAuth, (req, res) => {
+  res.json({
+    user: {
+      username: req.user.username,
+      roles: req.user.roles || [],
+      permissions: req.user.permissions || []
+    }
+  })
+})
+
 export default router
 
 // Refresh access token using refresh token

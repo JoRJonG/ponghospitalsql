@@ -22,7 +22,6 @@ const dbConfig = {
   waitForConnections: true,
   // Increased timeout for BLOB operations
   connectTimeout: 120000, // 2 minutes
-  acquireTimeout: 120000, // 2 minutes to acquire connection
 
   // Keep connection alive for long operations
   enableKeepAlive: true,

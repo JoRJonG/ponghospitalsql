@@ -56,7 +56,7 @@ export async function createServer() {
       if (allowed.includes(origin)) return cb(null, true)
       return cb(new Error('CORS blocked'), false)
     },
-    credentials: false,
+    credentials: true,
   }))
   // Global rate limiting to prevent abuse
   app.use(apiLimiter)
@@ -130,6 +130,18 @@ export async function createServer() {
   app.use(validateOrigin)
   // Bot/Scanner Protection
   app.use(botBlocker)
+
+  // Global Safeguard: Request Timeout (60 seconds)
+  // ป้องกัน Request ค้างนานเกินไป จนทำให้ Event Loop หรือ DB Connection ค้างตาม
+  app.use((req, res, next) => {
+    res.setTimeout(60000, () => {
+      logger.error(`[Safeguard] Request Timeout (60s) on ${req.method} ${req.originalUrl}`)
+      if (!res.headersSent) {
+        res.status(408).json({ error: 'Request Timeout', details: 'The server took too long to respond (60s limit).' })
+      }
+    })
+    next()
+  })
 
   // Force browser to revalidate API responses (304 support)
   app.use('/api', (req, res, next) => {

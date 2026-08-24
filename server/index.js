@@ -4,6 +4,17 @@ import http from 'http'
 import fs from 'fs'
 import path from 'path'
 
+// Global Safeguards for Uncaught Errors (Prevent Node from hanging in bad states)
+process.on('uncaughtException', (err) => {
+  console.error('🔥 [Safeguard] UNCAUGHT EXCEPTION! Shutting down...', err)
+  process.exit(1) // Hostatom (Passenger) will automatically restart the process
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ [Safeguard] UNHANDLED REJECTION! Shutting down...', reason)
+  process.exit(1)
+})
+
 const PORT = process.env.PORT || 5000
 const HTTPS_PORT = process.env.HTTPS_PORT || 5443
 const USE_HTTPS = process.env.USE_HTTPS === 'true' && process.env.NODE_ENV !== 'plesk'

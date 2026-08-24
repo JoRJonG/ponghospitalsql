@@ -28,14 +28,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!hasSession) {
         // Browser was closed, clear persistent storage
-        localStorage.removeItem('ph_admin_token')
         localStorage.removeItem('ph_admin_user')
-        // Set session cookie
-        document.cookie = 'ph_admin_session_active=true; path=/'
         return false
       }
 
-      return Boolean(localStorage.getItem('ph_admin_token'))
+      return true
     } catch (error) {
       console.warn('[auth] read token failed', error)
       return false
@@ -67,7 +64,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.warn('[auth] logout request failed', error)
     }
-    localStorage.removeItem('ph_admin_token')
     localStorage.removeItem('ph_admin_user')
     setIsAuthenticated(false)
     setUser(null)
@@ -76,9 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Keep auth state in sync across tabs/windows
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === 'ph_admin_token') {
-        setIsAuthenticated(Boolean(e.newValue))
-      }
       if (e.key === 'ph_admin_user') {
         try {
           if (e.newValue) {
@@ -119,8 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout() // Clear state if refresh fails
         return false
       }
-      const data = await r.json() as { token: string; user?: AuthUser }
-      localStorage.setItem('ph_admin_token', data.token)
+      const data = await r.json() as { token?: string; user?: AuthUser }
       setIsAuthenticated(true)
       if (data.user) {
         const payload = {
@@ -162,8 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ username, password })
       })
       if (!r.ok) return false
-      const data = await r.json() as { token: string; user?: AuthUser }
-      localStorage.setItem('ph_admin_token', data.token)
+      const data = await r.json() as { token?: string; user?: AuthUser }
       setIsAuthenticated(true)
       if (data.user) {
         const payload = {
@@ -183,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false
     }
   }
-  const getToken = () => localStorage.getItem('ph_admin_token')
+  const getToken = () => ""
 
   const hasPermission = useCallback((permission: string) => {
     if (!permission || !user) return false

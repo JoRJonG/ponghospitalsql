@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-
+import { sanitize } from '../utils/sanitize'
 const PdfViewer = lazy(() => import('./PdfViewer'))
 
 type Document = {
@@ -189,7 +189,7 @@ export default function DocumentCategoryView({ category, apiEndpoint = '/api/doc
                             <article className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col">
                                 {selectedDoc.description && (
                                     <div className="px-6 py-4 prose max-w-none text-gray-700 bg-gray-50/50 border-b border-gray-100">
-                                        <div dangerouslySetInnerHTML={{ __html: selectedDoc.description }} />
+                                        <div dangerouslySetInnerHTML={sanitize(selectedDoc.description)} />
                                     </div>
                                 )}
 

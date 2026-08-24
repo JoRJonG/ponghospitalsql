@@ -216,7 +216,7 @@ router.get('/callback', async (req, res) => {
         if (savedState.linkMode) {
             res.redirect('/admin/settings?thaid_linked=success')
         } else {
-            res.redirect(`/login-success?token=${jwtToken}`)
+            res.redirect('/login-success')
         }
 
     } catch (error) {
