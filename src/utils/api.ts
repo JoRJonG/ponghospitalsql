@@ -38,7 +38,7 @@ export function buildApiUrl(path: string, options?: BuildOptions): string {
 
 // Wrapper function for API calls with auto token refresh
 export async function apiRequest(url: string, options: RequestInit = {}): Promise<Response> {
-  const makeRequest = async (includeAuth = true): Promise<Response> => {
+  const makeRequest = async (): Promise<Response> => {
     const headers: Record<string, string> = { ...options.headers as Record<string, string> }
 
     // Use HttpOnly cookie for auth (credentials: 'include')
