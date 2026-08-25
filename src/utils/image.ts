@@ -9,8 +9,9 @@ type TransformOpts = {
   format?: 'auto' | 'jpg' | 'png' | 'webp' | 'avif'
 }
 
-export function isCloudinaryUrl(url?: string): boolean {
-  if (!url) return false
+export function isCloudinaryUrl(url?: any): boolean {
+  if (url && typeof url === 'object' && typeof url.url === 'string') url = url.url
+  if (typeof url !== 'string' || !url) return false
   try {
     const { hostname } = new URL(url)
     return hostname.includes('res.cloudinary.com')
@@ -62,7 +63,10 @@ export function nonCdnSrcSet(url: string, widths: number[]): string | undefined 
 }
 
 // For remote images, we can try to add width/quality hints in query if supported.
-export function nonCdnResponsiveUrl(url: string, w?: number): string {
+export function nonCdnResponsiveUrl(url: any, w?: number): string {
+  if (url && typeof url === 'object' && typeof url.url === 'string') url = url.url
+  if (typeof url !== 'string' || !url) return ''
+  
   try {
     // Handle relative URLs (local API)
     if (url.startsWith('/api/images/') || url.startsWith('http')) {
@@ -102,11 +106,13 @@ export function nonCdnResponsiveUrl(url: string, w?: number): string {
 
 type ResponsiveImageOptions = { widths?: number[]; sizes?: string; h?: number; crop?: TransformOpts['crop'] }
 
-export function responsiveImageProps(url?: string, opts?: ResponsiveImageOptions) {
+export function responsiveImageProps(url?: any, opts?: ResponsiveImageOptions) {
+  if (url && typeof url === 'object' && typeof url.url === 'string') url = url.url
+  if (typeof url !== 'string' || !url) return { src: undefined, srcSet: undefined, sizes: undefined as string | undefined }
+
   // Use more efficient default steps and sizes for a typical grid
   const widths = opts?.widths ?? [320, 640, 800, 1024, 1280]
   const sizes = opts?.sizes ?? '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw'
-  if (!url) return { src: undefined, srcSet: undefined, sizes: undefined as string | undefined }
 
   if (isCloudinaryUrl(url)) {
     const src = cloudinaryTransform(url, { w: Math.max(...widths), h: opts?.h, crop: opts?.crop, format: 'auto', quality: 'auto:good' })
