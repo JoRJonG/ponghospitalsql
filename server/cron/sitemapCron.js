@@ -62,7 +62,7 @@ export async function generateSitemap() {
         SELECT id, updated_at, published_at 
         FROM announcements 
         WHERE is_published = 1 AND (published_at IS NULL OR published_at <= NOW()) 
-        ORDER BY id DESC
+        ORDER BY id DESC LIMIT 2000
       `)
       for (const item of announcements) {
         dynamicUrls.push({
@@ -82,7 +82,7 @@ export async function generateSitemap() {
         SELECT id, updated_at, created_at 
         FROM activities 
         WHERE is_published = 1 
-        ORDER BY id DESC
+        ORDER BY id DESC LIMIT 2000
       `)
       for (const item of activities) {
         dynamicUrls.push({
