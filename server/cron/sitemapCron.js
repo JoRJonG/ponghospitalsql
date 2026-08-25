@@ -96,25 +96,7 @@ export async function generateSitemap() {
       logger.warn('[SitemapCron] Could not fetch activities for sitemap:', e.message)
     }
 
-    // 4. Fetch PR Posters
-    try {
-      const posters = await query(`
-        SELECT id, updated_at, created_at 
-        FROM pr_posters 
-        WHERE is_published = 1 
-        ORDER BY id DESC
-      `)
-      for (const item of posters) {
-        dynamicUrls.push({
-          loc: `${siteUrl}/pr-posters/${item.id}`,
-          priority: '0.65',
-          changefreq: 'weekly',
-          lastmod: formatDateISO(item.updated_at || item.created_at)
-        })
-      }
-    } catch (e) {
-      logger.warn('[SitemapCron] Could not fetch PR posters for sitemap:', e.message)
-    }
+
 
 
 
