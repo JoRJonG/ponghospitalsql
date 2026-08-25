@@ -268,9 +268,27 @@ export async function createServer() {
     return modified
   }
 
+  // Helper to check if request is from a social bot
+  const isSocialBot = (userAgent) => {
+    if (!userAgent) return false
+    const bots = [
+      'facebookexternalhit',
+      'Twitterbot',
+      'LINE-p2',
+      'WhatsApp',
+      'LinkedInBot',
+      'TelegramBot',
+      'Googlebot'
+    ]
+    const ua = userAgent.toLowerCase()
+    return bots.some(bot => ua.includes(bot.toLowerCase()))
+  }
+
   // Server-side rendering for Open Graph tags (Activities)
   app.get('/activities/:id', async (req, res, next) => {
     if (req.path.startsWith('/api')) return next()
+    if (!isSocialBot(req.headers['user-agent'])) return next()
+    
     try {
       const activity = await Activity.findById(req.params.id)
       if (!activity) return next()
@@ -297,6 +315,7 @@ export async function createServer() {
   // Server-side rendering for Open Graph tags (Announcements)
   app.get(['/announcement/:id', '/announcements/:id'], async (req, res, next) => {
     if (req.path.startsWith('/api')) return next()
+    if (!isSocialBot(req.headers['user-agent'])) return next()
 
     try {
       const announcement = await Announcement.findById(req.params.id)
@@ -325,26 +344,7 @@ export async function createServer() {
     }
   })
 
-  // Server-side rendering for Open Graph tags (PR Posters)
-  app.get('/pr-posters/:id', async (req, res, next) => {
-    if (req.path.startsWith('/api')) return next()
-    try {
-      const { PRPosterService } = await import('./services/PRPosterService.js')
-      const poster = await PRPosterService.getMetadata(req.params.id)
-      if (!poster) return next()
 
-      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
-      const title = poster.title || 'สื่อประชาสัมพันธ์ โรงพยาบาลปง'
-      const description = poster.description || 'ประชาสัมพันธ์ข้อมูลและกิจกรรมสำคัญ โรงพยาบาลปง'
-      const image = `${req.protocol}://${req.get('host')}/api/images/pr-posters/${req.params.id}`
-      const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-
-      html = injectMetaTags(html, { title, description, image, url, type: 'article' })
-      res.send(html)
-    } catch (e) {
-      next()
-    }
-  })
 
   // Serve built frontend (Vite output) if present
   app.use(express.static(distPath, {
