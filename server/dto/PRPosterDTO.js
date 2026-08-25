@@ -1,16 +1,29 @@
-export const toPRPosterDTO = (row) => {
-    const safelyConvertBoolean = (val) => {
-        if (Buffer.isBuffer(val)) return val[0] === 1
-        if (typeof val === 'number') return val === 1
-        if (typeof val === 'string') return val === '1' || val.toLowerCase() === 'true'
-        return Boolean(val)
-    }
-
-    return {
-        _id: row.id,
-        title: row.title,
-        imageUrl: `/api/images/pr-posters/${row.id}?t=${new Date(row.updated_at).getTime()}`,
-        displayOrder: row.display_order,
-        isPublished: safelyConvertBoolean(row.is_published)
-    }
+export const toPublicDTO = (row) => {
+  return {
+    _id: row._id || row.id,
+    title: row.title || '',
+    description: row.description || '',
+    image: {
+      url: row.image?.url || row.imageUrl || ''
+    },
+    order: row.order ?? row.displayOrder ?? row.display_order ?? 0
+  }
 }
+
+export const toAdminDTO = (row) => {
+  return {
+    _id: row._id || row.id,
+    title: row.title || '',
+    description: row.description || '',
+    image: {
+      url: row.image?.url || row.imageUrl || ''
+    },
+    displayOrder: row.displayOrder ?? row.display_order ?? 0,
+    isPublished: Boolean(row.isPublished ?? row.is_published ?? true),
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at
+  }
+}
+
+export const toPublicDTOList = (rows) => rows.map(toPublicDTO)
+export const toAdminDTOList = (rows) => rows.map(toAdminDTO)

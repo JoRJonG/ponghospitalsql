@@ -312,17 +312,18 @@ export class ItaItem {
   }
 }
 
-async function saveFileToDisk(buffer, filename) {
+async function saveFileToDisk(tempFilePath, filename) {
   const ext = path.extname(filename) || '.bin'
   const uniqueName = `${crypto.randomUUID()}${ext}`
   const filePath = path.join(UPLOAD_DIR, uniqueName)
-  await fs.writeFile(filePath, buffer)
+  await ensureUploadDir()
+  await fs.copyFile(tempFilePath, filePath)
   return uniqueName // Store relative filename
 }
 
-export async function saveItaPdf({ filename, mimetype, buffer, description = null }) {
+export async function saveItaPdf({ filename, mimetype, tempFilePath, description = null }) {
   await ensurePdfTable()
-  const storedFilename = await saveFileToDisk(buffer, filename)
+  const storedFilename = await saveFileToDisk(tempFilePath, filename)
   // Use NULL for bytes to save space
   const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, file_path, description) VALUES (?,?,NULL,?,?)', [filename, mimetype, storedFilename, description])
   return { id: result.insertId }
@@ -370,9 +371,9 @@ export async function getItaPdfByFilename(filename) {
   return { id: r.id, filename: r.filename, mimetype: r.mimetype, bytes: fileData, description: r.description }
 }
 
-export async function attachPdfToItem(itemId, { filename, mimetype, buffer, description = null }) {
+export async function attachPdfToItem(itemId, { filename, mimetype, tempFilePath, description = null }) {
   await ensurePdfTable()
-  const storedFilename = await saveFileToDisk(buffer, filename)
+  const storedFilename = await saveFileToDisk(tempFilePath, filename)
   const result = await exec('INSERT INTO ita_files (filename, mimetype, bytes, file_path, ita_item_id, description) VALUES (?,?,NULL,?,?,?)', [filename, mimetype, storedFilename, itemId, description])
   return { id: result.insertId }
 }

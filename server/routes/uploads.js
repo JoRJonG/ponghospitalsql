@@ -1,13 +1,15 @@
 import { Router } from 'express'
-import multer from 'multer'
+import { createUploadMiddleware } from '../middleware/upload.js'
 import sharp from 'sharp'
 import { requireAuth } from '../middleware/auth.js'
 import { exec } from '../database.js'
 import crypto from 'crypto'
 import { uploadLimiter } from '../middleware/ratelimit.js'
-import { fileTypeFromBuffer } from 'file-type'
+import { fileTypeFromFile } from 'file-type'
 import { decodeUploadFilename } from '../utils/filename.js'
 import { logger } from '../utils/logger.js'
+import { cleanTempFile } from '../middleware/upload.js'
+import fs from 'fs/promises'
 
 const router = Router()
 
@@ -39,17 +41,8 @@ async function optimizeImage(buffer, mimetype) {
     return buffer
   }
 }
-const upload = multer({ 
-  storage: multer.memoryStorage(), 
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
-  fileFilter: (req, file, cb) => {
-    // Allow images and PDFs
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true)
-    } else {
-      cb(new Error('Only images and PDF files are allowed'))
-    }
-  }
+const upload = createUploadMiddleware({
+  maxSize: 50 * 1024 * 1024 // 50MB limit
 })
 
 // Wrapper to run multer single upload and return JSON errors instead of HTML
@@ -85,17 +78,20 @@ router.post('/image', requireAuth, uploadTimeout, uploadSingle('file'), async (r
     }
     
     // Sniff actual type
-    const kind = await fileTypeFromBuffer(req.file.buffer)
+    const kind = await fileTypeFromFile(req.file.path)
     const okMime = req.file.mimetype.startsWith('image/') && kind && kind.mime.startsWith('image/')
     if (!okMime) {
       return res.status(400).json({ error: 'Invalid image file' })
     }
     
+    // Read file into buffer
+    const fileBuffer = await fs.readFile(req.file.path)
+
     // Optimize image (skip for very large files to avoid timeout)
-    let optimizedBuffer = req.file.buffer
+    let optimizedBuffer = fileBuffer
     if (req.file.size < 10 * 1024 * 1024) { // Only optimize files < 10MB
       try {
-        optimizedBuffer = await optimizeImage(req.file.buffer, req.file.mimetype)
+        optimizedBuffer = await optimizeImage(fileBuffer, req.file.mimetype)
       } catch (optError) {
         console.warn('Image optimization failed, using original:', optError.message)
         // Continue with original buffer
@@ -129,6 +125,8 @@ router.post('/image', requireAuth, uploadTimeout, uploadSingle('file'), async (r
   } catch (e) {
     console.error('Upload error:', e)
     res.status(500).json({ error: 'Upload failed', details: e.message })
+  } finally {
+    if (req.file) await cleanTempFile(req.file)
   }
 })
 
@@ -136,7 +134,7 @@ router.post('/image', requireAuth, uploadTimeout, uploadSingle('file'), async (r
 router.post('/file', requireAuth, uploadTimeout, uploadSingle('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file' })
-    const kind = await fileTypeFromBuffer(req.file.buffer)
+    const kind = await fileTypeFromFile(req.file.path)
     const isPdf = req.file.mimetype === 'application/pdf' || kind?.mime === 'application/pdf'
     const isImg = req.file.mimetype.startsWith('image/') && kind && kind.mime.startsWith('image/')
     if (!isPdf && !isImg) {
@@ -144,7 +142,8 @@ router.post('/file', requireAuth, uploadTimeout, uploadSingle('file'), async (re
     }
     
     const uploadId = crypto.randomUUID()
-    const base64 = req.file.buffer.toString('base64')
+    const fileBuffer = await fs.readFile(req.file.path)
+    const base64 = fileBuffer.toString('base64')
     const dataUrl = `data:${req.file.mimetype};base64,${base64}`
     
   const filename = decodeUploadFilename(req.file.originalname)
@@ -158,6 +157,8 @@ router.post('/file', requireAuth, uploadTimeout, uploadSingle('file'), async (re
     logger.info('File uploaded', { type: isPdf ? 'pdf' : 'file', filename: req.file.originalname, size: req.file.size, ip: req.ip, user: req.user?.username })
   } catch (e) {
     res.status(500).json({ error: 'Upload failed', details: e.message })
+  } finally {
+    if (req.file) await cleanTempFile(req.file)
   }
 })
 

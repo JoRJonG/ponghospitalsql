@@ -17,6 +17,24 @@ export function decodeUploadFilename(original) {
   }
 }
 
+import iconv from 'iconv-lite'
+
+export function normalizeFilename(name) {
+  if (!name) return name
+  try {
+    const raw = Buffer.from(String(name), 'binary')
+    let decoded = raw.toString('utf8')
+    const looksBad = decoded.includes('\uFFFD') || /\?{2,}/.test(decoded) || !(/[\u0E00-\u0E7F]/.test(decoded) || /[A-Za-z0-9]/.test(decoded))
+    if (looksBad) {
+      const alt = iconv.decode(raw, 'windows-874')
+      if (/[\u0E00-\u0E7F]/.test(alt)) decoded = alt
+    }
+    return decoded
+  } catch (e) {
+    return name
+  }
+}
+
 export function sanitizeAsciiFallback(name) {
   if (!name || typeof name !== 'string') return 'file';
   

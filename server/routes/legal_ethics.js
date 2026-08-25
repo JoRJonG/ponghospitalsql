@@ -1,5 +1,5 @@
 import express from 'express'
-import multer from 'multer'
+import { createUploadMiddleware, cleanTempFile } from '../middleware/upload.js'
 import path from 'path'
 import fs from 'fs/promises'
 import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
@@ -38,9 +38,8 @@ initSystem()
 
 // ตั้งค่า multer สำหรับอัปโหลด
 // ใช้ configuration ให้คล้ายกับ pr_plans.js มากที่สุด
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: MAX_FILE_SIZE }
+const upload = createUploadMiddleware({
+    maxSize: MAX_FILE_SIZE
 })
 
 // ดึงรายการทั้งหมด (Public)
@@ -179,7 +178,7 @@ router.post('/', requireAuth, requirePermission('legal_ethics'), upload.single('
         const filePath = path.join(UPLOAD_DIR, safeFileName)
 
         // บันทึกไฟล์ลงโฟลเดอร์ร
-        await fs.writeFile(filePath, req.file.buffer)
+        await fs.copyFile(req.file.path, filePath)
 
         // เก็บ relative path ในฐานข้อมูล
         const relativePath = path.join('uploads', 'legal_ethics', safeFileName).replace(/\\/g, '/')
@@ -205,6 +204,8 @@ router.post('/', requireAuth, requirePermission('legal_ethics'), upload.single('
     } catch (error) {
         console.error('Upload error:', error)
         res.status(500).json({ error: error.message || 'ไม่สามารถอัปโหลดไฟล์ได้' })
+    } finally {
+        if (req.file) await cleanTempFile(req.file)
     }
 })
 
@@ -239,7 +240,7 @@ router.put('/:id', requireAuth, requirePermission('legal_ethics'), upload.single
             const safeFileName = `${timestamp}-${randomStr}${ext}`
             const filePath = path.join(UPLOAD_DIR, safeFileName)
 
-            await fs.writeFile(filePath, req.file.buffer)
+            await fs.copyFile(req.file.path, filePath)
 
             const relativePath = path.join('uploads', 'legal_ethics', safeFileName).replace(/\\/g, '/')
 
@@ -250,20 +251,19 @@ router.put('/:id', requireAuth, requirePermission('legal_ethics'), upload.single
 
             // ลบไฟล์เก่า
             try {
-                const oldPath = await LegalEthics.getFilePath(id)
-                if (oldPath && oldPath.file_path) {
-                    await fs.unlink(path.resolve(oldPath.file_path))
-                }
-            } catch (err) {
-                console.warn('Failed to delete old file:', err)
-            }
+                const old = await LegalEthics.getFilePath(id)
+                if (old?.file_path) await fs.unlink(path.resolve(old.file_path))
+            } catch (err) { console.warn('Old file delete fail:', err) }
         }
 
-        const updatedDoc = await LegalEthics.findByIdAndUpdate(id, updates)
-        res.json({ message: 'อัปเดตข้อมูลสำเร็จ', doc: toAdminDTO(updatedDoc) })
+        const updated = await LegalEthics.findByIdAndUpdate(id, updates)
+        res.json({ message: 'อัปเดตสำเร็จ', doc: toAdminDTO(updated) })
+
     } catch (error) {
         console.error('Update error:', error)
-        res.status(500).json({ error: 'ไม่สามารถอัปเดตข้อมูลได้' })
+        res.status(500).json({ error: 'อัปเดตไม่สำเร็จ' })
+    } finally {
+        if (req.file) await cleanTempFile(req.file)
     }
 })
 

@@ -325,8 +325,18 @@ export class Announcement {
           let fileSize = attachment.bytes || 0
           let fileName = attachment.name || `file_${Date.now()}`
 
-          // แปลง data URL เป็น Buffer และบันทึกลง Disk
-          if (attachment.url && attachment.url.startsWith('data:')) {
+          // แปลง data URL เป็น Buffer และบันทึกลง Disk หรือย้ายไฟล์จาก Temp
+          if (attachment.tempFilePath) {
+            // New optimized flow: file is already on disk, just rename/copy it
+            const ext = path.extname(fileName) || '.bin'
+            const uniqueName = `${crypto.randomUUID()}${ext}`
+            const destPath = path.join(UPLOAD_DIR, uniqueName)
+            await ensureUploadDir()
+            await fs.copyFile(attachment.tempFilePath, destPath)
+            filePath = uniqueName
+            // Clean up the temp file
+            try { await fs.unlink(attachment.tempFilePath) } catch (e) { }
+          } else if (attachment.url && attachment.url.startsWith('data:')) {
             const matches = attachment.url.match(/^data:([^;]+);base64,(.+)$/)
             if (matches) {
               mimeType = matches[1]
@@ -339,7 +349,7 @@ export class Announcement {
               throw new Error(`Invalid base64 data URL for attachment: ${fileName}`)
             }
           } else {
-            console.warn(`[Announcement] Skipping invalid attachment URL in create: ${attachment.url}`)
+            console.warn(`[Announcement] Skipping invalid attachment URL in create: ${attachment.url || 'no url/path'}`)
             throw new Error(`Invalid attachment format: ${fileName}`)
           }
 

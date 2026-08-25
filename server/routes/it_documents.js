@@ -1,5 +1,5 @@
 import express from 'express'
-import multer from 'multer'
+import { createUploadMiddleware, cleanTempFile } from '../middleware/upload.js'
 import path from 'path'
 import fs from 'fs/promises'
 import { requireAuth, optionalAuth, requirePermission, userHasPermission } from '../middleware/auth.js'
@@ -35,9 +35,8 @@ const initSystem = async () => {
 }
 initSystem()
 
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: MAX_FILE_SIZE }
+const upload = createUploadMiddleware({
+    maxSize: MAX_FILE_SIZE
 })
 
 // GET / (Public/Admin)
@@ -122,7 +121,7 @@ router.post('/', requireAuth, requirePermission('it_docs'), upload.single('file'
             const safeFileName = `${timestamp}-${randomStr}${path.extname(decodedName)}`
             const fullPath = path.join(UPLOAD_DIR, safeFileName)
 
-            await fs.writeFile(fullPath, req.file.buffer)
+            await fs.copyFile(req.file.path, fullPath)
 
             filePath = path.join('uploads', 'it_center', safeFileName).replace(/\\/g, '/')
             fileName = decodedName
@@ -145,6 +144,8 @@ router.post('/', requireAuth, requirePermission('it_docs'), upload.single('file'
     } catch (error) {
         console.error('IT Document upload error:', error)
         res.status(500).json({ error: error.message || 'อัปโหลดไม่สำเร็จ' })
+    } finally {
+        if (req.file) await cleanTempFile(req.file)
     }
 })
 
@@ -171,7 +172,7 @@ router.put('/:id', requireAuth, requirePermission('it_docs'), upload.single('fil
             const safeFileName = `${timestamp}-${randomStr}${path.extname(decodedName)}`
             const filePath = path.join(UPLOAD_DIR, safeFileName)
 
-            await fs.writeFile(filePath, req.file.buffer)
+            await fs.copyFile(req.file.path, filePath)
             updates.filePath = path.join('uploads', 'it_center', safeFileName).replace(/\\/g, '/')
             updates.fileName = decodedName
             updates.mimeType = req.file.mimetype
@@ -189,6 +190,8 @@ router.put('/:id', requireAuth, requirePermission('it_docs'), upload.single('fil
     } catch (error) {
         console.error('IT Document update error:', error)
         res.status(500).json({ error: 'อัปเดตไม่สำเร็จ' })
+    } finally {
+        if (req.file) await cleanTempFile(req.file)
     }
 })
 
