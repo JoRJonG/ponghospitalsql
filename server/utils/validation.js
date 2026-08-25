@@ -103,14 +103,14 @@ export const banIpSchema = Joi.object({
 
 export const popupSchema = Joi.object({
   title: Joi.string().min(1).max(200).required(),
-  body: Joi.string().min(1).max(5000).required(),
+  body: Joi.string().allow('', null).max(10000).optional(),
   startAt: Joi.alternatives().try(Joi.string(), Joi.date()).optional().allow('', null),
   endAt: Joi.alternatives().try(Joi.string(), Joi.date()).optional().allow('', null),
   dismissForDays: Joi.alternatives().try(Joi.number(), Joi.string()).optional(),
   isActive: Joi.alternatives().try(Joi.boolean(), Joi.number(), Joi.string().valid('true', 'false', '1', '0')).optional(),
-  ctaLabel: Joi.string().allow('', null).max(100).optional(),
-  ctaUrl: Joi.string().uri().allow('', null).optional(),
-  imageUrl: Joi.string().uri().allow('', null).optional(),
+  ctaLabel: Joi.string().allow('', null).max(200).optional(),
+  ctaUrl: Joi.string().allow('', null).optional(),
+  imageUrl: Joi.string().allow('', null).optional(),
   removeImage: Joi.alternatives().try(Joi.boolean(), Joi.number(), Joi.string().valid('true', 'false', '1', '0')).optional()
 }).unknown(true)
 
