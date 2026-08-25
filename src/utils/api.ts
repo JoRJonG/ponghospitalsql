@@ -22,16 +22,15 @@ export function getApiBase(preferBackend = false): string {
   return ''
 }
 
-export function buildApiUrl(path: string, options?: BuildOptions): string {
+export function buildApiUrl(path?: string, options?: BuildOptions): string {
+  if (!path || typeof path !== 'string') {
+    return ''
+  }
   if (/^https?:\/\//i.test(path)) {
     return path
   }
   const base = getApiBase(Boolean(options?.preferBackend))
   const url = `${base}${path.startsWith('/') ? path : `/${path}`}`
-
-  // Cache-busting removed to allow browser caching
-  // if (path.includes('/api/') && !options?.preferBackend) { ... }
-
 
   return url
 }

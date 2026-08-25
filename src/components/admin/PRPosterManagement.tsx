@@ -59,7 +59,7 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
         const file = e.target.files?.[0]
         if (!file) return
 
-        if (!file.type.startsWith('image/')) {
+        if (!(file?.type || '').startsWith('image/')) {
             Swal.fire('แจ้งเตือน', 'กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'warning')
             e.target.value = '' // Reset
             return
@@ -305,8 +305,8 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                                     {/* Thumbnail */}
                                     <div className="w-32 h-auto flex-shrink-0 relative group">
                                         <img
-                                            src={`${buildApiUrl(item.imageUrl)}${item.imageUrl.includes('?') ? '&' : '?'}w=256`}
-                                            alt={item.title}
+                                            src={item?.imageUrl ? `${buildApiUrl(item.imageUrl)}${item.imageUrl.includes('?') ? '&' : '?'}w=256` : '/favicon.png'}
+                                            alt={item?.title || 'PR Poster'}
                                             className="w-full h-auto object-cover rounded border border-gray-300"
                                         />
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded flex items-center justify-center">

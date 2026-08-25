@@ -294,8 +294,8 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
                   {/* Thumbnail */}
                   <div className="w-32 h-32 flex-shrink-0 relative group">
                     <img
-                      src={`${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}w=256`}
-                      alt={item.title}
+                      src={item?.imageUrl ? `${item.imageUrl}${item.imageUrl.includes('?') ? '&' : '?'}w=256` : '/favicon.png'}
+                      alt={item?.title || 'Infographic'}
                       className="w-full h-full object-cover rounded border border-gray-300"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded flex items-center justify-center">
