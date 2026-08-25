@@ -43,10 +43,10 @@ export const announcementSchema = Joi.object({
 export const activitySchema = Joi.object({
   title: Joi.string().min(1).max(200).required(),
   description: Joi.string().allow('', null).max(10000).optional(),
-  date: Joi.date().required(),
-  publishedAt: Joi.date().optional().allow(null),
-  isPublished: Joi.alternatives().try(Joi.boolean(), Joi.string().valid('true', 'false')).optional(),
-  imageUrls: Joi.alternatives().try(Joi.string().uri(), Joi.array().items(Joi.string().uri())).optional(),
+  date: Joi.alternatives().try(Joi.string(), Joi.date()).optional().allow('', null),
+  publishedAt: Joi.alternatives().try(Joi.string(), Joi.date()).optional().allow('', null),
+  isPublished: Joi.alternatives().try(Joi.boolean(), Joi.number(), Joi.string().valid('true', 'false', '1', '0')).optional(),
+  imageUrls: Joi.alternatives().try(Joi.string(), Joi.array()).optional().allow('', null),
   images: Joi.array().optional()
 }).unknown(true)
 
