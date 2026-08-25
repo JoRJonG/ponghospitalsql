@@ -8,6 +8,7 @@ type PRPoster = {
     _id: string
     title: string
     imageUrl: string
+    image?: { url?: string }
     displayOrder: number
     isPublished: boolean
 }
@@ -305,7 +306,10 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                                     {/* Thumbnail */}
                                     <div className="w-32 h-auto flex-shrink-0 relative group">
                                         <img
-                                            src={item?.imageUrl ? `${buildApiUrl(item.imageUrl)}${item.imageUrl.includes('?') ? '&' : '?'}w=256` : '/favicon.png'}
+                                            src={(() => {
+                                                const imgPath = item?.imageUrl || item?.image?.url || ''
+                                                return imgPath ? `${buildApiUrl(imgPath)}${imgPath.includes('?') ? '&' : '?'}w=256` : '/favicon.png'
+                                            })()}
                                             alt={item?.title || 'PR Poster'}
                                             className="w-full h-auto object-cover rounded border border-gray-300"
                                         />

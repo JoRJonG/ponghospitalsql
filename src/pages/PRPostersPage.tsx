@@ -8,6 +8,7 @@ type PRPoster = {
     _id: string | number
     title: string
     imageUrl: string
+    image?: { url?: string }
     displayOrder: number
     isPublished: boolean
 }
@@ -108,7 +109,7 @@ export default function PRPostersPage() {
                                 >
                                     <div className="aspect-square bg-slate-50 overflow-hidden">
                                         <img
-                                            src={buildApiUrl(poster.imageUrl)}
+                                            src={buildApiUrl(poster.imageUrl || poster.image?.url || '')}
                                             alt={poster.title}
                                             className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-300"
                                             loading="lazy"

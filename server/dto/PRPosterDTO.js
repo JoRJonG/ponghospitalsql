@@ -1,22 +1,26 @@
 export const toPublicDTO = (row) => {
+  const url = row.image?.url || row.imageUrl || ''
   return {
     _id: row._id || row.id,
     title: row.title || '',
     description: row.description || '',
+    imageUrl: url,
     image: {
-      url: row.image?.url || row.imageUrl || ''
+      url
     },
     order: row.order ?? row.displayOrder ?? row.display_order ?? 0
   }
 }
 
 export const toAdminDTO = (row) => {
+  const url = row.image?.url || row.imageUrl || ''
   return {
     _id: row._id || row.id,
     title: row.title || '',
     description: row.description || '',
+    imageUrl: url,
     image: {
-      url: row.image?.url || row.imageUrl || ''
+      url
     },
     displayOrder: row.displayOrder ?? row.display_order ?? 0,
     isPublished: Boolean(row.isPublished ?? row.is_published ?? true),
