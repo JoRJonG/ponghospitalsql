@@ -1,11 +1,23 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import viteCompression from 'vite-plugin-compression'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(), 
+      tailwindcss(),
+      viteCompression({
+        algorithm: 'gzip',
+        ext: '.gz',
+      }),
+      viteCompression({
+        algorithm: 'brotliCompress',
+        ext: '.br',
+      })
+    ],
     base: env.VITE_BASE_URL || '/',
     server: {
       proxy: {
