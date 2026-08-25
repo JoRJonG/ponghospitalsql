@@ -1865,7 +1865,14 @@ function UnitsForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?: 
       }
 
       const headers: Record<string, string> = { 'Authorization': `Bearer ${getToken()}` }
-      const r = await fetch('/api/units', { method: 'POST', headers, body: fd })
+      let r = await fetch('/api/units', { method: 'POST', headers, body: fd })
+      if (r.status === 401) {
+        const refreshSuccess = await refreshToken()
+        if (refreshSuccess) {
+          headers['Authorization'] = `Bearer ${getToken()}`
+          r = await fetch('/api/units', { method: 'POST', headers, body: fd })
+        }
+      }
       if (!r.ok) {
         let msg = 'บันทึกลิงก์หน่วยงานไม่สำเร็จ'
         try {
@@ -2681,7 +2688,7 @@ function EditActivityModal({ initial, onClose, onSaved }: { initial: Activity; o
 }
 
 function UnitsList({ list, page, totalPages, onPageChange, onEditSaved, onDeleted }: { list: Unit[]; page: number; totalPages: number; onPageChange: (p: number) => void; onEditSaved: () => Promise<void>; onDeleted: () => Promise<void> }) {
-  const { getToken } = useAuth()
+  const { getToken, refreshToken } = useAuth()
   const [editing, setEditing] = useState<Unit | null>(null)
 
   const remove = async (id?: string) => {
@@ -2697,7 +2704,13 @@ function UnitsList({ list, page, totalPages, onPageChange, onEditSaved, onDelete
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
-    const r = await fetch(`/api/units/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
+    let r = await fetch(`/api/units/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
+    if (r.status === 401) {
+      const refreshSuccess = await refreshToken()
+      if (refreshSuccess) {
+        r = await fetch(`/api/units/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${getToken()}` } })
+      }
+    }
     if (r.ok) onDeleted()
   }
 
@@ -2837,7 +2850,14 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
         body = JSON.stringify({ name: form.name, href: cleanHref || undefined, order: form.order, isPublished: form.isPublished, image: form.image })
       }
 
-      const r = await fetch(`/api/units/${form._id}`, { method: 'PUT', headers, body })
+      let r = await fetch(`/api/units/${form._id}`, { method: 'PUT', headers, body })
+      if (r.status === 401) {
+        const refreshSuccess = await refreshToken()
+        if (refreshSuccess) {
+          headers['Authorization'] = `Bearer ${getToken()}`
+          r = await fetch(`/api/units/${form._id}`, { method: 'PUT', headers, body })
+        }
+      }
       if (!r.ok) { Swal.fire({ title: 'ข้อผิดพลาด', text: 'บันทึกไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
       Swal.fire({
         title: 'สำเร็จ',
