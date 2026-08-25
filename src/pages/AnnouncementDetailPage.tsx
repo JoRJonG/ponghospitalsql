@@ -203,7 +203,7 @@ export default function AnnouncementDetailPage() {
 
   return (
     <div className="page-wrapper bg-slate-50 min-h-screen pb-16">
-      {/* Dynamic SEO Meta */}
+      {/* Dynamic SEO Meta & Structured Data */}
       <SEO
         title={item?.title || 'รายละเอียดประกาศ - โรงพยาบาลปง'}
         description={item?.title ? `${item.title} - ข่าวสาร/ประกาศทางการจากโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดข่าวสารและประกาศจากโรงพยาบาลปง จังหวัดพะเยา'}
@@ -211,6 +211,25 @@ export default function AnnouncementDetailPage() {
           if (!att?.url) return false
           return /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(att.url) || att.kind === 'image'
         })?.url}
+        type="article"
+        schemaType={item?.category === 'สมัครงาน' ? 'job' : (item ? 'article' : 'none')}
+        articleData={item ? {
+          headline: item.title,
+          description: item.title,
+          datePublished: item.publishedAt,
+          category: item.category,
+          image: item.attachments?.find(att => att.kind === 'image' || /\.(png|jpe?g|webp|gif)$/i.test(att.name || ''))?.url
+        } : undefined}
+        jobData={item?.category === 'สมัครงาน' ? {
+          title: item.title,
+          description: item.title,
+          datePosted: item.publishedAt
+        } : undefined}
+        breadcrumbs={[
+          { name: 'หน้าหลัก', item: '/' },
+          { name: 'ประกาศและข่าวสาร', item: '/announcements' },
+          { name: item?.title || 'รายละเอียดประกาศ', item: `/announcements/${id || realId}` }
+        ]}
       />
 
       <div className="container-narrow py-6 md:py-10 max-w-5xl mx-auto px-4">

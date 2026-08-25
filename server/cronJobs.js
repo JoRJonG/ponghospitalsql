@@ -48,12 +48,24 @@ async function disableExpiredPopups() {
 }
 
 // รันทุกวันตอนเที่ยงคืน (00:00)
-cron.schedule('0 0 * * *', () => {
+cron.schedule('0 0 * * *', async () => {
   deleteOldAnnouncements()
   disableExpiredPopups()
+  const { generateSitemap } = await import('./cron/sitemapCron.js')
+  await generateSitemap()
 })
 
-console.log('[Cron] ระบบลบประกาศและปิดป๊อปอัปอัตโนมัติเริ่มทำงานแล้ว (รันทุกวัน 00:00)')
+console.log('[Cron] ระบบลบประกาศ, ปิดป๊อปอัป และสร้าง Sitemap.xml อัตโนมัติเริ่มทำงานแล้ว (รันทุกวัน 00:00)')
+
+// สร้าง Sitemap ครั้งแรกเมื่อ Server เริ่มทำงาน (รอ 5 วิให้ DB เชื่อมต่อเสร็จ)
+setTimeout(async () => {
+  try {
+    const { generateSitemap } = await import('./cron/sitemapCron.js')
+    await generateSitemap()
+  } catch (e) {
+    console.warn('[Cron] Sitemap initial generation deferred:', e.message)
+  }
+}, 5000)
 
 // รันทุกวัน 00:30 เพื่อล้างข้อมูลผู้เข้าชมเก่า (เก็บไว้ 90 วัน)
 cron.schedule('30 0 * * *', async () => {

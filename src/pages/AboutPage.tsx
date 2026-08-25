@@ -13,7 +13,7 @@ function AboutContent() {
       {/* 1. Identity & Header Section */}
       <div
         className="relative flex flex-col justify-end rounded-[2.5rem] overflow-hidden text-white shadow-2xl shadow-emerald-900/20 border border-emerald-500/30 bg-cover bg-center bg-no-repeat min-h-[400px] md:min-h-[500px]"
-        style={{ backgroundImage: 'url("/imgpong.png")' }}
+        style={{ backgroundImage: 'url("/imgpong.jpg")' }}
       >
         <div className="absolute inset-0 bg-black/10 transition-colors"></div>
         <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-slate-900/95 via-slate-800/70 to-transparent"></div>

@@ -218,13 +218,53 @@ export async function createServer() {
   // Visitor tracking middleware (REMOVED: Now handled exclusively by frontend POST /api/visitors/track to prevent non-JS bots from inflating counts)
   // app.use(trackVisitors)
 
-  // Helper to inject meta tags
-  const injectMetaTags = (html, { title, description, image, url }) => {
+  // Helper to inject meta tags into index.html
+  const injectMetaTags = (html, { title, description, image, url, type = 'website' }) => {
     let modified = html
-    if (title) modified = modified.replace(/<meta property="og:title" content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${title.replace(/"/g, '&quot;')}" />`)
-    if (description) modified = modified.replace(/<meta property="og:description" content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${description.replace(/"/g, '&quot;')}" />`)
-    if (image) modified = modified.replace(/<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${image}" />`)
-    if (url) modified = modified.replace(/<meta property="og:url" content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${url}" />`)
+    const siteName = 'โรงพยาบาลปง'
+    const fullTitle = title ? `${title} | ${siteName}` : siteName
+    const encodedTitle = fullTitle.replace(/"/g, '&quot;')
+    const defaultDesc = 'โรงพยาบาลปง จังหวัดพะเยา ให้บริการด้านสุขภาพครบวงจรเพื่อประชาชน บริการตรวจรักษา ฉุกเฉิน 24 ชั่วโมง ข้อมูลข่าวสาร และประกาศจัดซื้อจัดจ้างอย่างเป็นทางการ'
+    const finalDesc = (description || defaultDesc).replace(/<[^>]*>/g, '').trim().substring(0, 200).replace(/"/g, '&quot;')
+
+    // Replace Title
+    modified = modified.replace(/<title>.*?<\/title>/i, `<title>${encodedTitle}</title>`)
+    modified = modified.replace(/<meta name="title" content="[^"]*"\s*\/?>/i, `<meta name="title" content="${encodedTitle}" />`)
+
+    // Replace Description
+    if (modified.includes('<meta name="description"')) {
+      modified = modified.replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${finalDesc}" />`)
+    } else {
+      modified = modified.replace('</head>', `  <meta name="description" content="${finalDesc}" />\n</head>`)
+    }
+
+    // Replace Canonical Link
+    if (url) {
+      if (modified.includes('<link rel="canonical"')) {
+        modified = modified.replace(/<link rel="canonical" href="[^"]*"\s*\/?>/i, `<link rel="canonical" href="${url}" />`)
+      } else {
+        modified = modified.replace('</head>', `  <link rel="canonical" href="${url}" />\n</head>`)
+      }
+    }
+
+    // Replace Open Graph Tags
+    const defaultImage = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+    const metaImage = image || defaultImage
+
+    modified = modified.replace(/<meta property="og:type" content="[^"]*"\s*\/?>/i, `<meta property="og:type" content="${type}" />`)
+    modified = modified.replace(/<meta property="og:title" content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${encodedTitle}" />`)
+    modified = modified.replace(/<meta property="og:description" content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${finalDesc}" />`)
+    modified = modified.replace(/<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${metaImage}" />`)
+    if (url) {
+      modified = modified.replace(/<meta property="og:url" content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${url}" />`)
+    }
+
+    // Replace Twitter Card Tags
+    modified = modified.replace(/<meta name="twitter:title" content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" content="${encodedTitle}" />`)
+    modified = modified.replace(/<meta name="twitter:description" content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" content="${finalDesc}" />`)
+    modified = modified.replace(/<meta name="twitter:image" content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" content="${metaImage}" />`)
+    modified = modified.replace(/<meta name="twitter:card" content="[^"]*"\s*\/?>/i, `<meta name="twitter:card" content="summary_large_image" />`)
+
     return modified
   }
 
@@ -237,17 +277,17 @@ export async function createServer() {
 
       let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
       const title = activity.title
-      const description = activity.description ? activity.description.replace(/<[^>]*>/g, '').substring(0, 200) : ''
+      const description = activity.description || ''
 
-      // Find first valid image
       let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
       if (activity.images && activity.images.length > 0) {
-        image = `${req.protocol}://${req.get('host')}${activity.images[0].url}`
+        const firstImg = activity.images[0]
+        const imgUrl = firstImg.url || firstImg
+        image = imgUrl.startsWith('http') ? imgUrl : `${req.protocol}://${req.get('host')}${imgUrl}`
       }
 
       const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-
-      html = injectMetaTags(html, { title, description, image, url })
+      html = injectMetaTags(html, { title, description, image, url, type: 'article' })
       res.send(html)
     } catch (e) {
       next()
@@ -264,21 +304,44 @@ export async function createServer() {
 
       let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
       const title = announcement.title
+      const description = announcement.content || ''
 
-      // ไม่แสดง description - แสดงเฉพาะรูปและชื่อประกาศ
-      const description = ''
-
-      // Define image using the default URL ALWAYS (No file checking or attachment logic)
-      const image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      // Find first image attachment if available
+      let image = 'https://ponghospital.moph.go.th/assets/logo-150x150-BEBbXnQy.png'
+      if (announcement.attachments && announcement.attachments.length > 0) {
+        const imgAttachment = announcement.attachments.find(a => a.kind === 'image' || (a.name && /\.(jpg|jpeg|png|webp|gif)$/i.test(a.name)))
+        if (imgAttachment) {
+          const imgUrl = imgAttachment.url
+          image = imgUrl.startsWith('http') ? imgUrl : `${req.protocol}://${req.get('host')}${imgUrl}`
+        }
+      }
 
       const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-
-      html = injectMetaTags(html, { title, description, image, url })
-
+      html = injectMetaTags(html, { title, description, image, url, type: 'article' })
       res.send(html)
-
     } catch (e) {
       logger.error(`[OG SSR Announcement] Error for ID ${req.params.id}:`, e.message)
+      next()
+    }
+  })
+
+  // Server-side rendering for Open Graph tags (PR Posters)
+  app.get('/pr-posters/:id', async (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    try {
+      const { PRPosterService } = await import('./services/PRPosterService.js')
+      const poster = await PRPosterService.getMetadata(req.params.id)
+      if (!poster) return next()
+
+      let html = await fs.readFile(path.join(distPath, 'index.html'), 'utf-8')
+      const title = poster.title || 'สื่อประชาสัมพันธ์ โรงพยาบาลปง'
+      const description = poster.description || 'ประชาสัมพันธ์ข้อมูลและกิจกรรมสำคัญ โรงพยาบาลปง'
+      const image = `${req.protocol}://${req.get('host')}/api/images/pr-posters/${req.params.id}`
+      const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+
+      html = injectMetaTags(html, { title, description, image, url, type: 'article' })
+      res.send(html)
+    } catch (e) {
       next()
     }
   })

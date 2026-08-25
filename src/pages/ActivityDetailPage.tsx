@@ -89,6 +89,19 @@ export default function ActivityDetailPage() {
           title={item?.title || 'รายละเอียดกิจกรรม'}
           description={item?.title ? `${item.title} - กิจกรรมของโรงพยาบาลปง จังหวัดพะเยา` : 'รายละเอียดกิจกรรมของโรงพยาบาลปง อำเภอปง จังหวัดพะเยา'}
           image={item?.images?.[0] ? (typeof item.images[0] === 'string' ? item.images[0] : item.images[0].url) : undefined}
+          type="article"
+          schemaType={item ? 'event' : 'none'}
+          eventData={item ? {
+            name: item.title,
+            description: item.description,
+            startDate: item.date,
+            image: item.images?.[0] ? (typeof item.images[0] === 'string' ? item.images[0] : item.images[0].url) : undefined
+          } : undefined}
+          breadcrumbs={[
+            { name: 'หน้าหลัก', item: '/' },
+            { name: 'กิจกรรมทั้งหมด', item: '/activities' },
+            { name: item?.title || 'รายละเอียดกิจกรรม', item: `/activities/${id || realId}` }
+          ]}
         />
         <PageHeader
           title={item?.title || 'รายละเอียดกิจกรรม'}
