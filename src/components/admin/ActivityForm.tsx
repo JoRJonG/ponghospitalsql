@@ -263,8 +263,8 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
         {form.images && form.images.length > 0 && (
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
             {form.images.map((img, i) => {
-              const src = typeof img === 'string' ? img : img.url
-              const displaySrc = src.startsWith('data:') || src.startsWith('blob:') ? src : `${src}${src.includes('?') ? '&' : '?'}w=400`
+              const src = typeof img === 'string' ? img : (img?.url || '')
+              const displaySrc = src ? (src.startsWith('data:') || src.startsWith('blob:') ? src : `${src}${src.includes('?') ? '&' : '?'}w=400`) : '/favicon.png'
               return (
                 <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
                   <img src={displaySrc} loading="lazy" decoding="async" width={320} height={240} className="absolute inset-0 h-full w-full object-cover" />

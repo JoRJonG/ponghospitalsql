@@ -112,7 +112,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
       if (announcementId) {
         // Edit mode: PUT
         // Filter out staged attachments (blob:) from the payload, as they will be uploaded separately
-        const cleanAttachments = (form.attachments || []).filter(a => !a.url.startsWith('blob:'))
+        const cleanAttachments = (form.attachments || []).filter(a => !(a.url || '').startsWith('blob:'))
         const payload: Announcement = {
           ...form,
           title: sanitizeText(String(form.title || '')),
