@@ -53,7 +53,7 @@ export const PRPosterService = {
       }
 
       const decodedName = decodeUploadFilename(file.originalname)
-      const title = payload.title ? sanitizeText(payload.title) : decodedName
+      const title = payload.title ? sanitizeText(payload.title) : ''
       const isPublished = payload.isPublished === 'true' || payload.isPublished === true
       const displayOrder = parseInt(payload.displayOrder, 10) || 0
 

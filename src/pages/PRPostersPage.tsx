@@ -39,6 +39,15 @@ export default function PRPostersPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
+    const getCleanTitle = (title?: string) => {
+        if (!title) return null
+        const trimmed = title.trim()
+        if (/\.(png|jpe?g|webp|gif|svg|heic)$/i.test(trimmed) || /^messageImage_/i.test(trimmed) || /^poster-/i.test(trimmed)) {
+            return null
+        }
+        return trimmed
+    }
+
     return (
         <div className="page-wrapper pb-16">
             <SEO
@@ -100,31 +109,34 @@ export default function PRPostersPage() {
                 {!loading && !error && currentPosters.length > 0 ? (
                     <>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
-                            {currentPosters.map((poster) => (
-                                <button
-                                    key={poster._id}
-                                    type="button"
-                                    onClick={() => setSelectedPoster(poster)}
-                                    className="group text-left bg-white rounded-xl border border-slate-100 overflow-hidden hover:border-emerald-200 hover:shadow-md transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none"
-                                >
-                                    <div className="aspect-square bg-slate-50 overflow-hidden">
-                                        <img
-                                            src={buildApiUrl(poster.imageUrl || poster.image?.url || '')}
-                                            alt={poster.title}
-                                            className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-300"
-                                            loading="lazy"
-                                            draggable="false"
-                                        />
-                                    </div>
-                                    {poster.title ? (
-                                        <div className="px-3 py-2.5">
-                                            <p className="text-xs text-slate-700 font-medium line-clamp-2 leading-relaxed">
-                                                {poster.title}
-                                            </p>
+                            {currentPosters.map((poster) => {
+                                const cleanTitle = getCleanTitle(poster.title)
+                                return (
+                                    <button
+                                        key={poster._id}
+                                        type="button"
+                                        onClick={() => setSelectedPoster(poster)}
+                                        className="group text-left bg-white rounded-xl border border-slate-100 overflow-hidden hover:border-emerald-200 hover:shadow-md transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-500 focus:outline-none"
+                                    >
+                                        <div className="aspect-square bg-slate-50 overflow-hidden">
+                                            <img
+                                                src={buildApiUrl(poster.imageUrl || poster.image?.url || '')}
+                                                alt={cleanTitle || 'โปสเตอร์ประชาสัมพันธ์'}
+                                                className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-300"
+                                                loading="lazy"
+                                                draggable="false"
+                                            />
                                         </div>
-                                    ) : null}
-                                </button>
-                            ))}
+                                        {cleanTitle ? (
+                                            <div className="px-3 py-2.5">
+                                                <p className="text-xs text-slate-700 font-medium line-clamp-2 leading-relaxed">
+                                                    {cleanTitle}
+                                                </p>
+                                            </div>
+                                        ) : null}
+                                    </button>
+                                )
+                            })}
                         </div>
 
                         {/* Pagination */}
@@ -150,13 +162,13 @@ export default function PRPostersPage() {
 
                                         if (!isVisible && !isEllipsis) return null
                                         if (isEllipsis) return (
-                                            <span key={page} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm">…</span>
+                                            <span key={page} className="w-9 h-9 flex items-center justify-center text-slate-400 text-xs">…</span>
                                         )
                                         return (
                                             <button
                                                 key={page}
                                                 onClick={() => goToPage(page)}
-                                                className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                                                className={`w-9 h-9 rounded-lg text-xs font-medium transition-colors ${currentPage === page
                                                     ? 'bg-emerald-600 text-white'
                                                     : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                                                     }`}
@@ -202,13 +214,13 @@ export default function PRPostersPage() {
                     >
                         <img
                             src={buildApiUrl(selectedPoster.imageUrl)}
-                            alt={selectedPoster.title}
+                            alt={getCleanTitle(selectedPoster.title) || 'โปสเตอร์ประชาสัมพันธ์'}
                             className="max-w-[95vw] max-h-[85vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         />
-                        {selectedPoster.title ? (
+                        {getCleanTitle(selectedPoster.title) ? (
                             <p className="text-white/80 text-sm text-center max-w-lg">
-                                {selectedPoster.title}
+                                {getCleanTitle(selectedPoster.title)}
                             </p>
                         ) : null}
                     </div>

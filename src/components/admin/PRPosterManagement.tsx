@@ -323,7 +323,13 @@ const PRPosterManagement = forwardRef<PRPosterManagementHandle>((_, ref) => {
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-semibold text-gray-900 truncate">
-                                                    {(page - 1) * limit + index + 1}. {item.title}
+                                                    {(page - 1) * limit + index + 1}. {(() => {
+                                                        const t = (item.title || '').trim()
+                                                        if (!t || /\.(png|jpe?g|webp|gif|svg|heic)$/i.test(t) || /^messageImage_/i.test(t) || /^poster-/i.test(t)) {
+                                                            return 'โปสเตอร์ประชาสัมพันธ์'
+                                                        }
+                                                        return t
+                                                    })()}
                                                 </h4>
                                                 <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
                                                     <span className="flex items-center gap-1">
