@@ -131,7 +131,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด',
                     text: errorMessage,
-                    confirmButtonColor: '#d33',
+                    confirmButtonColor: '#dc2626',
                     confirmButtonText: 'ตกลง'
                 })
             }
@@ -178,7 +178,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด',
                     text: errorMessage,
-                    confirmButtonColor: '#d33',
+                    confirmButtonColor: '#dc2626',
                     confirmButtonText: 'ตกลง'
                 })
             }
@@ -190,7 +190,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                 text: 'คุณแน่ใจหรือไม่ว่าต้องการลบเอกสารนี้? การกระทำนี้ไม่สามารถย้อนกลับได้',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
+                confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: 'ลบข้อมูล',
                 cancelButtonText: 'ยกเลิก'
@@ -232,7 +232,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด',
                     text: errorMessage,
-                    confirmButtonColor: '#d33',
+                    confirmButtonColor: '#dc2626',
                     confirmButtonText: 'ตกลง'
                 })
             }
@@ -289,7 +289,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 {editingDocument ? (
                                     <>
-                                        <span className="text-blue-600"><i className="fa-solid fa-pen-to-square"></i></span>
+                                        <span className="text-emerald-700"><i className="fa-solid fa-pen-to-square"></i></span>
                                         แก้ไขเอกสาร
                                     </>
                                 ) : (
@@ -339,7 +339,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                         {/* Add Button */}
                         <button
                             onClick={() => setShowForm(true)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-all shadow-sm hover:shadow flex items-center gap-2 whitespace-nowrap"
+                            className="admin-btn admin-btn--add whitespace-nowrap"
                         >
                             <i className="fa-solid fa-plus"></i>
                             เพิ่มเอกสาร
@@ -372,22 +372,22 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                     <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex items-center justify-between">
                         <div>
                             <div className="text-sm text-gray-500 mb-1">ยังไม่เผยแพร่</div>
-                            <div className="text-2xl font-bold text-amber-600">
+                            <div className="text-2xl font-bold text-emerald-700">
                                 {documents.filter(d => !d.isPublished).length}
                             </div>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700">
                             <i className="fa-solid fa-eye-slash text-lg"></i>
                         </div>
                     </div>
                     <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex items-center justify-between">
                         <div>
                             <div className="text-sm text-gray-500 mb-1">ดาวน์โหลดทั้งหมด</div>
-                            <div className="text-2xl font-bold text-blue-600">
+                            <div className="text-2xl font-bold text-emerald-700">
                                 {documents.reduce((sum, d) => sum + d.downloadCount, 0)}
                             </div>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700">
                             <i className="fa-solid fa-download text-lg"></i>
                         </div>
                     </div>
@@ -471,7 +471,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                                                 <div className="flex items-center justify-center gap-2">
                                                     <button
                                                         onClick={() => handleEdit(doc)}
-                                                        className="w-8 h-8 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-colors"
+                                                        className="w-8 h-8 rounded-full flex items-center justify-center text-emerald-700 hover:bg-emerald-50 transition-colors"
                                                         title="แก้ไข"
                                                     >
                                                         <i className="fa-solid fa-pen"></i>
@@ -526,7 +526,7 @@ const DocumentsManagement = forwardRef<DocumentsManagementHandle, DocumentsManag
                                                 key={pageNum}
                                                 onClick={() => setCurrentPage(pageNum)}
                                                 className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium ${currentPage === pageNum
-                                                    ? 'bg-green-600 text-white border border-green-600'
+                                                    ? 'bg-emerald-700 text-white border border-emerald-700'
                                                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                                     }`}
                                             >

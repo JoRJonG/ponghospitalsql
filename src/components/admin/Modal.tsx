@@ -26,18 +26,18 @@ export default function Modal({ isOpen, onClose, title, subtitle, children, maxW
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 20 }}
                         transition={{ type: 'spring', duration: 0.4, bounce: 0.3 }}
-                        className={`bg-white rounded-2xl shadow-xl w-full ${maxWidth} overflow-hidden my-auto`}
+                        className={`bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 w-full ${maxWidth} overflow-hidden my-auto`}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="p-5 border-b flex items-center justify-between sticky top-0 bg-white z-10 glass-effect">
+                        <div className="p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur z-10">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-                                {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+                                <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+                                {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
                             </div>
                             <button
                                 onClick={onClose}
-                                className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                                className="text-slate-400 hover:text-rose-500 p-2 rounded-full hover:bg-rose-50 transition-colors"
                                 aria-label="Close modal"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

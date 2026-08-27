@@ -85,10 +85,10 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
         text: 'อัพโหลดสำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
     } catch (err: unknown) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally {
       setUploading(false)
     }
@@ -102,7 +102,7 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -125,7 +125,7 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
         text: 'ลบสำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
     } catch (err: unknown) {
       Swal.fire('ข้อผิดพลาด', `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error')
@@ -250,7 +250,7 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
             <span className="text-sm text-gray-500">ลากเพื่อเรียงลำดับการแสดงผล</span>
           </div>
           <div className="flex items-center gap-4">
-            <label className="btn btn-primary cursor-pointer">
+            <label className="admin-btn admin-btn--add cursor-pointer">
               <i className="fa-solid fa-image mr-2" />
               {uploading ? 'กำลังอัพโหลด...' : 'เลือกรูปภาพ'}
               <input
@@ -270,7 +270,7 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
       <div className="card">
         <div className="card-body">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <i className="fa-solid fa-list text-blue-600" />
+            <i className="fa-solid fa-list text-emerald-700" />
             รายการ Infographics ({infographics.length})
           </h3>
 
@@ -288,7 +288,7 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
                   onDragStart={(e) => handleDragStart(e, item._id)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, item._id)}
-                  className={`flex items-start gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-move hover:shadow-md transition-shadow ${draggingId === item._id ? 'opacity-50 border-dashed border-blue-400' : ''
+                  className={`flex items-start gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-move hover:shadow-md transition-shadow ${draggingId === item._id ? 'opacity-50 border-dashed border-emerald-400' : ''
                     }`}
                 >
                   {/* Thumbnail */}
@@ -328,14 +328,14 @@ const InfographicsManagement = forwardRef<InfographicsManagementHandle>((_, ref)
                       <div className="flex gap-2 flex-shrink-0">
                         <button
                           onClick={() => handleTogglePublish(item._id, item.isPublished)}
-                          className="btn btn-sm btn-secondary"
+                          className="admin-btn admin-btn--ghost bg-gray-100 hover:bg-gray-200"
                           title={item.isPublished ? 'ซ่อน' : 'เผยแพร่'}
                         >
                           <i className={`fa-solid ${item.isPublished ? 'fa-eye-slash' : 'fa-eye'}`} />
                         </button>
                         <button
                           onClick={() => handleDelete(item._id)}
-                          className="btn btn-sm btn-danger"
+                          className="admin-btn admin-btn--danger"
                           title="ลบ"
                         >
                           <i className="fa-solid fa-trash" />

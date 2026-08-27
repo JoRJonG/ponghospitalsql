@@ -85,7 +85,7 @@ export default function ThaIDSettings() {
             showCancelButton: true,
             confirmButtonText: 'ยืนยัน',
             cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#d33',
+            confirmButtonColor: '#dc2626',
         })
 
         if (!result.isConfirmed) return
@@ -198,14 +198,14 @@ export default function ThaIDSettings() {
                                         <button
                                             onClick={handleUnlinkThaID}
                                             disabled={loading}
-                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="admin-btn admin-btn--danger disabled:bg-gray-400 disabled:cursor-not-allowed"
                                         >
                                             {loading ? 'กำลังยกเลิก...' : 'ยกเลิกการเชื่อมต่อ'}
                                         </button>
                                     ) : (
                                         <button
                                             onClick={handleLinkThaID}
-                                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                                            className="admin-btn admin-btn--add"
                                         >
                                             <img src="/ThaiD.webp" alt="ThaID" className="w-5 h-5 object-contain" />
                                             <span>เชื่อมต่อ ThaID</span>

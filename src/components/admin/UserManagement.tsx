@@ -159,7 +159,7 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
               autoComplete="off"
               disabled={disableUsername}
               onChange={e => onChange({ ...form, username: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500 transition-shadow"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:text-gray-500 transition-shadow"
               placeholder="เช่น staff01"
             />
             {mode === 'create' && <p className="mt-1 text-xs text-gray-500">อย่างน้อย 3 ตัวอักษร (A-Z, 0-9)</p>}
@@ -177,7 +177,7 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
               onChange={e => onChange({ ...form, password: e.target.value })}
               className={`mt-1 block w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 transition-shadow ${showPasswordError
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
+                : 'border-gray-300 focus:border-emerald-600 focus:ring-emerald-200'
                 }`}
               placeholder={mode === 'create' ? 'ตั้งรหัสผ่านที่ปลอดภัย' : 'เว้นว่างไว้หากไม่ต้องการเปลี่ยน'}
             />
@@ -201,7 +201,7 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
               <button
                 type="button"
                 onClick={() => onChange({ ...form, isActive: !form.isActive })}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${form.isActive ? 'bg-emerald-500' : 'bg-gray-300'
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 ${form.isActive ? 'bg-emerald-500' : 'bg-gray-300'
                   }`}
               >
                 <span
@@ -226,21 +226,21 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
                 <label
                   key={option.value}
                   className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all ${checked
-                    ? 'border-blue-500 bg-blue-50 shadow-sm'
+                    ? 'border-emerald-600 bg-emerald-50 shadow-sm'
                     : 'border-gray-200 hover:border-gray-300'
                     }`}
                 >
                   <div className="flex h-5 items-center">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-gray-300 text-emerald-700 focus:ring-emerald-600"
                       checked={checked}
                       onChange={() => togglePermission(option.value)}
                     />
                   </div>
                   <div className="text-sm">
-                    <span className={`block font-medium ${checked ? 'text-blue-900' : 'text-gray-900'}`}>{option.label}</span>
-                    <span className={`block text-xs ${checked ? 'text-blue-700' : 'text-gray-500'}`}>{option.description}</span>
+                    <span className={`block font-medium ${checked ? 'text-emerald-900' : 'text-gray-900'}`}>{option.label}</span>
+                    <span className={`block text-xs ${checked ? 'text-emerald-800' : 'text-gray-500'}`}>{option.description}</span>
                   </div>
                 </label>
               )
@@ -253,7 +253,7 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors"
+          className="admin-btn admin-btn--outline"
         >
           ยกเลิก
         </button>
@@ -261,10 +261,7 @@ function UserFormCard({ mode, form, onChange, onSubmit, onCancel, submitting, di
           type="button"
           onClick={onSubmit}
           disabled={!canSubmit}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all ${canSubmit
-            ? 'bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg focus:ring-blue-500'
-            : 'bg-gray-400 cursor-not-allowed'
-            }`}
+          className="admin-btn admin-btn--add disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           {submitting && (
             <svg className="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -341,7 +338,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
     if (saving) return
     const trimmedPassword = form.password.trim()
     if (!isStrongPassword(trimmedPassword)) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: PASSWORD_REQUIREMENT_TEXT, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: PASSWORD_REQUIREMENT_TEXT, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       return
     }
     setSaving(true)
@@ -366,14 +363,14 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
         text: 'เพิ่มผู้ใช้ใหม่สำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
       resetForm()
       await loadUsers()
     } catch (thrown: unknown) {
       console.error('[UserManagement] create error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'สร้างผู้ใช้ไม่สำเร็จ'
-      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally {
       setSaving(false)
     }
@@ -383,7 +380,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
     if (!editingUser || updating) return
     const trimmedPassword = form.password.trim()
     if (trimmedPassword && !isStrongPassword(trimmedPassword)) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: PASSWORD_REQUIREMENT_TEXT, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: PASSWORD_REQUIREMENT_TEXT, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       return
     }
     setUpdating(true)
@@ -409,14 +406,14 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
         text: 'บันทึกการเปลี่ยนแปลงสำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
       resetForm()
       await loadUsers()
     } catch (thrown: unknown) {
       console.error('[UserManagement] update error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'อัปเดตผู้ใช้ไม่สำเร็จ'
-      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally {
       setUpdating(false)
     }
@@ -431,7 +428,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -447,7 +444,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
         text: 'ลบบัญชีผู้ใช้สำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
       if (editingUser?.id === user.id) {
         resetForm()
@@ -456,7 +453,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
     } catch (thrown: unknown) {
       console.error('[UserManagement] delete error:', thrown)
       const message = thrown instanceof Error ? thrown.message : 'ลบบัญชีไม่สำเร็จ'
-      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally {
       setDeletingId(null)
     }
@@ -479,9 +476,9 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
               setEditingUser(null)
               setForm(EMPTY_FORM)
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 shadow-sm transition-all hover:shadow-md"
+            className="admin-btn admin-btn--add"
           >
-            <span className="text-lg">+</span>
+            <i className="fa-solid fa-plus"></i>
             <span className="font-medium">เพิ่มผู้ใช้</span>
           </button>
         </div>
@@ -512,7 +509,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
           {!hasUsers ? (
             <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-12 text-center">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 mb-4">
-                <span className="text-2xl">👥</span>
+                <span className="text-2xl"><i className="fa-solid fa-users"></i></span>
               </div>
               <h3 className="text-lg font-medium text-gray-900">ยังไม่มีผู้ดูแลระบบ</h3>
               <p className="text-gray-500 mt-1">เริ่มต้นด้วยการเพิ่มผู้ใช้คนแรก</p>
@@ -535,7 +532,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
                       <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                               {user.username.charAt(0).toUpperCase()}
                             </div>
                             <div className="ml-3">
@@ -561,7 +558,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
                               user.permissions.slice(0, 4).map(perm => (
                                 <span
                                   key={perm}
-                                  className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"
+                                  className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-700/10"
                                 >
                                   {PERMISSION_LABEL_MAP[perm] || perm}
                                 </span>
@@ -593,7 +590,7 @@ const UserManagement = forwardRef<UserManagementHandle>(function UserManagement(
                                   isActive: user.isActive,
                                 })
                               }}
-                              className="text-indigo-600 hover:text-indigo-900 p-1.5 hover:bg-indigo-50 rounded-lg transition-colors"
+                              className="text-emerald-700 hover:text-emerald-900 p-1.5 hover:bg-emerald-50 rounded-lg transition-colors"
                               title="แก้ไข"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

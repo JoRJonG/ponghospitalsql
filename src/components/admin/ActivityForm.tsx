@@ -32,7 +32,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
     if (!url) return
     const currentCount = form.images?.length ?? 0
     if (currentCount >= MAX_UPLOAD_IMAGES) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: `สามารถเพิ่มรูปภาพได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: `สามารถเพิ่มรูปภาพได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       return
     }
     setForm(f => ({ ...f, images: [...(f.images || []), url] }))
@@ -44,7 +44,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
     if (!arr.length) return
     const currentCount = form.images?.length ?? 0
     if (currentCount >= MAX_UPLOAD_IMAGES) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: `สามารถอัปโหลดได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: `สามารถอัปโหลดได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       return
     }
 
@@ -55,7 +55,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
         const availableSlots = MAX_UPLOAD_IMAGES - currentCount
         const filesToProcess = arr.slice(0, availableSlots)
         if (filesToProcess.length < arr.length) {
-          Swal.fire({ title: 'ข้อผิดพลาด', text: `เพิ่มรูปได้อีก ${availableSlots} รูปเท่านั้น (สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม)`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+          Swal.fire({ title: 'ข้อผิดพลาด', text: `เพิ่มรูปได้อีก ${availableSlots} รูปเท่านั้น (สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม)`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
         }
         for (let file of filesToProcess) {
           try {
@@ -69,7 +69,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
           const data = await r.json() as { url: string; publicId?: string }
           setForm(f => ({ ...f, images: [...(f.images || []), { url: data.url, publicId: data.publicId }] }))
         }
-      } catch { Swal.fire({ title: 'ผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }) } finally { setUploading(false) }
+      } catch { Swal.fire({ title: 'ผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }) } finally { setUploading(false) }
       return
     }
 
@@ -77,7 +77,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
     const availableSlots = MAX_UPLOAD_IMAGES - currentCount
     const filesToProcess = arr.slice(0, availableSlots)
     if (filesToProcess.length < arr.length) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: `เพิ่มรูปได้อีก ${availableSlots} รูปเท่านั้น (สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม)`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: `เพิ่มรูปได้อีก ${availableSlots} รูปเท่านั้น (สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม)`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     }
     setUploading(true)
     try {
@@ -90,7 +90,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
           setForm(f => ({ ...f, images: [...(f.images || []), url] }))
         } catch (err) {
           console.error('Failed to compress image:', err)
-          Swal.fire({ title: 'ข้อผิดพลาด', text: `ไม่สามารถประมวลผลรูป ${file.name} ได้`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+          Swal.fire({ title: 'ข้อผิดพลาด', text: `ไม่สามารถประมวลผลรูป ${file.name} ได้`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
         }
       }
       if (compressedFiles.length) {
@@ -98,7 +98,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
       }
     } catch (error) {
       console.error('Unexpected image processing error', error)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดในการประมวลผลรูปภาพ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดในการประมวลผลรูปภาพ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally { setUploading(false) }
   }
 
@@ -132,9 +132,9 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.title?.trim()) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณากรอกชื่อกิจกรรม', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+    if (!form.title?.trim()) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณากรอกชื่อกิจกรรม', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
     const totalImages = form.images?.length ?? 0
-    if (totalImages > MAX_UPLOAD_IMAGES) { Swal.fire({ title: 'ข้อผิดพลาด', text: `สามารถอัปโหลดได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+    if (totalImages > MAX_UPLOAD_IMAGES) { Swal.fire({ title: 'ข้อผิดพลาด', text: `สามารถอัปโหลดได้สูงสุด ${MAX_UPLOAD_IMAGES} รูปต่อกิจกรรม`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
     setLoading(true)
     try {
       let r: Response
@@ -194,7 +194,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
             })
           }
         } else {
-          Swal.fire({ title: 'แจ้งเตือน', text: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+          Swal.fire({ title: 'แจ้งเตือน', text: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
           logout()
           return
         }
@@ -202,7 +202,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
 
       if (!r.ok) {
         const errorText = await r.text().catch(() => 'บันทึกกิจกรรมไม่สำเร็จ')
-        Swal.fire({ title: 'ข้อผิดพลาด', text: errorText || 'บันทึกกิจกรรมไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        Swal.fire({ title: 'ข้อผิดพลาด', text: errorText || 'บันทึกกิจกรรมไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
         return
       }
 
@@ -214,7 +214,7 @@ export default function ActivityForm({ onCreated, onCancel, initialData }: { onC
       onCreated()
     } catch (err) {
       console.error('Failed to submit activity', err)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally { setLoading(false) }
   }
 

@@ -1,14 +1,22 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, lazy, Suspense } from 'react'
 import SEO from '../components/SEO'
 // useHomepageRefresh hook no longer directly used in HomePage rendering
 import { buildApiUrl } from '../utils/api'
 import { useSWR } from '../hooks/useSWR'
 
 import HeroSlider from '../components/HeroSlider'
-import HomeAnnouncements from '../components/HomeAnnouncements'
-import LatestActivities from '../components/LatestActivities'
-import PRPoster from '../components/PRPoster'
-import UnitLinks from '../components/UnitLinks'
+
+const HomeAnnouncements = lazy(() => import('../components/HomeAnnouncements'))
+const LatestActivities = lazy(() => import('../components/LatestActivities'))
+const PRPoster = lazy(() => import('../components/PRPoster'))
+const UnitLinks = lazy(() => import('../components/UnitLinks'))
+
+const SectionSkeleton = () => (
+  <div className="w-full animate-pulse space-y-6 opacity-50">
+    <div className="h-8 bg-slate-200 rounded w-1/3"></div>
+    <div className="h-64 bg-slate-200 rounded-2xl w-full"></div>
+  </div>
+)
 
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)
@@ -81,30 +89,38 @@ export default function HomePage() {
       ) : null}
 
       {/* โปสเตอร์ประชาสัมพันธ์ */}
-      <section ref={posterRef} className={`relative py-12 md:py-24 bg-slate-50 overflow-hidden ${isHeroSliderVisible ? 'mt-2' : ''}`}>
+      <section ref={posterRef} className={`relative py-8 md:py-12 bg-slate-50 overflow-hidden ${isHeroSliderVisible ? 'mt-2' : ''}`}>
         <div className="container-professional relative z-10">
-          <PRPoster embedded={true} />
+          <Suspense fallback={<SectionSkeleton />}>
+            <PRPoster embedded={true} />
+          </Suspense>
         </div>
       </section>
 
       {/* ประกาศข่าวสาร */}
-      <section ref={announcementsRef} className="relative py-12 md:py-24 bg-white overflow-hidden">
+      <section ref={announcementsRef} className="relative py-8 md:py-12 bg-white overflow-hidden">
         <div className="container-professional relative z-10">
-          <HomeAnnouncements limit={6} embedded={true} />
+          <Suspense fallback={<SectionSkeleton />}>
+            <HomeAnnouncements limit={6} embedded={true} />
+          </Suspense>
         </div>
       </section>
 
       {/* ภาพกิจกรรม */}
-      <section ref={activitiesRef} className="relative py-12 md:py-24 bg-slate-50 overflow-hidden">
+      <section ref={activitiesRef} className="relative py-8 md:py-12 bg-slate-50 overflow-hidden">
         <div className="container-professional relative z-10">
-          <LatestActivities limit={8} embedded={true} darkHeader={false} />
+          <Suspense fallback={<SectionSkeleton />}>
+            <LatestActivities limit={8} embedded={true} darkHeader={false} />
+          </Suspense>
         </div>
       </section>
 
       {/* ลิงก์หน่วยงาน */}
-      <section ref={unitsRef} className="relative py-12 md:py-24 bg-white overflow-hidden">
+      <section ref={unitsRef} className="relative py-8 md:py-12 bg-white overflow-hidden">
         <div className="container-professional relative z-10">
-          <UnitLinks embedded={true} />
+          <Suspense fallback={<SectionSkeleton />}>
+            <UnitLinks embedded={true} />
+          </Suspense>
         </div>
       </section>
     </div>

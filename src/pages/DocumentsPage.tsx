@@ -111,7 +111,7 @@ export default function DocumentsPage() {
                 icon: 'error',
                 title: 'ดาวน์โหลดไม่สำเร็จ',
                 text: 'ไม่สามารถดาวน์โหลดไฟล์ได้ กรุณาลองใหม่อีกครั้ง',
-                confirmButtonColor: '#d33'
+                confirmButtonColor: '#dc2626'
             })
         } finally {
             setDownloading(null)

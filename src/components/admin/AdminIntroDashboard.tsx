@@ -1,4 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { buildApiUrl } from '../../utils/api'
 import { fastFetch } from '../../utils/fastFetch'
 
@@ -307,279 +308,246 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
         label: 'ผู้ใช้ไม่ซ้ำวันนี้',
         value: numberFormatter.format(today.uniqueVisitors),
         detail: `IP ไม่ซ้ำ ${numberFormatter.format(today.distinctIps)}`,
-        icon: '👥',
-        border: 'border-emerald-100',
-        background: 'bg-emerald-50/80',
-        header: 'text-emerald-600',
-        detailColor: 'text-emerald-600/70',
+        icon: <i className="fa-solid fa-users"></i>,
+        colors: { text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', hover: 'hover:border-emerald-300' }
       },
       {
         label: 'จำนวนครั้งเข้าชมวันนี้',
         value: numberFormatter.format(today.hits),
         detail: 'รวมทุกการเข้าชมของวัน',
-        icon: '📈',
-        border: 'border-sky-100',
-        background: 'bg-sky-50/80',
-        header: 'text-sky-600',
-        detailColor: 'text-sky-600/70',
+        icon: <i className="fa-solid fa-arrow-trend-up"></i>,
+        colors: { text: 'text-sky-600', bg: 'bg-sky-50', border: 'border-sky-100', hover: 'hover:border-sky-300' }
       },
       {
         label: `ผู้ใช้ไม่ซ้ำ ${rangeLabelDays} วัน`,
         value: numberFormatter.format(range.uniqueVisitors),
         detail: `${numberFormatter.format(range.distinctIps)} IP ภายในช่วงเวลา`,
-        icon: '📆',
-        border: 'border-violet-100',
-        background: 'bg-violet-50/80',
-        header: 'text-violet-600',
-        detailColor: 'text-violet-600/70',
+        icon: <i className="fa-solid fa-calendar-days"></i>,
+        colors: { text: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100', hover: 'hover:border-violet-300' }
       },
       {
         label: 'จำนวนครั้งทั้งหมด',
         value: numberFormatter.format(lifetime.hits),
         detail: `${numberFormatter.format(lifetime.uniqueVisitors)} ผู้ใช้ทั้งหมด`,
-        icon: '🏁',
-        border: 'border-amber-100',
-        background: 'bg-amber-50/80',
-        header: 'text-amber-600',
-        detailColor: 'text-amber-600/70',
+        icon: <i className="fa-solid fa-flag-checkered"></i>,
+        colors: { text: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', hover: 'hover:border-amber-300' }
       },
     ]
 
     return (
       <div className="space-y-6 lg:space-y-8">
-        <section className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-xl">
-          <div className="grid gap-8">
-            <div className="flex flex-col gap-6">
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-3">
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600">Intro</span>
-                </div>
-                <h2 className="text-3xl font-semibold text-slate-900 lg:text-4xl">ภาพรวมสถิติหน้าเว็บไซต์หลัก</h2>
-                <p className="max-w-2xl text-sm text-slate-500 lg:text-base">
-                  ตัวเลขสำคัญของผู้เข้าชมเว็บไซต์แบบรายวันและสรุปย้อนหลัง {rangeDays} วัน เพื่อช่วยประเมินปริมาณการใช้งานล่าสุดอย่างชัดเจน
-                </p>
+        
+        {/* === SECTION 1: ภาพรวมสถิติ (Overview Cards) === */}
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 text-slate-900 shadow-sm">
+          <div className="flex flex-col gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2">
+                <span className="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-600 border border-emerald-100">Overview</span>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {summaryCards.map(card => (
-                  <div
-                    key={card.label}
-                    className={`relative overflow-hidden rounded-2xl border ${card.border} ${card.background} p-4 shadow-sm transition duration-200 hover:shadow-md`}
-                  >
-                    <div className={`text-xs font-semibold uppercase tracking-wide ${card.header}`}>{card.label}</div>
-                    <div className="mt-3 flex items-baseline gap-2 text-slate-900">
-                      <span className="text-3xl font-bold">{card.value}</span>
-                      <span className="text-lg">{card.icon}</span>
-                    </div>
-                    <div className={`mt-2 text-xs ${card.detailColor}`}>{card.detail}</div>
-                  </div>
-                ))}
-              </div>
+              <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">ภาพรวมสถิติหน้าเว็บไซต์หลัก</h2>
+              <p className="max-w-2xl text-sm text-slate-500">
+                ตัวเลขสำคัญของผู้เข้าชมเว็บไซต์แบบรายวันและสรุปย้อนหลัง {rangeDays} วัน
+              </p>
             </div>
-
-
-          </div>
-        </section >
-
-        <section className="grid gap-4 lg:grid-cols-4">
-          <article className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">ผู้ใช้ไม่ซ้ำ {rangeDays} วัน</p>
-            <p className="mt-3 text-3xl font-semibold text-slate-900">{numberFormatter.format(range.uniqueVisitors)}</p>
-            <p className="mt-1 text-xs text-slate-500">จำแนกจาก fingerprint รายวัน</p>
-          </article>
-          <article className="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-sky-600">จำนวนครั้งรวม {rangeDays} วัน</p>
-            <p className="mt-3 text-3xl font-semibold text-slate-900">{numberFormatter.format(range.hits)}</p>
-            <p className="mt-1 text-xs text-slate-500">รวมทุกการเข้าเว็บไซต์</p>
-          </article>
-          <article className="rounded-2xl border border-violet-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-violet-600">ผู้ใช้ไม่ซ้ำทั้งหมด</p>
-            <p className="mt-3 text-3xl font-semibold text-slate-900">{numberFormatter.format(lifetime.uniqueVisitors)}</p>
-            <p className="mt-1 text-xs text-slate-500">90 วันล่าสุด</p>
-          </article>
-          <article className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">จำนวนครั้งทั้งหมด</p>
-            <p className="mt-3 text-3xl font-semibold text-slate-900">{numberFormatter.format(lifetime.hits)}</p>
-            <p className="mt-1 text-xs text-slate-500">รวมทุกรายการ</p>
-          </article>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-1">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-              <span className="text-emerald-500">📈</span>
-              แนวโน้มผู้เข้าชมไม่ซ้ำ {rangeDays} วันล่าสุด
-            </h3>
-            <div className="mt-4 space-y-3">
-              {trend.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-                  ยังไม่มีข้อมูลในช่วงเวลานี้
-                </div>
-              )}
-              {[...trend].reverse().map(item => {
-                const width = Math.round(((item.uniqueVisitors || 0) / trendMax) * 100)
-                return (
-                  <div key={item.date} className="flex items-center gap-3">
-                    <div className="w-20 text-xs font-medium text-slate-500">{formatDay(item.date)}</div>
-                    <div className="flex-1">
-                      <div className="h-3 rounded-full bg-slate-100">
-                        <div
-                          className="h-3 rounded-full bg-gradient-to-r from-emerald-400 to-sky-500"
-                          style={{ width: `${Math.max(width, 8)}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="w-20 text-right text-xs text-slate-500">
-                      {numberFormatter.format(item.uniqueVisitors)} คน
-                    </div>
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {summaryCards.map(card => (
+                <div
+                  key={card.label}
+                  className={`relative overflow-hidden rounded-2xl border ${card.colors.border} bg-white p-5 shadow-sm ${card.colors.hover} hover:shadow-md transition duration-200 group`}
+                >
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</div>
+                  <div className="mt-3 flex items-center justify-between text-slate-900">
+                    <span className="text-3xl font-bold">{card.value}</span>
+                    <span className={`text-2xl ${card.colors.bg} ${card.colors.text} p-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110`}>{card.icon}</span>
                   </div>
-                )
-              })}
+                  <div className={`mt-4 text-xs font-medium ${card.colors.text} ${card.colors.bg}/50 inline-block px-2 py-1 rounded-md`}>{card.detail}</div>
+                </div>
+              ))}
             </div>
           </div>
-
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-5">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
-            <div className="flex items-center justify-between gap-3">
+        {/* === SECTION 2: กราฟแนวโน้ม (Trend Chart) === */}
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 mb-6">
+            <span className="text-emerald-500"><i className="fa-solid fa-chart-line"></i></span>
+            แนวโน้มผู้เข้าชมไม่ซ้ำ {rangeDays} วันล่าสุด
+          </h3>
+          {trend.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
+              ยังไม่มีข้อมูลในช่วงเวลานี้
+            </div>
+          ) : (
+            <div className="h-72 w-full mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={[...trend].reverse()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" tickFormatter={formatDay} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <Tooltip 
+                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                     labelFormatter={(label) => formatDay(label as string)}
+                     formatter={(value: number) => [numberFormatter.format(value), 'ผู้เข้าชมไม่ซ้ำ']}
+                     labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="uniqueVisitors" 
+                    stroke="#10b981" 
+                    strokeWidth={3} 
+                    dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} 
+                    activeDot={{ r: 6, strokeWidth: 0 }} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </section>
+
+        {/* === SECTION 3: Data Tables (ผู้ใช้ล่าสุด & อุปกรณ์) === */}
+        <section className="grid gap-6 lg:grid-cols-5">
+          {/* ตารางผู้ใช้ล่าสุด */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3 flex flex-col">
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <span className="text-sky-500">🧠</span>
-                ผู้ใช้ล่าสุด
+                <span className="text-emerald-500"><i className="fa-solid fa-clock-rotate-left"></i></span>
+                ผู้ใช้งานล่าสุด (Recent Sessions)
               </h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">
-                  {recentLength ? `ทั้งหมด ${recentLength} รายการ` : 'ยังไม่มีข้อมูล'}
-                </span>
-              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                {recentLength ? `ทั้งหมด ${recentLength} รายการ` : 'ยังไม่มีข้อมูล'}
+              </span>
             </div>
-            <div className="mt-4 space-y-3">
-              {paginatedRecentSessions.map((session, idx) => {
-                const agentInfo = summarizeUserAgent(session.userAgent)
-                const ipLabel = session.ipAddress || 'unknown'
-                const relative = formatRelative(session.lastSeen)
-                const displayIndex = (recentPage - 1) * RECENT_PAGE_SIZE + idx + 1
-                return (
-                  <div
-                    key={`${session.lastSeen}-${idx}`}
-                    className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-sky-100 hover:shadow-md"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="flex min-w-0 flex-1 items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sm font-semibold text-sky-600">
-                          {displayIndex}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-slate-900/90 px-2 py-1 text-xs font-semibold tracking-wide text-white">
-                              {ipLabel}
-                            </span>
-                            <span className={`rounded-full px-2 py-1 text-xs font-medium ${agentInfo.isBot ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                              {agentInfo.label}
-                            </span>
-                          </div>
-                          {/* Removed raw user agent detail per request */}
-                        </div>
-                      </div>
-                      <div className="text-right text-xs text-slate-500">
-                        <div className="font-semibold text-slate-700">{formatDate(session.lastSeen)}</div>
-                        {relative && <div className="mt-1 text-[11px] text-slate-400">{relative}</div>}
-                        <div className="mt-2 text-[11px] font-semibold text-slate-600">
-                          จำนวนครั้ง: {numberFormatter.format(session.hits)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-              {recentLength === 0 && (
-                <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-                  ยังไม่มีข้อมูลผู้ใช้ล่าสุด
+            
+            {recentLength === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 my-auto">
+                ยังไม่มีข้อมูลผู้ใช้ล่าสุด
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                  <table className="w-full text-left text-sm text-slate-600 whitespace-nowrap">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500 font-semibold tracking-wider">
+                      <tr>
+                        <th className="px-4 py-3">No.</th>
+                        <th className="px-4 py-3">IP Address</th>
+                        <th className="px-4 py-3">Device / Browser</th>
+                        <th className="px-4 py-3 text-right">Hits</th>
+                        <th className="px-4 py-3">Last Seen</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {paginatedRecentSessions.map((session, idx) => {
+                        const agentInfo = summarizeUserAgent(session.userAgent)
+                        const ipLabel = session.ipAddress || 'unknown'
+                        const relative = formatRelative(session.lastSeen)
+                        const displayIndex = (recentPage - 1) * RECENT_PAGE_SIZE + idx + 1
+                        return (
+                          <tr key={`${session.lastSeen}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="px-4 py-3 font-medium text-slate-900">{displayIndex}</td>
+                            <td className="px-4 py-3">
+                              <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{ipLabel}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center rounded-full px-2 py-1 text-[11px] font-medium ${agentInfo.isBot ? 'bg-amber-100 text-amber-700' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                                {agentInfo.label}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 font-medium text-right">{numberFormatter.format(session.hits)}</td>
+                            <td className="px-4 py-3">
+                              <div className="text-slate-900">{formatDate(session.lastSeen)}</div>
+                              {relative && <div className="text-[11px] text-slate-400 mt-0.5">{relative}</div>}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </div>
-            {recentLength > 0 && (
-              <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-xs text-slate-500">
-                <button
-                  type="button"
-                  onClick={() => setRecentPage(page => Math.max(1, page - 1))}
-                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={recentPage === 1}
-                >
-                  ก่อนหน้า
-                </button>
-                <span>หน้า {recentPage} / {recentTotalPages}</span>
-                <button
-                  type="button"
-                  onClick={() => setRecentPage(page => Math.min(recentTotalPages, page + 1))}
-                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={recentPage === recentTotalPages}
-                >
-                  ถัดไป
-                </button>
-              </div>
+                
+                {recentTotalPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
+                    <button
+                      type="button"
+                      onClick={() => setRecentPage(page => Math.max(1, page - 1))}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 font-medium hover:bg-slate-50 transition disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={recentPage === 1}
+                    >
+                      ก่อนหน้า
+                    </button>
+                    <span>หน้า {recentPage} / {recentTotalPages}</span>
+                    <button
+                      type="button"
+                      onClick={() => setRecentPage(page => Math.min(recentTotalPages, page + 1))}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 font-medium hover:bg-slate-50 transition disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={recentPage === recentTotalPages}
+                    >
+                      ถัดไป
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          {/* อุปกรณ์ยอดนิยม */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2 flex flex-col">
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <span className="text-violet-500">🛰️</span>
+                <span className="text-emerald-500"><i className="fa-solid fa-laptop-mobile"></i></span>
                 อุปกรณ์ยอดนิยม
               </h3>
-              {agentLength > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">
-                    {`${agentLength} รายการ`}
-                  </span>
-                </div>
-              )}
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                {agentLength > 0 ? `${agentLength} รายการ` : 'ไม่มีข้อมูล'}
+              </span>
             </div>
-            <div className="mt-4 space-y-3">
-              {agentLength === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-                  ยังไม่มีข้อมูลอุปกรณ์
-                </div>
-              )}
-              {paginatedTopAgents.map((agent, idx) => {
-                const agentInfo = summarizeUserAgent(agent.userAgent)
-                return (
-                  <div key={`${agent.userAgent || 'unknown'}-${agentPage}-${idx}`} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="truncate text-sm font-medium text-slate-800">{agentInfo.label}</div>
-                      <div className="rounded-full bg-violet-100 px-2 py-[2px] text-[11px] font-semibold text-violet-700">
-                        {numberFormatter.format(agent.hits)} ครั้ง
-                      </div>
-                    </div>
-                    {/* Removed raw user agent detail per request */}
-                  </div>
-                )
-              })}
-            </div>
-            {agentLength > 0 && (
-              <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-xs text-slate-500">
-                <button
-                  type="button"
-                  onClick={() => setAgentPage(page => Math.max(1, page - 1))}
-                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={agentPage === 1}
-                >
-                  ก่อนหน้า
-                </button>
-                <span>หน้า {agentPage} / {agentTotalPages}</span>
-                <button
-                  type="button"
-                  onClick={() => setAgentPage(page => Math.min(agentTotalPages, page + 1))}
-                  className="rounded-full border border-slate-200 px-3 py-1 font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={agentPage === agentTotalPages}
-                >
-                  ถัดไป
-                </button>
+            
+            {agentLength === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 my-auto">
+                ยังไม่มีข้อมูลอุปกรณ์
               </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  {paginatedTopAgents.map((agent, idx) => {
+                    const agentInfo = summarizeUserAgent(agent.userAgent)
+                    return (
+                      <div key={`${agent.userAgent || 'unknown'}-${agentPage}-${idx}`} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/50 p-3 hover:bg-slate-50 transition-colors">
+                        <div className="truncate text-sm font-medium text-slate-700">{agentInfo.label}</div>
+                        <div className="rounded bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100 shrink-0">
+                          {numberFormatter.format(agent.hits)} ครั้ง
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                
+                {agentTotalPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between text-sm text-slate-500 border-t border-slate-100 pt-4 mt-auto">
+                    <button
+                      type="button"
+                      onClick={() => setAgentPage(page => Math.max(1, page - 1))}
+                      className="text-emerald-600 font-medium disabled:opacity-30 hover:underline"
+                      disabled={agentPage === 1}
+                    >
+                      ‹ ก่อนหน้า
+                    </button>
+                    <span className="text-xs">หน้าที่ {agentPage} / {agentTotalPages}</span>
+                    <button
+                      type="button"
+                      onClick={() => setAgentPage(page => Math.min(agentTotalPages, page + 1))}
+                      className="text-emerald-600 font-medium disabled:opacity-30 hover:underline"
+                      disabled={agentPage === agentTotalPages}
+                    >
+                      ถัดไป ›
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
-
         </section>
-      </div >
+      </div>
     )
   }
 )

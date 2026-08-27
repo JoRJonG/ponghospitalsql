@@ -232,18 +232,10 @@ function DocModal({ mode, file, doc, onClose, onSuccess }: DocModalProps) {
 
                     {/* Actions */}
                     <div className="flex gap-3 pt-1">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
-                        >
+                        <button type="button" onClick={onClose} className="admin-btn admin-btn--outline flex-1 py-2.5 justify-center">
                             ยกเลิก
                         </button>
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm shadow-emerald-200 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
+                        <button type="submit" disabled={submitting} className="admin-btn admin-btn--add flex-1 py-2.5 justify-center">
                             {submitting
                                 ? <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>กำลังบันทึก...</>
                                 : mode === 'upload' ? 'อัปโหลดเอกสาร' : 'บันทึกการแก้ไข'
@@ -302,11 +294,11 @@ function LegalEthicsDocs() {
         if (!file) return
         e.target.value = ''
         if (file.type !== 'application/pdf') {
-            Swal.fire({ icon: 'warning', title: 'ไฟล์ไม่ถูกต้อง', text: 'กรุณาเลือกไฟล์ PDF เท่านั้น', confirmButtonColor: '#059669' })
+            Swal.fire({ icon: 'warning', title: 'ไฟล์ไม่ถูกต้อง', text: 'กรุณาเลือกไฟล์ PDF เท่านั้น', confirmButtonColor: '#006241' })
             return
         }
         if (file.size > 100 * 1024 * 1024) {
-            Swal.fire({ icon: 'warning', title: 'ไฟล์ใหญ่เกินไป', text: 'ขนาดไฟล์ต้องไม่เกิน 100 MB', confirmButtonColor: '#059669' })
+            Swal.fire({ icon: 'warning', title: 'ไฟล์ใหญ่เกินไป', text: 'ขนาดไฟล์ต้องไม่เกิน 100 MB', confirmButtonColor: '#006241' })
             return
         }
         setModal({ mode: 'upload', file })
@@ -333,7 +325,7 @@ function LegalEthicsDocs() {
             await fetchDocs()
             Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1400, showConfirmButton: false })
         } catch (err: unknown) {
-            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err instanceof Error ? err.message : 'ไม่สามารถลบข้อมูลได้', confirmButtonColor: '#059669' })
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err instanceof Error ? err.message : 'ไม่สามารถลบข้อมูลได้', confirmButtonColor: '#006241' })
         }
     }
 
@@ -343,7 +335,7 @@ function LegalEthicsDocs() {
             const r = await fetch(`/api/legal-ethics/${doc.id}`, { method: 'PUT', headers: { Authorization: `Bearer ${getToken()}` }, body: fd })
             if (!r.ok) throw new Error()
             setDocs(prev => prev.map(d => d.id === doc.id ? { ...d, isPublished: !d.isPublished } : d))
-        } catch { Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเปลี่ยนสถานะได้', confirmButtonColor: '#059669' }) }
+        } catch { Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเปลี่ยนสถานะได้', confirmButtonColor: '#006241' }) }
     }
 
     return (
@@ -379,10 +371,9 @@ function LegalEthicsDocs() {
                 </div>
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm shadow-emerald-200 transition-all duration-150 flex-shrink-0"
+                    className="admin-btn admin-btn--add whitespace-nowrap"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    อัปโหลด PDF
+                    <i className="fa-solid fa-plus mr-1"></i> อัปโหลด PDF
                 </button>
             </div>
 
@@ -454,11 +445,11 @@ function LegalEthicsDocs() {
                                         </td>
                                         <td className="px-5 py-3.5">
                                             <div className="flex items-center justify-center gap-1.5 transition-opacity">
-                                                <button onClick={() => setModal({ mode: 'edit', doc })} className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all" title="แก้ไข">
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                <button onClick={() => setModal({ mode: 'edit', doc })} className="admin-btn admin-btn--edit !p-2 !rounded-lg" title="แก้ไข">
+                                                    <i className="fa-solid fa-pen-to-square"></i>
                                                 </button>
-                                                <button onClick={() => handleDelete(doc.id)} className="w-7 h-7 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all" title="ลบ">
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                <button onClick={() => handleDelete(doc.id)} className="admin-btn admin-btn--danger !p-2 !rounded-lg" title="ลบ">
+                                                    <i className="fa-solid fa-trash-can"></i>
                                                 </button>
                                             </div>
                                         </td>

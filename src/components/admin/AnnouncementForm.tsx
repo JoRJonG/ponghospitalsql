@@ -40,7 +40,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
   const onUploadImage = async (file: File) => {
     // Stage image locally (no immediate upload) to avoid embedding large base64 in JSON
     if (hasDuplicateAttachment(form.attachments, file.name, file.size)) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       return
     }
     setUploading(true)
@@ -55,18 +55,18 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
       }))
     } catch (err) {
       console.error('Stage image error:', err)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เตรียมรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เตรียมรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally { setUploading(false) }
   }
 
   const onUploadFile = async (file: File) => {
     // Stage file locally (no immediate upload) to avoid embedding large base64 in JSON
     if (hasDuplicateAttachment(form.attachments, file.name, file.size)) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไฟล์นี้ถูกเพิ่มไว้แล้ว (ชื่อและขนาดตรงกัน)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       return
     }
     if (file.size > 300 * 1024 * 1024) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 300 MB)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 300 MB)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       return
     }
     setUploading(true)
@@ -78,7 +78,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
       setForm(current => ({ ...current, attachments: [...(current.attachments || []), { url: objectUrl, name: file.name, bytes: file.size, kind }] }))
     } catch (err) {
       console.error('Stage file error:', err)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เตรียมไฟล์ไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เตรียมไฟล์ไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally { setUploading(false) }
   }
 
@@ -158,7 +158,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
         } catch (parseErr) {
           console.warn('อ่านรายละเอียดข้อผิดพลาดไม่สำเร็จ', parseErr)
         }
-        Swal.fire({ title: 'ข้อผิดพลาด', text: msg, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        Swal.fire({ title: 'ข้อผิดพลาด', text: msg, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
         return
       }
 
@@ -185,7 +185,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
           if (!uploadR.ok) {
             const errText = await uploadR.text().catch(() => 'Unknown error')
             console.warn(`ไม่สามารถอัปโหลดไฟล์ ${file.name}:`, errText)
-            Swal.fire({ title: 'ข้อผิดพลาด', text: `⚠️ บันทึกข้อมูลแล้ว แต่อัปโหลดไฟล์ "${file.name}" ไม่สำเร็จ\n\nกรุณาลองแก้ไขประกาศและเพิ่มไฟล์ใหม่`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+            Swal.fire({ title: 'ข้อผิดพลาด', text: `⚠️ บันทึกข้อมูลแล้ว แต่อัปโหลดไฟล์ "${file.name}" ไม่สำเร็จ\n\nกรุณาลองแก้ไขประกาศและเพิ่มไฟล์ใหม่`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
             break
           }
         }
@@ -200,7 +200,7 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
       onCreated()
     } catch (err) {
       console.error('Submit error:', err)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาด: ' + (err instanceof Error ? err.message : String(err)), icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาด: ' + (err instanceof Error ? err.message : String(err)), icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally {
       setLoading(false)
     }
@@ -262,9 +262,9 @@ export default function AnnouncementForm({ onCreated, onCancel, initialData }: {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="truncate text-sm">{att.name || att.url}</div>
-                  <a href={att.url} target="_blank" className="text-blue-700 text-xs hover:underline">เปิดดู</a>
+                  <a href={att.url} target="_blank" className="text-emerald-700 text-xs hover:underline">เปิดดู</a>
                 </div>
-                <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={() => removeAttachmentAt(i)}>ลบ</button>
+                <button type="button" className="admin-btn admin-btn--danger admin-btn--sm" onClick={() => removeAttachmentAt(i)}>ลบ</button>
               </div>
             ))}
           </div>

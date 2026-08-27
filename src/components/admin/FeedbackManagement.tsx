@@ -222,7 +222,7 @@ export default function FeedbackManagement() {
             showCancelButton: true,
             confirmButtonText: 'ลบ',
             cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#d33',
+            confirmButtonColor: '#dc2626',
             cancelButtonColor: '#3085d6'
         })
 
@@ -255,7 +255,7 @@ export default function FeedbackManagement() {
     // ฟังก์ชันแสดงสถานะ
     const getStatusBadge = (status: string) => {
         const badges = {
-            new: 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
+            new: 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200',
             read: 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'
         }
 
@@ -297,9 +297,9 @@ export default function FeedbackManagement() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">จัดการความคิดเห็น</h2>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-blue-50 rounded-lg p-4 ring-1 ring-blue-100">
-                        <div className="text-sm text-blue-600 font-medium">ใหม่</div>
-                        <div className="text-2xl font-bold text-blue-700 mt-1">{stats.new}</div>
+                    <div className="bg-emerald-50 rounded-lg p-4 ring-1 ring-emerald-100">
+                        <div className="text-sm text-emerald-700 font-medium">ใหม่</div>
+                        <div className="text-2xl font-bold text-emerald-800 mt-1">{stats.new}</div>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4 ring-1 ring-gray-100">
                         <div className="text-sm text-gray-600 font-medium">อ่านแล้ว</div>
@@ -527,7 +527,7 @@ export default function FeedbackManagement() {
                         <div className="flex items-center justify-end gap-3 pt-4 border-t">
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="btn btn-outline"
+                                className="admin-btn admin-btn--outline w-full justify-center"
                             >
                                 ปิด
                             </button>

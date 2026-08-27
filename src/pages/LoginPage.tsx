@@ -61,7 +61,7 @@ export default function LoginPage() {
         text: 'กรุณาตรวจสอบชื่อผู้ใช้และรหัสผ่าน',
         icon: 'error',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#d33'
+        confirmButtonColor: '#dc2626'
       })
     }
   }

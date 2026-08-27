@@ -85,7 +85,7 @@ export default function HeroSliderSettings() {
                 text: 'บันทึกสถานะ Hero Slider สำเร็จ',
                 icon: 'success',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#10b981'
+                confirmButtonColor: '#006241'
             })
         } catch (error) {
             const message = error instanceof Error ? error.message : 'ไม่สามารถบันทึกได้'
@@ -95,7 +95,7 @@ export default function HeroSliderSettings() {
                 text: message,
                 icon: 'error',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#d33'
+                confirmButtonColor: '#dc2626'
             })
         } finally {
             setModeSaving(false)
@@ -111,7 +111,7 @@ export default function HeroSliderSettings() {
             <div className="card-body space-y-4">
                 <div>
                     <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                        <i className="fa-solid fa-panorama text-blue-600" />
+                        <i className="fa-solid fa-panorama text-emerald-700" />
                         แถบสไลเดอร์หน้าแรก (Hero Slider)
                     </h2>
                     <p className="mt-1 text-sm text-gray-600">ตั้งค่าการแสดงผลแถบรูปภาพสไลด์ขนาดใหญ่ด้านบนสุดของหน้าแรก</p>
@@ -121,20 +121,20 @@ export default function HeroSliderSettings() {
                         {sliderOptions.map(option => (
                             <label
                                 key={option.value}
-                                className={`flex items-start gap-3 rounded-lg border p-3 transition cursor-pointer ${sliderMode === option.value ? 'border-blue-400 bg-blue-50/40' : 'border-gray-200 hover:border-blue-200'}`}
+                                className={`flex items-start gap-3 rounded-lg border p-3 transition cursor-pointer ${sliderMode === option.value ? 'border-emerald-400 bg-emerald-50/40' : 'border-gray-200 hover:border-emerald-200'}`}
                             >
                                 <input
                                     type="radio"
                                     name="sliderMode"
                                     value={option.value}
-                                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                    className="mt-1 h-4 w-4 text-emerald-700 focus:ring-emerald-600"
                                     checked={sliderMode === option.value}
                                     onChange={() => setSliderMode(option.value)}
                                     disabled={modeSaving}
                                 />
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <i className={`fa-solid ${option.icon} text-blue-600`} />
+                                        <i className={`fa-solid ${option.icon} text-emerald-700`} />
                                         <span className="font-medium text-gray-900">{option.title}</span>
                                     </div>
                                     <p className="mt-1 text-sm text-gray-600">{option.description}</p>
@@ -143,7 +143,7 @@ export default function HeroSliderSettings() {
                         ))}
                     </div>
                     <div className="flex items-center gap-2">
-                        <button type="submit" className="admin-btn" disabled={modeSaving}>
+                        <button type="submit" className="admin-btn admin-btn--add" disabled={modeSaving}>
                             {modeSaving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
                         </button>
                         <button

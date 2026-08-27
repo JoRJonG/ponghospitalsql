@@ -186,16 +186,16 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
           title: editing ? 'บันทึกการแก้ไขเมนูสำเร็จ' : 'เพิ่มเมนูสำเร็จ',
           icon: 'success',
           confirmButtonText: 'ตกลง',
-          confirmButtonColor: '#10b981'
+          confirmButtonColor: '#006241'
         })
         cancel()
         load()
       } else {
-        Swal.fire({ title: 'ข้อผิดพลาด', text: 'บันทึกไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        Swal.fire({ title: 'ข้อผิดพลาด', text: 'บันทึกไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       }
     } catch (err) {
       console.error('[ITA] submit error', err)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดระหว่างบันทึก', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดระหว่างบันทึก', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally { setBusy(false) }
   }
   const del = async (item: ItaItem) => {
@@ -206,7 +206,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -219,14 +219,14 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
           title: 'ลบเมนูสำเร็จ',
           icon: 'success',
           confirmButtonText: 'ตกลง',
-          confirmButtonColor: '#10b981'
+          confirmButtonColor: '#006241'
         })
         load()
       } else {
-        Swal.fire({ title: 'ข้อผิดพลาด', text: 'ลบเมนูไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        Swal.fire({ title: 'ข้อผิดพลาด', text: 'ลบเมนูไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       }
     } catch {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดระหว่างลบ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดระหว่างลบ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally { setBusy(false) }
   }
 
@@ -372,7 +372,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -410,7 +410,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                         href={n.pdfUrl}
                         target="_blank"
                         rel="noopener"
-                        className="inline-flex items-center gap-1 text-xs text-blue-700 underline"
+                        className="inline-flex items-center gap-1 text-xs text-emerald-700 underline"
                       >
                         <span>🔗</span>
                         <span>เปิดลิงก์</span>
@@ -441,11 +441,11 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                     </div>
                   ) : null}
                   <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <button onClick={() => startNew(n)} className="admin-btn admin-btn--outline">➕ เพิ่มเมนูย่อย</button>
-                    <button onClick={() => startEdit(n)} className="admin-btn admin-btn--outline">✏️ แก้ไข</button>
-                    <button onClick={() => del(n)} className="admin-btn admin-btn--outline">🗑️ ลบ</button>
-                    <button onClick={() => move(n, -1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายขึ้น">⬆️</button>
-                    <button onClick={() => move(n, 1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายลง">⬇️</button>
+                    <button onClick={() => startNew(n)} className="admin-btn admin-btn--add admin-btn--sm"><i className="fa-solid fa-plus"></i> เพิ่มเมนูย่อย</button>
+                    <button onClick={() => startEdit(n)} className="admin-btn admin-btn--edit"><i className="fa-solid fa-pen"></i> แก้ไข</button>
+                    <button onClick={() => del(n)} className="admin-btn admin-btn--danger"><i className="fa-solid fa-trash-can"></i> ลบ</button>
+                    <button onClick={() => move(n, -1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายขึ้น"><i className="fa-solid fa-arrow-up"></i></button>
+                    <button onClick={() => move(n, 1)} className="admin-btn admin-btn--outline admin-btn--sm" aria-label="ย้ายลง"><i className="fa-solid fa-arrow-down"></i></button>
                   </div>
                   {pdfCount > 0 && isPdfOpen ? (
                     <ul className="mt-3 space-y-1 rounded border border-emerald-200 bg-emerald-50/60 p-2 text-xs">
@@ -483,8 +483,8 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">จัดการเมนู ITA</h2>
-        <button className="admin-btn" onClick={() => startNew(null)}>
-          <span>➕</span>
+        <button className="admin-btn admin-btn--add" onClick={() => startNew(null)}>
+          <i className="fa-solid fa-plus"></i>
           เพิ่มเมนูหลัก
         </button>
       </div>
@@ -574,7 +574,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                         const valid: File[] = []
                         for (const file of files) {
                           if (file.size > MAX_PDF_SIZE) {
-                            Swal.fire({ title: 'ข้อผิดพลาด', text: `ไฟล์ ${file.name} มีขนาดเกิน 100MB`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+                            Swal.fire({ title: 'ข้อผิดพลาด', text: `ไฟล์ ${file.name} มีขนาดเกิน 100MB`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
                             continue
                           }
                           valid.push(file)
@@ -620,7 +620,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                             const valid: File[] = []
                             for (const file of files) {
                               if (file.size > MAX_PDF_SIZE) {
-                                Swal.fire({ title: 'ข้อผิดพลาด', text: `ไฟล์ ${file.name} มีขนาดเกิน 100MB`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+                                Swal.fire({ title: 'ข้อผิดพลาด', text: `ไฟล์ ${file.name} มีขนาดเกิน 100MB`, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
                                 continue
                               }
                               valid.push(file)
@@ -661,11 +661,11 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
                                 {currentPdfFiles.map(p => (
                                   <tr key={p.id} className="hover:bg-gray-50">
                                     <td className="px-3 py-2">
-                                      <a href={p.url} target="_blank" rel="noopener" className="text-blue-700 underline truncate block" title={p.filename}>{p.filename}</a>
+                                      <a href={p.url} target="_blank" rel="noopener" className="text-emerald-700 underline truncate block" title={p.filename}>{p.filename}</a>
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap">{formatFileSize(p.size)}</td>
                                     <td className="px-3 py-2">
-                                      <button type="button" className="admin-btn admin-btn--outline admin-btn--sm" onClick={() => deletePdfFile(p.id)}>🗑️ ลบ</button>
+                                      <button type="button" className="admin-btn admin-btn--danger admin-btn--sm" onClick={() => deletePdfFile(p.id)}><i className="fa-solid fa-trash-can"></i> ลบ</button>
                                     </td>
                                   </tr>
                                 ))}
@@ -707,7 +707,7 @@ const ItaManagement = forwardRef<ItaManagementHandle>(function ItaManagement(_pr
               </div>
               <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} /> เผยแพร่</label>
               <div>
-                <button className="admin-btn" type="submit" disabled={busy}>
+                <button className="admin-btn admin-btn--add" type="submit" disabled={busy}>
                   {busy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

@@ -506,6 +506,28 @@ html.grayscale-mode {
   color: var(--hospital-text-primary);
 }
 
+.btn-warning {
+  background: transparent;
+  color: var(--hospital-primary);
+  border-color: var(--hospital-primary);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: var(--hospital-primary);
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: transparent;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+}
+
 /* Admin dashboard button system */
 .admin-btn {
   display: inline-flex;
@@ -572,14 +594,14 @@ html.grayscale-mode {
 }
 
 .admin-btn--danger {
-  background: var(--hospital-error);
-  border-color: var(--hospital-error);
+  background: transparent;
+  color: #dc2626;
+  border-color: #dc2626;
 }
 
 .admin-btn--danger:hover:not(:disabled) {
-  background: #b91c1c;
-  border-color: #b91c1c;
-  box-shadow: var(--hospital-shadow-md);
+  background: #dc2626;
+  color: #fff;
 }
 
 .admin-btn--sm {
@@ -1561,4 +1583,52 @@ textarea {
   .hover-scale-subtle:hover {
     transform: none !important;
   }
+}
+.admin-btn {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
+}
+
+.admin-btn:active:not(:disabled) {
+  @apply scale-[0.97];
+}
+
+.admin-btn--add {
+  @apply bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-md border border-transparent;
+}
+
+.admin-btn--ghost {
+  @apply bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent shadow-none;
+}
+
+.admin-btn--outline {
+  @apply bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:text-slate-900;
+}
+
+.admin-btn--edit {
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:shadow-md;
+}
+
+.admin-btn--danger {
+  @apply bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:shadow-md;
+}
+
+/* SweetAlert2 Premium Theme Override */
+div:where(.swal2-container) div:where(.swal2-popup) {
+  @apply rounded-2xl shadow-2xl border border-gray-100;
+  font-family: inherit;
+}
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+  @apply bg-emerald-600 hover:bg-emerald-700 rounded-xl px-6 py-2.5 font-medium transition-colors;
+}
+div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel {
+  @apply bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl px-6 py-2.5 font-medium transition-colors;
+}
+div:where(.swal2-container) button:where(.swal2-styled).swal2-deny {
+  @apply bg-rose-500 hover:bg-rose-600 rounded-xl px-6 py-2.5 font-medium transition-colors;
+}
+div:where(.swal2-container) h2:where(.swal2-title) {
+  @apply text-slate-800 font-semibold;
+}
+div:where(.swal2-container) div:where(.swal2-html-container) {
+  @apply text-slate-600;
 }

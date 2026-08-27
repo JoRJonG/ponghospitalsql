@@ -112,7 +112,7 @@ function ExecutiveForm({ initialId, onClose, onSaved }: { initialId?: string | n
           text: 'บันทึกไม่สำเร็จ: ' + (err.details || err.error || 'Unknown error'),
           icon: 'error',
           confirmButtonText: 'ตกลง',
-          confirmButtonColor: '#d33'
+          confirmButtonColor: '#dc2626'
         })
       }
     } catch (err) {
@@ -327,7 +327,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -346,14 +346,14 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
           text: 'ลบผู้บริหารสำเร็จ',
           icon: 'success',
           confirmButtonText: 'ตกลง',
-          confirmButtonColor: '#10b981'
+          confirmButtonColor: '#006241'
         })
       } else {
-        Swal.fire({ title: 'ข้อผิดพลาด', text: 'ลบผู้บริหารไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        Swal.fire({ title: 'ข้อผิดพลาด', text: 'ลบผู้บริหารไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       }
     } catch (error: unknown) {
       console.error('Failed to delete executive:', error)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาด', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาด', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     }
   }
 
@@ -369,9 +369,9 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
         </div>
         <button
           onClick={() => { setShowForm(true); setEditingId(null) }}
-          className="admin-btn bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-lg shadow-emerald-200/50 border-0 py-2.5 px-6 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          className="admin-btn admin-btn--add"
         >
-          <span className="text-lg">➕</span>
+          <i className="fa-solid fa-plus"></i>
           <span>เพิ่มผู้บริหาร</span>
         </button>
       </div>
@@ -394,7 +394,7 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
               title: editingId ? 'อัปเดตข้อมูลสำเร็จ' : 'เพิ่มผู้บริหารสำเร็จ',
               icon: 'success',
               confirmButtonText: 'ตกลง',
-              confirmButtonColor: '#10b981',
+              confirmButtonColor: '#006241',
               customClass: {
                 popup: 'rounded-2xl border-0 shadow-2xl'
               }
@@ -472,21 +472,20 @@ const ExecutivesManagement = forwardRef<ExecutivesManagementHandle>(function Exe
               </div>
 
               {/* Premium Actions */}
-              <div className="flex items-center gap-3 shrink-0 pr-2">
+              <div className="flex items-center gap-2 shrink-0 pr-2">
                 <button
                   onClick={() => { setEditingId(exec._id!); setShowForm(true) }}
-                  className="w-11 h-11 flex items-center justify-center rounded-2xl bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all shadow-sm hover:shadow-blue-200 relative group/btn overflow-hidden"
+                  className="admin-btn admin-btn--edit !px-3 !py-2"
                   title="แก้ไขข้อมูล"
                 >
-                  <span className="text-lg relative z-10">✏️</span>
-                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 to-indigo-500 opacity-0 group-hover/btn:opacity-0 transition-opacity"></div>
+                  <i className="fa-solid fa-pen"></i>
                 </button>
                 <button
                   onClick={() => handleDelete(exec._id!)}
-                  className="w-11 h-11 flex items-center justify-center rounded-2xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-sm hover:shadow-red-200 relative group/btn overflow-hidden"
+                  className="admin-btn admin-btn--danger !px-3 !py-2"
                   title="ลบ"
                 >
-                  <span className="text-lg relative z-10">🗑️</span>
+                  <i className="fa-solid fa-trash-can"></i>
                 </button>
               </div>
             </div>

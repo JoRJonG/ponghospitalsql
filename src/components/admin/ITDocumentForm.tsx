@@ -163,15 +163,15 @@ export default function ITDocumentForm({ document, pendingFile, onSubmit, onCanc
 
                     {/* File Selection (Show only if not edit mode and no pending file) */}
                     {isEditMode ? (
-                        <div className="px-4 py-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                <i className="fa-solid fa-file-pdf text-blue-500" />
+                        <div className="px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                <i className="fa-solid fa-file-pdf text-red-500" />
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">เอกสารปัจจุบัน</p>
+                                <p className="text-xs text-emerald-700 font-bold uppercase tracking-wider">เอกสารปัจจุบัน</p>
                                 <p className="text-sm font-semibold text-gray-800 truncate">{document?.fileName}</p>
                             </div>
-                            <label className="cursor-pointer bg-white border border-blue-200 text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all">
+                            <label className="cursor-pointer bg-white border border-emerald-200 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
                                 เปลี่ยนไฟล์
                                 <input type="file" accept=".pdf" className="sr-only" onChange={handleFileChange} />
                             </label>
@@ -279,14 +279,14 @@ export default function ITDocumentForm({ document, pendingFile, onSubmit, onCanc
                             type="button"
                             onClick={onCancel}
                             disabled={loading}
-                            className="flex-1 px-6 py-3 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50"
+                            className="admin-btn admin-btn--outline flex-1 py-3 justify-center text-sm font-bold"
                         >
                             ยกเลิก
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-3 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="admin-btn admin-btn--add flex-[3] py-3 justify-center text-sm font-bold"
                         >
                             {loading ? <i className="fa-solid fa-spinner fa-spin" /> : <i className="fa-solid fa-check" />}
                             {isEditMode ? 'บันทึกการแก้ไข' : (file ? 'ยืนยันการอัปโหลด' : 'บันทึกหัวข้อข้อมูล')}

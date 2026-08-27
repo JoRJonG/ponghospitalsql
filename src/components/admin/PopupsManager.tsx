@@ -128,7 +128,7 @@ function PopupForm({ initialData, onClose, onSaved }: { initialData?: PopupRecor
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ขนาดรูปภาพต้องไม่เกิน 5MB', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: 'ขนาดรูปภาพต้องไม่เกิน 5MB', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       if (event.target) event.target.value = ''
       return
     }
@@ -203,13 +203,13 @@ function PopupForm({ initialData, onClose, onSaved }: { initialData?: PopupRecor
         title: 'บันทึกป๊อปอัปสำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
       onSaved()
     } catch (thrown: unknown) {
       console.error('Failed to save popup', thrown)
       const message = thrown instanceof Error ? thrown.message : 'บันทึกป๊อปอัปไม่สำเร็จ'
-      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: message, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     } finally {
       setSaving(false)
     }
@@ -363,7 +363,7 @@ function PopupForm({ initialData, onClose, onSaved }: { initialData?: PopupRecor
 
       <div className="md:col-span-2 flex items-center justify-end gap-3 pt-2 border-t mt-2">
         <button type="button" onClick={onClose} className="admin-btn admin-btn--outline">ยกเลิก</button>
-        <button type="submit" disabled={saving} className="admin-btn">
+        <button type="submit" disabled={saving} className="admin-btn admin-btn--add">
           {saving ? 'กำลังบันทึก...' : 'บันทึก'}
         </button>
       </div>
@@ -408,7 +408,7 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -422,7 +422,7 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
         title: 'ลบป๊อปอัปสำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
     } catch (thrown: unknown) {
       console.error('Failed to delete popup', thrown)
@@ -431,7 +431,7 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
         text: thrown instanceof Error ? thrown.message : 'เกิดข้อผิดพลาด',
         icon: 'error',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#d33'
+        confirmButtonColor: '#dc2626'
       })
     }
   }
@@ -458,10 +458,10 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
       if (!response.ok || json?.success === false) throw new Error(json?.error || 'ไม่สามารถอัปเดตสถานะได้')
       invalidateCache('/api/popups/active')
       await load()
-      Swal.fire({ title: 'สำเร็จ', text: 'อัปเดตสถานะป๊อปอัปเรียบร้อย', icon: 'success', confirmButtonText: 'ตกลง', confirmButtonColor: '#10b981' })
+      Swal.fire({ title: 'สำเร็จ', text: 'อัปเดตสถานะป๊อปอัปเรียบร้อย', icon: 'success', confirmButtonText: 'ตกลง', confirmButtonColor: '#006241' })
     } catch (thrown: unknown) {
       console.error('Failed to toggle popup', thrown)
-      Swal.fire({ title: 'ข้อผิดพลาด', text: thrown instanceof Error ? thrown.message : 'อัปเดตสถานะไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+      Swal.fire({ title: 'ข้อผิดพลาด', text: thrown instanceof Error ? thrown.message : 'อัปเดตสถานะไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
     }
   }
 
@@ -485,9 +485,9 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
           <button
             type="button"
             onClick={() => { setEditingPopup(undefined); setShowModal(true) }}
-            className="admin-btn"
+            className="admin-btn admin-btn--add"
           >
-            <span>+</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
             เพิ่มป๊อปอัปใหม่
           </button>
         </div>
@@ -555,13 +555,13 @@ const PopupsManager = forwardRef<PopupsManagerHandle>((_props, ref) => {
                     <td className="px-4 py-3 align-top text-right">
                       <div className="inline-flex items-center gap-2">
                         <button onClick={() => handleToggleActive(popup)} className="admin-btn admin-btn--outline admin-btn--sm">
-                          {popup.isActive ? <><span>🚫</span><span>ปิด</span></> : <><span>✅</span><span>เปิด</span></>}
+                          {popup.isActive ? <><span><i className="fa-solid fa-ban"></i></span><span>ปิด</span></> : <><span><i className="fa-solid fa-check"></i></span><span>เปิด</span></>}
                         </button>
-                        <button onClick={() => { setEditingPopup(popup); setShowModal(true) }} className="admin-btn admin-btn--outline admin-btn--sm">
-                          <span>✏️</span><span>แก้ไข</span>
+                        <button onClick={() => { setEditingPopup(popup); setShowModal(true) }} className="admin-btn admin-btn--edit admin-btn--sm">
+                          <span><i className="fa-solid fa-pen-to-square"></i></span><span>แก้ไข</span>
                         </button>
-                        <button onClick={() => handleDelete(popup.id)} className="admin-btn admin-btn--outline admin-btn--sm">
-                          <span>🗑️</span><span>ลบ</span>
+                        <button onClick={() => handleDelete(popup.id)} className="admin-btn admin-btn--danger admin-btn--sm">
+                          <span><i className="fa-solid fa-trash-can"></i></span><span>ลบ</span>
                         </button>
                       </div>
                     </td>

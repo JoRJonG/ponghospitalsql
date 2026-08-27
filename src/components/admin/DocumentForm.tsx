@@ -206,7 +206,7 @@ export default function DocumentForm({ document, onSubmit, onCancel }: DocumentF
                 <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="admin-btn admin-btn--add flex-1 py-3 justify-center text-base"
                 >
                     {loading ? 'กำลังบันทึก...' : isEditMode ? 'บันทึกการแก้ไข' : 'เพิ่มเอกสาร'}
                 </button>
@@ -214,7 +214,7 @@ export default function DocumentForm({ document, onSubmit, onCancel }: DocumentF
                     type="button"
                     onClick={onCancel}
                     disabled={loading}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    className="admin-btn admin-btn--outline flex-1 py-3 justify-center text-base"
                 >
                     ยกเลิก
                 </button>

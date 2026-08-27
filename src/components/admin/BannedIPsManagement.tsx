@@ -72,7 +72,7 @@ const BannedIPsManagement = forwardRef<BannedIPsManagementHandle>((_, ref) => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <span className="text-3xl">🚫</span>
+                    <span className="text-3xl"><i className="fa-solid fa-ban"></i></span>
                     จัดการ IP ที่ถูกแบน
                 </h2>
 
@@ -203,7 +203,7 @@ const BannedIPsManagement = forwardRef<BannedIPsManagementHandle>((_, ref) => {
                                                                 text: `ยืนยันการลบ ${item.ip} ออกจากรายการแบน`,
                                                                 icon: 'warning',
                                                                 showCancelButton: true,
-                                                                confirmButtonColor: '#3085d6',
+                                                                confirmButtonColor: '#006241',
                                                                 cancelButtonColor: '#d33',
                                                                 confirmButtonText: 'ใช่, ปลดแบน',
                                                                 cancelButtonText: 'ยกเลิก'

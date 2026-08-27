@@ -1,3 +1,4 @@
+import AdminIntroDashboard, { type AdminIntroDashboardHandle } from '../../components/admin/AdminIntroDashboard'
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import Swal from 'sweetalert2'
@@ -12,7 +13,6 @@ import InfographicsManagement, { type InfographicsManagementHandle } from '../..
 import ItaManagement, { type ItaManagementHandle } from '../../components/ItaManagement'
 import AnnouncementForm from '../../components/admin/AnnouncementForm'
 import ActivityForm from '../../components/admin/ActivityForm'
-import AdminIntroDashboard, { type AdminIntroDashboardHandle } from '../../components/admin/AdminIntroDashboard'
 import PopupsManager, { type PopupsManagerHandle } from '../../components/admin/PopupsManager'
 import UserManagement, { type UserManagementHandle } from '../../components/admin/UserManagement'
 import DisplayModeSettings from '../../components/admin/DisplayModeSettings'
@@ -155,7 +155,7 @@ export default function AdminPage() {
         text: 'ยินดีต้อนรับเข้าสู่ระบบจัดการเว็บไซต์',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981',
+        confirmButtonColor: '#006241',
         timer: 1500,
         timerProgressBar: true
       })
@@ -273,7 +273,7 @@ export default function AdminPage() {
   const { triggerRefresh } = useHomepageRefresh()
 
   // Refs for component methods
-  const introRef = useRef<AdminIntroDashboardHandle>(null)
+    const introRef = useRef<AdminIntroDashboardHandle>(null)
   const popupsRef = useRef<PopupsManagerHandle>(null)
   const executivesRef = useRef<ExecutivesManagementHandle | null>(null)
   const infographicsRef = useRef<InfographicsManagementHandle | null>(null)
@@ -525,7 +525,7 @@ export default function AdminPage() {
   // Filtered lists for nicer UX when searching
 
   return (
-    <div className="min-h-screen lg:h-[calc(100vh-8rem)] w-full lg:overflow-hidden bg-gradient-to-br from-white via-blue-50 to-indigo-50">
+    <div className="min-h-screen lg:h-[calc(100vh-8rem)] w-full lg:overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-teal-50/60">
       {/* Dashboard Layout */}
       <div className="min-h-screen lg:h-full lg:flex">
         {/* Mobile sidebar overlay */}
@@ -540,19 +540,16 @@ export default function AdminPage() {
         <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-md shadow-lg border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}>
           {/* Sidebar Header */}
-          <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-gradient-to-r from-gray-600 to-gray-700">
+          <div className="flex-shrink-0 p-6 border-b border-slate-100 bg-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-white">Dashboard</h2>
-                  <p className="text-emerald-100 text-xs">ระบบจัดการเว็บไซต์</p>
+                  <h2 className="text-lg font-bold text-slate-900">การจัดการ</h2>
+                  <p className="text-slate-500 text-xs">Admin Dashboard</p>
                 </div>
               </div>
               {/* Close button for mobile */}
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="lg:hidden text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
-              >
+              <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:bg-slate-100 rounded-lg p-2 transition-colors">
                 <span className="text-xl">✕</span>
               </button>
             </div>
@@ -566,14 +563,15 @@ export default function AdminPage() {
                 if (window.innerWidth < 1024) setSidebarOpen(false)
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'intro'
-                ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                 }`}
             >
-              <span className="text-xl">✨</span>
+              <span className="text-xl w-6 text-center"><i className="fa-solid fa-wand-magic-sparkles"></i></span>
               <span>Intro Page</span>
             </button>
 
+            <div className="px-4 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">หน้าหลัก</div>
             {allowedTabs.overview && (
               <button
                 onClick={() => {
@@ -581,15 +579,16 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'overview'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">📊</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-chart-simple"></i></span>
                 <span>ภาพรวม</span>
               </button>
             )}
 
+            <div className="px-4 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">จัดการเนื้อหา</div>
             {allowedTabs.popups && (
               <button
                 onClick={() => {
@@ -597,11 +596,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'popups'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">🪟</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-window-maximize"></i></span>
                 <span>ป๊อปอัปหน้าแรก</span>
               </button>
             )}
@@ -613,11 +612,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'announce'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">📢</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-bullhorn"></i></span>
                 <span>ประกาศ</span>
               </button>
             )}
@@ -629,11 +628,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'activity'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">📸</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-camera-retro"></i></span>
                 <span>กิจกรรม</span>
               </button>
             )}
@@ -645,15 +644,16 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'slide'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">🖼️</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-images"></i></span>
                 <span>สไลด์</span>
               </button>
             )}
 
+            <div className="px-4 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">จัดการองค์กร</div>
             {allowedTabs.unit && (
               <button
                 onClick={() => {
@@ -661,11 +661,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'unit'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">🏢</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-building"></i></span>
                 <span>หน่วยงาน</span>
               </button>
             )}
@@ -677,11 +677,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'executive'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">👔</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-user-tie"></i></span>
                 <span>ผู้บริหาร</span>
               </button>
             )}
@@ -693,11 +693,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'infographic'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">📊</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-chart-simple"></i></span>
                 <span>Infographic</span>
               </button>
             )}
@@ -709,11 +709,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'organization'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">🧩</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-sitemap"></i></span>
                 <span>โครงสร้างองค์กร</span>
               </button>
             )}
@@ -725,11 +725,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'pr_poster'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">🖼️</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-images"></i></span>
                 <span>PR Poster</span>
               </button>
             )}
@@ -743,11 +743,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'users'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">👥</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-users"></i></span>
                 <span>ผู้ใช้</span>
               </button>
             )}
@@ -759,11 +759,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'ita'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">⚖️</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-scale-balanced"></i></span>
                 <span>ITA</span>
               </button>
             )}
@@ -775,11 +775,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'feedback'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">💬</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-comments"></i></span>
                 <span>ความคิดเห็น</span>
               </button>
             )}
@@ -791,11 +791,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'documents'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">📄</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-file-pdf"></i></span>
                 <span>เอกสารดาวน์โหลด</span>
               </button>
             )}
@@ -807,11 +807,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'it_center'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">💻</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-laptop-code"></i></span>
                 <span>ศูนย์คอมพิวเตอร์ (IT)</span>
               </button>
             )}
@@ -823,11 +823,11 @@ export default function AdminPage() {
                   if (window.innerWidth < 1024) setSidebarOpen(false)
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'legalEthics'
-                  ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                   }`}
               >
-                <span className="text-xl">⚖️</span>
+                <span className="text-xl w-6 text-center"><i className="fa-solid fa-gavel"></i></span>
                 <span>กฎหมาย จริยธรรม & แผนฯ</span>
               </button>
             )}
@@ -843,11 +843,11 @@ export default function AdminPage() {
                     if (window.innerWidth < 1024) setSidebarOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'settings-display'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                    ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                     }`}
                 >
-                  <span className="text-xl">🎨</span>
+                  <span className="text-xl w-6 text-center"><i className="fa-solid fa-palette"></i></span>
                   <span>การแสดงผลเว็บไซต์</span>
                 </button>
               )}
@@ -859,11 +859,11 @@ export default function AdminPage() {
                     if (window.innerWidth < 1024) setSidebarOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'settings-user'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                    ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                     }`}
                 >
-                  <span className="text-xl">👤</span>
+                  <span className="text-xl w-6 text-center"><i className="fa-solid fa-user"></i></span>
                   <span>ตั้งค่าผู้ใช้</span>
                 </button>
               )}
@@ -875,11 +875,11 @@ export default function AdminPage() {
                     if (window.innerWidth < 1024) setSidebarOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-left ${tab === 'banned_ips'
-                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md'
+                    ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20 border-l-4 border-emerald-500'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-l-4 border-transparent'
                     }`}
                 >
-                  <span className="text-xl">🚫</span>
+                  <span className="text-xl w-6 text-center"><i className="fa-solid fa-ban"></i></span>
                   <span>Banned IPs</span>
                 </button>
               )}
@@ -891,7 +891,7 @@ export default function AdminPage() {
             {/* User Profile */}
             {user && (
               <div className="flex items-center gap-3 mb-4 px-1">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white">
                   {user.username.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -1038,7 +1038,7 @@ export default function AdminPage() {
                     else refreshAnn().then(() => Toast.fire({ icon: 'success', title: 'โหลดข้อมูลเสร็จสิ้น' })); // Default
                   }}
                 >
-                  <span className="text-lg">🔄</span>
+                  <span className="text-lg"><i className="fa-solid fa-rotate"></i></span>
                   <span className="hidden sm:inline text-sm">รีเฟรช</span>
                 </button>
               </div>
@@ -1080,118 +1080,96 @@ export default function AdminPage() {
                   className="space-y-4 lg:space-y-6"
                 >
                   {/* Welcome Section */}
-                  <div className="bg-gradient-to-r from-gray-600 to-gray-700 rounded-2xl p-6 lg:p-8 text-white shadow-xl">
+                  <div className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 text-slate-900 shadow-sm">
                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <h2 className="text-2xl lg:text-3xl font-bold mb-2">ยินดีต้อนรับสู่ระบบจัดการ</h2>
-                        <p className="text-emerald-100 text-base lg:text-lg">จัดการเนื้อหาและข้อมูลของโรงพยาบาลอย่างมีประสิทธิภาพ</p>
+                      <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2">
+                          <span className="rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-600 border border-emerald-100">Overview</span>
+                        </div>
+                        <h2 className="text-2xl lg:text-3xl font-semibold mb-2 text-slate-900">ยินดีต้อนรับสู่ระบบจัดการ</h2>
+                        <p className="text-slate-500 text-sm lg:text-base">จัดการเนื้อหาและข้อมูลของโรงพยาบาลอย่างมีประสิทธิภาพ</p>
                       </div>
                       <div className="hidden lg:block">
-                        <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-                          <span className="text-4xl">🏥</span>
+                        <div className="inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                          <span className="text-4xl"><i className="fa-solid fa-hospital"></i></span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {canManageAnnouncements && (
-                      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-blue-600 text-xs lg:text-sm font-medium mb-1">ประกาศทั้งหมด</div>
-                            <div className="text-2xl lg:text-3xl font-bold text-gray-900">{annCount}</div>
-                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                          </div>
-                          <div className="inline-flex h-10 lg:h-12 w-10 lg:w-12 items-center justify-center rounded-xl bg-blue-50">
-                            <span className="text-lg lg:text-xl">📢</span>
-                          </div>
+                      <div className="relative overflow-hidden rounded-2xl border border-sky-100 bg-white p-5 shadow-sm hover:border-sky-300 hover:shadow-md transition duration-200 group">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">ประกาศทั้งหมด</div>
+                        <div className="mt-3 flex items-center justify-between text-slate-900">
+                          <span className="text-3xl font-bold">{annCount}</span>
+                          <span className="text-2xl bg-sky-50 text-sky-600 p-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"><i className="fa-solid fa-bullhorn"></i></span>
                         </div>
+                        <div className="mt-4 text-xs font-medium text-sky-600 bg-sky-50/50 inline-block px-2 py-1 rounded-md">รายการ</div>
                       </div>
                     )}
 
                     {canManageActivities && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-emerald-600 text-sm font-medium mb-1">กิจกรรมทั้งหมด</div>
-                            <div className="text-3xl font-bold text-gray-900">{actCount}</div>
-                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                          </div>
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
-                            <span className="text-xl">📸</span>
-                          </div>
+                      <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm hover:border-emerald-300 hover:shadow-md transition duration-200 group">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">กิจกรรมทั้งหมด</div>
+                        <div className="mt-3 flex items-center justify-between text-slate-900">
+                          <span className="text-3xl font-bold">{actCount}</span>
+                          <span className="text-2xl bg-emerald-50 text-emerald-600 p-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"><i className="fa-solid fa-camera"></i></span>
                         </div>
+                        <div className="mt-4 text-xs font-medium text-emerald-600 bg-emerald-50/50 inline-block px-2 py-1 rounded-md">รายการ</div>
                       </div>
                     )}
 
                     {canManageSlides && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-purple-600 text-sm font-medium mb-1">สไลด์ทั้งหมด</div>
-                            <div className="text-3xl font-bold text-gray-900">{slideCount}</div>
-                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                          </div>
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-purple-50">
-                            <span className="text-xl">🖼️</span>
-                          </div>
+                      <div className="relative overflow-hidden rounded-2xl border border-purple-100 bg-white p-5 shadow-sm hover:border-purple-300 hover:shadow-md transition duration-200 group">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">สไลด์ทั้งหมด</div>
+                        <div className="mt-3 flex items-center justify-between text-slate-900">
+                          <span className="text-3xl font-bold">{slideCount}</span>
+                          <span className="text-2xl bg-purple-50 text-purple-600 p-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"><i className="fa-solid fa-images"></i></span>
                         </div>
+                        <div className="mt-4 text-xs font-medium text-purple-600 bg-purple-50/50 inline-block px-2 py-1 rounded-md">รายการ</div>
                       </div>
                     )}
 
                     {canManageUnits && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-orange-600 text-sm font-medium mb-1">หน่วยงานทั้งหมด</div>
-                            <div className="text-3xl font-bold text-gray-900">{unitCount}</div>
-                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                          </div>
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50">
-                            <span className="text-xl">🏢</span>
-                          </div>
+                      <div className="relative overflow-hidden rounded-2xl border border-amber-100 bg-white p-5 shadow-sm hover:border-amber-300 hover:shadow-md transition duration-200 group">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">หน่วยงานทั้งหมด</div>
+                        <div className="mt-3 flex items-center justify-between text-slate-900">
+                          <span className="text-3xl font-bold">{unitCount}</span>
+                          <span className="text-2xl bg-amber-50 text-amber-600 p-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"><i className="fa-solid fa-building"></i></span>
                         </div>
+                        <div className="mt-4 text-xs font-medium text-amber-600 bg-amber-50/50 inline-block px-2 py-1 rounded-md">รายการ</div>
                       </div>
-
                     )}
 
                     {permissions.feedback && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between pointer-events-none">
-                          <div>
-                            <div className="text-rose-500 text-sm font-medium mb-1">ความคิดเห็นใหม่</div>
-                            <div className="flex items-baseline gap-2">
-                               <div className="text-3xl font-bold text-gray-900">{feedbackStats.new}</div>
-                               <div className="text-xs text-gray-500">/ {feedbackStats.total}</div>
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">รายการที่ยังไม่ได้อ่าน</div>
+                      <div className="relative overflow-hidden rounded-2xl border border-rose-100 bg-white p-5 shadow-sm hover:border-rose-300 hover:shadow-md transition duration-200 group">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">ความคิดเห็นใหม่</div>
+                        <div className="mt-3 flex items-center justify-between text-slate-900">
+                          <div className="flex items-baseline gap-2">
+                             <span className="text-3xl font-bold">{feedbackStats.new}</span>
+                             <span className="text-sm text-slate-400">/ {feedbackStats.total}</span>
                           </div>
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50">
-                            <span className="text-xl">💬</span>
-                          </div>
+                          <span className="text-2xl bg-rose-50 text-rose-600 p-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"><i className="fa-solid fa-comment-dots"></i></span>
                         </div>
+                        <div className="mt-4 text-xs font-medium text-rose-600 bg-rose-50/50 inline-block px-2 py-1 rounded-md">ยังไม่ได้อ่าน</div>
                       </div>
                     )}
 
                     {canManageDocuments && (
-                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-slate-600 text-sm font-medium mb-1">เอกสารทั้งหมด</div>
-                            <div className="text-3xl font-bold text-gray-900">{documentCount}</div>
-                            <div className="text-xs text-gray-500 mt-1">รายการ</div>
-                          </div>
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50">
-                            <span className="text-xl">📄</span>
-                          </div>
+                      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-slate-300 hover:shadow-md transition duration-200 group">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">เอกสารทั้งหมด</div>
+                        <div className="mt-3 flex items-center justify-between text-slate-900">
+                          <span className="text-3xl font-bold">{documentCount}</span>
+                          <span className="text-2xl bg-slate-100 text-slate-600 p-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"><i className="fa-solid fa-file-lines"></i></span>
                         </div>
+                        <div className="mt-4 text-xs font-medium text-slate-600 bg-slate-100/50 inline-block px-2 py-1 rounded-md">รายการ</div>
                       </div>
                     )}
 
                     {!canManageAnnouncements && !canManageActivities && !canManageSlides && !canManageUnits && !canManagePRPosters && !canManageOrganization && !canManageDocuments && (
-                      <div className="col-span-full bg-white rounded-2xl p-6 text-center text-gray-500 border border-dashed border-gray-200">
+                      <div className="col-span-full rounded-2xl p-6 text-center text-slate-500 border border-dashed border-slate-200">
                         ยังไม่มีสิทธิ์ดูสถิติของส่วนนี้
                       </div>
                     )}
@@ -1200,67 +1178,74 @@ export default function AdminPage() {
                   {/* Recent Activity */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                     {canManageActivities && (
-                      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                          <span className="text-blue-600">🕒</span>
-                          กิจกรรมล่าสุด
-                        </h3>
-                        <div className="space-y-3">
-                          {actList.slice(0, 5).map((activity, index) => (
-                            <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                              <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 flex-shrink-0">
-                                <span className="text-sm">📸</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900 truncate">{activity.title}</div>
-                                <div className="text-xs text-gray-500">
-                                  {(activity.createdAt || activity.created_at) ? new Date(activity.createdAt || activity.created_at!).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col">
+                        <div className="flex items-center justify-between gap-3 mb-4">
+                          <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                            <span className="text-emerald-500"><i className="fa-solid fa-camera"></i></span>
+                            กิจกรรมล่าสุด
+                          </h3>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {actList.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 my-auto">
+                              ยังไม่มีกิจกรรม
+                            </div>
+                          ) : (
+                            actList.slice(0, 5).map((activity, index) => (
+                              <div key={index} className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50/50 p-3 hover:bg-slate-50 transition-colors">
+                                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 flex-shrink-0">
+                                  <i className="fa-solid fa-camera"></i>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-slate-800 truncate">{activity.title}</div>
+                                  <div className="text-xs text-slate-500 mt-0.5">
+                                    {(activity.createdAt || activity.created_at) ? new Date(activity.createdAt || activity.created_at!).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                          {actList.length === 0 && (
-                            <div className="text-center py-8 text-gray-500">
-                              <span className="text-3xl mb-2">📭</span>
-                              <div className="text-sm">ยังไม่มีกิจกรรม</div>
-                            </div>
+                            ))
                           )}
                         </div>
                       </div>
                     )}
 
                     {canManageAnnouncements && (
-                      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                          <span className="text-purple-600">📢</span>
-                          ประกาศล่าสุด
-                        </h3>
-                        <div className="space-y-3">
-                          {annList.slice(0, 5).map((announcement, index) => (
-                            <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                              <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 flex-shrink-0">
-                                <span className="text-sm">📢</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900 truncate">{announcement.title}</div>
-                                <div className="text-xs text-gray-500">
-                                  {announcement.category} • {announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}
+                      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col">
+                        <div className="flex items-center justify-between gap-3 mb-4">
+                          <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                            <span className="text-sky-500"><i className="fa-solid fa-bullhorn"></i></span>
+                            ประกาศล่าสุด
+                          </h3>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {annList.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 my-auto">
+                              ยังไม่มีประกาศ
+                            </div>
+                          ) : (
+                            annList.slice(0, 5).map((announcement, index) => (
+                              <div key={index} className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50/50 p-3 hover:bg-slate-50 transition-colors">
+                                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600 flex-shrink-0">
+                                  <i className="fa-solid fa-bullhorn"></i>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-slate-800 truncate">{announcement.title}</div>
+                                  <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                                    <span className="bg-slate-200/50 text-slate-600 px-1.5 py-0.5 rounded text-[10px]">{announcement.category}</span>
+                                    <span>{announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString('th-TH') : 'ไม่ระบุวันที่'}</span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                          {annList.length === 0 && (
-                            <div className="text-center py-8 text-gray-500">
-                              <span className="text-3xl mb-2">📭</span>
-                              <div className="text-sm">ยังไม่มีประกาศ</div>
-                            </div>
+                            ))
                           )}
                         </div>
                       </div>
                     )}
 
                     {!canManageActivities && !canManageAnnouncements && !canManagePRPosters && !canManageDocuments && (
-                      <div className="col-span-full bg-white rounded-2xl p-6 text-center text-gray-500 border border-dashed border-gray-200">
+                      <div className="col-span-full rounded-2xl p-6 text-center text-slate-500 border border-dashed border-slate-200">
                         ยังไม่มีสิทธิ์ดูบันทึกล่าสุดในส่วนนี้
                       </div>
                     )}
@@ -1314,7 +1299,7 @@ export default function AdminPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={() => setShowAnnouncementForm(prev => !prev)}
-                      className="admin-btn"
+                      className={`admin-btn ${showAnnouncementForm ? 'admin-btn--outline' : 'admin-btn--add'}`}
                     >
                       <span>{showAnnouncementForm ? '✕' : '+'}</span>
                       {showAnnouncementForm ? 'ปิดฟอร์มเพิ่มประกาศ' : 'เพิ่มประกาศใหม่'}
@@ -1335,7 +1320,7 @@ export default function AdminPage() {
                           title: 'สำเร็จ',
                           icon: 'success',
                           confirmButtonText: 'ตกลง',
-                          confirmButtonColor: '#10b981'
+                          confirmButtonColor: '#006241'
                         })
                         setShowAnnouncementForm(false)
                       }}
@@ -1350,7 +1335,7 @@ export default function AdminPage() {
                           setStatus(s => ({ ...s, announce: e.target.value as 'all' | 'published' | 'hidden' | 'scheduled' }))
                           setAnnPage(1)
                         }}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 text-sm"
                       >
                         <option value="all">ทั้งหมด</option>
                         <option value="published">เผยแพร่แล้ว</option>
@@ -1361,10 +1346,10 @@ export default function AdminPage() {
                     </div>
                     <div className="relative w-full sm:w-96">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <span className="text-blue-400">🔍</span>
+                        <i className="fa-solid fa-magnifying-glass text-emerald-600"></i>
                       </div>
                       <input
-                        className="w-full rounded-xl border-2 border-blue-100 bg-blue-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-300 transition-all duration-200"
+                        className="w-full rounded-xl border-2 border-emerald-100 bg-emerald-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-emerald-200 focus:border-emerald-300 transition-all duration-200"
                         placeholder="ค้นหาประกาศ..."
                         value={query.announce}
                         onChange={(e) => {
@@ -1384,14 +1369,14 @@ export default function AdminPage() {
                         title: 'สำเร็จ',
                         icon: 'success',
                         confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#10b981'
+                        confirmButtonColor: '#006241'
                       })
                     }} onDeleted={async () => {
                       await refreshAnn(); triggerRefresh(); Swal.fire({
                         title: 'สำเร็จ',
                         icon: 'success',
                         confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#10b981'
+                        confirmButtonColor: '#006241'
                       })
                     }} />
                 </motion.div>
@@ -1407,7 +1392,7 @@ export default function AdminPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={() => setShowActivityForm(prev => !prev)}
-                      className="admin-btn"
+                      className={`admin-btn ${showActivityForm ? 'admin-btn--outline' : 'admin-btn--add'}`}
                     >
                       <span>{showActivityForm ? '✕' : '+'}</span>
                       {showActivityForm ? 'ปิดฟอร์มเพิ่มกิจกรรม' : 'เพิ่มกิจกรรมใหม่'}
@@ -1428,7 +1413,7 @@ export default function AdminPage() {
                           title: 'สำเร็จ',
                           icon: 'success',
                           confirmButtonText: 'ตกลง',
-                          confirmButtonColor: '#10b981'
+                          confirmButtonColor: '#006241'
                         })
                         setShowActivityForm(false)
                       }}
@@ -1477,14 +1462,14 @@ export default function AdminPage() {
                         title: 'สำเร็จ',
                         icon: 'success',
                         confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#10b981'
+                        confirmButtonColor: '#006241'
                       })
                     }} onDeleted={async () => {
                       await refreshAct(); triggerRefresh(); Swal.fire({
                         title: 'สำเร็จ',
                         icon: 'success',
                         confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#10b981'
+                        confirmButtonColor: '#006241'
                       })
                     }} />
                 </motion.div>
@@ -1509,7 +1494,7 @@ export default function AdminPage() {
                         title: 'สำเร็จ',
                         icon: 'success',
                         confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#10b981'
+                        confirmButtonColor: '#006241'
                       })
                     }} onCancel={() => setCreatingSlide(false)} />
                   </Modal>
@@ -1543,14 +1528,14 @@ export default function AdminPage() {
                       title: 'สำเร็จ',
                       icon: 'success',
                       confirmButtonText: 'ตกลง',
-                      confirmButtonColor: '#10b981'
+                      confirmButtonColor: '#006241'
                     })
                   }} onDeleted={() => {
                     refreshSlides(); triggerRefresh(); Swal.fire({
                       title: 'สำเร็จ',
                       icon: 'success',
                       confirmButtonText: 'ตกลง',
-                      confirmButtonColor: '#10b981'
+                      confirmButtonColor: '#006241'
                     })
                   }} onCreate={() => setCreatingSlide(true)} />
                 </motion.div>
@@ -1566,7 +1551,7 @@ export default function AdminPage() {
                   <div className="flex justify-end">
                     <button
                       onClick={() => setShowUnitForm(prev => !prev)}
-                      className="admin-btn"
+                      className={`admin-btn ${showUnitForm ? 'admin-btn--outline' : 'admin-btn--add'}`}
                     >
                       <span>{showUnitForm ? '✕' : '+'}</span>
                       {showUnitForm ? 'ปิดฟอร์มเพิ่มหน่วยงาน' : 'เพิ่มหน่วยงานใหม่'}
@@ -1587,7 +1572,7 @@ export default function AdminPage() {
                           title: 'สำเร็จ',
                           icon: 'success',
                           confirmButtonText: 'ตกลง',
-                          confirmButtonColor: '#10b981'
+                          confirmButtonColor: '#006241'
                         })
                         setShowUnitForm(false)
                       }}
@@ -1599,7 +1584,7 @@ export default function AdminPage() {
                       <select
                         value={status.unit || 'all'}
                         onChange={(e) => { setStatus(prev => ({ ...prev, unit: e.target.value as 'all' | 'published' | 'hidden' })); setUnitPage(1) }}
-                        className="px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                        className="px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-500 text-sm"
                       >
                         <option value="all">ทั้งหมด</option>
                         <option value="published">เผยแพร่แล้ว</option>
@@ -1609,10 +1594,10 @@ export default function AdminPage() {
                     </div>
                     <div className="relative w-full sm:w-96">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <span className="text-orange-400">🔍</span>
+                        <i className="fa-solid fa-magnifying-glass text-emerald-600"></i>
                       </div>
                       <input
-                        className="w-full rounded-xl border-2 border-orange-100 bg-orange-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-300 transition-all duration-200"
+                        className="w-full rounded-xl border-2 border-emerald-100 bg-emerald-50/50 pl-12 pr-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-emerald-200 focus:border-emerald-300 transition-all duration-200"
                         placeholder="ค้นหาหน่วยงาน..."
                         value={query.unit}
                         onChange={(e) => { setQuery(q => ({ ...q, unit: e.target.value })); setUnitPage(1) }}
@@ -1624,14 +1609,14 @@ export default function AdminPage() {
                       title: 'สำเร็จ',
                       icon: 'success',
                       confirmButtonText: 'ตกลง',
-                      confirmButtonColor: '#10b981'
+                      confirmButtonColor: '#006241'
                     })
                   }} onDeleted={async () => {
                     await refreshUnits(); triggerRefresh(); Swal.fire({
                       title: 'สำเร็จ',
                       icon: 'success',
                       confirmButtonText: 'ตกลง',
-                      confirmButtonColor: '#10b981'
+                      confirmButtonColor: '#006241'
                     })
                   }} />
                 </motion.div>
@@ -1995,22 +1980,22 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
       if (!r.ok) throw new Error('upload failed')
       const data = await r.json()
       setImage({ url: data.url, publicId: data.publicId })
-    } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }) } finally { setUploading(false) }
+    } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }) } finally { setUploading(false) }
   }
 
   const applyImageUrl = () => {
     const u = imageUrl.trim()
     if (!u) { setImage(null); return }
-    try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+    try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
     // Allow any valid URL
-    try { new URL(u) } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+    try { new URL(u) } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
     setImage({ url: u })
   }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!image) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณาอัปโหลดรูปสไลด์', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
-    if (isPublished && !alt.trim()) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณากรอกข้อความคำอธิบายรูป (alt) เมื่อเผยแพร่สไลด์', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+    if (!image) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณาอัปโหลดรูปสไลด์', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
+    if (isPublished && !alt.trim()) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณากรอกข้อความคำอธิบายรูป (alt) เมื่อเผยแพร่สไลด์', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
     setSaving(true)
     try {
       const cleanHref = (href || '').trim()
@@ -2054,7 +2039,7 @@ function SlidesForm({ onCreated, onCancel }: { onCreated: () => void; onCancel?:
         } catch (parseError) {
           console.debug('Failed to parse slide creation error response', parseError)
         }
-        Swal.fire({ title: 'ข้อผิดพลาด', text: msg, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        Swal.fire({ title: 'ข้อผิดพลาด', text: msg, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
         return
       }
       let created: SlideItem | null = null
@@ -2172,7 +2157,7 @@ function SlidesList({ list, page, totalPages, onPageChange, onEditSaved, onDelet
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -2213,7 +2198,7 @@ function SlidesList({ list, page, totalPages, onPageChange, onEditSaved, onDelet
         <div className="font-semibold">รายการสไลด์</div>
         <div className="flex gap-2">
           <button className="admin-btn admin-btn--outline" onClick={saveOrder} disabled={!local.length}>บันทึกลำดับ</button>
-          <button className="admin-btn" onClick={onCreate}>สร้างสไลด์ใหม่</button>
+          <button className="admin-btn admin-btn--add" onClick={onCreate}>สร้างสไลด์ใหม่</button>
         </div>
       </div>
       <div className="grid md:grid-cols-2 gap-3">
@@ -2237,18 +2222,18 @@ function SlidesList({ list, page, totalPages, onPageChange, onEditSaved, onDelet
                         href={(s.href || s.url || s.link)}
                         target={/^https?:\/\//i.test(String(s.href || s.url || s.link)) ? '_blank' : undefined}
                         rel={/^https?:\/\//i.test(String(s.href || s.url || s.link)) ? 'noopener noreferrer' : undefined}
-                        className="text-blue-700 hover:underline"
+                        className="text-emerald-800 hover:underline"
                       >
                         {s.href || s.url || s.link}
                       </a>
                     </div>
                   )}
                   <div className="mt-2 flex gap-2">
-                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขสไลด์" onClick={() => setEditing(s)}>
-                      ✏️ <span>แก้ไข</span>
+                    <button className="admin-btn admin-btn--edit" aria-label="แก้ไขสไลด์" onClick={() => setEditing(s)}>
+                      <i className="fa-solid fa-pen-to-square"></i> <span>แก้ไข</span>
                     </button>
-                    <button className="admin-btn admin-btn--outline" aria-label="ลบสไลด์" onClick={() => remove(identifier)}>
-                      🗑️ <span>ลบ</span>
+                    <button className="admin-btn admin-btn--danger" aria-label="ลบสไลด์" onClick={() => remove(identifier)}>
+                      <i className="fa-solid fa-trash-can"></i> <span>ลบ</span>
                     </button>
                   </div>
                 </div>
@@ -2304,11 +2289,11 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
       if (!r.ok) throw new Error('upload failed')
       const data = await r.json() as { url: string; publicId?: string }
       setForm(prev => ({ ...prev, image: { url: data.url, publicId: data.publicId } }))
-    } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }) } finally { setUploading(false) }
+    } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }) } finally { setUploading(false) }
   }
 
   const save = async () => {
-    if ((form.isPublished ?? true) && !String(form.alt || '').trim()) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณากรอกข้อความคำอธิบายรูป (alt) เมื่อเผยแพร่สไลด์', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+    if ((form.isPublished ?? true) && !String(form.alt || '').trim()) { Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณากรอกข้อความคำอธิบายรูป (alt) เมื่อเผยแพร่สไลด์', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
     setSaving(true)
     try {
       const cleanHref = (form.href || '').trim()
@@ -2336,7 +2321,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
 
         const fd = new FormData()
         const imageUrl = form.image?.url
-        if (!imageUrl) { Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไม่พบข้อมูลรูปภาพใหม่ กรุณาลองอีกครั้ง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+        if (!imageUrl) { Swal.fire({ title: 'ข้อผิดพลาด', text: 'ไม่พบข้อมูลรูปภาพใหม่ กรุณาลองอีกครั้ง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
         const blob = await dataUrlToBlob(imageUrl)
         const fileName = form.image?.publicId ? `slide-${form.image?.publicId}.gif` : 'slide.gif'
         fd.append('image', blob, fileName)
@@ -2373,7 +2358,7 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
         } catch (parseError) {
           console.debug('Failed to parse slide update error response', parseError)
         }
-        Swal.fire({ title: 'ข้อผิดพลาด', text: msg, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+        Swal.fire({ title: 'ข้อผิดพลาด', text: msg, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
       }
     } finally { setSaving(false) }
   }
@@ -2444,8 +2429,8 @@ function EditSlideModal({ initial, onClose, onSaved }: { initial: SlideItem; onC
                     onClick={() => {
                       const u = imageUrl.trim()
                       if (!u) { setForm(prev => ({ ...prev, image: null })); return }
-                      try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
-                      try { new URL(u) } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+                      try { const parsed = new URL(u); if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad') } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
+                      try { new URL(u) } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'URL ไม่ถูกต้อง', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
                       setForm(prev => ({ ...prev, image: { url: u } }))
                     }}
                   >ใช้ URL</button>
@@ -2488,7 +2473,7 @@ function AnnouncementsList({ list, page, totalPages, onPageChange, onEditSaved, 
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -2526,11 +2511,11 @@ function AnnouncementsList({ list, page, totalPages, onPageChange, onEditSaved, 
                 </td>
                 <td className="py-2">
                   <div className="flex gap-2">
-                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขประกาศ" onClick={() => setEditing(a)}>
-                      ✏️ <span>แก้ไข</span>
+                    <button className="admin-btn admin-btn--edit" aria-label="แก้ไขประกาศ" onClick={() => setEditing(a)}>
+                      <i className="fa-solid fa-pen-to-square"></i> <span>แก้ไข</span>
                     </button>
-                    <button className="admin-btn admin-btn--outline" aria-label="ลบประกาศ" onClick={() => remove(a._id)}>
-                      🗑️ <span>ลบ</span>
+                    <button className="admin-btn admin-btn--danger" aria-label="ลบประกาศ" onClick={() => remove(a._id)}>
+                      <i className="fa-solid fa-trash-can"></i> <span>ลบ</span>
                     </button>
                   </div>
                 </td>
@@ -2584,7 +2569,7 @@ function ActivitiesList({ list, page, totalPages, onPageChange, onEditSaved, onD
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -2619,11 +2604,11 @@ function ActivitiesList({ list, page, totalPages, onPageChange, onEditSaved, onD
                   <div className="mt-1 text-sm text-gray-600 line-clamp-3 sm:line-clamp-2">{stripHtml(a.description)}</div>
                   {a.publishedAt && <div className="text-xs text-gray-500 mt-2">เริ่มเผยแพร่: {fmtDateTime(a.publishedAt)}</div>}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button className="admin-btn admin-btn--outline" aria-label="แก้ไขกิจกรรม" onClick={() => setEditing(a)}>
-                      ✏️ <span>แก้ไข</span>
+                    <button className="admin-btn admin-btn--edit" aria-label="แก้ไขกิจกรรม" onClick={() => setEditing(a)}>
+                      <i className="fa-solid fa-pen-to-square"></i> <span>แก้ไข</span>
                     </button>
-                    <button className="admin-btn admin-btn--outline" aria-label="ลบกิจกรรม" onClick={() => remove(a._id)}>
-                      🗑️ <span>ลบ</span>
+                    <button className="admin-btn admin-btn--danger" aria-label="ลบกิจกรรม" onClick={() => remove(a._id)}>
+                      <i className="fa-solid fa-trash-can"></i> <span>ลบ</span>
                     </button>
                   </div>
                 </div>
@@ -2700,7 +2685,7 @@ function UnitsList({ list, page, totalPages, onPageChange, onEditSaved, onDelete
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6'
     })
     if (!result.isConfirmed) return
@@ -2746,7 +2731,7 @@ function UnitsList({ list, page, totalPages, onPageChange, onEditSaved, onDelete
               <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
                 <div className="text-sm text-slate-500 truncate">
                   <span className="font-medium text-slate-400 mr-1">ลิงก์:</span>
-                  <a href={u.href} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">{u.href || '-'}</a>
+                  <a href={u.href} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">{u.href || '-'}</a>
                 </div>
                 <div className="text-sm text-slate-500">
                   <span className="font-medium text-slate-400 mr-1">ลำดับ:</span>
@@ -2758,13 +2743,13 @@ function UnitsList({ list, page, totalPages, onPageChange, onEditSaved, onDelete
             <div className="flex gap-3">
               <button
                 onClick={() => setEditing(u)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors font-medium text-sm"
+                className="admin-btn admin-btn--edit flex-1"
               >
                 <i className="fa-solid fa-pen text-xs" /> แก้ไข
               </button>
               <button
                 onClick={() => remove(u._id)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-colors font-medium text-sm"
+                className="admin-btn admin-btn--danger flex-1"
               >
                 <i className="fa-solid fa-trash text-xs" /> ลบ
               </button>
@@ -2810,7 +2795,7 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
       if (!r.ok) throw new Error('upload failed')
       const data = await r.json()
       setForm(f => ({ ...f, image: { url: data.url, publicId: data.publicId } }))
-    } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }) } finally { setUploading(false) }
+    } catch { Swal.fire({ title: 'ข้อผิดพลาด', text: 'อัปโหลดรูปไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }) } finally { setUploading(false) }
   }
 
   const removeImage = async () => {
@@ -2858,12 +2843,12 @@ function EditUnitModal({ initial, onClose, onSaved }: { initial: Unit; onClose: 
           r = await fetch(`/api/units/${form._id}`, { method: 'PUT', headers, body })
         }
       }
-      if (!r.ok) { Swal.fire({ title: 'ข้อผิดพลาด', text: 'บันทึกไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' }); return }
+      if (!r.ok) { Swal.fire({ title: 'ข้อผิดพลาด', text: 'บันทึกไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' }); return }
       Swal.fire({
         title: 'สำเร็จ',
         icon: 'success',
         confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#006241'
       })
       onSaved()
     } finally { setSaving(false) }

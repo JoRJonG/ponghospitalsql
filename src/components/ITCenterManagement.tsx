@@ -192,7 +192,7 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
                 text: 'การกระทำนี้ไม่สามารถย้อนกลับได้',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
+                confirmButtonColor: '#dc2626',
                 confirmButtonText: 'ลบข้อมูล',
                 cancelButtonText: 'ยกเลิก'
             })
@@ -277,7 +277,7 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
                                     setPendingFile(null)
                                     setShowForm(true)
                                 }}
-                                className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-6 py-2 rounded-xl font-bold shadow-sm shadow-emerald-100 transition-all flex items-center gap-2 text-sm sm:text-base whitespace-nowrap"
+                                className="admin-btn admin-btn--add whitespace-nowrap"
                             >
                                 <i className="fa-solid fa-plus-circle" /> เพิ่มเอกสารใหม่
                             </button>
@@ -345,7 +345,7 @@ const ITCenterManagement = forwardRef<ITCenterManagementHandle, object>(
                                             </td>
                                             <td className="px-6 py-4 text-center whitespace-nowrap">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <button onClick={() => handleEdit(doc)} className="w-8 h-8 rounded-full flex items-center justify-center text-blue-500 hover:bg-blue-50"><i className="fa-solid fa-pen" /></button>
+                                                    <button onClick={() => handleEdit(doc)} className="w-8 h-8 rounded-full flex items-center justify-center text-emerald-700 hover:bg-emerald-50"><i className="fa-solid fa-pen" /></button>
                                                     <button onClick={() => handleDelete(doc.id)} className="w-8 h-8 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50"><i className="fa-solid fa-trash-can" /></button>
                                                 </div>
                                             </td>

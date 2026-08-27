@@ -71,7 +71,7 @@ export default function DisplayModeSettings() {
                 text: 'บันทึกโหมดการแสดงผลสำเร็จ',
                 icon: 'success',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#10b981'
+                confirmButtonColor: '#006241'
             })
             if (result?.data?.mode) {
                 setDisplayMode(result.data.mode as GrayscaleMode)
@@ -84,7 +84,7 @@ export default function DisplayModeSettings() {
                 text: message,
                 icon: 'error',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#d33'
+                confirmButtonColor: '#dc2626'
             })
         } finally {
             setModeSaving(false)
@@ -132,7 +132,7 @@ export default function DisplayModeSettings() {
                         ))}
                     </div>
                     <div className="flex items-center gap-2">
-                        <button type="submit" className="admin-btn" disabled={modeSaving}>
+                        <button type="submit" className="admin-btn admin-btn--add" disabled={modeSaving}>
                             {modeSaving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
                         </button>
                         <button

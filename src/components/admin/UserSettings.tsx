@@ -17,15 +17,15 @@ export default function UserSettings() {
     const submit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!currentPassword || !newPassword) {
-            Swal.fire({ title: 'แจ้งเตือน', text: 'กรอกรหัสผ่านให้ครบ', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+            Swal.fire({ title: 'แจ้งเตือน', text: 'กรอกรหัสผ่านให้ครบ', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
             return
         }
         if (!isStrongPassword(newPassword)) {
-            Swal.fire({ title: 'แจ้งเตือน', text: PASSWORD_REQUIREMENT_TEXT, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+            Swal.fire({ title: 'แจ้งเตือน', text: PASSWORD_REQUIREMENT_TEXT, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
             return
         }
         if (newPassword !== confirmPassword) {
-            Swal.fire({ title: 'แจ้งเตือน', text: 'รหัสผ่านใหม่ไม่ตรงกัน', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+            Swal.fire({ title: 'แจ้งเตือน', text: 'รหัสผ่านใหม่ไม่ตรงกัน', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
             return
         }
         setSaving(true)
@@ -40,7 +40,7 @@ export default function UserSettings() {
             })
             const j = await r.json().catch(() => null)
             if (!r.ok) {
-                Swal.fire({ title: 'ข้อผิดพลาด', text: j?.error || 'เปลี่ยนรหัสผ่านไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+                Swal.fire({ title: 'ข้อผิดพลาด', text: j?.error || 'เปลี่ยนรหัสผ่านไม่สำเร็จ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
                 return
             }
             Swal.fire({
@@ -48,14 +48,14 @@ export default function UserSettings() {
                 text: 'เปลี่ยนรหัสผ่านสำเร็จ',
                 icon: 'success',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#10b981'
+                confirmButtonColor: '#006241'
             })
             setCurrentPassword('')
             setNewPassword('')
             setConfirmPassword('')
         } catch (error) {
             console.error('Failed to change password', error)
-            Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#d33' })
+            Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ', icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: '#dc2626' })
         } finally {
             setSaving(false)
         }
@@ -116,7 +116,7 @@ export default function UserSettings() {
                             />
                         </div>
                         <div className="flex items-center gap-2 pt-2">
-                            <button disabled={saving} className="admin-btn">
+                            <button disabled={saving} className="admin-btn admin-btn--add">
                                 {saving ? 'กำลังบันทึก...' : 'เปลี่ยนรหัสผ่าน'}
                             </button>
                             <button type="button" className="admin-btn admin-btn--outline" onClick={clearForm}>

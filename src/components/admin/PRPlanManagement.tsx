@@ -141,7 +141,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
             showCancelButton: true,
             confirmButtonText: 'บันทึก',
             cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: '#006241',
             preConfirm: () => {
                 const title = (document.getElementById('swal-title') as HTMLInputElement).value
                 const description = (document.getElementById('swal-description') as HTMLTextAreaElement).value
@@ -179,7 +179,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                 text: 'แก้ไขสำเร็จ',
                 icon: 'success',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#10b981'
+                confirmButtonColor: '#006241'
             })
         } catch (err: unknown) {
             Swal.fire('ข้อผิดพลาด', `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error')
@@ -194,7 +194,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
             showCancelButton: true,
             confirmButtonText: 'ลบ',
             cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#d33',
+            confirmButtonColor: '#dc2626',
             cancelButtonColor: '#3085d6'
         })
         if (!result.isConfirmed) return
@@ -216,7 +216,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                 text: 'ลบสำเร็จ',
                 icon: 'success',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#10b981'
+                confirmButtonColor: '#006241'
             })
         } catch (err: unknown) {
             Swal.fire('ข้อผิดพลาด', `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error')
@@ -257,7 +257,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                 text: `${action}สำเร็จ`,
                 icon: 'success',
                 confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#10b981'
+                confirmButtonColor: '#006241'
             })
         } catch (err: unknown) {
             Swal.fire('ข้อผิดพลาด', `เกิดข้อผิดพลาด: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error')
@@ -334,7 +334,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="p-6 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900">
-                        <i className="fa-solid fa-list text-blue-600 mr-2" />
+                        <i className="fa-solid fa-list text-emerald-700 mr-2" />
                         รายการแผนปฏิบัติการ ({plans.length})
                     </h3>
                 </div>
@@ -407,23 +407,23 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                                         <div className="flex flex-wrap gap-2">
                                             <button
                                                 onClick={() => handlePreview(plan.id)}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                                className="admin-btn admin-btn--outline"
                                             >
                                                 <i className="fa-solid fa-eye mr-2" />
                                                 ดูตัวอย่าง
                                             </button>
                                             <button
                                                 onClick={() => handleEdit(plan)}
-                                                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
+                                                className="admin-btn admin-btn--edit"
                                             >
                                                 <i className="fa-solid fa-edit mr-2" />
                                                 แก้ไข
                                             </button>
                                             <button
                                                 onClick={() => handleTogglePublish(plan.id, plan.isPublished)}
-                                                className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${plan.isPublished
-                                                    ? 'bg-gray-600 text-white hover:bg-gray-700'
-                                                    : 'bg-green-600 text-white hover:bg-green-700'
+                                                className={`admin-btn ${plan.isPublished
+                                                    ? 'admin-btn--ghost bg-gray-600 hover:bg-gray-700 text-white'
+                                                    : 'admin-btn--add'
                                                     }`}
                                             >
                                                 <i className={`fa-solid ${plan.isPublished ? 'fa-eye-slash' : 'fa-eye'} mr-2`} />
@@ -431,7 +431,7 @@ const PRPlanManagement = forwardRef<PRPlanManagementHandle>((_, ref) => {
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(plan.id)}
-                                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                                className="admin-btn admin-btn--danger"
                                             >
                                                 <i className="fa-solid fa-trash mr-2" />
                                                 ลบ

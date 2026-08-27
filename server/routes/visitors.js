@@ -60,7 +60,8 @@ router.post('/track', optionalAuth, async (req, res) => {
     })
 
     const nextSessionId = result?.sessionId || session.sessionId
-    const updatedLastSeen = result?.merged ? now : session.lastSeen
+    // อัปเดต lastSeen ให้เป็นเวลาปัจจุบันเสมอ เพื่อต่ออายุ session ให้ผู้ใช้ที่ยัง active อยู่
+    const updatedLastSeen = now
     setVisitorCookie(res, req, { sessionId: nextSessionId, lastSeen: updatedLastSeen })
 
     let reason = 'existing-session'
