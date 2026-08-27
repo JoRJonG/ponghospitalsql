@@ -273,10 +273,6 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
       return filteredTopAgents.slice(start, start + AGENT_PAGE_SIZE)
     }, [filteredTopAgents, agentPage])
 
-    const trendMax = useMemo(() => {
-      if (!insights?.trend?.length) return 1
-      return Math.max(...insights.trend.map(item => item.uniqueVisitors || 0), 1)
-    }, [insights])
 
     const renderLoading = () => (
       <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -388,7 +384,7 @@ const AdminIntroDashboard = forwardRef<AdminIntroDashboardHandle, AdminIntroDash
                   <Tooltip 
                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '12px' }}
                      labelFormatter={(label) => formatDay(label as string)}
-                     formatter={(value: number) => [numberFormatter.format(value), 'ผู้เข้าชมไม่ซ้ำ']}
+                     formatter={(value: unknown) => [numberFormatter.format(Number(value || 0)), 'ผู้เข้าชมไม่ซ้ำ']}
                      labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
                   />
                   <Line 
