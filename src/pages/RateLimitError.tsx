@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 /**
  * หน้า Error สำหรับกรณีที่มีการร้องขอ API ถี่เกินไป (Rate Limit)
@@ -30,6 +31,10 @@ const RateLimitError = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-8">
+            <Helmet>
+                <title>มีการร้องขอถี่เกินไป | โรงพยาบาลปง</title>
+                <meta name="robots" content="noindex, nofollow" />
+            </Helmet>
             {/* Background Pattern - สร้างลวดลายพื้นหลังที่สวยงาม */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-200 dark:bg-green-900 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 animate-blob"></div>

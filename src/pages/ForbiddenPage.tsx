@@ -1,10 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 const ForbiddenPage: React.FC = () => {
     return (
         <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center">
+            <Helmet>
+                <title>403 ไม่มีสิทธิ์เข้าถึง | โรงพยาบาลปง</title>
+                <meta name="robots" content="noindex, nofollow" />
+            </Helmet>
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
