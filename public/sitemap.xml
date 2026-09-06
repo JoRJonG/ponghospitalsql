@@ -5,175 +5,415 @@
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://ponghospital.moph.go.th/</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/jobs</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/news</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/notices</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/procurement</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/management</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/ita</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/about</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/about/infographic</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/contact</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/activities</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/documents</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/air-quality</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/it-center</loc>
-    <lastmod>2026-08-27T03:08:30.395Z</lastmod>
+    <lastmod>2026-09-06T12:33:22.534Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/34</loc>
-    <lastmod>2026-08-27T03:00:42.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/82-แผนการจัดซื้อจัดจ้าง-ประจำปีงบประมาณ-พ-ศ-๒๕๗๐</loc>
+    <lastmod>2026-09-06T12:25:08.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/33</loc>
-    <lastmod>2026-08-26T07:45:08.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/81-รายชื่อผู้ผ่านการคัดเลือก-ตำแหน่งพนักงานช่วยเหลือคนไข้</loc>
+    <lastmod>2026-09-06T12:28:41.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/32</loc>
-    <lastmod>2026-08-26T07:31:28.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/80-รายชื่อผู้มีสิทธิเข้ารับการสอบคัดเลือกลูกจ้างชั่วคราวรายวัน-เงินนอกงบประมาณ-ตำแห</loc>
+    <lastmod>2026-09-06T12:25:03.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/31</loc>
-    <lastmod>2026-08-27T01:39:59.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/79-ประกาศจังหวัดพะเยา-เรื่อง-ประกาศผู้ชนะการเสนอราคา-ประกวดราคาซื้อเครื่องล้างเครื่</loc>
+    <lastmod>2026-09-06T11:44:39.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/20</loc>
-    <lastmod>2026-08-26T07:29:27.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/78-รายงานผล-ประกวดราคาเครืองล้างเครื่องมือ</loc>
+    <lastmod>2026-08-26T01:29:08.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/18</loc>
-    <lastmod>2026-08-26T07:51:03.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/77-ประกาศจังหวัดพะเยา-เรื่อง-ประกวดราคาซื้อเครื่องล้างเครื่องมืออัตโนมัติขนาดไม่น้อ</loc>
+    <lastmod>2026-08-20T14:56:31.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/17</loc>
-    <lastmod>2026-08-26T07:47:10.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/76-รายชื่อผู้ผ่านการสอบคัดเลือกลูกจ้างชั่วคราวรายวัน-เงินนอกงบประมาณ-ตำแหน่งพยาบาลว</loc>
+    <lastmod>2026-08-25T04:14:50.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/announcements/16</loc>
-    <lastmod>2026-08-26T07:32:16.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/75-รายละเอียดคุณลักษณะเฉพาะเครื่องล้างเครื่องมืออัตโนมัติ-ขนาดไม่น้อยกว่า-๒๐๐-ลิตร</loc>
+    <lastmod>2026-06-25T08:59:20.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/activities/20</loc>
-    <lastmod>2026-08-26T07:25:28.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/announcement/74-เอกสารประกวดราคาซื้อด้วยวิธีประกวดราคาอิเล็กทรอนิกส์-e-bidding-การซื้อเครื่องล้า</loc>
+    <lastmod>2026-08-25T08:28:58.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/73-ประกวดราคาซื้อเครื่องล้างเครื่องมืออัตโนมัติขนาดไม่น้อยกว่า-๒๐๐-ลิตร-ด้วยวิธีประ</loc>
+    <lastmod>2026-08-10T04:33:26.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/72-ตารางแสดงวงเงินงบประมาณที่ได้รับจัดสรรและรายละเอียดค่าใช้จ่าย-การจัดซื้อจัดจ้างท</loc>
+    <lastmod>2026-07-15T02:32:47.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/71-ประกาศรับสมัครลูกจ้างชั่วคราวรายวัน-เงินนอกงบประมาณ-ตำแหน่ง-พนักงานช่วยเหลือคนไข</loc>
+    <lastmod>2026-08-09T13:22:14.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/70-ประกาศเผยแพร่แผนการจัดซื้อจัดจ้าง-ประจำปีงบประมาณ-พ-ศ-๒๕๖๙</loc>
+    <lastmod>2026-06-22T03:30:16.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/69-ประกาศ-รายชื่อผู้ผ่านการสอบคัดเลือก-เจ้าหน้าที่การเงินและบัญชี</loc>
+    <lastmod>2026-08-06T14:08:48.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/68-ประกาศรายชื่อผู้มีสิทธิเข้ารับการสอบคัดเลือกลูกจ้างชั่วคราวรายวัน-เงินนอกงบประมา</loc>
+    <lastmod>2026-07-15T06:50:48.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/67-รับสมัครสอบคัดเลือกลูกจ้างชั่วคราวรายวัน-ตำแหน่ง-เจ้าหน้าที่การเงินและบัญชี</loc>
+    <lastmod>2026-07-15T06:50:49.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/62-ข้อกำหนดและเงื่อนไขการใช้งานระบบ-Go-To-Win-Terms-of-Use-โรงพยาบาลปง</loc>
+    <lastmod>2026-09-06T11:44:00.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/61-นโยบายการใช้งานระบบสารสนเทศ-Go-To-Win-Backoffice-โรงพยาบาลปง</loc>
+    <lastmod>2026-04-28T12:29:00.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/60-ประกาศรับสมัครขยายเวลารับสมัครพนักงานจ้างเหมาบริการรายบุคคล-ตำแหน่งพยาบาลวิชาชีพ</loc>
+    <lastmod>2026-08-04T14:11:56.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/59-ประกาศจังหวัดพะเยา-เรื่อง-ประกาศผู้ชนะประกวดราคาซื้อครุภัณฑ์ยานพาหนะและขนส่ง-ราย</loc>
+    <lastmod>2026-01-22T04:52:33.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/57-ประกาศจังหวัดพะเยา-เรื่อง-ประกวดราคาซื้อครุภัณฑ์ยานพาหนะและขนส่ง-รายการรถโดยสาร-</loc>
+    <lastmod>2026-01-22T04:48:12.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/54-ร่างประกาศประกวดราคาซื้อครุภัณฑ์ยานพาหนะและขนส่ง-รายการรถโดยสาร-ขนาด-12-ที่นั่ง-</loc>
+    <lastmod>2026-01-22T04:33:36.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/53-ประกาศจังหวัดพะเยา-เรื่อง-ประกาศผู้ชนะการเสนอราคา-ประกวดราคาซื้อครุภัณฑ์ยานพาหนะ</loc>
+    <lastmod>2026-01-22T04:28:05.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/52-ประกาศจังหวัดพะเยา-เรื่อง-ขายทอดตลาดพัสดุชำรุด-เสื่อมสภาพ-และไม่จำเป็นต้องใช้ในร</loc>
+    <lastmod>2026-08-17T08:54:52.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/51-ประกาศจังหวัดพะเยา-เรื่อง-ประกวดราคาซื้อครุภันฑ์ยานพาหนะและขนส่ง-รายการรถพยาบาลพ</loc>
+    <lastmod>2026-01-20T09:13:40.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/50-ร่างประกาศจังหวัดพะเยา-เรื่อง-ประกวดราคาซื้อครุภันฑ์ยานพาหนะและขนส่ง-รายการรถพยา</loc>
+    <lastmod>2026-01-20T09:14:17.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/49-แผนจัดซื้อจัดจ้างประจำปีงบประมาณ-พ-ศ-2569</loc>
+    <lastmod>2026-06-02T04:55:59.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/48-ประกาศ-เกณฑ์จริยธรรมว่าด้วยการจัดซื้อจัดหาและส่งเสริมการขายยาและเวชภัณฑ์มิใช่ยา-</loc>
+    <lastmod>2026-03-10T04:34:23.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/47-คู่มือการปฏิบัติงานตามภารกิจหลักและภารกิจสนับสนุน</loc>
+    <lastmod>2026-03-10T08:37:51.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/46-ประกาศ-เกณฑ์จริยธรรมการจัดซื้อจัดหาและส่งเสริมการขายยาและเวชภัณฑ์ที่มิใช่ยาของกร</loc>
+    <lastmod>2026-02-13T06:21:47.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/45-ประกาศสำนักงานปลัดกระทรวงสาธารณสุข-ว่าด้วยแนวทางปฏิบัติงานเพื่อตรวจสอบบุคลากรในห</loc>
+    <lastmod>2026-02-26T06:56:14.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/44-คู่มือการปฏิบัติงาน-เรื่องการร้องเรียนการทุจริตและประพฤติมิชอบ</loc>
+    <lastmod>2026-02-26T04:24:40.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/43-ประกาศสำนักปลัดกระทรวงสาธารณสุขว่าด้วยแนวทางปฏิบัติงานเพื่อตรวจสอบบุคลากร</loc>
+    <lastmod>2026-04-07T04:29:45.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/39-ประกาศรายชื่อผู้ผ่านคัดเลือกพนักงานกระทรวง-ตำแหน่งผู้ช่วยทันตแพทย์</loc>
+    <lastmod>2026-08-07T04:05:19.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/38-ประกาศผู้มีสิทธิสอบคัดเลือกพนักงานกระทรวงสาธารณสุข-ตำแหน่งผู้ช่วยทันตแพทย์</loc>
+    <lastmod>2026-07-19T13:20:29.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/37-ประกาศผู้ผ่านการคัดเลือกลูกจ้างชั่วคราวรายวัน-ตำแหน่ง-พนักงานช่วยเหลือคนไข้</loc>
+    <lastmod>2026-07-23T06:18:58.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/36-ประกาศรับสมัครพนักงานจ้างเหมาบริการรายบุคคล-ตำแหน่งพยาบาลวิชาชีพ-ระหว่างวันที่-5</loc>
+    <lastmod>2026-03-16T10:52:00.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/35-ประกาศรับสมัครพนักงานกระทรวงสาธารณสุข-ตำแหน่ง-ผู้ช่วยทันตแพทย์</loc>
+    <lastmod>2026-01-29T08:11:48.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/34-ประกาศรับสมัครลูกจ้างชั่วคราวรายวัน-ตำแหน่งพนักงานช่วยเหลือคนไข้</loc>
+    <lastmod>2026-01-14T08:49:07.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/33-ประกาศรับสมัครพนักงานจ้างเหมาบริการรายบุคคลรายบุคคล-ตำแหน่งพยาบาลวิชาชีพ</loc>
+    <lastmod>2026-08-04T14:12:54.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/32-ประกาศรายชื่อผู้ผ่านการคัดเลือกลูกจ้างชั่วครายรายวัน-ตำแหน่งพนักงานเกษตรพื้นฐาน</loc>
+    <lastmod>2026-02-14T01:35:43.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/20-ประกาศรายชื่อผู้ผ่านการคัดเลือกพนักงานจ้างเหมาบริการรายบุคคล-ตำแหน่งนักโภชนาการ</loc>
+    <lastmod>2026-04-08T10:02:59.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/18-ประกาศผู้มีสิทธิสอบคัดเลือกพนักงานจ้างเหมารายบุคคล-ตำแหน่ง-นักโภชนาการ</loc>
+    <lastmod>2026-01-18T02:41:10.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/17-ประกาศผู้มีสิทธิเข้ารับการคัดเลือกลูกจ้างชั่วคราวรายวัน-ตำแหน่งพนักงานเกษตรพื้นฐ</loc>
+    <lastmod>2025-12-17T04:51:29.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/announcement/16-ประกาศรายชื่อผู้มีสิทธิเข้ารับการคัดเลือกพนักงานกระทรวงสาธารณสุข-ตำแหน่งพยาบาลลว</loc>
+    <lastmod>2026-08-04T14:12:30.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/activities/30-ซ้อมแผนปฏิบัติการฉุกเฉิน-อุบัติเหตุหมู่-ประจำปี-2569</loc>
+    <lastmod>2026-09-06T11:25:52.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/activities/18</loc>
-    <lastmod>2026-08-26T07:25:28.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/activities/29-การอบรม-หลักสูตร-วิทยากร-ครู-ก-Phimai-Diabetes-Remission-Training-Center</loc>
+    <lastmod>2026-08-25T06:51:38.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/activities/17</loc>
-    <lastmod>2026-08-26T07:25:28.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/activities/28-โรงพยาบาลปง-ประชุมคณะกรรมการพัฒนาคุณภาพโรงพยาบาล-HA</loc>
+    <lastmod>2026-08-25T06:51:45.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/activities/12</loc>
-    <lastmod>2026-08-26T07:25:28.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/activities/20-วันแม่แห่งชาติ</loc>
+    <lastmod>2026-08-20T13:08:48.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/activities/11</loc>
-    <lastmod>2026-08-26T07:25:28.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/activities/18-วันพยาบาล</loc>
+    <lastmod>2026-09-06T11:25:19.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
-    <loc>https://ponghospital.moph.go.th/activities/10</loc>
-    <lastmod>2026-08-26T07:49:42.000Z</lastmod>
+    <loc>https://ponghospital.moph.go.th/activities/17-วันนวมินทรมหาราช</loc>
+    <lastmod>2026-08-06T02:57:46.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/activities/12-วันปิยมหาราช</loc>
+    <lastmod>2026-08-25T06:51:07.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/activities/11-โครงการเดิน-วิ่ง-ปั่น-ป้องกันอัมพาต-ครั้งที่-10</loc>
+    <lastmod>2026-09-02T09:08:17.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://ponghospital.moph.go.th/activities/10-นิทรรศการ-โครงการเดิน-วิ่ง-ปั่น-ป้องกันอัมพาต-ครั้งที่-10</loc>
+    <lastmod>2026-01-30T02:46:41.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>

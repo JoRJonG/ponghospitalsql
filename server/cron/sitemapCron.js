@@ -3,6 +3,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { logger } from '../utils/logger.js'
+import { generateSlug } from '../utils/slugify.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const siteUrl = 'https://ponghospital.moph.go.th'
@@ -59,7 +60,7 @@ export async function generateSitemap() {
     // 2. Fetch Announcements
     try {
       const announcements = await query(`
-        SELECT id, updated_at, published_at 
+        SELECT id, title, updated_at, published_at 
         FROM announcements 
         WHERE is_published = 1 
           AND (published_at IS NULL OR published_at <= NOW()) 
@@ -68,7 +69,7 @@ export async function generateSitemap() {
       `)
       for (const item of announcements) {
         dynamicUrls.push({
-          loc: `${siteUrl}/announcements/${item.id}`,
+          loc: `${siteUrl}/announcement/${generateSlug(item.id, item.title)}`,
           priority: '0.80',
           changefreq: 'weekly',
           lastmod: formatDateISO(item.updated_at || item.published_at)
@@ -81,7 +82,7 @@ export async function generateSitemap() {
     // 3. Fetch Activities
     try {
       const activities = await query(`
-        SELECT id, updated_at, created_at 
+        SELECT id, title, updated_at, created_at 
         FROM activities 
         WHERE is_published = 1 
           AND (updated_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR) OR created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR))
@@ -89,7 +90,7 @@ export async function generateSitemap() {
       `)
       for (const item of activities) {
         dynamicUrls.push({
-          loc: `${siteUrl}/activities/${item.id}`,
+          loc: `${siteUrl}/activities/${generateSlug(item.id, item.title)}`,
           priority: '0.70',
           changefreq: 'weekly',
           lastmod: formatDateISO(item.updated_at || item.created_at)

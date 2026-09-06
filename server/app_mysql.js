@@ -346,6 +346,48 @@ export async function createServer() {
 
 
 
+  // 301 SEO Redirects for Announcements and Activities to include slugs
+  app.get(['/announcement/:id', '/announcements/:id'], async (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    const idParam = req.params.id
+    try {
+      const id = idParam.split('-')[0]
+      const announcement = await Announcement.findById(id)
+      if (announcement) {
+        const { generateSlug } = await import('./utils/slugify.js')
+        const correctSlugPath = `/announcement/${generateSlug(announcement._id, announcement.title)}`
+        // 301 Redirect if it doesn't match the correct slug precisely, or uses plural /announcements/
+        if (req.path !== correctSlugPath) {
+          const queryString = Object.keys(req.query).length > 0 ? req.url.substring(req.url.indexOf('?')) : ''
+          return res.redirect(301, correctSlugPath + queryString)
+        }
+      }
+    } catch (e) {
+      logger.error(`[SEO Redirect] Announcement ID ${idParam} error:`, e.message)
+    }
+    next()
+  })
+
+  app.get('/activities/:id', async (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    const idParam = req.params.id
+    try {
+      const id = idParam.split('-')[0]
+      const activity = await Activity.findById(id)
+      if (activity) {
+        const { generateSlug } = await import('./utils/slugify.js')
+        const correctSlugPath = `/activities/${generateSlug(activity._id, activity.title)}`
+        if (req.path !== correctSlugPath) {
+          const queryString = Object.keys(req.query).length > 0 ? req.url.substring(req.url.indexOf('?')) : ''
+          return res.redirect(301, correctSlugPath + queryString)
+        }
+      }
+    } catch (e) {
+      logger.error(`[SEO Redirect] Activity ID ${idParam} error:`, e.message)
+    }
+    next()
+  })
+
   // Serve built frontend (Vite output) if present
   app.use(express.static(distPath, {
     setHeaders: (res, filePath) => {
