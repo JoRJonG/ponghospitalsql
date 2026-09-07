@@ -544,15 +544,33 @@ export class Announcement {
     return result.affectedRows > 0
   }
 
-  static async addAttachment(announcementId, { buffer, filename, mimetype, kind }) {
+  static async addAttachment(announcementId, { buffer, tempFilePath, fileSize: inputFileSize, filename, mimetype, kind }) {
     await ensureSchema()
     await ensureUploadDir()
 
-    const fileSize = buffer.length
     const safeName = filename || `file_${Date.now()}`
+    let filePath = null
+    let fileSize = inputFileSize || 0
 
-    // Save to disk
-    const filePath = await saveFileToDisk(buffer, safeName)
+    if (tempFilePath) {
+      const ext = path.extname(safeName) || '.bin'
+      const uniqueName = `${crypto.randomUUID()}${ext}`
+      const destPath = path.join(UPLOAD_DIR, uniqueName)
+      await fs.copyFile(tempFilePath, destPath)
+      filePath = uniqueName
+      if (!fileSize) {
+        try {
+          const stat = await fs.stat(destPath)
+          fileSize = stat.size
+        } catch (e) {}
+      }
+      try { await fs.unlink(tempFilePath) } catch (e) {}
+    } else if (buffer) {
+      fileSize = buffer.length
+      filePath = await saveFileToDisk(buffer, safeName)
+    } else {
+      throw new Error('No file data or temp file path provided')
+    }
 
     // Determine next order
     const rows = await query('SELECT COALESCE(MAX(display_order), -1) as max_order FROM announcement_attachments WHERE announcement_id = ?', [announcementId])

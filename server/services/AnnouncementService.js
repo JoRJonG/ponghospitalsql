@@ -1,5 +1,5 @@
 import Announcement from '../models/mysql/Announcement.js'
-import { fileTypeFromBuffer } from 'file-type'
+import { fileTypeFromBuffer, fileTypeFromFile } from 'file-type'
 import { normalizeFilename } from '../utils/filename.js'
 import { sanitizeHtml, sanitizeText } from '../utils/sanitization.js'
 import { logger } from '../utils/logger.js'
@@ -66,16 +66,20 @@ export const AnnouncementService = {
   async addAttachment(id, file) {
     let kind = null
     try { 
-      kind = await fileTypeFromBuffer(file.buffer) 
+      if (file.buffer) {
+        kind = await fileTypeFromBuffer(file.buffer)
+      } else if (file.path) {
+        kind = await fileTypeFromFile(file.path)
+      }
     } catch (e) { 
-      logger.warn('[AnnouncementService] fileTypeFromBuffer failed:', e?.message) 
+      logger.warn('[AnnouncementService] fileType detection failed:', e?.message) 
     }
     
     const sniff = kind?.mime
-    const declared = file.mimetype
+    const declared = file.mimetype || ''
 
-    const isPdf = declared === 'application/pdf' || sniff === 'application/pdf' || file.originalname.toLowerCase().endsWith('.pdf')
-    const isImg = declared.startsWith('image/') && sniff && sniff.startsWith('image/')
+    const isPdf = declared === 'application/pdf' || sniff === 'application/pdf' || (file.originalname && file.originalname.toLowerCase().endsWith('.pdf'))
+    const isImg = declared.startsWith('image/') || (sniff && sniff.startsWith('image/'))
     
     if (!isPdf && !isImg) {
       throw new Error('Only PDF or image files are allowed')
@@ -86,6 +90,8 @@ export const AnnouncementService = {
 
     return await Announcement.addAttachment(id, {
       buffer: file.buffer,
+      tempFilePath: file.path,
+      fileSize: file.size,
       filename: fileName,
       mimetype: mimeType,
       kind: isPdf ? 'pdf' : 'image'

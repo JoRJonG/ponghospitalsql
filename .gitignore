@@ -33,3 +33,9 @@ dist-ssr
 
 # Persistent API cache (auto-generated, not for version control)
 server/.cache/
+
+# Uploads & temporary files
+uploads/
+
+# Local agents
+.agents/

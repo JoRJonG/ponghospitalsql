@@ -16,11 +16,13 @@ export function toPublicDTO(announcement) {
         category: announcement.category,
         categoryCode: announcement.categoryCode,
         publishedAt: announcement.publishedAt,
-        // กรอง attachments - ส่งเฉพาะ id, url, kind
+        // กรอง attachments - ส่งเฉพาะ id, url, kind, name, bytes
         attachments: announcement.attachments?.map(att => ({
             id: att.id,
             url: att.url,
-            kind: att.kind
+            kind: att.kind,
+            name: att.name,
+            bytes: att.bytes
         })) || [],
         viewCount: announcement.viewCount || 0,
         createdAt: announcement.createdAt,
@@ -42,12 +44,13 @@ export function toAdminDTO(announcement) {
         categoryCode: announcement.categoryCode,
         publishedAt: announcement.publishedAt,
         isPublished: announcement.isPublished,
-        // กรอง attachments - ส่งเฉพาะ id, url, kind, name
+        // กรอง attachments - ส่งเฉพาะ id, url, kind, name, bytes
         attachments: announcement.attachments?.map(att => ({
             id: att.id,
             url: att.url,
             kind: att.kind,
-            name: att.name
+            name: att.name,
+            bytes: att.bytes
         })) || [],
         viewCount: announcement.viewCount || 0,
         createdAt: announcement.createdAt,
