@@ -9,8 +9,10 @@ export const SlideController = {
     }
     try {
       // List slides, using DTO based on auth
-      const list = await SlideService.findAll()
-      const isAdmin = Boolean(req.user)
+      const isPublicRequest = req.query.public === 'true'
+      const isAdmin = Boolean(req.user) && !isPublicRequest
+      const filter = isAdmin ? {} : { status: 'published' }
+      const list = await SlideService.findAll(filter)
       const data = isAdmin ? toAdminDTOList(list) : toPublicDTOList(list)
       res.json(data)
     } catch (e) {

@@ -10,8 +10,8 @@ export const SlideService = {
     return await Slide.countDocuments()
   },
 
-  async findAll() {
-    return await Slide.find()
+  async findAll(filter = {}) {
+    return await Slide.find(filter)
   },
 
   async findById(id) {

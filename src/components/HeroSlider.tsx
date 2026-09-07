@@ -47,7 +47,7 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
 
   // สร้าง fetcher function ด้วย useCallback เพื่อป้องกันการสร้างใหม่ทุก render
   const slidesFetcher = useCallback(async () => {
-    const response = await fetch('/api/slides')
+    const response = await fetch('/api/slides?public=true')
     if (!response.ok) {
       throw new Error('Failed to load slides')
     }
@@ -56,14 +56,13 @@ export default function HeroSlider({ slides: provided }: { slides?: Slide[] }) {
 
   // ใช้ useSWR สำหรับโหลด slides จาก API (ถ้าไม่มี provided slides)
   const { data: apiSlides } = useSWR<ApiSlide[]>(
-    provided ? null : '/api/slides', // ถ้ามี provided slides ไม่ต้องเรียก API
+    provided ? null : '/api/slides?public=true', // ถ้ามี provided slides ไม่ต้องเรียก API
     slidesFetcher,
     {
-      // ข้อมูล slides ไม่ค่อยเปลี่ยน
-      staleTime: 300000, // 5 นาที
+      staleTime: 60000, // ลดเหลือ 1 นาที
       cacheTime: 1800000, // 30 นาที
-      revalidateOnFocus: false, // ไม่รีเฟรชเมื่อกลับมาที่หน้าต่าง
-      revalidateOnReconnect: false, // ไม่รีเฟรชเมื่ออินเทอร์เน็ตกลับมา
+      revalidateOnFocus: true, // รีเฟรชเมื่อสลับหน้าต่างกลับมาเพื่อให้ Admin เห็นการอัปเดตทันที
+      revalidateOnReconnect: true,
     }
   )
 
