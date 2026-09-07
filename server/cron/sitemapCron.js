@@ -51,8 +51,7 @@ export async function generateSitemap() {
       { loc: `${siteUrl}/activities`, priority: '0.70', changefreq: 'weekly', lastmod: today },
       { loc: `${siteUrl}/documents`, priority: '0.75', changefreq: 'weekly', lastmod: today },
 
-      { loc: `${siteUrl}/air-quality`, priority: '0.80', changefreq: 'hourly', lastmod: today },
-      { loc: `${siteUrl}/it-center`, priority: '0.75', changefreq: 'monthly', lastmod: today }
+      { loc: `${siteUrl}/air-quality`, priority: '0.80', changefreq: 'hourly', lastmod: today }
     ]
 
     let dynamicUrls = []
