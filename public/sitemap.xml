@@ -5,99 +5,93 @@
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://ponghospital.moph.go.th/</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/jobs</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/news</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/notices</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcements/procurement</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/management</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/ita</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/about</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/about/infographic</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/contact</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/activities</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/documents</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/air-quality</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/it-center</loc>
-    <lastmod>2026-09-07T02:00:05.490Z</lastmod>
+    <lastmod>2026-09-07T02:07:56.830Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://ponghospital.moph.go.th/announcement/40-ทดสอบ</loc>
-    <lastmod>2026-09-07T01:13:57.000Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://ponghospital.moph.go.th/announcement/34-ประกาศรับสมัครลูกจ้างชั่วคราวรายวัน-ตำแหน่งพนักงานช่วยเหลือคนไข้</loc>

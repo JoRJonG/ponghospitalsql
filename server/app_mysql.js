@@ -356,10 +356,14 @@ export async function createServer() {
       if (announcement) {
         const { generateSlug } = await import('./utils/slugify.js')
         const correctSlugPath = `/announcement/${generateSlug(announcement._id, announcement.title)}`
+        
+        const currentPathDecoded = decodeURIComponent(req.path)
+        const correctPathDecoded = decodeURIComponent(correctSlugPath)
+
         // 301 Redirect if it doesn't match the correct slug precisely, or uses plural /announcements/
-        if (req.path !== correctSlugPath) {
+        if (currentPathDecoded !== correctPathDecoded) {
           const queryString = Object.keys(req.query).length > 0 ? req.url.substring(req.url.indexOf('?')) : ''
-          return res.redirect(301, correctSlugPath + queryString)
+          return res.redirect(301, encodeURI(correctSlugPath) + queryString)
         }
       }
     } catch (e) {
@@ -377,9 +381,13 @@ export async function createServer() {
       if (activity) {
         const { generateSlug } = await import('./utils/slugify.js')
         const correctSlugPath = `/activities/${generateSlug(activity._id, activity.title)}`
-        if (req.path !== correctSlugPath) {
+        
+        const currentPathDecoded = decodeURIComponent(req.path)
+        const correctPathDecoded = decodeURIComponent(correctSlugPath)
+
+        if (currentPathDecoded !== correctPathDecoded) {
           const queryString = Object.keys(req.query).length > 0 ? req.url.substring(req.url.indexOf('?')) : ''
-          return res.redirect(301, correctSlugPath + queryString)
+          return res.redirect(301, encodeURI(correctSlugPath) + queryString)
         }
       }
     } catch (e) {
