@@ -147,7 +147,14 @@ export function useSWR<T = unknown>(
             setIsValidating(true)
 
             // สร้าง request ใหม่ โดยใช้ fetcher จาก ref
-            const request = fetcherRef.current()
+            const baseRequest = fetcherRef.current()
+            
+            // เพิ่ม Timeout fallback ป้องกัน Promise ค้างแบบไม่มีที่สิ้นสุดเวลา browser throttle network
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('SWR Request Timeout')), 15000)
+            })
+
+            const request = Promise.race([baseRequest, timeoutPromise])
             ongoingRequests.set(key, request)
 
             try {
