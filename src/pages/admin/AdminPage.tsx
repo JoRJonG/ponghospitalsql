@@ -377,7 +377,9 @@ export default function AdminPage() {
       if (Array.isArray(data)) {
         setSlideList(data)
         const totalPages = parseInt(response.headers.get('X-Total-Pages') || '1', 10)
-        const totalCount = parseInt(response.headers.get('X-Total-Count') || '0', 10)
+        const totalCount = response.headers.has('X-Total-Count') 
+          ? parseInt(response.headers.get('X-Total-Count') || '0', 10) 
+          : data.length
         setSlideTotalPages(totalPages)
         setSlideCount(totalCount)
       } else {
