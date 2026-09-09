@@ -14,6 +14,7 @@ import {
   getLastDayOfThaiMonth,
   getAmountForProfession,
   numberToThaiText,
+  resolvePositionTitle,
 } from './utils'
 
 type Props = {
@@ -222,7 +223,7 @@ const S11PrintPage = ({
 
           <div style={{ marginBottom: '8pt', whiteSpace: 'pre-line' }}>
             <span>
-              ข้าพเจ้าชื่อ{formData.name ? ` ${formData.title}${formData.name} ` : '.............'}นามสกุล{formData.surname ? ` ${formData.surname} ` : '.............'}ตำแหน่ง{formData.position ? ` ${formData.position}${formData.positionLevel ?? ''} ` : '.............'}
+              ข้าพเจ้าชื่อ{formData.name ? ` ${formData.title}${formData.name} ` : '.............'}นามสกุล{formData.surname ? ` ${formData.surname} ` : '.............'}ตำแหน่ง{formData.position ? ` ${resolvePositionTitle(formData.title, formData.position, formData.positionLevel ?? '')} ` : '.............'}
             </span>
             <br />
             <span>

@@ -196,6 +196,22 @@ export const numberToThaiText = (num: number): string => {
   return `${result}บาทถ้วน`
 }
 
+// ── Position Title Resolver ───────────────────────────────────
+/**
+ * แปลงชื่อตำแหน่งแพทย์ตามคำนำหน้าชื่อ
+ *   นาย        + แพทย์ → นายแพทย์[ระดับ]
+ *   นาง/นางสาว + แพทย์ → แพทย์[ระดับ]  (คงเดิม)
+ */
+export const resolvePositionTitle = (
+  title: string,
+  position: string,
+  positionLevel: string,
+): string => {
+  if (!position) return ''
+  const base = (title === 'นาย' && position === 'แพทย์') ? 'นายแพทย์' : position
+  return positionLevel ? `${base}${positionLevel}` : base
+}
+
 // ── Date/Month Utilities ──────────────────────────────────────
 export const getNext12MonthsWithYear = (startMonth: string, startYear: number) => {
   const fallbackIndex = 0
@@ -211,64 +227,88 @@ export const getNext12MonthsWithYear = (startMonth: string, startYear: number) =
 }
 
 /**
- * คำนวณผลต่างวันที่ โดยถ้า endDate ว่างจะใช้วันปัจจุบันแทน
+ * คำนวณผลต่างวันที่แบบ Inclusive (นับรวมทั้งวันเริ่มและวันสิ้นสุด)
+ *
+ * Algorithm: Calendar-based subtraction — ลบ ปี/เดือน/วัน โดยตรง
+ * แล้ว borrow กลับเมื่อค่าติดลบ (ไม่ใช้การนับวันดิบ)
+ *
+ * ตัวอย่าง:
+ *   1 มิ.ย. – 30 มิ.ย.   →  1 เดือน  0 วัน
+ *   1 ม.ค. – 31 ธ.ค.   →  1 ปี  0 เดือน  0 วัน
+ *   1 ส.ค. – 30 พ.ย. (ข้ามปี)  →  1 ปี  4 เดือน  0 วัน
  */
 export const calculateDateDifference = (
   startDate: string,
   endDate: string,
   useNowIfEndEmpty = false,
 ): { years: number; months: number; days: number } => {
-  if (!startDate) return { years: 0, months: 0, days: 0 }
-  const start = new Date(startDate)
-  if (Number.isNaN(start.getTime())) return { years: 0, months: 0, days: 0 }
+  const ZERO = { years: 0, months: 0, days: 0 }
+  if (!startDate) return ZERO
 
-  let end: Date
-  if (!endDate || endDate === '') {
-    if (useNowIfEndEmpty) {
-      end = new Date()
-    } else {
-      return { years: 0, months: 0, days: 0 }
-    }
+  const s = new Date(startDate)
+  if (Number.isNaN(s.getTime())) return ZERO
+
+  let endResolved: Date
+  if (!endDate) {
+    if (useNowIfEndEmpty) endResolved = new Date()
+    else return ZERO
   } else {
-    end = new Date(endDate)
-    if (Number.isNaN(end.getTime())) return { years: 0, months: 0, days: 0 }
+    endResolved = new Date(endDate)
+    if (Number.isNaN(endResolved.getTime())) return ZERO
   }
 
-  if (start > end) return { years: 0, months: 0, days: 0 }
+  if (s > endResolved) return ZERO
 
-  // นับวันแบบ Inclusive (รวมวันสุดท้ายด้วย) จึงต้องบวก endDate ไปอีก 1 วัน
-  end.setDate(end.getDate() + 1)
+  // Inclusive end → สร้าง exclusive end ใหม่ (ไม่ mutate ตัวแปรเดิม)
+  // ใช้ Date constructor เพื่อให้ JS handle overflow เองอัตโนมัติ
+  // เช่น new Date(2021, 5, 31) → 1 ก.ค. 2021 โดยอัตโนมัติ
+  const excl = new Date(
+    endResolved.getFullYear(),
+    endResolved.getMonth(),
+    endResolved.getDate() + 1,
+  )
 
-  let years = end.getFullYear() - start.getFullYear()
-  let monthsDiff = end.getMonth() - start.getMonth()
-  let daysDiff = end.getDate() - start.getDate()
+  let y = excl.getFullYear() - s.getFullYear()
+  let m = excl.getMonth()    - s.getMonth()
+  let d = excl.getDate()     - s.getDate()
 
-  if (daysDiff < 0) {
-    monthsDiff--
-    const prevMonthLastDay = new Date(end.getFullYear(), end.getMonth(), 0).getDate()
-    daysDiff += prevMonthLastDay
+  // Borrow จากเดือน ถ้าวันติดลบ
+  if (d < 0) {
+    m--
+    // วันสุดท้ายของเดือนก่อนหน้าของ excl (ใช้ excl ที่ถูกต้อง ไม่ใช่ end ที่ถูก mutate)
+    d += new Date(excl.getFullYear(), excl.getMonth(), 0).getDate()
   }
-  if (monthsDiff < 0) {
-    years--
-    monthsDiff += 12
+  // Borrow จากปี ถ้าเดือนติดลบ
+  if (m < 0) {
+    y--
+    m += 12
   }
 
-  return {
-    years: Math.max(0, years),
-    months: Math.max(0, monthsDiff),
-    days: Math.max(0, daysDiff),
-  }
+  return { years: Math.max(0, y), months: Math.max(0, m), days: Math.max(0, d) }
 }
 
-export const aggregateDurations = (durations: { years: number; months: number; days: number }[]) => {
+/**
+ * รวมช่วงเวลาหลายช่วง พร้อม normalize แบบ Cascade ตามมาตรฐานราชการไทย
+ *   30 วัน = 1 เดือน  |  12 เดือน = 1 ปี
+ *
+ * หมายเหตุ: ใช้ 30 วัน/เดือน ตามระเบียบกรมบัญชีกลาง
+ * (ไม่ใช้จำนวนวันจริงของแต่ละเดือน เนื่องจากไม่มี reference date สำหรับ aggregate)
+ */
+export const aggregateDurations = (
+  durations: { years: number; months: number; days: number }[],
+): { years: number; months: number; days: number } => {
   let y = 0, m = 0, d = 0
-  for (const dur of durations) {
-    y += dur.years
-    m += dur.months
-    d += dur.days
+
+  for (const { years, months, days } of durations) {
+    y += years
+    m += months
+    d += days
   }
-  // ไม่ปัดวันเป็นเดือน — แสดงตามจริง (วันอาจมากกว่า 30 ได้ในกรณีรวมหลายช่วง)
-  if (m >= 12) { y += Math.floor(m / 12); m = m % 12 }
+
+  // Cascade normalize: วัน → เดือน → ปี (ต้องทำตามลำดับ)
+  m += Math.floor(d / 30); d %= 30
+  y += Math.floor(m / 12); m %= 12
+
   return { years: y, months: m, days: d }
 }
 
